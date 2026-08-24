@@ -10,12 +10,13 @@
   pointer-events: none;
 }
 
-/* BED — one soft displacement pulse per visit. */
+/* BED — one soft displacement pulse per visit. A real localized blur/warp
+   on the video behind it, not just an opacity wash. */
 .echo-bed {
-  background: radial-gradient(ellipse at 42% 55%, rgba(244, 240, 232, 0.06), transparent 65%);
-  opacity: 0;
-  filter: blur(0px);
-  transform: translateY(0) scaleY(1);
+  backdrop-filter: blur(0px) brightness(1);
+  -webkit-backdrop-filter: blur(0px) brightness(1);
+  transform: scale(1) skewX(0deg);
+  transform-origin: 40% 60%;
 }
 
 .echo-bed.is-pulsing {
@@ -24,61 +25,63 @@
 
 @keyframes echo-bed-pulse {
   0% {
-    opacity: 0;
-    filter: blur(0px);
-    transform: translateY(0) scaleY(1);
+    backdrop-filter: blur(0px) brightness(1);
+    -webkit-backdrop-filter: blur(0px) brightness(1);
+    transform: scale(1) skewX(0deg);
   }
-  32% {
-    opacity: 0.8;
-    filter: blur(0.6px);
-    transform: translateY(1.1px) scaleY(1.006);
+  30% {
+    backdrop-filter: blur(4px) brightness(1.1);
+    -webkit-backdrop-filter: blur(4px) brightness(1.1);
+    transform: scale(1.016) skewX(0.7deg);
   }
-  68% {
-    opacity: 0.35;
-    filter: blur(0.25px);
-    transform: translateY(0.35px) scaleY(1.002);
+  65% {
+    backdrop-filter: blur(2px) brightness(1.05);
+    -webkit-backdrop-filter: blur(2px) brightness(1.05);
+    transform: scale(1.006) skewX(0.2deg);
   }
   100% {
-    opacity: 0;
-    filter: blur(0px);
-    transform: translateY(0) scaleY(1);
+    backdrop-filter: blur(0px) brightness(1);
+    -webkit-backdrop-filter: blur(0px) brightness(1);
+    transform: scale(1) skewX(0deg);
   }
 }
 
-/* MIRROR — a reflection that trails the cursor. */
-.echo-mirror {
-  --mx: 50%;
-  --my: 50%;
-  background: radial-gradient(circle at var(--mx) var(--my), rgba(244, 240, 232, 0.1), transparent 55%);
+/* Small discs that physically track the cursor in real pixels (positioned
+   via JS transform), rather than a gradient hotspot inside a static rect. */
+.echo-disc {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  pointer-events: none;
   opacity: 0;
-  transition: opacity 1.2s var(--ease-soft);
+  transition: opacity 0.5s var(--ease-soft);
+  will-change: transform, opacity;
 }
 
-.echo-mirror.is-active {
+.echo-disc.is-active {
   opacity: 1;
 }
 
-/* CEILING — a slight lift in the light while the veil thins. */
-.echo-ceiling {
-  background: radial-gradient(ellipse at 50% 20%, rgba(210, 226, 236, 0.09), transparent 62%);
-  opacity: 0;
-  mix-blend-mode: screen;
-  transition: opacity 1.3s var(--ease-soft);
+/* MIRROR — a clearly visible distortion disc that trails the cursor. */
+.echo-mirror-disc {
+  backdrop-filter: blur(7px) saturate(1.7) contrast(1.2) brightness(1.16);
+  -webkit-backdrop-filter: blur(7px) saturate(1.7) contrast(1.2) brightness(1.16);
+  mask-image: radial-gradient(circle, black 48%, transparent 76%);
+  -webkit-mask-image: radial-gradient(circle, black 48%, transparent 76%);
+  box-shadow: inset 0 0 50px rgba(244, 240, 232, 0.14);
 }
 
-.echo-ceiling.is-active {
-  opacity: 1;
-  animation: echo-ceiling-shimmer 3.4s ease-in-out infinite;
-}
-
-@keyframes echo-ceiling-shimmer {
-  0%,
-  100% {
-    filter: brightness(1);
-  }
-  50% {
-    filter: brightness(1.09);
-  }
+/* CEILING — a magnifying, more-saturated disc directly under the cursor. */
+.echo-ceiling-disc {
+  width: 170px;
+  height: 170px;
+  backdrop-filter: saturate(1.55) contrast(1.22) brightness(1.16);
+  -webkit-backdrop-filter: saturate(1.55) contrast(1.22) brightness(1.16);
+  mask-image: radial-gradient(circle, black 42%, transparent 74%);
+  -webkit-mask-image: radial-gradient(circle, black 42%, transparent 74%);
 }
 
 /* WINDOW — the exterior dims and restores in slow lockstep with dwell. */
@@ -87,9 +90,11 @@
   background: rgba(3, 5, 7, var(--darken));
 }
 
-/* LAMP — a single fluctuation, replays only after the cursor leaves. */
+/* LAMP — a single warm fluctuation, replays only after the cursor leaves. */
 .echo-lamp {
-  background: radial-gradient(circle at 48% 42%, rgba(255, 214, 168, 0.24), transparent 60%);
+  background: radial-gradient(circle at 48% 42%, rgba(255, 214, 168, 0.34), transparent 62%);
+  backdrop-filter: brightness(1) saturate(1);
+  -webkit-backdrop-filter: brightness(1) saturate(1);
   opacity: 0;
 }
 
@@ -100,17 +105,27 @@
 @keyframes echo-lamp-flicker {
   0% {
     opacity: 0;
+    backdrop-filter: brightness(1) saturate(1);
+    -webkit-backdrop-filter: brightness(1) saturate(1);
   }
   22% {
-    opacity: 0.85;
+    opacity: 0.95;
+    backdrop-filter: brightness(1.22) saturate(1.15);
+    -webkit-backdrop-filter: brightness(1.22) saturate(1.15);
   }
   40% {
-    opacity: 0.22;
+    opacity: 0.3;
+    backdrop-filter: brightness(1.05) saturate(1.05);
+    -webkit-backdrop-filter: brightness(1.05) saturate(1.05);
   }
   58% {
-    opacity: 0.7;
+    opacity: 0.8;
+    backdrop-filter: brightness(1.16) saturate(1.1);
+    -webkit-backdrop-filter: brightness(1.16) saturate(1.1);
   }
   100% {
     opacity: 0;
+    backdrop-filter: brightness(1) saturate(1);
+    -webkit-backdrop-filter: brightness(1) saturate(1);
   }
 }

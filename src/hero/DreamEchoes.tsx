@@ -14,8 +14,10 @@ const BED_PULSE_MS = 1500;
 
 /**
  * Hidden atmospheric interactions. No hotspots, no labels — the cursor must
- * dwell in a zone for a few hundred ms before anything happens, and every
- * effect is a visual overlay only (nothing here touches video playback).
+ * dwell in a zone for a few hundred ms before anything happens. Mirror and
+ * ceiling are small backdrop-filter discs that physically track the cursor
+ * position (in real pixels, not a static gradient inside a fixed rect) so
+ * the distortion is genuinely localized to where the cursor is.
  */
 export default function DreamEchoes({ pointerRef, echoRef }: DreamEchoesProps) {
   const bedRef = useRef<HTMLDivElement>(null);
@@ -32,7 +34,8 @@ export default function DreamEchoes({ pointerRef, echoRef }: DreamEchoesProps) {
     const fired = { bed: false, lamp: false };
     let bedPulseTimer: ReturnType<typeof setTimeout> | undefined;
     let lampFlickerTimer: ReturnType<typeof setTimeout> | undefined;
-    const mirrorLag = { x: 0.5, y: 0.5 };
+    const mirrorPos = { x: 0, y: 0 };
+    let mirrorInit = false;
     let windowDarken = 0;
 
     function frame(now: number) {
@@ -40,6 +43,8 @@ export default function DreamEchoes({ pointerRef, echoRef }: DreamEchoesProps) {
       lastT = now;
 
       const pointer = pointerRef.current;
+      const px = pointer ? pointer.x : -1;
+      const py = pointer ? pointer.y : -1;
       const fx = pointer ? pointer.x / window.innerWidth : -1;
       const fy = pointer ? pointer.y / window.innerHeight : -1;
 
@@ -63,7 +68,7 @@ export default function DreamEchoes({ pointerRef, echoRef }: DreamEchoesProps) {
         fired.bed = false;
       }
 
-      // MIRROR — continuous reflection that trails the cursor.
+      // MIRROR — a small distortion disc that trails the cursor with a lag.
       const mirrorZone = ECHO_ZONES.mirror;
       const insideMirror = isInsideZone(mirrorZone, fx, fy);
       if (insideMirror) {
@@ -74,18 +79,22 @@ export default function DreamEchoes({ pointerRef, echoRef }: DreamEchoesProps) {
       const mirrorActive = dwell.mirror >= mirrorZone.dwellMs;
       const mirrorEl = mirrorRef.current;
       if (mirrorEl) {
-        mirrorEl.classList.toggle('is-active', mirrorActive);
         if (mirrorActive) {
-          const localX = (fx - mirrorZone.xMin) / (mirrorZone.xMax - mirrorZone.xMin);
-          const localY = (fy - mirrorZone.yMin) / (mirrorZone.yMax - mirrorZone.yMin);
-          mirrorLag.x += (localX - mirrorLag.x) * 0.035;
-          mirrorLag.y += (localY - mirrorLag.y) * 0.035;
-          mirrorEl.style.setProperty('--mx', `${(mirrorLag.x * 100).toFixed(1)}%`);
-          mirrorEl.style.setProperty('--my', `${(mirrorLag.y * 100).toFixed(1)}%`);
+          if (!mirrorInit) {
+            mirrorPos.x = px;
+            mirrorPos.y = py;
+            mirrorInit = true;
+          }
+          mirrorPos.x += (px - mirrorPos.x) * 0.045;
+          mirrorPos.y += (py - mirrorPos.y) * 0.045;
+          mirrorEl.style.transform = `translate3d(${mirrorPos.x}px, ${mirrorPos.y}px, 0) translate(-50%, -50%)`;
+        } else {
+          mirrorInit = false;
         }
+        mirrorEl.classList.toggle('is-active', mirrorActive);
       }
 
-      // CEILING — locally thins the Memory Veil and lifts the light a touch.
+      // CEILING — a small magnifying disc directly under the cursor.
       const ceilingZone = ECHO_ZONES.ceiling;
       if (isInsideZone(ceilingZone, fx, fy)) {
         dwell.ceiling += dt;
@@ -93,7 +102,13 @@ export default function DreamEchoes({ pointerRef, echoRef }: DreamEchoesProps) {
         dwell.ceiling = 0;
       }
       const ceilingActive = dwell.ceiling >= ceilingZone.dwellMs;
-      ceilingRef.current?.classList.toggle('is-active', ceilingActive);
+      const ceilingEl = ceilingRef.current;
+      if (ceilingEl) {
+        if (ceilingActive) {
+          ceilingEl.style.transform = `translate3d(${px}px, ${py}px, 0) translate(-50%, -50%) scale(1.18)`;
+        }
+        ceilingEl.classList.toggle('is-active', ceilingActive);
+      }
       if (echoRef.current) {
         const target = ceilingActive ? 1 : 0;
         echoRef.current.ceilingIntensity += (target - echoRef.current.ceilingIntensity) * 0.05;
@@ -106,8 +121,8 @@ export default function DreamEchoes({ pointerRef, echoRef }: DreamEchoesProps) {
       } else {
         dwell.window = 0;
       }
-      const windowTarget = dwell.window >= windowZone.dwellMs ? 0.24 : 0;
-      windowDarken += (windowTarget - windowDarken) * 0.012;
+      const windowTarget = dwell.window >= windowZone.dwellMs ? 0.13 : 0;
+      windowDarken += (windowTarget - windowDarken) * 0.07;
       windowRef.current?.style.setProperty('--darken', windowDarken.toFixed(3));
 
       // LAMP — a single fluctuation, resets only once the cursor leaves.
@@ -140,10 +155,10 @@ export default function DreamEchoes({ pointerRef, echoRef }: DreamEchoesProps) {
   return (
     <div className="dream-echoes" aria-hidden="true">
       <div ref={bedRef} className="echo-zone echo-bed" style={zoneStyle(ECHO_ZONES.bed)} />
-      <div ref={mirrorRef} className="echo-zone echo-mirror" style={zoneStyle(ECHO_ZONES.mirror)} />
-      <div ref={ceilingRef} className="echo-zone echo-ceiling" style={zoneStyle(ECHO_ZONES.ceiling)} />
       <div ref={windowRef} className="echo-zone echo-window" style={zoneStyle(ECHO_ZONES.window)} />
       <div ref={lampRef} className="echo-zone echo-lamp" style={zoneStyle(ECHO_ZONES.lamp)} />
+      <div ref={mirrorRef} className="echo-disc echo-mirror-disc" />
+      <div ref={ceilingRef} className="echo-disc echo-ceiling-disc" />
     </div>
   );
 }

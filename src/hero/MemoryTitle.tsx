@@ -59,8 +59,8 @@ export default function MemoryTitle({ revealed, dissolving = false, pointerRef }
           // amplitude is zero at rest and only grows near the cursor.
           const osc1 = 0.5 + 0.5 * Math.sin(t * 1.2 + phase);
           const osc2 = 0.5 + 0.5 * Math.sin(t * 0.8 + phase * 1.7 + 2.1);
-          const blur = proximity * (0.3 + 0.9 * osc1);
-          const dissolve = proximity * (0.04 + 0.14 * osc2);
+          const blur = proximity * (0.5 + 1.6 * osc1);
+          const dissolve = proximity * (0.08 + 0.26 * osc2);
 
           span.style.setProperty('--prox', proximity.toFixed(3));
           span.style.setProperty('--m-blur', blur.toFixed(3));
