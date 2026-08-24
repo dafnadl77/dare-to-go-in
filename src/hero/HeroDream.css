@@ -1,0 +1,48 @@
+.hero-dream {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--dream-black);
+}
+
+.hero-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 42%, rgba(4, 5, 4, 0.4) 100%);
+}
+
+.intro-black-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: var(--dream-black);
+  opacity: 1;
+  transition: opacity 3.4s cubic-bezier(0.6, 0, 0.4, 1);
+}
+
+.intro-black-veil.is-fading {
+  opacity: 0;
+}
+
+.hero-ui-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  will-change: transform;
+}
+
+.hero-ui-stack {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.75rem, 5vh, 3.25rem);
+  padding: 6vh 5vw;
+}

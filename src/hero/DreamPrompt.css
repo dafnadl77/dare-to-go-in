@@ -1,0 +1,25 @@
+.dream-prompt {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: clamp(0.7rem, 1.4vw, 0.85rem);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral);
+  text-align: center;
+  opacity: 0;
+  filter: blur(6px);
+  transform: translateY(6px);
+  transition:
+    opacity 1.6s var(--ease-memory),
+    filter 1.6s var(--ease-memory),
+    transform 1.6s var(--ease-memory);
+  pointer-events: none;
+  user-select: none;
+}
+
+.dream-prompt.is-revealed {
+  opacity: 0.85;
+  filter: blur(0);
+  transform: translateY(0);
+}

@@ -1,0 +1,61 @@
+.custom-cursor {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+}
+
+.cc-dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--dream-white);
+  will-change: transform;
+}
+
+.cc-ring {
+  --hold-progress: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 240, 232, 0.42);
+  background: radial-gradient(
+    circle,
+    rgba(244, 240, 232, calc(0.05 + var(--hold-progress) * 0.1)) 0%,
+    transparent 70%
+  );
+  will-change: transform, width, height;
+  transition:
+    width 0.45s var(--ease-memory),
+    height 0.45s var(--ease-memory),
+    border-color 0.45s var(--ease-soft),
+    opacity 0.3s ease;
+}
+
+.cc-ring.is-hover {
+  width: 64px;
+  height: 64px;
+  border-color: rgba(244, 240, 232, 0.75);
+}
+
+.custom-cursor.is-holding .cc-ring {
+  width: calc(64px + var(--hold-progress) * 10px);
+  height: calc(64px + var(--hold-progress) * 10px);
+  border-color: rgba(244, 240, 232, 0.9);
+  transition:
+    width 0.1s linear,
+    height 0.1s linear,
+    border-color 0.3s ease;
+}
+
+@media (max-width: 767px), (hover: none) {
+  .custom-cursor {
+    display: none;
+  }
+}

@@ -1,0 +1,150 @@
+.memory-title {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 0.5em;
+  margin: 0;
+  padding: 0 0.4em;
+  max-width: 90vw;
+  text-align: center;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-optical-sizing: auto;
+  font-size: clamp(2.6rem, 8.2vw, 7.5rem);
+  letter-spacing: 0.01em;
+  line-height: 1.02;
+  color: var(--dream-white);
+  text-shadow: 0 0.04em 0.6em rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  user-select: none;
+}
+
+.mt-word {
+  display: inline-flex;
+  white-space: nowrap;
+}
+
+.mt-char {
+  --prox: 0;
+  display: inline-block;
+  opacity: 0;
+  filter: blur(14px);
+  transform: translateY(0.08em) scale(1.015);
+  will-change: opacity, filter, transform;
+  transition:
+    filter 0.5s var(--ease-soft),
+    opacity 0.5s var(--ease-soft);
+}
+
+.memory-title.is-revealed .mt-char--a {
+  animation: memory-resolve-a var(--dur) var(--delay) var(--ease-memory) forwards;
+}
+.memory-title.is-revealed .mt-char--b {
+  animation: memory-resolve-b var(--dur) var(--delay) var(--ease-memory) forwards;
+}
+.memory-title.is-revealed .mt-char--c {
+  animation: memory-resolve-c var(--dur) var(--delay) var(--ease-memory) forwards;
+}
+
+.memory-title.is-settled .mt-char--a,
+.memory-title.is-settled .mt-char--b,
+.memory-title.is-settled .mt-char--c {
+  animation: none;
+  transform: none;
+  filter: blur(calc(0.55px - var(--prox) * 0.55px));
+  opacity: calc(0.93 + var(--prox) * 0.07);
+}
+
+@keyframes memory-resolve-a {
+  0% {
+    opacity: 0;
+    filter: blur(16px);
+    transform: translateY(0.1em) scale(1.02);
+  }
+  22% {
+    opacity: 0.5;
+    filter: blur(7px);
+  }
+  38% {
+    opacity: 0.18;
+    filter: blur(11px);
+  }
+  58% {
+    opacity: 0.82;
+    filter: blur(2.5px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes memory-resolve-b {
+  0% {
+    opacity: 0;
+    filter: blur(18px);
+    transform: translateY(0.12em) scale(1.03);
+  }
+  16% {
+    opacity: 0.4;
+    filter: blur(9px);
+  }
+  30% {
+    opacity: 0.1;
+    filter: blur(13px);
+  }
+  46% {
+    opacity: 0.7;
+    filter: blur(4px);
+  }
+  62% {
+    opacity: 0.25;
+    filter: blur(9px);
+  }
+  80% {
+    opacity: 0.88;
+    filter: blur(1.5px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes memory-resolve-c {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(0.06em) scale(1.01);
+  }
+  40% {
+    opacity: 0.85;
+    filter: blur(1.5px);
+  }
+  55% {
+    opacity: 0.5;
+    filter: blur(5px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mt-char {
+    transition: none;
+  }
+  .memory-title.is-revealed .mt-char--a,
+  .memory-title.is-revealed .mt-char--b,
+  .memory-title.is-revealed .mt-char--c {
+    animation: none;
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
