@@ -9,32 +9,34 @@ interface DreamEchoesProps {
   echoRef: RefObject<EchoState>;
 }
 
+const LAMP_FLICKER_MS = 650;
+const BED_PULSE_MS = 1500;
+
 /**
  * Hidden atmospheric interactions. No hotspots, no labels — the cursor must
- * dwell in a zone for several hundred ms before anything happens. The room
- * doesn't react; it reveals things that were already there.
+ * dwell in a zone for a few hundred ms before anything happens. Mirror and
+ * ceiling are small backdrop-filter discs that physically track the cursor
+ * position (in real pixels, not a static gradient inside a fixed rect) so
+ * the distortion is genuinely localized to where the cursor is.
  */
 export default function DreamEchoes({ pointerRef, echoRef }: DreamEchoesProps) {
-  const bedGlowRef = useRef<HTMLDivElement>(null);
+  const bedRef = useRef<HTMLDivElement>(null);
   const mirrorRef = useRef<HTMLDivElement>(null);
   const ceilingRef = useRef<HTMLDivElement>(null);
   const windowRef = useRef<HTMLDivElement>(null);
-  const windowFigureRef = useRef<HTMLDivElement>(null);
   const lampRef = useRef<HTMLDivElement>(null);
-  const lampSpillRef = useRef<HTMLDivElement>(null);
-  const artRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let raf = 0;
     let lastT = performance.now();
 
-    const dwell = { bed: 0, mirror: 0, ceiling: 0, window: 0, lamp: 0, art: 0 };
-    const bedGlow = { x: 0, y: 0 };
-    let bedGlowInit = false;
+    const dwell = { bed: 0, mirror: 0, ceiling: 0, window: 0, lamp: 0 };
+    const fired = { bed: false, lamp: false };
+    let bedPulseTimer: ReturnType<typeof setTimeout> | undefined;
+    let lampFlickerTimer: ReturnType<typeof setTimeout> | undefined;
     const mirrorPos = { x: 0, y: 0 };
     let mirrorInit = false;
     let windowDarken = 0;
-    let windowFigure = 0;
 
     function frame(now: number) {
       const dt = Math.min(now - lastT, 50);
@@ -46,37 +48,34 @@ export default function DreamEchoes({ pointerRef, echoRef }: DreamEchoesProps) {
       const fx = pointer ? pointer.x / window.innerWidth : -1;
       const fy = pointer ? pointer.y / window.innerHeight : -1;
 
-      // BED — an organic light glow that lags the cursor; the actual
-      // texture reveal comes from MemoryVeil's clarity boost via bedIntensity.
+      // BED — one soft displacement pulse per visit.
       const bedZone = ECHO_ZONES.bed;
-      const insideBed = isInsideZone(bedZone, fx, fy);
-      dwell.bed = insideBed ? dwell.bed + dt : 0;
-      const bedActive = dwell.bed >= bedZone.dwellMs;
-      const bedEl = bedGlowRef.current;
-      if (bedEl) {
-        if (bedActive) {
-          if (!bedGlowInit) {
-            bedGlow.x = px;
-            bedGlow.y = py;
-            bedGlowInit = true;
+      if (isInsideZone(bedZone, fx, fy)) {
+        dwell.bed += dt;
+        if (dwell.bed >= bedZone.dwellMs && !fired.bed) {
+          fired.bed = true;
+          const el = bedRef.current;
+          if (el) {
+            el.classList.remove('is-pulsing');
+            el.getBoundingClientRect();
+            el.classList.add('is-pulsing');
           }
-          bedGlow.x += (px - bedGlow.x) * 0.05;
-          bedGlow.y += (py - bedGlow.y) * 0.05;
-          bedEl.style.transform = `translate3d(${bedGlow.x}px, ${bedGlow.y}px, 0) translate(-50%, -50%)`;
-        } else {
-          bedGlowInit = false;
+          clearTimeout(bedPulseTimer);
+          bedPulseTimer = setTimeout(() => bedRef.current?.classList.remove('is-pulsing'), BED_PULSE_MS);
         }
-        bedEl.classList.toggle('is-active', bedActive);
-      }
-      if (echoRef.current) {
-        const target = bedActive ? 1 : 0;
-        echoRef.current.bedIntensity += (target - echoRef.current.bedIntensity) * 0.05;
+      } else {
+        dwell.bed = 0;
+        fired.bed = false;
       }
 
-      // MIRROR — unchanged: a distortion disc that trails the cursor.
+      // MIRROR — a small distortion disc that trails the cursor with a lag.
       const mirrorZone = ECHO_ZONES.mirror;
       const insideMirror = isInsideZone(mirrorZone, fx, fy);
-      dwell.mirror = insideMirror ? dwell.mirror + dt : 0;
+      if (insideMirror) {
+        dwell.mirror += dt;
+      } else {
+        dwell.mirror = 0;
+      }
       const mirrorActive = dwell.mirror >= mirrorZone.dwellMs;
       const mirrorEl = mirrorRef.current;
       if (mirrorEl) {
@@ -95,10 +94,13 @@ export default function DreamEchoes({ pointerRef, echoRef }: DreamEchoesProps) {
         mirrorEl.classList.toggle('is-active', mirrorActive);
       }
 
-      // CEILING — unchanged: approved moving circular light/reveal.
+      // CEILING — a small magnifying disc directly under the cursor.
       const ceilingZone = ECHO_ZONES.ceiling;
-      const insideCeiling = isInsideZone(ceilingZone, fx, fy);
-      dwell.ceiling = insideCeiling ? dwell.ceiling + dt : 0;
+      if (isInsideZone(ceilingZone, fx, fy)) {
+        dwell.ceiling += dt;
+      } else {
+        dwell.ceiling = 0;
+      }
       const ceilingActive = dwell.ceiling >= ceilingZone.dwellMs;
       const ceilingEl = ceilingRef.current;
       if (ceilingEl) {
@@ -112,51 +114,49 @@ export default function DreamEchoes({ pointerRef, echoRef }: DreamEchoesProps) {
         echoRef.current.ceilingIntensity += (target - echoRef.current.ceilingIntensity) * 0.05;
       }
 
-      // WINDOW — exterior dims, and a faceless figure slowly becomes
-      // noticeable in the glass, then dissolves gradually on leaving.
+      // WINDOW — the exterior slowly dims, then slowly restores.
       const windowZone = ECHO_ZONES.window;
-      const insideWindow = isInsideZone(windowZone, fx, fy);
-      dwell.window = insideWindow ? dwell.window + dt : 0;
-      const windowActive = dwell.window >= windowZone.dwellMs;
-      const windowDarkenTarget = windowActive ? 0.13 : 0;
-      windowDarken += (windowDarkenTarget - windowDarken) * 0.07;
+      if (isInsideZone(windowZone, fx, fy)) {
+        dwell.window += dt;
+      } else {
+        dwell.window = 0;
+      }
+      const windowTarget = dwell.window >= windowZone.dwellMs ? 0.13 : 0;
+      windowDarken += (windowTarget - windowDarken) * 0.07;
       windowRef.current?.style.setProperty('--darken', windowDarken.toFixed(3));
 
-      const figureTarget = windowActive ? 1 : 0;
-      const figureRate = windowActive ? 0.022 : 0.03;
-      windowFigure += (figureTarget - windowFigure) * figureRate;
-      windowFigureRef.current?.style.setProperty('--figure', windowFigure.toFixed(3));
-
-      // LAMP — a real, continuous brightness increase, not a flicker.
+      // LAMP — a single fluctuation, resets only once the cursor leaves.
       const lampZone = ECHO_ZONES.lamp;
-      const insideLamp = isInsideZone(lampZone, fx, fy);
-      dwell.lamp = insideLamp ? dwell.lamp + dt : 0;
-      const lampActive = dwell.lamp >= lampZone.dwellMs;
-      lampRef.current?.classList.toggle('is-active', lampActive);
-      lampSpillRef.current?.classList.toggle('is-active', lampActive);
-
-      // WALL ART — the framed image slowly morphs into another.
-      const artZone = ECHO_ZONES.art;
-      const insideArt = isInsideZone(artZone, fx, fy);
-      dwell.art = insideArt ? dwell.art + dt : 0;
-      const artActive = dwell.art >= artZone.dwellMs;
-      artRef.current?.classList.toggle('is-active', artActive);
+      if (isInsideZone(lampZone, fx, fy)) {
+        dwell.lamp += dt;
+        if (dwell.lamp >= lampZone.dwellMs && !fired.lamp) {
+          fired.lamp = true;
+          const el = lampRef.current;
+          el?.classList.add('is-flickering');
+          clearTimeout(lampFlickerTimer);
+          lampFlickerTimer = setTimeout(() => lampRef.current?.classList.remove('is-flickering'), LAMP_FLICKER_MS);
+        }
+      } else {
+        dwell.lamp = 0;
+        fired.lamp = false;
+      }
 
       raf = requestAnimationFrame(frame);
     }
 
     raf = requestAnimationFrame(frame);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(bedPulseTimer);
+      clearTimeout(lampFlickerTimer);
+    };
   }, [pointerRef, echoRef]);
 
   return (
     <div className="dream-echoes" aria-hidden="true">
+      <div ref={bedRef} className="echo-zone echo-bed" style={zoneStyle(ECHO_ZONES.bed)} />
       <div ref={windowRef} className="echo-zone echo-window" style={zoneStyle(ECHO_ZONES.window)} />
-      <div ref={windowFigureRef} className="echo-zone echo-window-figure" style={zoneStyle(ECHO_ZONES.window)} />
       <div ref={lampRef} className="echo-zone echo-lamp" style={zoneStyle(ECHO_ZONES.lamp)} />
-      <div ref={lampSpillRef} className="echo-zone echo-lamp-spill" style={zoneStyle(ECHO_ZONES.lamp)} />
-      <div ref={artRef} className="echo-zone echo-art" style={zoneStyle(ECHO_ZONES.art)} />
-      <div ref={bedGlowRef} className="echo-disc echo-bed-glow" />
       <div ref={mirrorRef} className="echo-disc echo-mirror-disc" />
       <div ref={ceilingRef} className="echo-disc echo-ceiling-disc" />
     </div>

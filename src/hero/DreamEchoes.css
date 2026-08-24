@@ -10,6 +10,42 @@
   pointer-events: none;
 }
 
+/* BED — one soft displacement pulse per visit. A real localized blur/warp
+   on the video behind it, not just an opacity wash. */
+.echo-bed {
+  backdrop-filter: blur(0px) brightness(1);
+  -webkit-backdrop-filter: blur(0px) brightness(1);
+  transform: scale(1) skewX(0deg);
+  transform-origin: 40% 60%;
+}
+
+.echo-bed.is-pulsing {
+  animation: echo-bed-pulse 1.5s var(--ease-soft);
+}
+
+@keyframes echo-bed-pulse {
+  0% {
+    backdrop-filter: blur(0px) brightness(1);
+    -webkit-backdrop-filter: blur(0px) brightness(1);
+    transform: scale(1) skewX(0deg);
+  }
+  30% {
+    backdrop-filter: blur(4px) brightness(1.1);
+    -webkit-backdrop-filter: blur(4px) brightness(1.1);
+    transform: scale(1.016) skewX(0.7deg);
+  }
+  65% {
+    backdrop-filter: blur(2px) brightness(1.05);
+    -webkit-backdrop-filter: blur(2px) brightness(1.05);
+    transform: scale(1.006) skewX(0.2deg);
+  }
+  100% {
+    backdrop-filter: blur(0px) brightness(1);
+    -webkit-backdrop-filter: blur(0px) brightness(1);
+    transform: scale(1) skewX(0deg);
+  }
+}
+
 /* Small discs that physically track the cursor in real pixels (positioned
    via JS transform), rather than a gradient hotspot inside a static rect. */
 .echo-disc {
@@ -29,22 +65,6 @@
   opacity: 1;
 }
 
-/* BED — an organic, soft-edged warm glow that lags the cursor across the
-   bedding. No hard circle: three overlapping irregular blobs, all fading
-   well inside the box, blended so the real texture underneath still reads
-   through (the actual reveal/declutter comes from MemoryVeil's clarity
-   boost, driven by bedIntensity). */
-.echo-bed-glow {
-  width: 260px;
-  height: 260px;
-  border-radius: 0;
-  background:
-    radial-gradient(ellipse 55% 42% at 34% 38%, rgba(244, 232, 196, 0.5), transparent 70%),
-    radial-gradient(ellipse 46% 60% at 66% 62%, rgba(244, 232, 196, 0.4), transparent 72%),
-    radial-gradient(ellipse 65% 48% at 50% 52%, rgba(244, 232, 196, 0.26), transparent 76%);
-  mix-blend-mode: soft-light;
-}
-
 /* MIRROR — a clearly visible distortion disc that trails the cursor. */
 .echo-mirror-disc {
   backdrop-filter: blur(7px) saturate(1.7) contrast(1.2) brightness(1.16);
@@ -54,8 +74,7 @@
   box-shadow: inset 0 0 50px rgba(244, 240, 232, 0.14);
 }
 
-/* CEILING — approved, unchanged: magnifying, more-saturated disc directly
-   under the cursor. */
+/* CEILING — a magnifying, more-saturated disc directly under the cursor. */
 .echo-ceiling-disc {
   width: 170px;
   height: 170px;
@@ -65,70 +84,48 @@
   -webkit-mask-image: radial-gradient(circle, black 42%, transparent 74%);
 }
 
-/* WINDOW — the exterior dims in slow lockstep with dwell. */
+/* WINDOW — the exterior dims and restores in slow lockstep with dwell. */
 .echo-window {
   --darken: 0;
   background: rgba(3, 5, 7, var(--darken));
 }
 
-/* WINDOW figure — a faceless, partial silhouette that only becomes
-   noticeable after a long, slow fade. No features, no glow, low peak
-   opacity, blended into the glass rather than sitting on top of it. */
-.echo-window-figure {
-  --figure: 0;
-  background-image: url('/dream-window-figure.svg');
-  background-repeat: no-repeat;
-  background-size: auto 82%;
-  background-position: 64% 100%;
-  opacity: calc(var(--figure, 0) * 0.3);
-  filter: blur(6px);
-  mix-blend-mode: soft-light;
-}
-
-/* LAMP — a real, continuous brightness increase, like a dimmer turning up. */
+/* LAMP — a single warm fluctuation, replays only after the cursor leaves. */
 .echo-lamp {
-  background: radial-gradient(circle at 48% 42%, rgba(255, 214, 168, 0.16), transparent 62%);
+  background: radial-gradient(circle at 48% 42%, rgba(255, 214, 168, 0.34), transparent 62%);
   backdrop-filter: brightness(1) saturate(1);
   -webkit-backdrop-filter: brightness(1) saturate(1);
-  transition:
-    background 0.65s ease,
-    backdrop-filter 0.65s ease;
-}
-
-.echo-lamp.is-active {
-  background: radial-gradient(circle at 48% 42%, rgba(255, 214, 168, 0.42), transparent 66%);
-  backdrop-filter: brightness(1.4) saturate(1.2);
-  -webkit-backdrop-filter: brightness(1.4) saturate(1.2);
-}
-
-/* LAMP spill — a wider, softer glow onto the nearby wall/furniture. */
-.echo-lamp-spill {
-  background: radial-gradient(circle at 45% 55%, rgba(255, 214, 168, 0.12), transparent 72%);
-  mix-blend-mode: screen;
   opacity: 0;
-  transform: scale(1.7);
-  transition: opacity 0.75s ease;
 }
 
-.echo-lamp-spill.is-active {
-  opacity: 1;
+.echo-lamp.is-flickering {
+  animation: echo-lamp-flicker 0.65s ease-out;
 }
 
-/* WALL ART — the framed image slowly materializes into another, staying
-   exactly within the existing frame's bounds. No hover box: only the
-   picture itself ever changes. */
-.echo-art {
-  background-image: url('/dream-art-corridor.svg');
-  background-size: cover;
-  background-position: center;
-  opacity: 0;
-  filter: blur(10px) saturate(0.9) brightness(0.95);
-  transition:
-    opacity 1.6s var(--ease-memory),
-    filter 1.6s var(--ease-memory);
-}
-
-.echo-art.is-active {
-  opacity: 0.94;
-  filter: blur(0px) saturate(0.9) brightness(0.95);
+@keyframes echo-lamp-flicker {
+  0% {
+    opacity: 0;
+    backdrop-filter: brightness(1) saturate(1);
+    -webkit-backdrop-filter: brightness(1) saturate(1);
+  }
+  22% {
+    opacity: 0.95;
+    backdrop-filter: brightness(1.22) saturate(1.15);
+    -webkit-backdrop-filter: brightness(1.22) saturate(1.15);
+  }
+  40% {
+    opacity: 0.3;
+    backdrop-filter: brightness(1.05) saturate(1.05);
+    -webkit-backdrop-filter: brightness(1.05) saturate(1.05);
+  }
+  58% {
+    opacity: 0.8;
+    backdrop-filter: brightness(1.16) saturate(1.1);
+    -webkit-backdrop-filter: brightness(1.16) saturate(1.1);
+  }
+  100% {
+    opacity: 0;
+    backdrop-filter: brightness(1) saturate(1);
+    -webkit-backdrop-filter: brightness(1) saturate(1);
+  }
 }

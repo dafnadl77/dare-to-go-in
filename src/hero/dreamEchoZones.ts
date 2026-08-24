@@ -1,4 +1,4 @@
-export type EchoZoneId = 'bed' | 'mirror' | 'ceiling' | 'window' | 'lamp' | 'art';
+export type EchoZoneId = 'bed' | 'mirror' | 'ceiling' | 'window' | 'lamp';
 
 export interface EchoZone {
   id: EchoZoneId;
@@ -12,12 +12,11 @@ export interface EchoZone {
 }
 
 export const ECHO_ZONES: Record<EchoZoneId, EchoZone> = {
-  bed: { id: 'bed', xMin: 0.0, xMax: 0.42, yMin: 0.66, yMax: 1.0, dwellMs: 700 },
+  bed: { id: 'bed', xMin: 0.0, xMax: 0.42, yMin: 0.66, yMax: 1.0, dwellMs: 650 },
   mirror: { id: 'mirror', xMin: 0.76, xMax: 0.97, yMin: 0.2, yMax: 0.55, dwellMs: 780 },
   ceiling: { id: 'ceiling', xMin: 0.0, xMax: 1.0, yMin: 0.0, yMax: 0.3, dwellMs: 600 },
-  window: { id: 'window', xMin: 0.4, xMax: 0.66, yMin: 0.42, yMax: 0.78, dwellMs: 850 },
-  lamp: { id: 'lamp', xMin: 0.83, xMax: 0.97, yMin: 0.62, yMax: 0.82, dwellMs: 650 },
-  art: { id: 'art', xMin: 0.08, xMax: 0.23, yMin: 0.4, yMax: 0.58, dwellMs: 750 },
+  window: { id: 'window', xMin: 0.4, xMax: 0.66, yMin: 0.42, yMax: 0.78, dwellMs: 900 },
+  lamp: { id: 'lamp', xMin: 0.83, xMax: 0.97, yMin: 0.62, yMax: 0.82, dwellMs: 550 },
 };
 
 export function isInsideZone(zone: EchoZone, fx: number, fy: number): boolean {
