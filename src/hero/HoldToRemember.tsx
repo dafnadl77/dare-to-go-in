@@ -193,6 +193,7 @@ export default function HoldToRemember({ revealed, holdRef }: HoldToRememberProp
           onChange={handleEntryChange}
           tabIndex={mode === 'typing' ? 0 : -1}
           rows={4}
+          dir="auto"
         />
         <div className="central-typing-actions">
           <button

@@ -259,12 +259,12 @@
   border: none;
   border-bottom: 1px solid rgba(244, 240, 232, 0.26);
   color: var(--dream-white);
-  font-family: 'Fraunces', Georgia, serif;
-  font-style: italic;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-style: normal;
   font-weight: 400;
-  font-size: clamp(1rem, 2vw, 1.2rem);
-  line-height: 1.55;
-  text-align: left;
+  font-size: clamp(1.08rem, 2.2vw, 1.32rem);
+  line-height: 1.7;
+  text-align: start;
   resize: none;
   outline: none;
   padding: 0.5em 0.15em 0.9em;
@@ -275,7 +275,7 @@
 .central-typing-textarea::placeholder {
   color: var(--dream-warm-neutral-dim);
   opacity: 0.75;
-  font-style: italic;
+  font-style: normal;
 }
 
 .central-typing-textarea:focus {
