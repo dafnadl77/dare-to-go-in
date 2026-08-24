@@ -1,4 +1,5 @@
 .hold-to-remember {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -10,6 +11,18 @@
     opacity 1.7s var(--ease-memory),
     filter 1.7s var(--ease-memory),
     transform 1.7s var(--ease-memory);
+}
+
+/* The circle and type-link stay in normal flow always (so this block's
+   footprint — and therefore the title's centered position above it — never
+   changes), just fading out while the typing/settled views take over. */
+.hold-to-remember.is-mode-typing .htr-circle,
+.hold-to-remember.is-mode-done .htr-circle,
+.hold-to-remember.is-mode-typing .htr-type-link,
+.hold-to-remember.is-mode-done .htr-type-link {
+  opacity: 0;
+  filter: blur(8px);
+  pointer-events: none;
 }
 
 .hold-to-remember.is-revealed {
@@ -28,7 +41,10 @@
   background: radial-gradient(circle, rgba(244, 240, 232, 0.07) 0%, transparent 72%);
   transform: scale(1.4);
   transform-origin: center;
-  transition: transform 0.35s var(--ease-soft);
+  transition:
+    transform 0.35s var(--ease-soft),
+    opacity 0.6s var(--ease-soft),
+    filter 0.6s var(--ease-soft);
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
@@ -167,7 +183,8 @@
     opacity 0.4s var(--ease-soft),
     color 0.4s var(--ease-soft),
     letter-spacing 0.4s var(--ease-soft),
-    transform 0.4s var(--ease-soft);
+    transform 0.4s var(--ease-soft),
+    filter 0.6s var(--ease-soft);
 }
 
 .htr-type-link::after {
@@ -193,4 +210,160 @@
 .htr-type-link:hover::after,
 .htr-type-link:focus-visible::after {
   transform: scaleX(1);
+}
+
+/* Typing + settled views float centered over the same spot as the circle,
+   as absolutely-positioned overlays — they never participate in the flex
+   sizing above, so switching modes cannot move the title. */
+.central-typing,
+.central-settled {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(88vw, 460px);
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  filter: blur(10px);
+  pointer-events: none;
+  transition:
+    opacity 0.8s var(--ease-memory),
+    filter 0.8s var(--ease-memory);
+}
+
+.central-typing.is-active,
+.central-settled.is-active {
+  opacity: 1;
+  filter: blur(0);
+  pointer-events: auto;
+}
+
+.central-typing-heading {
+  margin: 0 0 1.5rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: clamp(0.82rem, 1.7vw, 1rem);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dream-white);
+  text-align: center;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
+}
+
+.central-typing-textarea {
+  width: 100%;
+  min-height: 5.2em;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(244, 240, 232, 0.26);
+  color: var(--dream-white);
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  line-height: 1.55;
+  text-align: left;
+  resize: none;
+  outline: none;
+  padding: 0.5em 0.15em 0.9em;
+  text-shadow: 0 0.04em 0.5em rgba(0, 0, 0, 0.4);
+  transition: border-color 0.4s var(--ease-soft);
+}
+
+.central-typing-textarea::placeholder {
+  color: var(--dream-warm-neutral-dim);
+  opacity: 0.75;
+  font-style: italic;
+}
+
+.central-typing-textarea:focus {
+  border-bottom-color: rgba(244, 240, 232, 0.55);
+}
+
+.central-typing-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.4rem;
+  margin-top: 1.6rem;
+}
+
+.central-back {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral-dim);
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0.3em 0.2em;
+  opacity: 0.58;
+  transition:
+    opacity 0.4s var(--ease-soft),
+    color 0.4s var(--ease-soft),
+    letter-spacing 0.4s var(--ease-soft);
+}
+
+.central-back:hover,
+.central-back:focus-visible {
+  opacity: 1;
+  color: var(--dream-white);
+  letter-spacing: 0.2em;
+}
+
+.central-done {
+  position: relative;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--dream-white);
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0.3em 0.1em;
+  opacity: 0.82;
+  transition:
+    opacity 0.4s var(--ease-soft),
+    letter-spacing 0.4s var(--ease-soft);
+}
+
+.central-done::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--ease-memory);
+}
+
+.central-done:hover,
+.central-done:focus-visible {
+  opacity: 1;
+  letter-spacing: 0.26em;
+}
+
+.central-done:hover::after,
+.central-done:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.central-settled-text {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1.35rem, 3.2vw, 2rem);
+  letter-spacing: 0.01em;
+  color: var(--dream-white);
+  text-align: center;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
 }

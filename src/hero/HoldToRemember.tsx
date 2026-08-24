@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type ChangeEvent,
   type KeyboardEvent,
   type RefObject,
 } from 'react';
@@ -15,6 +16,8 @@ interface HoldToRememberProps {
   holdRef: RefObject<HoldState>;
 }
 
+type Mode = 'hold' | 'typing' | 'done';
+
 const FILL_MS = 800;
 const RADIUS = 42;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
@@ -22,8 +25,11 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 export default function HoldToRemember({ revealed, holdRef }: HoldToRememberProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const ringRef = useRef<SVGCircleElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isHolding, setIsHolding] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [mode, setMode] = useState<Mode>('hold');
+  const [entry, setEntry] = useState('');
   const rafRef = useRef(0);
   const startRef = useRef(0);
   const listenTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -39,6 +45,7 @@ export default function HoldToRemember({ revealed, holdRef }: HoldToRememberProp
   }, [holdRef]);
 
   const beginHold = useCallback(() => {
+    if (mode !== 'hold') return;
     const btn = buttonRef.current;
     if (btn && holdRef.current) {
       const rect = btn.getBoundingClientRect();
@@ -52,7 +59,7 @@ export default function HoldToRemember({ revealed, holdRef }: HoldToRememberProp
     cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(tick);
     listenTimerRef.current = setTimeout(() => setIsListening(true), FILL_MS);
-  }, [holdRef, tick]);
+  }, [mode, holdRef, tick]);
 
   const endHold = useCallback(() => {
     if (!holdRef.current?.active) return;
@@ -86,6 +93,12 @@ export default function HoldToRemember({ revealed, holdRef }: HoldToRememberProp
     };
   }, []);
 
+  useEffect(() => {
+    if (mode === 'typing') {
+      textareaRef.current?.focus();
+    }
+  }, [mode]);
+
   const handleKeyDown = (e: KeyboardEvent) => {
     if ((e.key === 'Enter' || e.key === ' ') && !isHolding) {
       e.preventDefault();
@@ -99,13 +112,30 @@ export default function HoldToRemember({ revealed, holdRef }: HoldToRememberProp
     }
   };
 
+  const handleEntryChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    setEntry(e.target.value);
+  };
+
+  const handleBack = () => {
+    setMode('hold');
+    setEntry('');
+  };
+
+  const handleDone = () => {
+    setMode('done');
+  };
+
+  const isHoldFaded = mode !== 'hold';
+
   return (
-    <div className={`hold-to-remember${revealed ? ' is-revealed' : ''}`}>
+    <div className={`hold-to-remember${revealed ? ' is-revealed' : ''} is-mode-${mode}`}>
       <button
         ref={buttonRef}
         type="button"
         className={`htr-circle${isHolding ? ' is-holding' : ''}${isListening ? ' is-listening' : ''}`}
         data-cursor-hover
+        tabIndex={isHoldFaded ? -1 : 0}
+        aria-hidden={isHoldFaded}
         onPointerDown={(e) => {
           e.preventDefault();
           beginHold();
@@ -139,9 +169,59 @@ export default function HoldToRemember({ revealed, holdRef }: HoldToRememberProp
         <span className="htr-label">{isListening ? 'LISTENING…' : 'HOLD TO TELL ME'}</span>
       </button>
 
-      <button type="button" className="htr-type-link" data-cursor-hover>
+      <button
+        type="button"
+        className="htr-type-link"
+        data-cursor-hover
+        tabIndex={isHoldFaded ? -1 : 0}
+        aria-hidden={isHoldFaded}
+        onClick={() => setMode('typing')}
+      >
         I&rsquo;D RATHER TYPE
       </button>
+
+      <div
+        className={`central-typing${mode === 'typing' ? ' is-active' : ''}`}
+        aria-hidden={mode !== 'typing'}
+      >
+        <p className="central-typing-heading">TELL ME WHAT HAPPENED.</p>
+        <textarea
+          ref={textareaRef}
+          className="central-typing-textarea"
+          placeholder="Start with anything you remember..."
+          value={entry}
+          onChange={handleEntryChange}
+          tabIndex={mode === 'typing' ? 0 : -1}
+          rows={4}
+        />
+        <div className="central-typing-actions">
+          <button
+            type="button"
+            className="central-back"
+            data-cursor-hover
+            tabIndex={mode === 'typing' ? 0 : -1}
+            onClick={handleBack}
+          >
+            ← Back
+          </button>
+          <button
+            type="button"
+            className="central-done"
+            data-cursor-hover
+            tabIndex={mode === 'typing' ? 0 : -1}
+            onClick={handleDone}
+          >
+            I&rsquo;M DONE
+          </button>
+        </div>
+      </div>
+
+      <div
+        className={`central-settled${mode === 'done' ? ' is-active' : ''}`}
+        aria-hidden={mode !== 'done'}
+      >
+        <p className="central-settled-text">I THINK I HAVE IT.</p>
+      </div>
     </div>
   );
 }
