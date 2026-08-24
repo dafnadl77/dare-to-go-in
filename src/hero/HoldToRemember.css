@@ -160,9 +160,11 @@
   border: none;
   outline: none;
   padding: 0.3em 0.1em;
+  opacity: 0.72;
   transform: translateY(20px) scale(1.4);
   transform-origin: center;
   transition:
+    opacity 0.4s var(--ease-soft),
     color 0.4s var(--ease-soft),
     letter-spacing 0.4s var(--ease-soft),
     transform 0.4s var(--ease-soft);
@@ -183,8 +185,9 @@
 
 .htr-type-link:hover,
 .htr-type-link:focus-visible {
+  opacity: 1;
   color: var(--dream-white);
-  letter-spacing: 0.24em;
+  letter-spacing: 0.28em;
 }
 
 .htr-type-link:hover::after,
