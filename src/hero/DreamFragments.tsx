@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { DEMO_DREAM_FRAGMENTS, type DreamFragment } from './dreamFragmentTypes';
-import type { RecordingState } from './useDreamRecorder';
+import type { DreamFragment } from './dreamFragmentTypes';
 import './DreamFragments.css';
 
 interface DreamFragmentsProps {
-  recordingState: RecordingState;
+  /** The current set of real fragments extracted from the user's transcript — grows over time. */
+  fragments: DreamFragment[];
 }
 
 interface FragmentInstance {
@@ -26,31 +26,23 @@ const POSITIONS = [
   { x: 0.5, y: 0.1 },
 ];
 
-function shuffled<T>(arr: T[]): T[] {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
-export default function DreamFragments({ recordingState }: DreamFragmentsProps) {
+export default function DreamFragments({ fragments }: DreamFragmentsProps) {
   const [instances, setInstances] = useState<FragmentInstance[]>([]);
+  const shownLabelsRef = useRef<Set<string>>(new Set());
   const idRef = useRef(0);
   const usedPositionsRef = useRef<Set<number>>(new Set());
 
-  const active = recordingState === 'recording';
-  const visible = recordingState === 'recording' || recordingState === 'finished' || recordingState === 'paused';
-
   useEffect(() => {
-    if (!active) return;
+    if (fragments.length === 0) {
+      shownLabelsRef.current = new Set();
+      usedPositionsRef.current = new Set();
+      setInstances([]);
+      return;
+    }
 
-    setInstances([]);
-    usedPositionsRef.current = new Set();
-    const queue = shuffled(DEMO_DREAM_FRAGMENTS).slice(0, 4 + Math.floor(Math.random() * 2));
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    let cancelled = false;
+    const newOnes = fragments.filter((f) => !shownLabelsRef.current.has(f.label));
+    if (newOnes.length === 0) return;
+    newOnes.forEach((f) => shownLabelsRef.current.add(f.label));
 
     function pickPosition() {
       const available = POSITIONS.map((_, i) => i).filter((i) => !usedPositionsRef.current.has(i));
@@ -61,40 +53,22 @@ export default function DreamFragments({ recordingState }: DreamFragmentsProps) 
       return POSITIONS[idx];
     }
 
-    function scheduleNext(queueIndex: number) {
-      if (cancelled || queueIndex >= queue.length) return;
-      const delay = 2600 + Math.random() * 2200;
-      timers.push(
-        setTimeout(() => {
-          if (cancelled) return;
-          const pos = pickPosition();
-          setInstances((prev) => [
-            ...prev,
-            {
-              id: idRef.current++,
-              fragment: queue[queueIndex],
-              x: pos.x,
-              y: pos.y,
-              faint: Math.random() < 0.4,
-            },
-          ]);
-          scheduleNext(queueIndex + 1);
-        }, delay),
-      );
-    }
-    scheduleNext(0);
+    setInstances((prev) => [
+      ...prev,
+      ...newOnes.map((fragment) => {
+        const pos = pickPosition();
+        return {
+          id: idRef.current++,
+          fragment,
+          x: pos.x,
+          y: pos.y,
+          faint: Math.random() < 0.4,
+        };
+      }),
+    ]);
+  }, [fragments]);
 
-    return () => {
-      cancelled = true;
-      timers.forEach(clearTimeout);
-    };
-  }, [active]);
-
-  useEffect(() => {
-    if (recordingState === 'idle') setInstances([]);
-  }, [recordingState]);
-
-  if (!visible && instances.length === 0) return null;
+  if (instances.length === 0) return null;
 
   return (
     <div className="dream-fragments" aria-hidden="true">
@@ -105,7 +79,7 @@ export default function DreamFragments({ recordingState }: DreamFragmentsProps) 
           style={{ left: `${inst.x * 100}%`, top: `${inst.y * 100}%` }}
           data-type={inst.fragment.type}
         >
-          {inst.fragment.text}
+          {inst.fragment.label}
         </span>
       ))}
     </div>

@@ -309,6 +309,20 @@
   will-change: transform, opacity;
 }
 
+.central-transcript {
+  width: 100%;
+  margin: -1.2rem 0 2rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: clamp(1rem, 2.1vw, 1.22rem);
+  line-height: 1.65;
+  color: var(--dream-white);
+  text-align: start;
+  opacity: 0.92;
+  text-shadow: 0 0.04em 0.5em rgba(0, 0, 0, 0.4);
+}
+
 .central-finish {
   position: relative;
   font-family: 'Inter', system-ui, sans-serif;

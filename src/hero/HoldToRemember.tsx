@@ -11,18 +11,22 @@ import {
 import type { HoldState } from './HoldState';
 import type { CentralMode } from './centralMode';
 import type { useDreamRecorder } from './useDreamRecorder';
+import type { useSpeechTranscription } from './useSpeechTranscription';
 import './HoldToRemember.css';
 
 type DreamRecorderApi = ReturnType<typeof useDreamRecorder>;
+type SpeechTranscriptionApi = ReturnType<typeof useSpeechTranscription>;
 
 interface HoldToRememberProps {
   revealed: boolean;
   holdRef: RefObject<HoldState>;
   recorder: DreamRecorderApi;
+  transcription: SpeechTranscriptionApi;
   centralMode: CentralMode;
   setCentralMode: (mode: CentralMode) => void;
   micUnavailable: boolean;
   setMicUnavailable: (v: boolean) => void;
+  onTypedTranscriptChange: (text: string) => void;
 }
 
 const FILL_MS = 800;
@@ -34,10 +38,12 @@ export default function HoldToRemember({
   revealed,
   holdRef,
   recorder,
+  transcription,
   centralMode,
   setCentralMode,
   micUnavailable,
   setMicUnavailable,
+  onTypedTranscriptChange,
 }: HoldToRememberProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const ringRef = useRef<SVGCircleElement>(null);
@@ -68,6 +74,8 @@ export default function HoldToRemember({
     const granted = await recorder.start();
     if (granted) {
       if (holdRef.current) holdRef.current.active = false;
+      transcription.reset();
+      transcription.start();
       setCentralMode('recording');
     } else {
       if (holdRef.current) {
@@ -78,7 +86,7 @@ export default function HoldToRemember({
       setMicUnavailable(true);
       setCentralMode('typing');
     }
-  }, [recorder, holdRef, setCentralMode, setMicUnavailable]);
+  }, [recorder, transcription, holdRef, setCentralMode, setMicUnavailable]);
 
   const beginHold = useCallback(() => {
     if (centralMode !== 'hold' || committedRef.current) return;
@@ -183,6 +191,7 @@ export default function HoldToRemember({
 
   const handleEntryChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setEntry(e.target.value);
+    onTypedTranscriptChange(e.target.value);
   };
 
   const handleBack = () => {
@@ -190,6 +199,8 @@ export default function HoldToRemember({
     setMicUnavailable(false);
     setCentralMode('hold');
     setEntry('');
+    onTypedTranscriptChange('');
+    transcription.reset();
   };
 
   const handleDoneTyping = () => {
@@ -201,6 +212,7 @@ export default function HoldToRemember({
     finishingRef.current = true;
     setFinishing(true);
     recorder.finish();
+    transcription.stop();
 
     const startLevel = holdRef.current?.audioLevel ?? 0;
     const t0 = performance.now();
@@ -218,7 +230,7 @@ export default function HoldToRemember({
       }
     }
     requestAnimationFrame(decay);
-  }, [recorder, holdRef, setCentralMode]);
+  }, [recorder, transcription, holdRef, setCentralMode]);
 
   const isHoldFaded = centralMode !== 'hold';
   const requestingMic = recorder.recordingState === 'requesting-permission';
@@ -294,6 +306,14 @@ export default function HoldToRemember({
         <p className="central-recording-heading">I&rsquo;M LISTENING.</p>
         <p className="central-recording-subheading">TELL ME EVERYTHING YOU REMEMBER.</p>
         <div ref={orbRef} className="central-recording-orb" aria-hidden="true" />
+        {transcription.fullTranscript && (
+          <p className="central-transcript" dir="auto">
+            {transcription.fullTranscript}
+          </p>
+        )}
+        {!transcription.supported && centralMode === 'recording' && (
+          <p className="central-mic-note">LIVE TRANSCRIPT UNAVAILABLE IN THIS BROWSER</p>
+        )}
         <button
           type="button"
           className="central-finish"

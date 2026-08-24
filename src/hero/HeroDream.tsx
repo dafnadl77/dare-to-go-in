@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import DreamVideo from './DreamVideo';
 import MemoryVeil from './MemoryVeil';
 import MemoryTitle from './MemoryTitle';
@@ -10,6 +10,8 @@ import DreamFragments from './DreamFragments';
 import { usePointerRef } from './usePointerRef';
 import { useOpeningSequence } from './useOpeningSequence';
 import { useDreamRecorder } from './useDreamRecorder';
+import { useSpeechTranscription } from './useSpeechTranscription';
+import { extractDreamFragments } from './dreamLexicon';
 import { createHoldState } from './HoldState';
 import { createEchoState } from './EchoState';
 import type { CentralMode } from './centralMode';
@@ -30,13 +32,23 @@ export default function HeroDream() {
   const { phase, startTime } = useOpeningSequence();
 
   const recorder = useDreamRecorder();
+  const transcription = useSpeechTranscription();
   const [centralMode, setCentralMode] = useState<CentralMode>('hold');
   const [micUnavailable, setMicUnavailable] = useState(false);
+  const [typedTranscript, setTypedTranscript] = useState('');
 
   // Once a recording has genuinely begun, the title/prompt settle into the
   // background for the rest of the session — including through the finished
   // and settled states. The typing path never touches this.
   const listeningEverStarted = recorder.recordingState !== 'idle' && recorder.recordingState !== 'error';
+
+  // Exactly one of these is ever non-empty in a given session — whichever
+  // path (voice or typed) the user actually took.
+  const transcriptForExtraction = typedTranscript || transcription.finalTranscript;
+  const fragments = useMemo(
+    () => extractDreamFragments(transcriptForExtraction),
+    [transcriptForExtraction],
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -77,7 +89,7 @@ export default function HeroDream() {
       />
       <div className="hero-vignette" aria-hidden="true" />
       <DreamEchoes pointerRef={pointerRef} echoRef={echoRef} />
-      <DreamFragments recordingState={recorder.recordingState} />
+      <DreamFragments fragments={fragments} />
       <div ref={blackVeilRef} className="intro-black-veil" aria-hidden="true" />
 
       <div ref={uiLayerRef} className="hero-ui-layer">
@@ -92,10 +104,12 @@ export default function HeroDream() {
             revealed={INTERACTION_PHASES.has(phase)}
             holdRef={holdRef}
             recorder={recorder}
+            transcription={transcription}
             centralMode={centralMode}
             setCentralMode={setCentralMode}
             micUnavailable={micUnavailable}
             setMicUnavailable={setMicUnavailable}
+            onTypedTranscriptChange={setTypedTranscript}
           />
         </div>
       </div>
