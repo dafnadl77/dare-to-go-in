@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import DreamVideo from './DreamVideo';
 import MemoryVeil from './MemoryVeil';
 import MemoryTitle from './MemoryTitle';
@@ -6,10 +6,13 @@ import DreamPrompt from './DreamPrompt';
 import HoldToRemember from './HoldToRemember';
 import CustomCursor from './CustomCursor';
 import DreamEchoes from './DreamEchoes';
+import DreamFragments from './DreamFragments';
 import { usePointerRef } from './usePointerRef';
 import { useOpeningSequence } from './useOpeningSequence';
+import { useDreamRecorder } from './useDreamRecorder';
 import { createHoldState } from './HoldState';
 import { createEchoState } from './EchoState';
+import type { CentralMode } from './centralMode';
 import './HeroDream.css';
 
 const TITLE_PHASES = new Set(['title', 'prompt', 'interaction', 'idle']);
@@ -25,6 +28,15 @@ export default function HeroDream() {
   const holdRef = useRef(createHoldState());
   const echoRef = useRef(createEchoState());
   const { phase, startTime } = useOpeningSequence();
+
+  const recorder = useDreamRecorder();
+  const [centralMode, setCentralMode] = useState<CentralMode>('hold');
+  const [micUnavailable, setMicUnavailable] = useState(false);
+
+  // Once a recording has genuinely begun, the title/prompt settle into the
+  // background for the rest of the session — including through the finished
+  // and settled states. The typing path never touches this.
+  const listeningEverStarted = recorder.recordingState !== 'idle' && recorder.recordingState !== 'error';
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -65,13 +77,26 @@ export default function HeroDream() {
       />
       <div className="hero-vignette" aria-hidden="true" />
       <DreamEchoes pointerRef={pointerRef} echoRef={echoRef} />
+      <DreamFragments recordingState={recorder.recordingState} />
       <div ref={blackVeilRef} className="intro-black-veil" aria-hidden="true" />
 
       <div ref={uiLayerRef} className="hero-ui-layer">
         <div className="hero-ui-stack">
-          <MemoryTitle revealed={TITLE_PHASES.has(phase)} pointerRef={pointerRef} />
-          <DreamPrompt revealed={PROMPT_PHASES.has(phase)} />
-          <HoldToRemember revealed={INTERACTION_PHASES.has(phase)} holdRef={holdRef} />
+          <MemoryTitle
+            revealed={TITLE_PHASES.has(phase)}
+            dissolving={listeningEverStarted}
+            pointerRef={pointerRef}
+          />
+          <DreamPrompt revealed={PROMPT_PHASES.has(phase)} quiet={listeningEverStarted} />
+          <HoldToRemember
+            revealed={INTERACTION_PHASES.has(phase)}
+            holdRef={holdRef}
+            recorder={recorder}
+            centralMode={centralMode}
+            setCentralMode={setCentralMode}
+            micUnavailable={micUnavailable}
+            setMicUnavailable={setMicUnavailable}
+          />
         </div>
       </div>
 

@@ -27,3 +27,14 @@
   filter: blur(0);
   transform: translateY(-4px) scale(1.9);
 }
+
+.dream-prompt.is-revealed.is-quiet {
+  opacity: 0.38;
+  transform: translateY(-4px) scale(1.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dream-prompt {
+    transition: none;
+  }
+}

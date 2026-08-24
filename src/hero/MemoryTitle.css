@@ -56,6 +56,27 @@
   opacity: calc(1 - var(--m-dissolve, 0));
 }
 
+/* The room begins listening: the title softens into the environment rather
+   than vanishing — each letter drifts at its own already-established pace. */
+.memory-title.is-dissolving .mt-char--a,
+.memory-title.is-dissolving .mt-char--b,
+.memory-title.is-dissolving .mt-char--c {
+  animation: title-dissolve-out 2.4s var(--delay) var(--ease-memory) forwards;
+}
+
+@keyframes title-dissolve-out {
+  0% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0.05;
+    filter: blur(12px);
+    transform: translateY(-0.05em) scale(0.98);
+  }
+}
+
 @keyframes memory-resolve-a {
   0% {
     opacity: 0;
@@ -146,5 +167,11 @@
     opacity: 1;
     filter: blur(0);
     transform: none;
+  }
+  .memory-title.is-dissolving .mt-char--a,
+  .memory-title.is-dissolving .mt-char--b,
+  .memory-title.is-dissolving .mt-char--c {
+    animation-duration: 0.01s;
+    animation-timing-function: linear;
   }
 }

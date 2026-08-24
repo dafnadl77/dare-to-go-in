@@ -3,6 +3,10 @@
   inset: 0;
   width: 100vw;
   height: 100vh;
+  /* Dynamic viewport height keeps the centered stack correctly positioned
+     when mobile browser chrome / the on-screen keyboard resize the visual
+     viewport (e.g. while typing). Unsupported browsers keep the 100vh above. */
+  height: 100dvh;
   overflow: hidden;
   background: var(--dream-black);
 }

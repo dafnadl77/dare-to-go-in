@@ -114,7 +114,9 @@ export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, 
       const py = pointer ? (pointer.y / vh) * GRID_H : GRID_H / 2;
       const fx = hold ? (hold.cx / vw) * GRID_W : 0;
       const fy = hold ? (hold.cy / vh) * GRID_H : 0;
-      const focusActive = !!hold?.active;
+      const listening = !!hold?.listening;
+      const focusActive = !!hold?.active || listening;
+      const audioLevel = listening && hold ? hold.audioLevel : 0;
 
       const ceilingIntensity = echoRef.current ? echoRef.current.ceilingIntensity : 0;
 
@@ -154,12 +156,14 @@ export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, 
             const fdx = gx - fx;
             const fdy = gy - fy;
             const fdist = Math.sqrt(fdx * fdx + fdy * fdy);
-            if (fdist < FOCUS_RADIUS) {
+            if (fdist < FOCUS_RADIUS * 1.3) {
               const n = edgeNoise(gx * 0.18 - timeOffset * 20, gy * 0.18 + timeOffset * 25 + 90);
-              const effR = FOCUS_RADIUS * (0.75 + 0.35 * n);
+              const breathe = listening ? 1 + audioLevel * 0.15 : 1;
+              const effR = FOCUS_RADIUS * (0.75 + 0.35 * n) * breathe;
               if (fdist < effR) {
                 const falloff = Math.pow(1 - fdist / effR, 1.4);
-                val = Math.min(1, val + falloff * focusAddRate * (0.4 + 0.6 * hold.progress));
+                const intensity = listening ? 0.35 + 0.65 * audioLevel : 0.4 + 0.6 * hold.progress;
+                val = Math.min(1, val + falloff * focusAddRate * intensity);
               }
             }
           }
@@ -199,7 +203,7 @@ export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, 
         const grainOffsetX = Math.sin(now * 0.00013) * 6;
         const grainOffsetY = Math.cos(now * 0.00011) * 6;
         fogCtx.globalCompositeOperation = 'overlay';
-        fogCtx.globalAlpha = 0.05;
+        fogCtx.globalAlpha = 0.05 + audioLevel * 0.025;
         fogCtx.save();
         fogCtx.translate(grainOffsetX, grainOffsetY);
         fogCtx.fillStyle = grainPattern;
@@ -212,7 +216,7 @@ export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, 
         fogCtx.drawImage(gridCanvas, 0, 0, GRID_W, GRID_H, 0, 0, fw, fh);
         fogCtx.globalCompositeOperation = 'source-over';
 
-        const holdIntensity = hold ? hold.progress : 0;
+        const holdIntensity = listening ? audioLevel * 0.6 : hold ? hold.progress : 0;
         ctx2.filter =
           holdIntensity > 0.01
             ? `saturate(${(1 + holdIntensity * 0.18).toFixed(3)}) contrast(${(1 + holdIntensity * 0.06).toFixed(3)}) brightness(${(1 + holdIntensity * 0.03).toFixed(3)})`

@@ -1,0 +1,80 @@
+.dream-fragments {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.dream-fragment {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.05rem, 2.4vw, 1.55rem);
+  letter-spacing: 0.03em;
+  color: var(--dream-white);
+  text-shadow:
+    0 0.06em 0.7em rgba(0, 0, 0, 0.55),
+    0 0 1.4em rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+  opacity: 0;
+  filter: blur(14px);
+  will-change: opacity, filter;
+}
+
+.dream-fragment.is-fading {
+  animation: dream-fragment-fade 7.5s var(--ease-memory) forwards;
+}
+
+.dream-fragment.is-faint {
+  animation: dream-fragment-settle 7.5s var(--ease-memory) forwards;
+}
+
+@keyframes dream-fragment-fade {
+  0% {
+    opacity: 0;
+    filter: blur(14px);
+  }
+  14% {
+    opacity: 0.9;
+    filter: blur(2px);
+  }
+  30%,
+  62% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(9px);
+  }
+}
+
+@keyframes dream-fragment-settle {
+  0% {
+    opacity: 0;
+    filter: blur(14px);
+  }
+  14% {
+    opacity: 0.9;
+    filter: blur(2px);
+  }
+  30%,
+  62% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0.16;
+    filter: blur(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dream-fragment.is-fading,
+  .dream-fragment.is-faint {
+    animation-duration: 0.01s;
+    animation-timing-function: linear;
+  }
+}

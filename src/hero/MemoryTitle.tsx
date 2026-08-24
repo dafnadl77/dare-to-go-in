@@ -4,6 +4,8 @@ import './MemoryTitle.css';
 
 interface MemoryTitleProps {
   revealed: boolean;
+  /** True once the room begins listening — the title softens into the environment. */
+  dissolving?: boolean;
   pointerRef: RefObject<PointerState>;
 }
 
@@ -17,7 +19,7 @@ function hashSeed(i: number) {
 
 const CHAR_COUNT = TITLE.replace(/ /g, '').length;
 
-export default function MemoryTitle({ revealed, pointerRef }: MemoryTitleProps) {
+export default function MemoryTitle({ revealed, dissolving = false, pointerRef }: MemoryTitleProps) {
   const rootRef = useRef<HTMLHeadingElement>(null);
   const spanRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const phaseRef = useRef<number[]>(
@@ -76,7 +78,7 @@ export default function MemoryTitle({ revealed, pointerRef }: MemoryTitleProps) 
   return (
     <h1
       ref={rootRef}
-      className={`memory-title${revealed ? ' is-revealed' : ''}${settled ? ' is-settled' : ''}`}
+      className={`memory-title${revealed ? ' is-revealed' : ''}${settled ? ' is-settled' : ''}${dissolving ? ' is-dissolving' : ''}`}
       aria-label={TITLE}
     >
       {words.map((word, wi) => (
