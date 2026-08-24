@@ -15,9 +15,14 @@ function hashSeed(i: number) {
   return x - Math.floor(x);
 }
 
+const CHAR_COUNT = TITLE.replace(/ /g, '').length;
+
 export default function MemoryTitle({ revealed, pointerRef }: MemoryTitleProps) {
   const rootRef = useRef<HTMLHeadingElement>(null);
   const spanRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const phaseRef = useRef<number[]>(
+    Array.from({ length: CHAR_COUNT }, (_, i) => hashSeed(i + 31) * Math.PI * 2),
+  );
 
   const words = useMemo(() => TITLE.split(' '), []);
   const [settled, setSettled] = useState(false);
@@ -31,10 +36,12 @@ export default function MemoryTitle({ revealed, pointerRef }: MemoryTitleProps) 
   useEffect(() => {
     let raf = 0;
     const spans = spanRefs.current;
+    const phases = phaseRef.current;
 
-    function frame() {
+    function frame(now: number) {
       const pointer = pointerRef.current;
       if (pointer && rootRef.current) {
+        const t = now * 0.001;
         for (let i = 0; i < spans.length; i++) {
           const span = spans[i];
           if (!span) continue;
@@ -42,8 +49,20 @@ export default function MemoryTitle({ revealed, pointerRef }: MemoryTitleProps) 
           const cx = rect.left + rect.width / 2;
           const cy = rect.top + rect.height / 2;
           const dist = Math.hypot(pointer.x - cx, pointer.y - cy);
-          const proximity = Math.max(0, 1 - dist / 260);
+          const proximity = Math.max(0, 1 - dist / 300);
+
+          const phase = phases[i] ?? 0;
+          // Ink-under-water: the veil passing over a letter makes it
+          // gently blur/dissolve and reconstruct on its own slow cycle —
+          // amplitude is zero at rest and only grows near the cursor.
+          const osc1 = 0.5 + 0.5 * Math.sin(t * 1.2 + phase);
+          const osc2 = 0.5 + 0.5 * Math.sin(t * 0.8 + phase * 1.7 + 2.1);
+          const blur = proximity * (0.3 + 0.9 * osc1);
+          const dissolve = proximity * (0.04 + 0.14 * osc2);
+
           span.style.setProperty('--prox', proximity.toFixed(3));
+          span.style.setProperty('--m-blur', blur.toFixed(3));
+          span.style.setProperty('--m-dissolve', dissolve.toFixed(3));
         }
       }
       raf = requestAnimationFrame(frame);

@@ -1,0 +1,116 @@
+.dream-echoes {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.echo-zone {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* BED — one soft displacement pulse per visit. */
+.echo-bed {
+  background: radial-gradient(ellipse at 42% 55%, rgba(244, 240, 232, 0.06), transparent 65%);
+  opacity: 0;
+  filter: blur(0px);
+  transform: translateY(0) scaleY(1);
+}
+
+.echo-bed.is-pulsing {
+  animation: echo-bed-pulse 1.5s var(--ease-soft);
+}
+
+@keyframes echo-bed-pulse {
+  0% {
+    opacity: 0;
+    filter: blur(0px);
+    transform: translateY(0) scaleY(1);
+  }
+  32% {
+    opacity: 0.8;
+    filter: blur(0.6px);
+    transform: translateY(1.1px) scaleY(1.006);
+  }
+  68% {
+    opacity: 0.35;
+    filter: blur(0.25px);
+    transform: translateY(0.35px) scaleY(1.002);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(0px);
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+/* MIRROR — a reflection that trails the cursor. */
+.echo-mirror {
+  --mx: 50%;
+  --my: 50%;
+  background: radial-gradient(circle at var(--mx) var(--my), rgba(244, 240, 232, 0.1), transparent 55%);
+  opacity: 0;
+  transition: opacity 1.2s var(--ease-soft);
+}
+
+.echo-mirror.is-active {
+  opacity: 1;
+}
+
+/* CEILING — a slight lift in the light while the veil thins. */
+.echo-ceiling {
+  background: radial-gradient(ellipse at 50% 20%, rgba(210, 226, 236, 0.09), transparent 62%);
+  opacity: 0;
+  mix-blend-mode: screen;
+  transition: opacity 1.3s var(--ease-soft);
+}
+
+.echo-ceiling.is-active {
+  opacity: 1;
+  animation: echo-ceiling-shimmer 3.4s ease-in-out infinite;
+}
+
+@keyframes echo-ceiling-shimmer {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.09);
+  }
+}
+
+/* WINDOW — the exterior dims and restores in slow lockstep with dwell. */
+.echo-window {
+  --darken: 0;
+  background: rgba(3, 5, 7, var(--darken));
+}
+
+/* LAMP — a single fluctuation, replays only after the cursor leaves. */
+.echo-lamp {
+  background: radial-gradient(circle at 48% 42%, rgba(255, 214, 168, 0.24), transparent 60%);
+  opacity: 0;
+}
+
+.echo-lamp.is-flickering {
+  animation: echo-lamp-flicker 0.65s ease-out;
+}
+
+@keyframes echo-lamp-flicker {
+  0% {
+    opacity: 0;
+  }
+  22% {
+    opacity: 0.85;
+  }
+  40% {
+    opacity: 0.22;
+  }
+  58% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+  }
+}

@@ -52,8 +52,8 @@
 .memory-title.is-settled .mt-char--c {
   animation: none;
   transform: none;
-  filter: blur(calc(0.55px - var(--prox) * 0.55px));
-  opacity: calc(0.93 + var(--prox) * 0.07);
+  filter: blur(calc(var(--m-blur, 0) * 1px));
+  opacity: calc(1 - var(--m-dissolve, 0));
 }
 
 @keyframes memory-resolve-a {

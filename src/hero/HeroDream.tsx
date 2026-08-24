@@ -5,9 +5,11 @@ import MemoryTitle from './MemoryTitle';
 import DreamPrompt from './DreamPrompt';
 import HoldToRemember from './HoldToRemember';
 import CustomCursor from './CustomCursor';
+import DreamEchoes from './DreamEchoes';
 import { usePointerRef } from './usePointerRef';
 import { useOpeningSequence } from './useOpeningSequence';
 import { createHoldState } from './HoldState';
+import { createEchoState } from './EchoState';
 import './HeroDream.css';
 
 const TITLE_PHASES = new Set(['title', 'environment', 'prompt', 'interaction', 'idle']);
@@ -21,6 +23,7 @@ export default function HeroDream() {
   const blackVeilRef = useRef<HTMLDivElement>(null);
   const pointerRef = usePointerRef();
   const holdRef = useRef(createHoldState());
+  const echoRef = useRef(createEchoState());
   const { phase, startTime } = useOpeningSequence();
 
   useEffect(() => {
@@ -57,9 +60,11 @@ export default function HeroDream() {
         videoBRef={videoBRef}
         pointerRef={pointerRef}
         holdRef={holdRef}
+        echoRef={echoRef}
         startTime={startTime}
       />
       <div className="hero-vignette" aria-hidden="true" />
+      <DreamEchoes pointerRef={pointerRef} echoRef={echoRef} />
       <div ref={blackVeilRef} className="intro-black-veil" aria-hidden="true" />
 
       <div ref={uiLayerRef} className="hero-ui-layer">

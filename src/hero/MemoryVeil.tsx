@@ -4,6 +4,7 @@ import { createGrainTile } from './grain';
 import { PHASE_START_MS } from './useOpeningSequence';
 import type { PointerState } from './usePointerRef';
 import type { HoldState } from './HoldState';
+import type { EchoState } from './EchoState';
 import { createVideoLoopController, drawVideoLoopFrame } from './videoLoopController';
 import './MemoryVeil.css';
 
@@ -12,6 +13,7 @@ interface MemoryVeilProps {
   videoBRef: RefObject<HTMLVideoElement | null>;
   pointerRef: RefObject<PointerState>;
   holdRef: RefObject<HoldState>;
+  echoRef: RefObject<EchoState>;
   startTime: number;
 }
 
@@ -22,11 +24,12 @@ const MAX_DPR = 1.5;
 
 const CURSOR_RADIUS = 8.5;
 const FOCUS_RADIUS = 15;
+const CEILING_ECHO_RADIUS = 13;
 const REVEAL_BAND = 0.16;
 const IDLE_MS = 3000;
 const LOOP_CROSSFADE_MS = 850;
 
-export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, startTime }: MemoryVeilProps) {
+export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, echoRef, startTime }: MemoryVeilProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -113,8 +116,11 @@ export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, 
       const fy = hold ? (hold.cy / vh) * GRID_H : 0;
       const focusActive = !!hold?.active;
 
+      const ceilingIntensity = echoRef.current ? echoRef.current.ceilingIntensity : 0;
+
       const addRate = 3.4 * dt;
       const focusAddRate = 4.4 * dt;
+      const ceilingAddRate = 3.2 * dt;
       const lingerDecay = Math.pow(0.965, dt * 60);
       const idleDecay = Math.pow(0.9, dt * 60);
       const decay = isIdle ? idleDecay : lingerDecay;
@@ -137,6 +143,11 @@ export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, 
               const falloff = Math.pow(1 - dist / effR, 1.6);
               val = Math.min(1, val + falloff * addRate);
             }
+          }
+
+          if (ceilingIntensity > 0.01 && dist < CEILING_ECHO_RADIUS) {
+            const falloff = Math.pow(1 - dist / CEILING_ECHO_RADIUS, 1.3);
+            val = Math.min(1, val + falloff * ceilingIntensity * ceilingAddRate);
           }
 
           if (focusActive) {
@@ -222,7 +233,7 @@ export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, 
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
     };
-  }, [videoARef, videoBRef, pointerRef, holdRef, startTime]);
+  }, [videoARef, videoBRef, pointerRef, holdRef, echoRef, startTime]);
 
   return <canvas ref={canvasRef} className="memory-veil" aria-hidden="true" />;
 }
