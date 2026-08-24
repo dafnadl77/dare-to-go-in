@@ -1,34 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 
-export type Phase =
-  | 'black'
-  | 'emerging'
-  | 'title'
-  | 'environment'
-  | 'prompt'
-  | 'interaction'
-  | 'idle';
+export type Phase = 'black' | 'emerging' | 'title' | 'prompt' | 'interaction' | 'idle';
 
 /** Millisecond marks at which each phase begins, from experience start. */
 export const PHASE_START_MS: Record<Phase, number> = {
   black: 0,
   emerging: 1500,
   title: 4000,
-  environment: 7000,
-  prompt: 10000,
-  interaction: 12000,
-  idle: 14000,
+  // Title is substantially resolved well before its slowest character
+  // finishes its flicker (~7850ms); the question follows ~0.5s after that.
+  prompt: 7500,
+  interaction: 7950,
+  idle: 8400,
 };
 
-const PHASE_ORDER: Phase[] = [
-  'black',
-  'emerging',
-  'title',
-  'environment',
-  'prompt',
-  'interaction',
-  'idle',
-];
+const PHASE_ORDER: Phase[] = ['black', 'emerging', 'title', 'prompt', 'interaction', 'idle'];
 
 /**
  * Drives the cinematic opening sequence. `startTime` is a shared

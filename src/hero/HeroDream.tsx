@@ -12,7 +12,7 @@ import { createHoldState } from './HoldState';
 import { createEchoState } from './EchoState';
 import './HeroDream.css';
 
-const TITLE_PHASES = new Set(['title', 'environment', 'prompt', 'interaction', 'idle']);
+const TITLE_PHASES = new Set(['title', 'prompt', 'interaction', 'idle']);
 const PROMPT_PHASES = new Set(['prompt', 'interaction', 'idle']);
 const INTERACTION_PHASES = new Set(['interaction', 'idle']);
 

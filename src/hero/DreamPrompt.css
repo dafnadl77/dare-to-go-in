@@ -25,5 +25,5 @@
 .dream-prompt.is-revealed {
   opacity: 0.94;
   filter: blur(0);
-  transform: translateY(0) scale(1.26);
+  transform: translateY(-4px) scale(1.9);
 }
