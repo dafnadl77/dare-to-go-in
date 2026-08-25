@@ -18,7 +18,7 @@ import { useUnifiedDreamSequence } from './useUnifiedDreamSequence';
 import type { DreamInput } from './dreamInput';
 import { analyzeDream, type AnalysisResult } from './dreamAnalysis';
 import DreamAnalysisDevView from './DreamAnalysisDevView';
-import DreamReconstruction, { type ReconstructionPhase } from './DreamReconstruction';
+import DreamReconstruction, { type ReconstructionPhase, type InsideStep } from './DreamReconstruction';
 import { buildReconstructionBrief, type ReconstructionBrief } from './reconstructionBrief';
 import { pickMemoryFragments } from './memoryFragments';
 import { generateDreamImage, type ImageResult } from './dreamImage';
@@ -34,6 +34,12 @@ const RECONSTRUCTING_MIN_MS = 2200;
 // Must stay in sync with the CSS reveal animation duration (DreamReconstruction.css).
 const IMAGING_MS = 6500;
 const SETTLE_PAUSE_MS = 1500;
+// ENTER THE DREAM — must stay roughly in sync with the CSS push-in
+// (1s hold + 6s slow push, see .dr-enter-push in DreamReconstruction.css).
+const ENTERING_MS = 7200;
+const INSIDE_QUIET_MS = 5000;
+const LOOK_AROUND_VISIBLE_MS = 3000;
+const INSIDE_QUIET2_MS = 1800;
 
 const TITLE_PHASES = new Set(['title', 'prompt', 'interaction', 'idle']);
 const PROMPT_PHASES = new Set(['prompt', 'interaction', 'idle']);
@@ -77,6 +83,9 @@ export default function HeroDream() {
   const [brief, setBrief] = useState<ReconstructionBrief | null>(null);
   const [fragments, setFragments] = useState<string[]>([]);
   const [corrections, setCorrections] = useState<string[]>([]);
+  // ENTER THE DREAM — the quiet look → "LOOK AROUND." → pause → "WHAT
+  // STANDS OUT TO YOU?" beat once fully inside. Terminal at 'prompt'.
+  const [insideStep, setInsideStep] = useState<InsideStep>('quiet');
 
   // Real image generation. `displayedImageUrl` is the last fully-settled
   // image; `incomingImageUrl` is a freshly generated one mid-reveal during
@@ -219,7 +228,57 @@ export default function HeroDream() {
     startImageGeneration(token, brief);
   };
 
-  const handleYes = () => setReconstructionPhase('ready');
+  const handleYes = () => setReconstructionPhase('entering');
+
+  // 'entering': gently dissolve the reveal UI, hold the settled image, then
+  // slowly push into it (CSS-driven) — once that's had time to play out,
+  // cross fully into DreamWorld.
+  useEffect(() => {
+    if (reconstructionPhase !== 'entering') return;
+    const t = setTimeout(() => setReconstructionPhase('inside'), ENTERING_MS);
+    return () => clearTimeout(t);
+  }, [reconstructionPhase]);
+
+  // 'inside': a quiet look at the living image, then "LOOK AROUND." fades
+  // in and back out, a short pause, then the terminal "WHAT STANDS OUT TO
+  // YOU?" — nothing advances past that on its own.
+  useEffect(() => {
+    if (reconstructionPhase === 'inside') setInsideStep('quiet');
+  }, [reconstructionPhase]);
+
+  useEffect(() => {
+    if (reconstructionPhase !== 'inside') return;
+    if (insideStep === 'quiet') {
+      const t = setTimeout(() => setInsideStep('look-around'), INSIDE_QUIET_MS);
+      return () => clearTimeout(t);
+    }
+    if (insideStep === 'look-around') {
+      const t = setTimeout(() => setInsideStep('quiet2'), LOOK_AROUND_VISIBLE_MS);
+      return () => clearTimeout(t);
+    }
+    if (insideStep === 'quiet2') {
+      const t = setTimeout(() => setInsideStep('prompt'), INSIDE_QUIET2_MS);
+      return () => clearTimeout(t);
+    }
+  }, [reconstructionPhase, insideStep]);
+
+  // Debug-only QA hook (never part of the normal user journey, only present
+  // with ?debug=1): lets a real already-generated image be dropped straight
+  // into state so later phases (e.g. ENTER THE DREAM) can be verified
+  // without spending a new OpenAI image-generation call every time.
+  useEffect(() => {
+    if (!debugMode) return;
+    const w = window as unknown as { __dreamDebug?: Record<string, (...args: never[]) => void> };
+    w.__dreamDebug = {
+      setPhase: ((p: ReconstructionPhase) => setReconstructionPhase(p)) as (...args: never[]) => void,
+      setInsideStep: ((s: InsideStep) => setInsideStep(s)) as (...args: never[]) => void,
+      setDisplayedImage: ((url: string) => setDisplayedImageUrl(url)) as (...args: never[]) => void,
+      setAnalysis: ((a: unknown) => setAnalysisResult({ status: 'ok', analysis: a } as AnalysisResult)) as (...args: never[]) => void,
+    };
+    return () => {
+      delete w.__dreamDebug;
+    };
+  }, [debugMode]);
 
   const isReconstructing = reconstructionPhase !== 'none';
 
@@ -299,6 +358,7 @@ export default function HeroDream() {
 
       <DreamReconstruction
         phase={reconstructionPhase}
+        insideStep={insideStep}
         analysis={analysisResult?.status === 'ok' ? analysisResult.analysis : null}
         brief={brief}
         fragments={fragments}

@@ -2,6 +2,8 @@ import { useState, type CSSProperties } from 'react';
 import type { DreamAnalysis } from './dreamAnalysisSchema';
 import type { ReconstructionBrief } from './reconstructionBrief';
 import { deriveVisualCues } from './reconstructionVisualCues';
+import { deriveDreamWorldEffects } from './dreamWorldEffects';
+import DreamWorld from './DreamWorld';
 import './DreamReconstruction.css';
 
 export type ReconstructionPhase =
@@ -14,10 +16,15 @@ export type ReconstructionPhase =
   | 'correcting'
   | 'regenerating'
   | 'image-error'
-  | 'ready';
+  | 'entering'
+  | 'inside';
+
+/** Sub-steps inside the 'inside' phase — a quiet look, then LOOK AROUND fades in and out, then the terminal prompt. */
+export type InsideStep = 'quiet' | 'look-around' | 'quiet2' | 'prompt';
 
 interface DreamReconstructionProps {
   phase: ReconstructionPhase;
+  insideStep: InsideStep;
   analysis: DreamAnalysis | null;
   brief: ReconstructionBrief | null;
   fragments: string[];
@@ -39,6 +46,7 @@ interface DreamReconstructionProps {
  */
 export default function DreamReconstruction({
   phase,
+  insideStep,
   analysis,
   brief,
   fragments,
@@ -54,6 +62,7 @@ export default function DreamReconstruction({
   if (phase === 'none') return null;
 
   const cues = analysis && brief ? deriveVisualCues(analysis, brief) : null;
+  const worldEffects = analysis ? deriveDreamWorldEffects(analysis) : null;
 
   const handleTryAgain = () => {
     const text = correctionText.trim();
@@ -85,7 +94,7 @@ export default function DreamReconstruction({
       {/* The real generated dream — never a separate card/gallery, always
           overtaking the room itself through organic, irregular masks. */}
       {(displayedImageUrl || incomingImageUrl) && (
-        <div className="dr-image-layer" aria-hidden="true">
+        <div className="dr-image-layer" data-falling={worldEffects?.falling ? 'true' : 'false'} aria-hidden="true">
           {displayedImageUrl && <img className="dr-image dr-image-current" src={displayedImageUrl} alt="" />}
           {incomingImageUrl && (
             <>
@@ -118,7 +127,10 @@ export default function DreamReconstruction({
         </div>
       )}
 
-      {phase === 'reveal' && (
+      {/* Stays mounted through 'entering' too (not just 'reveal') so the
+          CSS opacity transition can actually play as a fade — unmounting
+          exactly on the phase change would just make it vanish instantly. */}
+      {(phase === 'reveal' || phase === 'entering') && (
         <div className="dr-reveal">
           <p className="dr-line dr-line--found">THIS IS WHAT I FOUND.</p>
           <p className="dr-line dr-line--felt">IS THIS HOW IT FELT?</p>
@@ -150,9 +162,15 @@ export default function DreamReconstruction({
         </div>
       )}
 
-      {phase === 'ready' && (
-        <div className="dr-ready">
-          <p className="dr-line dr-line--ready">READY TO GO BACK IN.</p>
+      {/* ENTER THE DREAM — the existing generated image is the entire visual
+          foundation; DreamWorld only adds subtle motion derived from the
+          real DreamAnalysis on top of it. No new image, no new content. */}
+      {(phase === 'entering' || phase === 'inside') && worldEffects && <DreamWorld effects={worldEffects} />}
+
+      {phase === 'inside' && (
+        <div className="dream-world-text" data-step={insideStep} aria-hidden="true">
+          <p className="dw-line dw-line--look">LOOK AROUND.</p>
+          <p className="dw-line dw-line--stands-out">WHAT STANDS OUT TO YOU?</p>
         </div>
       )}
     </div>
