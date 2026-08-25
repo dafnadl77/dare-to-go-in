@@ -64,6 +64,27 @@
   animation: title-dissolve-out 2.4s var(--delay) var(--ease-memory) forwards;
 }
 
+/* Dream Reconstruction begins: the title leaves the room entirely, faster
+   and more completely than the subtle listening-dissolve above. */
+.memory-title.is-reconstructing .mt-char--a,
+.memory-title.is-reconstructing .mt-char--b,
+.memory-title.is-reconstructing .mt-char--c {
+  animation: title-reconstruct-out 2.8s var(--delay) var(--ease-memory) forwards;
+}
+
+@keyframes title-reconstruct-out {
+  0% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(20px);
+    transform: translateY(-0.12em) scale(0.95);
+  }
+}
+
 @keyframes title-dissolve-out {
   0% {
     opacity: 1;
@@ -170,7 +191,10 @@
   }
   .memory-title.is-dissolving .mt-char--a,
   .memory-title.is-dissolving .mt-char--b,
-  .memory-title.is-dissolving .mt-char--c {
+  .memory-title.is-dissolving .mt-char--c,
+  .memory-title.is-reconstructing .mt-char--a,
+  .memory-title.is-reconstructing .mt-char--b,
+  .memory-title.is-reconstructing .mt-char--c {
     animation-duration: 0.01s;
     animation-timing-function: linear;
   }

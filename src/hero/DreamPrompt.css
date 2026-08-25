@@ -33,6 +33,15 @@
   transform: translateY(-4px) scale(1.5);
 }
 
+.dream-prompt.is-reconstructing {
+  opacity: 0;
+  filter: blur(10px);
+  transition:
+    opacity 2.2s var(--ease-memory),
+    filter 2.2s var(--ease-memory),
+    transform 2.2s var(--ease-memory);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dream-prompt {
     transition: none;

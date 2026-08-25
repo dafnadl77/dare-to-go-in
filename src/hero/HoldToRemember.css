@@ -33,6 +33,17 @@
   transform: translateY(0);
 }
 
+/* Dream Reconstruction begins: the whole capture UI — including the
+   settled "I think I have it" text — leaves, handing the room over to
+   DreamReconstruction. */
+.hold-to-remember.is-reconstructing {
+  opacity: 0;
+  filter: blur(10px);
+  transition:
+    opacity 2s var(--ease-memory),
+    filter 2s var(--ease-memory);
+}
+
 /* Entering recording specifically: the circle expands slightly as it
    dissolves, rather than a plain fade. */
 .hold-to-remember.is-mode-recording .htr-circle {

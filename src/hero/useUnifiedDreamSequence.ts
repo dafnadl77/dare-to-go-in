@@ -46,8 +46,18 @@ function applyLink(link: ChainLink, startTime: number, dreamState: DreamEventSta
  * lamps (lampStateRef, read by DreamEchoes) from a single chained
  * timeline, so only one effect is ever active anywhere and the next one
  * starts the instant the current one's fade-out finishes — no idle gap.
+ *
+ * `pausedRef`, when provided and true, freezes the chain: whatever effect
+ * is already mid-flight still finishes its own natural fade-out (its
+ * envelope keeps reading real elapsed time), but nothing new starts after
+ * that. Omitting it (or leaving it false) reproduces the exact original
+ * always-on behavior.
  */
-export function useUnifiedDreamSequence(dreamEventRef: RefObject<DreamEventState>, lampStateRef: RefObject<LampState>) {
+export function useUnifiedDreamSequence(
+  dreamEventRef: RefObject<DreamEventState>,
+  lampStateRef: RefObject<LampState>,
+  pausedRef?: RefObject<boolean>,
+) {
   useEffect(() => {
     let raf = 0;
     let chainIndex = 0;
@@ -64,7 +74,7 @@ export function useUnifiedDreamSequence(dreamEventRef: RefObject<DreamEventState
       if (segmentStartTime === null) {
         segmentStartTime = now;
         applyLink(CHAIN[chainIndex], segmentStartTime, dreamState, lampState);
-      } else if (now - segmentStartTime >= linkDuration(CHAIN[chainIndex])) {
+      } else if (!pausedRef?.current && now - segmentStartTime >= linkDuration(CHAIN[chainIndex])) {
         chainIndex = (chainIndex + 1) % CHAIN.length;
         segmentStartTime += linkDuration(CHAIN[(chainIndex - 1 + CHAIN.length) % CHAIN.length]);
         applyLink(CHAIN[chainIndex], segmentStartTime, dreamState, lampState);
@@ -74,5 +84,5 @@ export function useUnifiedDreamSequence(dreamEventRef: RefObject<DreamEventState
     }
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
-  }, [dreamEventRef, lampStateRef]);
+  }, [dreamEventRef, lampStateRef, pausedRef]);
 }

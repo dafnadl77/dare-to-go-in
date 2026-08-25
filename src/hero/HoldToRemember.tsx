@@ -32,6 +32,8 @@ interface HoldToRememberProps {
       genuinely completes (never on cancel). Nothing downstream is built
       yet — this only hands off the real captured dream for later stages. */
   onDreamCapture?: (input: DreamInput) => void;
+  /** True once Dream Reconstruction begins — the whole capture UI (including the settled "I think I have it" text) dissolves away. */
+  reconstructing?: boolean;
 }
 
 const FILL_MS = 800;
@@ -50,6 +52,7 @@ export default function HoldToRemember({
   setMicUnavailable,
   onTypedTranscriptChange,
   onDreamCapture,
+  reconstructing = false,
 }: HoldToRememberProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const ringRef = useRef<SVGCircleElement>(null);
@@ -312,7 +315,7 @@ export default function HoldToRemember({
   const requestingMic = recorder.recordingState === 'requesting-permission';
 
   return (
-    <div className={`hold-to-remember${revealed ? ' is-revealed' : ''} is-mode-${centralMode}`}>
+    <div className={`hold-to-remember${revealed ? ' is-revealed' : ''} is-mode-${centralMode}${reconstructing ? ' is-reconstructing' : ''}`}>
       <button
         ref={buttonRef}
         type="button"

@@ -18,8 +18,16 @@ import { useUnifiedDreamSequence } from './useUnifiedDreamSequence';
 import type { DreamInput } from './dreamInput';
 import { analyzeDream, type AnalysisResult } from './dreamAnalysis';
 import DreamAnalysisDevView from './DreamAnalysisDevView';
+import DreamReconstruction, { type ReconstructionPhase } from './DreamReconstruction';
+import { buildReconstructionBrief, type ReconstructionBrief } from './reconstructionBrief';
+import { pickMemoryFragments } from './memoryFragments';
 import type { CentralMode } from './centralMode';
 import './HeroDream.css';
+
+const DISSOLVE_MS = 4200;
+const FRAGMENTS_MS = 3600;
+const RECONSTRUCTING_MS = 2600;
+const SETTLE_PAUSE_MS = 1500;
 
 const TITLE_PHASES = new Set(['title', 'prompt', 'interaction', 'idle']);
 const PROMPT_PHASES = new Set(['prompt', 'interaction', 'idle']);
@@ -35,7 +43,8 @@ export default function HeroDream() {
   const echoRef = useRef(createEchoState());
   const dreamEventRef = useRef(createDreamEventState());
   const lampStateRef = useRef(createLampState());
-  useUnifiedDreamSequence(dreamEventRef, lampStateRef);
+  const schedulerPausedRef = useRef(false);
+  useUnifiedDreamSequence(dreamEventRef, lampStateRef, schedulerPausedRef);
   const { phase, startTime } = useOpeningSequence();
 
   const recorder = useDreamRecorder();
@@ -51,6 +60,18 @@ export default function HeroDream() {
   const dreamInputRef = useRef<DreamInput | null>(null);
   const [analysisPending, setAnalysisPending] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  // Only present with ?debug=1 — the dev view must never appear in the
+  // normal user journey, only as a development aid.
+  const [debugMode] = useState(() => new URLSearchParams(window.location.search).has('debug'));
+
+  // Dream Reconstruction — begins only once a REAL DreamAnalysis has
+  // succeeded. Every fragment/brief field below is derived from that real
+  // analysis; nothing here is invented or demo content.
+  const [reconstructionPhase, setReconstructionPhase] = useState<ReconstructionPhase>('none');
+  const [brief, setBrief] = useState<ReconstructionBrief | null>(null);
+  const [fragments, setFragments] = useState<string[]>([]);
+  const [corrections, setCorrections] = useState<string[]>([]);
+
   const handleDreamCapture = (input: DreamInput) => {
     dreamInputRef.current = input;
     setAnalysisPending(true);
@@ -63,6 +84,50 @@ export default function HeroDream() {
         setAnalysisPending(false);
       });
   };
+
+  // Kick off the reconstruction sequence the moment analysis succeeds —
+  // once only per successful analysis (reconstructionPhase stays 'none'
+  // until then, so a re-render from an unrelated state change can't retrigger it).
+  useEffect(() => {
+    if (analysisResult?.status !== 'ok' || reconstructionPhase !== 'none') return;
+    const analysis = analysisResult.analysis;
+    setBrief(buildReconstructionBrief(analysis, []));
+    setFragments(pickMemoryFragments(analysis));
+    const t = setTimeout(() => setReconstructionPhase('dissolving'), SETTLE_PAUSE_MS);
+    return () => clearTimeout(t);
+  }, [analysisResult, reconstructionPhase]);
+
+  // Timer-driven phase progression. User choices (NOT QUITE / YES) take
+  // over from 'reveal' onward — no timer advances past it on its own.
+  useEffect(() => {
+    schedulerPausedRef.current = reconstructionPhase !== 'none';
+    if (reconstructionPhase === 'dissolving') {
+      const t = setTimeout(() => setReconstructionPhase('fragments'), DISSOLVE_MS);
+      return () => clearTimeout(t);
+    }
+    if (reconstructionPhase === 'fragments') {
+      const t = setTimeout(() => setReconstructionPhase('reconstructing'), FRAGMENTS_MS);
+      return () => clearTimeout(t);
+    }
+    if (reconstructionPhase === 'reconstructing') {
+      const t = setTimeout(() => setReconstructionPhase('reveal'), RECONSTRUCTING_MS);
+      return () => clearTimeout(t);
+    }
+  }, [reconstructionPhase]);
+
+  const handleNotQuite = () => setReconstructionPhase('correcting');
+
+  const handleCorrectionSubmit = (text: string) => {
+    if (analysisResult?.status !== 'ok') return;
+    const nextCorrections = [...corrections, text];
+    setCorrections(nextCorrections);
+    setBrief(buildReconstructionBrief(analysisResult.analysis, nextCorrections));
+    setReconstructionPhase('reconstructing');
+  };
+
+  const handleYes = () => setReconstructionPhase('ready');
+
+  const isReconstructing = reconstructionPhase !== 'none';
 
   // Once a recording has genuinely begun, the title/prompt settle into the
   // background for the rest of the session — including through the finished
@@ -116,9 +181,10 @@ export default function HeroDream() {
           <MemoryTitle
             revealed={TITLE_PHASES.has(phase)}
             dissolving={listeningEverStarted}
+            reconstructing={isReconstructing}
             pointerRef={pointerRef}
           />
-          <DreamPrompt revealed={PROMPT_PHASES.has(phase)} quiet={listeningEverStarted} />
+          <DreamPrompt revealed={PROMPT_PHASES.has(phase)} quiet={listeningEverStarted} reconstructing={isReconstructing} />
           <HoldToRemember
             revealed={INTERACTION_PHASES.has(phase)}
             holdRef={holdRef}
@@ -130,22 +196,35 @@ export default function HeroDream() {
             setMicUnavailable={setMicUnavailable}
             onTypedTranscriptChange={setTypedTranscript}
             onDreamCapture={handleDreamCapture}
+            reconstructing={isReconstructing}
           />
         </div>
       </div>
 
       <CustomCursor pointerRef={pointerRef} holdRef={holdRef} />
 
-      {/* STAGE 3 ONLY — temporary, to be removed once real Dream
-          Reconstruction exists. A separate overlay; never part of the hero. */}
-      <DreamAnalysisDevView
-        pending={analysisPending}
-        result={analysisResult}
-        onDismiss={() => {
-          setAnalysisResult(null);
-          setAnalysisPending(false);
-        }}
+      <DreamReconstruction
+        phase={reconstructionPhase}
+        analysis={analysisResult?.status === 'ok' ? analysisResult.analysis : null}
+        brief={brief}
+        fragments={fragments}
+        onNotQuite={handleNotQuite}
+        onCorrectionSubmit={handleCorrectionSubmit}
+        onYes={handleYes}
       />
+
+      {/* Development aid only — never part of the normal user journey.
+          Visit with ?debug=1 to inspect the raw DreamAnalysis. */}
+      {debugMode && (
+        <DreamAnalysisDevView
+          pending={analysisPending}
+          result={analysisResult}
+          onDismiss={() => {
+            setAnalysisResult(null);
+            setAnalysisPending(false);
+          }}
+        />
+      )}
     </div>
   );
 }
