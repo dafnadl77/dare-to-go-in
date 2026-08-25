@@ -1,0 +1,115 @@
+/* TEMPORARY development panel — intentionally plain (system font, flat
+   panel), never meant to look like part of the approved hero. */
+.dev-view {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4vh 4vw;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.dev-view-panel {
+  width: min(720px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #161616;
+  color: #e8e8e8;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem 2rem;
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.dev-view-header {
+  position: sticky;
+  top: -1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #161616;
+  padding: 0.5rem 0 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.dev-view-tag {
+  color: #ffb454;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.dev-view-close {
+  background: none;
+  border: 1px solid #555;
+  color: #e8e8e8;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.dev-view-close:hover {
+  background: #2a2a2a;
+}
+
+.dev-view-status {
+  font-weight: 700;
+  font-size: 15px;
+  margin: 0 0 0.5rem;
+}
+
+.dev-view-reason {
+  color: #ff8080;
+  margin: 0 0 0.25rem;
+}
+
+.dev-view-message {
+  color: #b8b8b8;
+  margin: 0;
+}
+
+.dev-view-section {
+  margin: 1rem 0;
+}
+
+.dev-view-section h3 {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: #7fd1ff;
+  margin: 0 0 0.4rem;
+}
+
+.dev-view-section ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.dev-view-section li {
+  margin: 0.15rem 0;
+}
+
+.dev-view-empty {
+  color: #777;
+  margin: 0;
+  font-style: italic;
+}
+
+.dev-view-json {
+  background: #0e0e0e;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 0.75rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+  margin: 0;
+}

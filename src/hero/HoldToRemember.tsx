@@ -303,9 +303,10 @@ export default function HoldToRemember({
         transcript: capturedTranscriptRef.current,
         audioBlob: recorder.audioBlob,
         language: null,
+        transcriptionSupported: transcription.supported,
       }),
     );
-  }, [recorder.audioBlob, onDreamCapture]);
+  }, [recorder.audioBlob, onDreamCapture, transcription.supported]);
 
   const isHoldFaded = centralMode !== 'hold';
   const requestingMic = recorder.recordingState === 'requesting-permission';

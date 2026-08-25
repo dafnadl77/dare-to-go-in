@@ -16,6 +16,8 @@ import { createDreamEventState } from './dreamEventState';
 import { createLampState } from './lampState';
 import { useUnifiedDreamSequence } from './useUnifiedDreamSequence';
 import type { DreamInput } from './dreamInput';
+import { analyzeDream, type AnalysisResult } from './dreamAnalysis';
+import DreamAnalysisDevView from './DreamAnalysisDevView';
 import type { CentralMode } from './centralMode';
 import './HeroDream.css';
 
@@ -44,10 +46,22 @@ export default function HeroDream() {
   // the visual layer later doesn't require touching this plumbing again.
   const [, setTypedTranscript] = useState('');
   // The real captured dream (typed or spoken), once TYPE/RECORD genuinely
-  // completes. Held for the future analysis stage — nothing reads it yet.
+  // completes, plus the Dream Analysis pipeline's result for it. STAGE 3
+  // ONLY: the temporary dev view below is not final UI.
   const dreamInputRef = useRef<DreamInput | null>(null);
+  const [analysisPending, setAnalysisPending] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const handleDreamCapture = (input: DreamInput) => {
     dreamInputRef.current = input;
+    setAnalysisPending(true);
+    setAnalysisResult(null);
+    analyzeDream(input)
+      .then((result) => {
+        setAnalysisResult(result);
+      })
+      .finally(() => {
+        setAnalysisPending(false);
+      });
   };
 
   // Once a recording has genuinely begun, the title/prompt settle into the
@@ -121,6 +135,17 @@ export default function HeroDream() {
       </div>
 
       <CustomCursor pointerRef={pointerRef} holdRef={holdRef} />
+
+      {/* STAGE 3 ONLY — temporary, to be removed once real Dream
+          Reconstruction exists. A separate overlay; never part of the hero. */}
+      <DreamAnalysisDevView
+        pending={analysisPending}
+        result={analysisResult}
+        onDismiss={() => {
+          setAnalysisResult(null);
+          setAnalysisPending(false);
+        }}
+      />
     </div>
   );
 }
