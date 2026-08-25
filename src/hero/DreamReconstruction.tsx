@@ -4,31 +4,49 @@ import type { ReconstructionBrief } from './reconstructionBrief';
 import { deriveVisualCues } from './reconstructionVisualCues';
 import './DreamReconstruction.css';
 
-export type ReconstructionPhase = 'none' | 'dissolving' | 'fragments' | 'reconstructing' | 'reveal' | 'correcting' | 'ready';
+export type ReconstructionPhase =
+  | 'none'
+  | 'dissolving'
+  | 'fragments'
+  | 'reconstructing'
+  | 'imaging'
+  | 'reveal'
+  | 'correcting'
+  | 'regenerating'
+  | 'image-error'
+  | 'ready';
 
 interface DreamReconstructionProps {
   phase: ReconstructionPhase;
   analysis: DreamAnalysis | null;
   brief: ReconstructionBrief | null;
   fragments: string[];
+  /** The last successfully generated image, already fully revealed. Null until the first generation succeeds. */
+  displayedImageUrl: string | null;
+  /** A freshly generated image mid-reveal during the 'imaging' phase (room→image the first time, image→image on regeneration). */
+  incomingImageUrl: string | null;
   onNotQuite: () => void;
   onCorrectionSubmit: (text: string) => void;
+  onRetryImage: () => void;
   onYes: () => void;
 }
 
 /**
- * The room itself becoming a reconstructed memory. Never a dashboard, never
- * raw JSON — only real DreamAnalysis content (fragments, brief) drives what
- * appears. Unknown details are represented by leaving visual motifs off,
- * never by inventing a detailed substitute.
+ * The room itself becoming a reconstructed memory, then a real generated
+ * image. Never a dashboard, never raw JSON — only real DreamAnalysis
+ * content (fragments, brief) and a real generated image drive what
+ * appears. Unknown details stay visually unresolved, never invented.
  */
 export default function DreamReconstruction({
   phase,
   analysis,
   brief,
   fragments,
+  displayedImageUrl,
+  incomingImageUrl,
   onNotQuite,
   onCorrectionSubmit,
+  onRetryImage,
   onYes,
 }: DreamReconstructionProps) {
   const [correctionText, setCorrectionText] = useState('');
@@ -46,6 +64,9 @@ export default function DreamReconstruction({
 
   return (
     <div className={`dream-reconstruction is-phase-${phase}`}>
+      {/* Temporary CSS reconstruction — the placeholder while the real image
+          loads, and the fallback if generation ever fails. Kept at low
+          residue opacity even once a real image is showing. */}
       <div
         className="dr-visual"
         data-water={cues?.water ? 'true' : 'false'}
@@ -61,6 +82,21 @@ export default function DreamReconstruction({
         <div className="dr-silhouette" />
       </div>
 
+      {/* The real generated dream — never a separate card/gallery, always
+          overtaking the room itself through organic, irregular masks. */}
+      {(displayedImageUrl || incomingImageUrl) && (
+        <div className="dr-image-layer" aria-hidden="true">
+          {displayedImageUrl && <img className="dr-image dr-image-current" src={displayedImageUrl} alt="" />}
+          {incomingImageUrl && (
+            <>
+              <img className="dr-image dr-image-incoming" src={incomingImageUrl} alt="" />
+              <img className="dr-image dr-image-incoming-patch dr-image-incoming-patch--a" src={incomingImageUrl} alt="" />
+              <img className="dr-image dr-image-incoming-patch dr-image-incoming-patch--b" src={incomingImageUrl} alt="" />
+            </>
+          )}
+        </div>
+      )}
+
       {phase === 'fragments' && fragments.length > 0 && (
         <div className="dr-fragments" aria-hidden="true">
           {fragments.map((f, i) => (
@@ -68,6 +104,17 @@ export default function DreamReconstruction({
               {f.toUpperCase()}
             </span>
           ))}
+        </div>
+      )}
+
+      {phase === 'regenerating' && <p className="dr-remembering">REMEMBERING&hellip;</p>}
+
+      {phase === 'image-error' && (
+        <div className="dr-image-error">
+          <p className="dr-line">I COULDN&rsquo;T SEE ALL OF IT.</p>
+          <button type="button" className="dr-choice" data-cursor-hover onClick={onRetryImage}>
+            TRY AGAIN
+          </button>
         </div>
       )}
 

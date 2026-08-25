@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import DreamVideo from './DreamVideo';
 import MemoryVeil from './MemoryVeil';
 import MemoryTitle from './MemoryTitle';
@@ -21,12 +21,18 @@ import DreamAnalysisDevView from './DreamAnalysisDevView';
 import DreamReconstruction, { type ReconstructionPhase } from './DreamReconstruction';
 import { buildReconstructionBrief, type ReconstructionBrief } from './reconstructionBrief';
 import { pickMemoryFragments } from './memoryFragments';
+import { generateDreamImage, type ImageResult } from './dreamImage';
 import type { CentralMode } from './centralMode';
 import './HeroDream.css';
 
 const DISSOLVE_MS = 4200;
 const FRAGMENTS_MS = 3600;
-const RECONSTRUCTING_MS = 2600;
+// Minimum time the temporary CSS reconstruction stays visible before
+// handing off to the real image — not a hard exit timer: it also waits
+// for generation to actually settle, whichever takes longer.
+const RECONSTRUCTING_MIN_MS = 2200;
+// Must stay in sync with the CSS reveal animation duration (DreamReconstruction.css).
+const IMAGING_MS = 6500;
 const SETTLE_PAUSE_MS = 1500;
 
 const TITLE_PHASES = new Set(['title', 'prompt', 'interaction', 'idle']);
@@ -72,6 +78,31 @@ export default function HeroDream() {
   const [fragments, setFragments] = useState<string[]>([]);
   const [corrections, setCorrections] = useState<string[]>([]);
 
+  // Real image generation. `displayedImageUrl` is the last fully-settled
+  // image; `incomingImageUrl` is a freshly generated one mid-reveal during
+  // the 'imaging' phase. `generationTokenRef` makes generation idempotent —
+  // a given token (e.g. 'initial', 'correction-1') only ever fires one real
+  // request, no matter how many times rerenders/effects/StrictMode touch it.
+  const [displayedImageUrl, setDisplayedImageUrl] = useState<string | null>(null);
+  const [incomingImageUrl, setIncomingImageUrl] = useState<string | null>(null);
+  const [imagePending, setImagePending] = useState(false);
+  const [imageResult, setImageResult] = useState<ImageResult | null>(null);
+  const generationTokenRef = useRef<string | null>(null);
+  const correctionCountRef = useRef(0);
+  const retryCountRef = useRef(0);
+  const reconstructingEnteredAtRef = useRef(0);
+
+  const startImageGeneration = useCallback((token: string, briefToUse: ReconstructionBrief) => {
+    if (generationTokenRef.current === token) return;
+    generationTokenRef.current = token;
+    setImagePending(true);
+    setImageResult(null);
+    generateDreamImage(briefToUse).then((result) => {
+      setImageResult(result);
+      setImagePending(false);
+    });
+  }, []);
+
   const handleDreamCapture = (input: DreamInput) => {
     dreamInputRef.current = input;
     setAnalysisPending(true);
@@ -85,20 +116,23 @@ export default function HeroDream() {
       });
   };
 
-  // Kick off the reconstruction sequence the moment analysis succeeds —
-  // once only per successful analysis (reconstructionPhase stays 'none'
-  // until then, so a re-render from an unrelated state change can't retrigger it).
+  // Kick off the reconstruction sequence AND the one real initial image
+  // generation the moment analysis succeeds — once only per successful
+  // analysis (reconstructionPhase stays 'none' until then, so a re-render
+  // from an unrelated state change can't retrigger it).
   useEffect(() => {
     if (analysisResult?.status !== 'ok' || reconstructionPhase !== 'none') return;
     const analysis = analysisResult.analysis;
-    setBrief(buildReconstructionBrief(analysis, []));
+    const newBrief = buildReconstructionBrief(analysis, []);
+    setBrief(newBrief);
     setFragments(pickMemoryFragments(analysis));
+    startImageGeneration('initial', newBrief);
     const t = setTimeout(() => setReconstructionPhase('dissolving'), SETTLE_PAUSE_MS);
     return () => clearTimeout(t);
-  }, [analysisResult, reconstructionPhase]);
+  }, [analysisResult, reconstructionPhase, startImageGeneration]);
 
-  // Timer-driven phase progression. User choices (NOT QUITE / YES) take
-  // over from 'reveal' onward — no timer advances past it on its own.
+  // Timer-driven phase progression for the room's own dissolve. User
+  // choices (NOT QUITE / YES) take over from 'reveal' onward.
   useEffect(() => {
     schedulerPausedRef.current = reconstructionPhase !== 'none';
     if (reconstructionPhase === 'dissolving') {
@@ -109,11 +143,60 @@ export default function HeroDream() {
       const t = setTimeout(() => setReconstructionPhase('reconstructing'), FRAGMENTS_MS);
       return () => clearTimeout(t);
     }
+  }, [reconstructionPhase]);
+
+  useEffect(() => {
     if (reconstructionPhase === 'reconstructing') {
-      const t = setTimeout(() => setReconstructionPhase('reveal'), RECONSTRUCTING_MS);
-      return () => clearTimeout(t);
+      reconstructingEnteredAtRef.current = performance.now();
     }
   }, [reconstructionPhase]);
+
+  // 'reconstructing' only ever hands off to the real image once it has
+  // actually loaded — "loads invisibly in the background, only when fully
+  // loaded, begin transformation" — combined with a minimum dwell so a very
+  // fast response doesn't feel like it skipped the room dissolving.
+  useEffect(() => {
+    if (reconstructionPhase !== 'reconstructing') return;
+    if (imagePending || !imageResult) return;
+    const elapsed = performance.now() - reconstructingEnteredAtRef.current;
+    const remaining = Math.max(0, RECONSTRUCTING_MIN_MS - elapsed);
+    const t = setTimeout(() => {
+      if (imageResult.status === 'ok') {
+        setIncomingImageUrl(imageResult.imageDataUrl);
+        setReconstructionPhase('imaging');
+      } else {
+        setReconstructionPhase('image-error');
+      }
+    }, remaining);
+    return () => clearTimeout(t);
+  }, [reconstructionPhase, imagePending, imageResult]);
+
+  // 'regenerating' (after a NOT QUITE correction): the previous image stays
+  // visible the whole time, no minimum dwell — hand off the instant the
+  // corrected image is ready (or show the error state if it fails).
+  useEffect(() => {
+    if (reconstructionPhase !== 'regenerating') return;
+    if (imagePending || !imageResult) return;
+    if (imageResult.status === 'ok') {
+      setIncomingImageUrl(imageResult.imageDataUrl);
+      setReconstructionPhase('imaging');
+    } else {
+      setReconstructionPhase('image-error');
+    }
+  }, [reconstructionPhase, imagePending, imageResult]);
+
+  // 'imaging': the real cross-dissolve/organic-mask reveal (CSS-driven).
+  // Once it's had time to fully play out, commit the new image as the
+  // settled one and move on to the reveal choice.
+  useEffect(() => {
+    if (reconstructionPhase !== 'imaging') return;
+    const t = setTimeout(() => {
+      setDisplayedImageUrl(incomingImageUrl);
+      setIncomingImageUrl(null);
+      setReconstructionPhase('reveal');
+    }, IMAGING_MS);
+    return () => clearTimeout(t);
+  }, [reconstructionPhase, incomingImageUrl]);
 
   const handleNotQuite = () => setReconstructionPhase('correcting');
 
@@ -121,8 +204,19 @@ export default function HeroDream() {
     if (analysisResult?.status !== 'ok') return;
     const nextCorrections = [...corrections, text];
     setCorrections(nextCorrections);
-    setBrief(buildReconstructionBrief(analysisResult.analysis, nextCorrections));
-    setReconstructionPhase('reconstructing');
+    const newBrief = buildReconstructionBrief(analysisResult.analysis, nextCorrections);
+    setBrief(newBrief);
+    correctionCountRef.current += 1;
+    setReconstructionPhase('regenerating');
+    startImageGeneration(`correction-${correctionCountRef.current}`, newBrief);
+  };
+
+  const handleRetryImage = () => {
+    if (!brief) return;
+    retryCountRef.current += 1;
+    const token = `${generationTokenRef.current ?? 'initial'}-retry-${retryCountRef.current}`;
+    setReconstructionPhase(displayedImageUrl ? 'regenerating' : 'reconstructing');
+    startImageGeneration(token, brief);
   };
 
   const handleYes = () => setReconstructionPhase('ready');
@@ -208,8 +302,11 @@ export default function HeroDream() {
         analysis={analysisResult?.status === 'ok' ? analysisResult.analysis : null}
         brief={brief}
         fragments={fragments}
+        displayedImageUrl={displayedImageUrl}
+        incomingImageUrl={incomingImageUrl}
         onNotQuite={handleNotQuite}
         onCorrectionSubmit={handleCorrectionSubmit}
+        onRetryImage={handleRetryImage}
         onYes={handleYes}
       />
 
