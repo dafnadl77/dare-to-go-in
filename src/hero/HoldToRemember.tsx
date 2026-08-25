@@ -12,6 +12,7 @@ import type { HoldState } from './HoldState';
 import type { CentralMode } from './centralMode';
 import type { useDreamRecorder } from './useDreamRecorder';
 import type { useSpeechTranscription } from './useSpeechTranscription';
+import { createTextDreamInput, createVoiceDreamInput, type DreamInput } from './dreamInput';
 import './HoldToRemember.css';
 
 type DreamRecorderApi = ReturnType<typeof useDreamRecorder>;
@@ -27,6 +28,10 @@ interface HoldToRememberProps {
   micUnavailable: boolean;
   setMicUnavailable: (v: boolean) => void;
   onTypedTranscriptChange: (text: string) => void;
+  /** Fired once, with the normalized capture, the moment TYPE or RECORD
+      genuinely completes (never on cancel). Nothing downstream is built
+      yet — this only hands off the real captured dream for later stages. */
+  onDreamCapture?: (input: DreamInput) => void;
 }
 
 const FILL_MS = 800;
@@ -44,6 +49,7 @@ export default function HoldToRemember({
   micUnavailable,
   setMicUnavailable,
   onTypedTranscriptChange,
+  onDreamCapture,
 }: HoldToRememberProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const ringRef = useRef<SVGCircleElement>(null);
@@ -58,6 +64,11 @@ export default function HoldToRemember({
   const listenTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const committedRef = useRef(false);
   const finishingRef = useRef(false);
+  // The real audio blob arrives asynchronously (MediaRecorder's onstop
+  // fires after recordingState already flips to 'finished'), so the voice
+  // DreamInput is only built once it genuinely exists — never guessed.
+  const pendingVoiceCaptureRef = useRef(false);
+  const capturedTranscriptRef = useRef<string | null>(null);
 
   const tick = useCallback(() => {
     const elapsed = performance.now() - startRef.current;
@@ -204,13 +215,62 @@ export default function HoldToRemember({
   };
 
   const handleDoneTyping = () => {
+    onDreamCapture?.(createTextDreamInput(entry));
     setCentralMode('settled');
   };
+
+  // CANCEL — not FINISH. Discards whatever is in progress (typed text, or
+  // the live recording + its transcript) and returns to the original hero
+  // state. Never advances to 'settled', never triggers reconstruction.
+  const handleClose = useCallback(() => {
+    if (centralMode === 'recording') {
+      // reset() (not finish()) stops the MediaRecorder, stops every mic
+      // MediaStream track, and closes the AudioContext — the browser's mic
+      // indicator goes away because the tracks are actually stopped.
+      recorder.reset();
+      transcription.stop();
+      transcription.reset();
+      if (holdRef.current) {
+        holdRef.current.active = false;
+        holdRef.current.listening = false;
+        holdRef.current.progress = 0;
+        holdRef.current.audioLevel = 0;
+      }
+      committedRef.current = false;
+      finishingRef.current = false;
+      setFinishing(false);
+      setIsListening(false);
+      setIsHolding(false);
+    } else if (centralMode === 'typing') {
+      committedRef.current = false;
+      setEntry('');
+      onTypedTranscriptChange('');
+      transcription.reset();
+    } else {
+      return;
+    }
+    setMicUnavailable(false);
+    setCentralMode('hold');
+  }, [centralMode, recorder, transcription, holdRef, onTypedTranscriptChange, setCentralMode, setMicUnavailable]);
+
+  useEffect(() => {
+    if (centralMode !== 'recording' && centralMode !== 'typing') return;
+    const onKeyDown = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleClose();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [centralMode, handleClose]);
 
   const handleFinishDream = useCallback(() => {
     if (finishingRef.current) return;
     finishingRef.current = true;
     setFinishing(true);
+    capturedTranscriptRef.current = transcription.fullTranscript || null;
+    pendingVoiceCaptureRef.current = true;
     recorder.finish();
     transcription.stop();
 
@@ -231,6 +291,21 @@ export default function HoldToRemember({
     }
     requestAnimationFrame(decay);
   }, [recorder, transcription, holdRef, setCentralMode]);
+
+  // The real audio blob shows up asynchronously via MediaRecorder's onstop,
+  // after handleFinishDream already returns — hand off the voice DreamInput
+  // only once it's genuinely ready, never before.
+  useEffect(() => {
+    if (!pendingVoiceCaptureRef.current || recorder.audioBlob === null) return;
+    pendingVoiceCaptureRef.current = false;
+    onDreamCapture?.(
+      createVoiceDreamInput({
+        transcript: capturedTranscriptRef.current,
+        audioBlob: recorder.audioBlob,
+        language: null,
+      }),
+    );
+  }, [recorder.audioBlob, onDreamCapture]);
 
   const isHoldFaded = centralMode !== 'hold';
   const requestingMic = recorder.recordingState === 'requesting-permission';
@@ -303,6 +378,16 @@ export default function HoldToRemember({
         className={`central-recording${centralMode === 'recording' ? ' is-active' : ''}${finishing ? ' is-finishing' : ''}`}
         aria-hidden={centralMode !== 'recording'}
       >
+        <button
+          type="button"
+          className="htr-close"
+          data-cursor-hover
+          tabIndex={centralMode === 'recording' && !finishing ? 0 : -1}
+          onClick={handleClose}
+          aria-label="Cancel recording"
+        >
+          ×
+        </button>
         <p className="central-recording-heading">I&rsquo;M LISTENING.</p>
         <p className="central-recording-subheading">TELL ME EVERYTHING YOU REMEMBER.</p>
         <div ref={orbRef} className="central-recording-orb" aria-hidden="true" />
@@ -329,6 +414,16 @@ export default function HoldToRemember({
         className={`central-typing${centralMode === 'typing' ? ' is-active' : ''}`}
         aria-hidden={centralMode !== 'typing'}
       >
+        <button
+          type="button"
+          className="htr-close"
+          data-cursor-hover
+          tabIndex={centralMode === 'typing' ? 0 : -1}
+          onClick={handleClose}
+          aria-label="Cancel typing"
+        >
+          ×
+        </button>
         {micUnavailable && (
           <p className="central-mic-note">
             MICROPHONE UNAVAILABLE

@@ -15,6 +15,7 @@ import { createEchoState } from './EchoState';
 import { createDreamEventState } from './dreamEventState';
 import { createLampState } from './lampState';
 import { useUnifiedDreamSequence } from './useUnifiedDreamSequence';
+import type { DreamInput } from './dreamInput';
 import type { CentralMode } from './centralMode';
 import './HeroDream.css';
 
@@ -42,6 +43,12 @@ export default function HeroDream() {
   // Kept wired (though fragments aren't rendered right now) so re-enabling
   // the visual layer later doesn't require touching this plumbing again.
   const [, setTypedTranscript] = useState('');
+  // The real captured dream (typed or spoken), once TYPE/RECORD genuinely
+  // completes. Held for the future analysis stage — nothing reads it yet.
+  const dreamInputRef = useRef<DreamInput | null>(null);
+  const handleDreamCapture = (input: DreamInput) => {
+    dreamInputRef.current = input;
+  };
 
   // Once a recording has genuinely begun, the title/prompt settle into the
   // background for the rest of the session — including through the finished
@@ -108,6 +115,7 @@ export default function HeroDream() {
             micUnavailable={micUnavailable}
             setMicUnavailable={setMicUnavailable}
             onTypedTranscriptChange={setTypedTranscript}
+            onDreamCapture={handleDreamCapture}
           />
         </div>
       </div>
