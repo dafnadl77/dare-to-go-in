@@ -2,6 +2,10 @@ import { useEffect, useRef, type RefObject } from 'react';
 import { createFbmNoise2D, clamp01 } from './noise';
 import { createGrainTile } from './grain';
 import { PHASE_START_MS } from './useOpeningSequence';
+import { CONSOLE_EXCLUDE_ZONE, isInsideRect } from './dreamEchoZones';
+import { DREAM_EVENT_REGIONS, type DreamEventRegion } from './dreamEventRegions';
+import { dreamEventEnvelope, type DreamEventState, type DreamEventType } from './dreamEventState';
+import { coverFit, coverRectToDest, type CoverTransform } from './coverFit';
 import type { PointerState } from './usePointerRef';
 import type { HoldState } from './HoldState';
 import type { EchoState } from './EchoState';
@@ -14,7 +18,106 @@ interface MemoryVeilProps {
   pointerRef: RefObject<PointerState>;
   holdRef: RefObject<HoldState>;
   echoRef: RefObject<EchoState>;
+  dreamEventRef: RefObject<DreamEventState>;
   startTime: number;
+}
+
+interface EventComposite {
+  canvas: HTMLCanvasElement;
+  dx: number;
+  dy: number;
+}
+
+/**
+ * Builds the small masked crossfade patch for one Dream Event region —
+ * called once per event activation, not per frame. `videoCover` is the
+ * exact object-fit:cover transform of the hero video's own native
+ * resolution into the current canvas size; the region's normalized
+ * (0..1) bounds are defined in that same source-image coordinate system,
+ * so applying the identical transform keeps the reference photo's patch
+ * pixel-aligned with the video underneath regardless of viewport aspect.
+ */
+function buildEventComposite(
+  region: DreamEventRegion,
+  img: HTMLImageElement,
+  videoCover: CoverTransform,
+  videoW: number,
+  videoH: number,
+  canvasW: number,
+  canvasH: number,
+): EventComposite | null {
+  if (!img.complete || img.naturalWidth === 0) return null;
+
+  const rect = coverRectToDest(videoCover, videoW, videoH, region.xMin, region.xMax, region.yMin, region.yMax);
+  if (rect.w <= 0 || rect.h <= 0) return null;
+
+  const rx = rect.x;
+  const ry = rect.y;
+  const rw = rect.w;
+  const rh = rect.h;
+
+  const padL = rw * region.pad.left;
+  const padR = rw * region.pad.right;
+  const padT = rh * region.pad.top;
+  const padB = rh * region.pad.bottom;
+
+  const dx = Math.max(0, rx - padL);
+  const dy = Math.max(0, ry - padT);
+  const dxEnd = Math.min(canvasW, rx + rw + padR);
+  const dyEnd = Math.min(canvasH, ry + rh + padB);
+  const dw = dxEnd - dx;
+  const dh = dyEnd - dy;
+  if (dw <= 0 || dh <= 0) return null;
+
+  // The destination rect (dx,dy,dw,dh) corresponds to a normalized (0..1)
+  // fraction of the video's source frame. The reference photo shares the
+  // exact same full-frame composition, so that same fraction — applied to
+  // its own native resolution — is its correct source crop.
+  const normX = (dx - videoCover.offsetX) / (videoW * videoCover.scale);
+  const normY = (dy - videoCover.offsetY) / (videoH * videoCover.scale);
+  const normW = dw / (videoW * videoCover.scale);
+  const normH = dh / (videoH * videoCover.scale);
+  const sxImg = normX * img.naturalWidth;
+  const syImg = normY * img.naturalHeight;
+  const swImg = normW * img.naturalWidth;
+  const shImg = normH * img.naturalHeight;
+
+  const composite = document.createElement('canvas');
+  composite.width = Math.max(1, Math.round(dw));
+  composite.height = Math.max(1, Math.round(dh));
+  const cctx = composite.getContext('2d')!;
+  cctx.drawImage(img, sxImg, syImg, swImg, shImg, 0, 0, composite.width, composite.height);
+
+  const insetLeft = rx - dx;
+  const insetTop = ry - dy;
+  const solidW = rw;
+  const solidH = rh;
+
+  const pads = [padL, padR, padT, padB].filter((p) => p > 1);
+  const blurPx = pads.length ? Math.max(6, Math.min(...pads, 60) * 0.6) : Math.max(2, Math.min(solidW, solidH) * 0.035);
+
+  cctx.globalCompositeOperation = 'destination-in';
+  cctx.filter = `blur(${blurPx}px)`;
+  cctx.fillStyle = '#fff';
+  cctx.beginPath();
+  if (region.shape === 'ellipse') {
+    cctx.ellipse(
+      insetLeft + solidW / 2,
+      insetTop + solidH / 2,
+      Math.max(1, solidW / 2),
+      Math.max(1, solidH / 2),
+      0,
+      0,
+      Math.PI * 2,
+    );
+  } else {
+    cctx.roundRect(insetLeft, insetTop, solidW, solidH, Math.min(solidW, solidH) * 0.06);
+  }
+  cctx.fill();
+  cctx.filter = 'none';
+  cctx.globalCompositeOperation = 'source-over';
+
+  return { canvas: composite, dx, dy };
 }
 
 const GRID_W = 72;
@@ -29,7 +132,15 @@ const REVEAL_BAND = 0.16;
 const IDLE_MS = 3000;
 const LOOP_CROSSFADE_MS = 850;
 
-export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, echoRef, startTime }: MemoryVeilProps) {
+export default function MemoryVeil({
+  videoARef,
+  videoBRef,
+  pointerRef,
+  holdRef,
+  echoRef,
+  dreamEventRef,
+  startTime,
+}: MemoryVeilProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -78,6 +189,36 @@ export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, 
     let vw = window.innerWidth;
     let vh = window.innerHeight;
 
+    // Interactive blue light — a distinct, always-on layer above the fog
+    // atmosphere (not the local unfogging grid above). A large, heavily
+    // feathered pool of cool underwater blue that trails the cursor with
+    // slight inertia, brighter near the ocean ceiling, subtler elsewhere,
+    // and silent over the books/console exclusion zone. Disabled entirely
+    // on touch-only devices, since there is no persistent cursor there.
+    const hoverMql = window.matchMedia('(hover: none)');
+    let blueLightEnabled = !hoverMql.matches;
+    const updateHoverCapability = () => {
+      blueLightEnabled = !hoverMql.matches;
+    };
+    hoverMql.addEventListener('change', updateHoverCapability);
+    const blueLightPos = { x: vw / 2, y: vh / 2 };
+    let blueLightInit = false;
+
+    // Dream Event images (bed/art/mirror) — small local masked crossfades,
+    // never the whole background. Preloaded once; the composite for the
+    // currently active event is (re)built only when that event starts.
+    const dreamEventImages: Record<DreamEventType, HTMLImageElement> = {
+      bed: new Image(),
+      art: new Image(),
+      mirror: new Image(),
+    };
+    (Object.keys(DREAM_EVENT_REGIONS) as DreamEventType[]).forEach((key) => {
+      dreamEventImages[key].src = DREAM_EVENT_REGIONS[key].src;
+    });
+    let cachedEventType: DreamEventType | null = null;
+    let cachedEventStartTime = 0;
+    let cachedComposite: EventComposite | null = null;
+
     function resize() {
       vw = window.innerWidth;
       vh = window.innerHeight;
@@ -120,6 +261,16 @@ export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, 
 
       const ceilingIntensity = echoRef.current ? echoRef.current.ceilingIntensity : 0;
 
+      if (blueLightEnabled && pointer?.hasMoved) {
+        if (!blueLightInit) {
+          blueLightPos.x = pointer.x;
+          blueLightPos.y = pointer.y;
+          blueLightInit = true;
+        }
+        blueLightPos.x += (pointer.x - blueLightPos.x) * 0.08;
+        blueLightPos.y += (pointer.y - blueLightPos.y) * 0.08;
+      }
+
       const addRate = 3.4 * dt;
       const focusAddRate = 4.4 * dt;
       const ceilingAddRate = 3.2 * dt;
@@ -138,7 +289,9 @@ export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, 
           const dx = gx - px;
           const dy = gy - py;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (cursorActive && dist < CURSOR_RADIUS * 1.4) {
+          const cellExcluded = isInsideRect(CONSOLE_EXCLUDE_ZONE, gx / GRID_W, gy / GRID_H);
+
+          if (cursorActive && !cellExcluded && dist < CURSOR_RADIUS * 1.4) {
             const n = edgeNoise(gx * 0.22 + timeOffset * 40, gy * 0.22 - timeOffset * 30);
             const effR = CURSOR_RADIUS * (0.62 + 0.55 * n);
             if (dist < effR) {
@@ -147,7 +300,7 @@ export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, 
             }
           }
 
-          if (ceilingIntensity > 0.01 && dist < CEILING_ECHO_RADIUS) {
+          if (ceilingIntensity > 0.01 && !cellExcluded && dist < CEILING_ECHO_RADIUS) {
             const falloff = Math.pow(1 - dist / CEILING_ECHO_RADIUS, 1.3);
             val = Math.min(1, val + falloff * ceilingIntensity * ceilingAddRate);
           }
@@ -222,10 +375,66 @@ export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, 
             ? `saturate(${(1 + holdIntensity * 0.18).toFixed(3)}) contrast(${(1 + holdIntensity * 0.06).toFixed(3)}) brightness(${(1 + holdIntensity * 0.03).toFixed(3)})`
             : 'none';
         drawVideoLoopFrame(ctx2, loopFrame, canvas!.width, canvas!.height);
-
         ctx2.filter = 'none';
+
+        // ---- Dream Event masked crossfade (bed/art/mirror) — sits between the
+        // raw video and the fog atmosphere, so fog still settles over it naturally. ----
+        const event = dreamEventRef.current;
+        if (event?.activeType) {
+          const type = event.activeType;
+          const alpha = dreamEventEnvelope(now - event.startTime, event);
+          if (alpha !== null && alpha > 0.002) {
+            if (cachedEventType !== type || cachedEventStartTime !== event.startTime) {
+              const videoW = loopFrame.primary.videoWidth;
+              const videoH = loopFrame.primary.videoHeight;
+              const videoCover = coverFit(videoW, videoH, canvas!.width, canvas!.height);
+              cachedComposite = buildEventComposite(
+                DREAM_EVENT_REGIONS[type],
+                dreamEventImages[type],
+                videoCover,
+                videoW,
+                videoH,
+                canvas!.width,
+                canvas!.height,
+              );
+              cachedEventType = type;
+              cachedEventStartTime = event.startTime;
+            }
+            if (cachedComposite) {
+              ctx2.globalAlpha = alpha;
+              ctx2.drawImage(cachedComposite.canvas, cachedComposite.dx, cachedComposite.dy);
+              ctx2.globalAlpha = 1;
+            }
+          }
+        }
+
         ctx2.imageSmoothingEnabled = true;
         ctx2.drawImage(fogCanvas, 0, 0, fw, fh, 0, 0, canvas!.width, canvas!.height);
+
+        if (blueLightEnabled && pointer?.hasMoved) {
+          const lightFx = blueLightPos.x / vw;
+          const lightFy = blueLightPos.y / vh;
+          if (!isInsideRect(CONSOLE_EXCLUDE_ZONE, lightFx, lightFy)) {
+            const ceilingBoost = clamp01((0.34 - lightFy) / 0.34);
+            const baseAlpha = 0.07 + ceilingBoost * 0.15;
+            const lx = blueLightPos.x * dpr;
+            const ly = blueLightPos.y * dpr;
+            const r = 150 * dpr * (1 + ceilingBoost * 0.25);
+
+            ctx2.save();
+            ctx2.globalCompositeOperation = 'screen';
+            ctx2.filter = 'blur(28px)';
+            const grad = ctx2.createRadialGradient(lx, ly, 0, lx, ly, r);
+            grad.addColorStop(0, `rgba(120, 195, 225, ${baseAlpha.toFixed(3)})`);
+            grad.addColorStop(0.45, `rgba(110, 180, 215, ${(baseAlpha * 0.55).toFixed(3)})`);
+            grad.addColorStop(1, 'rgba(110, 180, 215, 0)');
+            ctx2.fillStyle = grad;
+            ctx2.beginPath();
+            ctx2.arc(lx, ly, r, 0, Math.PI * 2);
+            ctx2.fill();
+            ctx2.restore();
+          }
+        }
       }
 
       raf = requestAnimationFrame(frame);
@@ -236,8 +445,9 @@ export default function MemoryVeil({ videoARef, videoBRef, pointerRef, holdRef, 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
+      hoverMql.removeEventListener('change', updateHoverCapability);
     };
-  }, [videoARef, videoBRef, pointerRef, holdRef, echoRef, startTime]);
+  }, [videoARef, videoBRef, pointerRef, holdRef, echoRef, dreamEventRef, startTime]);
 
   return <canvas ref={canvasRef} className="memory-veil" aria-hidden="true" />;
 }

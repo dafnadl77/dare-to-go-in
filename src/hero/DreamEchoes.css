@@ -10,42 +10,6 @@
   pointer-events: none;
 }
 
-/* BED — one soft displacement pulse per visit. A real localized blur/warp
-   on the video behind it, not just an opacity wash. */
-.echo-bed {
-  backdrop-filter: blur(0px) brightness(1);
-  -webkit-backdrop-filter: blur(0px) brightness(1);
-  transform: scale(1) skewX(0deg);
-  transform-origin: 40% 60%;
-}
-
-.echo-bed.is-pulsing {
-  animation: echo-bed-pulse 1.5s var(--ease-soft);
-}
-
-@keyframes echo-bed-pulse {
-  0% {
-    backdrop-filter: blur(0px) brightness(1);
-    -webkit-backdrop-filter: blur(0px) brightness(1);
-    transform: scale(1) skewX(0deg);
-  }
-  30% {
-    backdrop-filter: blur(4px) brightness(1.1);
-    -webkit-backdrop-filter: blur(4px) brightness(1.1);
-    transform: scale(1.016) skewX(0.7deg);
-  }
-  65% {
-    backdrop-filter: blur(2px) brightness(1.05);
-    -webkit-backdrop-filter: blur(2px) brightness(1.05);
-    transform: scale(1.006) skewX(0.2deg);
-  }
-  100% {
-    backdrop-filter: blur(0px) brightness(1);
-    -webkit-backdrop-filter: blur(0px) brightness(1);
-    transform: scale(1) skewX(0deg);
-  }
-}
-
 /* Small discs that physically track the cursor in real pixels (positioned
    via JS transform), rather than a gradient hotspot inside a static rect. */
 .echo-disc {
@@ -74,7 +38,8 @@
   box-shadow: inset 0 0 50px rgba(244, 240, 232, 0.14);
 }
 
-/* CEILING — a magnifying, more-saturated disc directly under the cursor. */
+/* CEILING — approved, unchanged: magnifying, more-saturated disc directly
+   under the cursor. */
 .echo-ceiling-disc {
   width: 170px;
   height: 170px;
@@ -90,42 +55,20 @@
   background: rgba(3, 5, 7, var(--darken));
 }
 
-/* LAMP — a single warm fluctuation, replays only after the cursor leaves. */
+/* LAMP — autonomous-only brightness increase right on the fixture itself.
+   Same technique as the approved mirror/ceiling discs above: mask-image
+   feathers the element's ENTIRE rendered output — including the
+   backdrop-filter brightness boost, which otherwise has a hard rectangular
+   cutoff at the element's own box edges regardless of how soft the
+   background gradient looks. Without this mask the backdrop-filter reads
+   as a bright rectangle; with it, both the brightness lift and the warm
+   spill fade smoothly to nothing well before the box edge, so no boundary
+   is ever visible. */
 .echo-lamp {
-  background: radial-gradient(circle at 48% 42%, rgba(255, 214, 168, 0.34), transparent 62%);
-  backdrop-filter: brightness(1) saturate(1);
-  -webkit-backdrop-filter: brightness(1) saturate(1);
-  opacity: 0;
-}
-
-.echo-lamp.is-flickering {
-  animation: echo-lamp-flicker 0.65s ease-out;
-}
-
-@keyframes echo-lamp-flicker {
-  0% {
-    opacity: 0;
-    backdrop-filter: brightness(1) saturate(1);
-    -webkit-backdrop-filter: brightness(1) saturate(1);
-  }
-  22% {
-    opacity: 0.95;
-    backdrop-filter: brightness(1.22) saturate(1.15);
-    -webkit-backdrop-filter: brightness(1.22) saturate(1.15);
-  }
-  40% {
-    opacity: 0.3;
-    backdrop-filter: brightness(1.05) saturate(1.05);
-    -webkit-backdrop-filter: brightness(1.05) saturate(1.05);
-  }
-  58% {
-    opacity: 0.8;
-    backdrop-filter: brightness(1.16) saturate(1.1);
-    -webkit-backdrop-filter: brightness(1.16) saturate(1.1);
-  }
-  100% {
-    opacity: 0;
-    backdrop-filter: brightness(1) saturate(1);
-    -webkit-backdrop-filter: brightness(1) saturate(1);
-  }
+  --intensity: 0;
+  mask-image: radial-gradient(ellipse 48% 48% at 50% 48%, black 10%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 48% 48% at 50% 48%, black 10%, transparent 80%);
+  background: radial-gradient(ellipse 55% 55% at 50% 48%, rgba(255, 205, 140, calc(var(--intensity) * 0.55)), transparent 75%);
+  backdrop-filter: brightness(calc(1 + var(--intensity) * 0.45)) saturate(calc(1 + var(--intensity) * 0.26)) contrast(calc(1 + var(--intensity) * 0.06));
+  -webkit-backdrop-filter: brightness(calc(1 + var(--intensity) * 0.45)) saturate(calc(1 + var(--intensity) * 0.26)) contrast(calc(1 + var(--intensity) * 0.06));
 }

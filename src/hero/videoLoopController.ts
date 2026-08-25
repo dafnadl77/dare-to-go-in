@@ -1,3 +1,5 @@
+import { coverFit } from './coverFit';
+
 export interface VideoLoopFrame {
   primary: HTMLVideoElement;
   secondary: HTMLVideoElement | null;
@@ -52,7 +54,15 @@ export function createVideoLoopController(
   return { update };
 }
 
-/** Draws `frame.primary` opaque, then cross-dissolves in `frame.secondary`. Preserves whatever filter/compositeOperation the caller has already set. */
+/**
+ * Draws `frame.primary` opaque, then cross-dissolves in `frame.secondary`,
+ * using the same cover-fit geometry CSS `object-fit: cover` would produce
+ * (uniform scale to fully cover the destination, centered, cropping
+ * whichever axis overflows) — canvas drawImage ignores any object-fit set
+ * on the source <video> element, so that geometry has to be replicated
+ * here explicitly. Preserves whatever filter/compositeOperation the caller
+ * has already set.
+ */
 export function drawVideoLoopFrame(
   ctx: CanvasRenderingContext2D,
   frame: VideoLoopFrame,
@@ -61,12 +71,14 @@ export function drawVideoLoopFrame(
 ) {
   const { primary, secondary, blend } = frame;
   if (primary.readyState >= 2 && primary.videoWidth > 0) {
+    const t = coverFit(primary.videoWidth, primary.videoHeight, dw, dh);
     ctx.globalAlpha = 1;
-    ctx.drawImage(primary, 0, 0, dw, dh);
+    ctx.drawImage(primary, t.offsetX, t.offsetY, primary.videoWidth * t.scale, primary.videoHeight * t.scale);
   }
   if (secondary && blend > 0 && secondary.readyState >= 2 && secondary.videoWidth > 0) {
+    const t = coverFit(secondary.videoWidth, secondary.videoHeight, dw, dh);
     ctx.globalAlpha = blend;
-    ctx.drawImage(secondary, 0, 0, dw, dh);
+    ctx.drawImage(secondary, t.offsetX, t.offsetY, secondary.videoWidth * t.scale, secondary.videoHeight * t.scale);
     ctx.globalAlpha = 1;
   }
 }

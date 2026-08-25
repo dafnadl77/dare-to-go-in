@@ -12,6 +12,9 @@ import { useDreamRecorder } from './useDreamRecorder';
 import { useSpeechTranscription } from './useSpeechTranscription';
 import { createHoldState } from './HoldState';
 import { createEchoState } from './EchoState';
+import { createDreamEventState } from './dreamEventState';
+import { createLampState } from './lampState';
+import { useUnifiedDreamSequence } from './useUnifiedDreamSequence';
 import type { CentralMode } from './centralMode';
 import './HeroDream.css';
 
@@ -27,6 +30,9 @@ export default function HeroDream() {
   const pointerRef = usePointerRef();
   const holdRef = useRef(createHoldState());
   const echoRef = useRef(createEchoState());
+  const dreamEventRef = useRef(createDreamEventState());
+  const lampStateRef = useRef(createLampState());
+  useUnifiedDreamSequence(dreamEventRef, lampStateRef);
   const { phase, startTime } = useOpeningSequence();
 
   const recorder = useDreamRecorder();
@@ -77,10 +83,11 @@ export default function HeroDream() {
         pointerRef={pointerRef}
         holdRef={holdRef}
         echoRef={echoRef}
+        dreamEventRef={dreamEventRef}
         startTime={startTime}
       />
       <div className="hero-vignette" aria-hidden="true" />
-      <DreamEchoes pointerRef={pointerRef} echoRef={echoRef} />
+      <DreamEchoes pointerRef={pointerRef} echoRef={echoRef} lampStateRef={lampStateRef} />
       <div ref={blackVeilRef} className="intro-black-veil" aria-hidden="true" />
 
       <div ref={uiLayerRef} className="hero-ui-layer">

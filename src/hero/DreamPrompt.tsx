@@ -9,7 +9,7 @@ interface DreamPromptProps {
 export default function DreamPrompt({ revealed, quiet = false }: DreamPromptProps) {
   return (
     <p className={`dream-prompt${revealed ? ' is-revealed' : ''}${quiet ? ' is-quiet' : ''}`}>
-      WHAT DO YOU REMEMBER?
+      WHAT DO YOU REMEMBER FROM YOUR DREAM?
     </p>
   );
 }
