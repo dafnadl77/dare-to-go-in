@@ -1,0 +1,178 @@
+.dream-reflection {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.4rem;
+  padding: 6vh 6vw;
+  pointer-events: none;
+}
+
+.dr-question {
+  margin: 0;
+  max-width: 30em;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1.15rem, 2.8vw, 1.7rem);
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  color: var(--dream-white);
+  text-align: center;
+  text-shadow: 0 0.05em 0.7em rgba(0, 0, 0, 0.55);
+  white-space: pre-line;
+  opacity: 0;
+  filter: blur(6px);
+  transition:
+    opacity 1.8s var(--ease-memory),
+    filter 1.8s var(--ease-memory);
+}
+
+.dream-reflection[data-step='prompt'] .dr-question,
+.dream-reflection[data-step='choices'] .dr-question,
+.dream-reflection[data-step='selected'] .dr-question,
+.dream-reflection[data-step='reflecting'] .dr-question,
+.dream-reflection[data-step='stored'] .dr-question {
+  opacity: 0.92;
+  filter: blur(0);
+}
+
+/* ---- The real dream elements — never tags/pills/cards, just quiet,
+   spaced-out typography that feels part of the cinematic image. ---- */
+.dr-elements {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1.4rem 2.6rem;
+  max-width: 42em;
+  opacity: 0;
+  transition: opacity 1.6s var(--ease-memory);
+  transition-delay: 0.3s;
+}
+
+.dream-reflection[data-step='choices'] .dr-elements,
+.dream-reflection[data-step='selected'] .dr-elements {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dr-element {
+  position: relative;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral);
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0.5em 0.2em;
+  cursor: pointer;
+  opacity: 0.6;
+  transition:
+    opacity 0.6s var(--ease-soft),
+    color 0.4s var(--ease-soft),
+    letter-spacing 0.4s var(--ease-soft);
+}
+
+.dr-element::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.2em;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--ease-memory);
+}
+
+.dr-element:hover:not(:disabled),
+.dr-element:focus-visible {
+  opacity: 1;
+  color: var(--dream-white);
+  letter-spacing: 0.26em;
+}
+
+.dr-element:hover:not(:disabled)::after,
+.dr-element:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.dream-reflection[data-step='selected'] .dr-element.is-selected {
+  opacity: 1;
+  color: var(--dream-white);
+}
+
+.dream-reflection[data-step='selected'] .dr-element.is-selected::after {
+  transform: scaleX(1);
+}
+
+.dream-reflection[data-step='selected'] .dr-element.is-fading {
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-soft);
+}
+
+/* ---- Free-text response — same quiet, integrated language as the
+   existing dream-writing interaction, never a conventional form. ---- */
+.dr-response {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.4rem;
+  width: min(90vw, 480px);
+  opacity: 0;
+  transition: opacity 1.6s var(--ease-memory);
+}
+
+.dream-reflection[data-step='reflecting'] .dr-response,
+.dream-reflection[data-step='stored'] .dr-response {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dr-response-textarea {
+  width: 100%;
+  min-height: 3.6em;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(244, 240, 232, 0.26);
+  color: var(--dream-white);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  line-height: 1.6;
+  text-align: center;
+  resize: none;
+  outline: none;
+  padding: 0.5em 0.15em 0.7em;
+  text-shadow: 0 0.04em 0.5em rgba(0, 0, 0, 0.4);
+  transition: border-color 0.4s var(--ease-soft);
+}
+
+.dr-response-textarea::placeholder {
+  color: var(--dream-warm-neutral-dim);
+  opacity: 0.65;
+}
+
+.dr-response-textarea:focus {
+  border-bottom-color: rgba(244, 240, 232, 0.55);
+}
+
+.dream-reflection[data-step='stored'] .dr-response-textarea {
+  border-bottom-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dr-question,
+  .dr-elements,
+  .dr-element,
+  .dr-response,
+  .dr-response-textarea {
+    transition-duration: 0.01s !important;
+  }
+}

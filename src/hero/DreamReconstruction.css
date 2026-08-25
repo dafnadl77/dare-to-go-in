@@ -34,12 +34,22 @@
 
 .is-phase-dissolving .dr-blur-veil,
 .is-phase-fragments .dr-blur-veil,
-.is-phase-reconstructing .dr-blur-veil,
 .is-phase-image-error .dr-blur-veil {
   opacity: 1;
   background: rgba(4, 5, 4, 0.24);
   backdrop-filter: blur(18px) contrast(0.78) brightness(0.6) saturate(0.5);
   -webkit-backdrop-filter: blur(18px) contrast(0.78) brightness(0.6) saturate(0.5);
+}
+
+/* 'reconstructing' is an open-ended wait for the real image (can take up to
+   a minute) — no dark/blurred rectangle sits over the room for that whole
+   time. The brief, fixed dissolving/fragments beat already happened; once
+   the wait itself begins the veil lifts and the room is fully visible and
+   animated again, with only quiet "REMEMBERING..." text. Falls back to the
+   base rule below (opacity 0) via the transition already defined there. */
+.is-phase-reconstructing .dr-blur-veil {
+  opacity: 0;
+  transition: opacity 2.4s var(--ease-memory);
 }
 
 /* Once a real image is taking over (or has settled), the room's own veil
@@ -72,9 +82,15 @@
   transition: opacity 2.2s var(--ease-memory);
 }
 
-.is-phase-reconstructing .dr-visual,
 .is-phase-image-error .dr-visual {
   opacity: 1;
+}
+
+/* Same reasoning as .dr-blur-veil above — no placeholder motifs sitting
+   over the room for up to a minute while the real image is generating. */
+.is-phase-reconstructing .dr-visual {
+  opacity: 0;
+  transition: opacity 2.4s var(--ease-memory);
 }
 
 .is-phase-imaging .dr-visual,
@@ -577,11 +593,6 @@
 
 .dream-world-text[data-step='look-around'] .dw-line--look {
   opacity: 0.85;
-}
-
-.dream-world-text[data-step='prompt'] .dw-line--stands-out {
-  opacity: 0.92;
-  transition-delay: 0.3s;
 }
 
 @media (prefers-reduced-motion: reduce) {

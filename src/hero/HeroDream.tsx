@@ -21,6 +21,7 @@ import DreamAnalysisDevView from './DreamAnalysisDevView';
 import DreamReconstruction, { type ReconstructionPhase, type InsideStep } from './DreamReconstruction';
 import { buildReconstructionBrief, type ReconstructionBrief } from './reconstructionBrief';
 import { pickMemoryFragments } from './memoryFragments';
+import { deriveDreamElements } from './dreamElements';
 import { generateDreamImage, type ImageResult } from './dreamImage';
 import type { CentralMode } from './centralMode';
 import './HeroDream.css';
@@ -40,6 +41,11 @@ const ENTERING_MS = 7200;
 const INSIDE_QUIET_MS = 5000;
 const LOOK_AROUND_VISIBLE_MS = 3000;
 const INSIDE_QUIET2_MS = 1800;
+// WHAT STANDS OUT TO YOU? — the question holds alone briefly, then the
+// real choices reveal beneath it; after picking one, the others fade
+// before the reflection question takes over.
+const PROMPT_TO_CHOICES_MS = 1500;
+const SELECTED_TO_REFLECTING_MS = 1400;
 
 const TITLE_PHASES = new Set(['title', 'prompt', 'interaction', 'idle']);
 const PROMPT_PHASES = new Set(['prompt', 'interaction', 'idle']);
@@ -84,8 +90,14 @@ export default function HeroDream() {
   const [fragments, setFragments] = useState<string[]>([]);
   const [corrections, setCorrections] = useState<string[]>([]);
   // ENTER THE DREAM — the quiet look → "LOOK AROUND." → pause → "WHAT
-  // STANDS OUT TO YOU?" beat once fully inside. Terminal at 'prompt'.
+  // STANDS OUT TO YOU?" → choices → reflection. Terminal at 'stored'.
   const [insideStep, setInsideStep] = useState<InsideStep>('quiet');
+  // The selectable elements are derived once from the real DreamAnalysis
+  // (never invented, never hardcoded per-dream) — see dreamElements.ts.
+  const [dreamElements, setDreamElements] = useState<string[]>([]);
+  const [selectedElement, setSelectedElement] = useState<string | null>(null);
+  // Stored for the next stage — not used or interpreted here.
+  const [reflectionResponse, setReflectionResponse] = useState<string | null>(null);
 
   // Real image generation. `displayedImageUrl` is the last fully-settled
   // image; `incomingImageUrl` is a freshly generated one mid-reveal during
@@ -135,6 +147,7 @@ export default function HeroDream() {
     const newBrief = buildReconstructionBrief(analysis, []);
     setBrief(newBrief);
     setFragments(pickMemoryFragments(analysis));
+    setDreamElements(deriveDreamElements(analysis));
     startImageGeneration('initial', newBrief);
     const t = setTimeout(() => setReconstructionPhase('dissolving'), SETTLE_PAUSE_MS);
     return () => clearTimeout(t);
@@ -142,8 +155,15 @@ export default function HeroDream() {
 
   // Timer-driven phase progression for the room's own dissolve. User
   // choices (NOT QUITE / YES) take over from 'reveal' onward.
+  //
+  // 'reconstructing' can now last far longer than the original ~8s dissolve
+  // beat (real image generation may take up to a minute) — for that open-
+  // ended wait specifically, the room stays fully alive and animated (no
+  // frozen/paused scheduler) rather than sitting under the dissolve veil
+  // the whole time. Only the brief, fixed dissolving/fragments beat and the
+  // later image/reveal phases actually pause the room's own cycle.
   useEffect(() => {
-    schedulerPausedRef.current = reconstructionPhase !== 'none';
+    schedulerPausedRef.current = reconstructionPhase !== 'none' && reconstructionPhase !== 'reconstructing';
     if (reconstructionPhase === 'dissolving') {
       const t = setTimeout(() => setReconstructionPhase('fragments'), DISSOLVE_MS);
       return () => clearTimeout(t);
@@ -260,7 +280,31 @@ export default function HeroDream() {
       const t = setTimeout(() => setInsideStep('prompt'), INSIDE_QUIET2_MS);
       return () => clearTimeout(t);
     }
-  }, [reconstructionPhase, insideStep]);
+    // 'prompt' holds alone briefly, then the real choices reveal beneath it
+    // — but only if there actually are any real elements to choose from.
+    if (insideStep === 'prompt' && dreamElements.length > 0) {
+      const t = setTimeout(() => setInsideStep('choices'), PROMPT_TO_CHOICES_MS);
+      return () => clearTimeout(t);
+    }
+    // 'choices' waits for the user to click one — no timer.
+    // 'selected': the other choices fade, then the reflection question takes over.
+    if (insideStep === 'selected') {
+      const t = setTimeout(() => setInsideStep('reflecting'), SELECTED_TO_REFLECTING_MS);
+      return () => clearTimeout(t);
+    }
+    // 'reflecting' waits for CONTINUE — no timer. 'stored' is terminal.
+  }, [reconstructionPhase, insideStep, dreamElements]);
+
+  const handleSelectElement = (element: string) => {
+    if (selectedElement) return;
+    setSelectedElement(element);
+    setInsideStep('selected');
+  };
+
+  const handleSubmitReflection = (text: string) => {
+    setReflectionResponse(text);
+    setInsideStep('stored');
+  };
 
   // Debug-only QA hook (never part of the normal user journey, only present
   // with ?debug=1): lets a real already-generated image be dropped straight
@@ -274,11 +318,19 @@ export default function HeroDream() {
       setInsideStep: ((s: InsideStep) => setInsideStep(s)) as (...args: never[]) => void,
       setDisplayedImage: ((url: string) => setDisplayedImageUrl(url)) as (...args: never[]) => void,
       setAnalysis: ((a: unknown) => setAnalysisResult({ status: 'ok', analysis: a } as AnalysisResult)) as (...args: never[]) => void,
+      setDreamElements: ((els: string[]) => setDreamElements(els)) as (...args: never[]) => void,
+      getReflectionState: (() => ({ selectedElement, reflectionResponse })) as (...args: never[]) => void,
+      // Read-only QA introspection: confirms at runtime (not just by code
+      // reading) that the room's own animation scheduler is genuinely
+      // unpaused while waiting for the real image.
+      isSchedulerPaused: (() => schedulerPausedRef.current) as (...args: never[]) => void,
+      getDreamEventState: (() => ({ ...dreamEventRef.current })) as (...args: never[]) => void,
+      getLampState: (() => ({ ...lampStateRef.current })) as (...args: never[]) => void,
     };
     return () => {
       delete w.__dreamDebug;
     };
-  }, [debugMode]);
+  }, [debugMode, selectedElement, reflectionResponse]);
 
   const isReconstructing = reconstructionPhase !== 'none';
 
@@ -362,12 +414,16 @@ export default function HeroDream() {
         analysis={analysisResult?.status === 'ok' ? analysisResult.analysis : null}
         brief={brief}
         fragments={fragments}
+        dreamElements={dreamElements}
+        selectedElement={selectedElement}
         displayedImageUrl={displayedImageUrl}
         incomingImageUrl={incomingImageUrl}
         onNotQuite={handleNotQuite}
         onCorrectionSubmit={handleCorrectionSubmit}
         onRetryImage={handleRetryImage}
         onYes={handleYes}
+        onSelectElement={handleSelectElement}
+        onSubmitReflection={handleSubmitReflection}
       />
 
       {/* Development aid only — never part of the normal user journey.

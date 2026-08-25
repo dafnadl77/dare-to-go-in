@@ -4,6 +4,7 @@ import type { ReconstructionBrief } from './reconstructionBrief';
 import { deriveVisualCues } from './reconstructionVisualCues';
 import { deriveDreamWorldEffects } from './dreamWorldEffects';
 import DreamWorld from './DreamWorld';
+import DreamReflection from './DreamReflection';
 import './DreamReconstruction.css';
 
 export type ReconstructionPhase =
@@ -19,8 +20,10 @@ export type ReconstructionPhase =
   | 'entering'
   | 'inside';
 
-/** Sub-steps inside the 'inside' phase — a quiet look, then LOOK AROUND fades in and out, then the terminal prompt. */
-export type InsideStep = 'quiet' | 'look-around' | 'quiet2' | 'prompt';
+/** Sub-steps inside the 'inside' phase — a quiet look, LOOK AROUND fades in
+    and out, then WHAT STANDS OUT TO YOU? → choices → selected → reflecting
+    on the chosen element → stored (terminal). */
+export type InsideStep = 'quiet' | 'look-around' | 'quiet2' | 'prompt' | 'choices' | 'selected' | 'reflecting' | 'stored';
 
 interface DreamReconstructionProps {
   phase: ReconstructionPhase;
@@ -28,6 +31,9 @@ interface DreamReconstructionProps {
   analysis: DreamAnalysis | null;
   brief: ReconstructionBrief | null;
   fragments: string[];
+  /** Selectable real dream elements for the WHAT STANDS OUT TO YOU? step — derived from DreamAnalysis, never invented. */
+  dreamElements: string[];
+  selectedElement: string | null;
   /** The last successfully generated image, already fully revealed. Null until the first generation succeeds. */
   displayedImageUrl: string | null;
   /** A freshly generated image mid-reveal during the 'imaging' phase (room→image the first time, image→image on regeneration). */
@@ -36,6 +42,8 @@ interface DreamReconstructionProps {
   onCorrectionSubmit: (text: string) => void;
   onRetryImage: () => void;
   onYes: () => void;
+  onSelectElement: (element: string) => void;
+  onSubmitReflection: (text: string) => void;
 }
 
 /**
@@ -50,12 +58,16 @@ export default function DreamReconstruction({
   analysis,
   brief,
   fragments,
+  dreamElements,
+  selectedElement,
   displayedImageUrl,
   incomingImageUrl,
   onNotQuite,
   onCorrectionSubmit,
   onRetryImage,
   onYes,
+  onSelectElement,
+  onSubmitReflection,
 }: DreamReconstructionProps) {
   const [correctionText, setCorrectionText] = useState('');
 
@@ -116,7 +128,7 @@ export default function DreamReconstruction({
         </div>
       )}
 
-      {phase === 'regenerating' && <p className="dr-remembering">REMEMBERING&hellip;</p>}
+      {(phase === 'reconstructing' || phase === 'regenerating') && <p className="dr-remembering">REMEMBERING&hellip;</p>}
 
       {phase === 'image-error' && (
         <div className="dr-image-error">
@@ -167,12 +179,22 @@ export default function DreamReconstruction({
           real DreamAnalysis on top of it. No new image, no new content. */}
       {(phase === 'entering' || phase === 'inside') && worldEffects && <DreamWorld effects={worldEffects} />}
 
-      {phase === 'inside' && (
+      {phase === 'inside' && (insideStep === 'quiet' || insideStep === 'look-around' || insideStep === 'quiet2') && (
         <div className="dream-world-text" data-step={insideStep} aria-hidden="true">
           <p className="dw-line dw-line--look">LOOK AROUND.</p>
-          <p className="dw-line dw-line--stands-out">WHAT STANDS OUT TO YOU?</p>
         </div>
       )}
+
+      {phase === 'inside' &&
+        (insideStep === 'prompt' || insideStep === 'choices' || insideStep === 'selected' || insideStep === 'reflecting' || insideStep === 'stored') && (
+          <DreamReflection
+            step={insideStep}
+            elements={dreamElements}
+            selectedElement={selectedElement}
+            onSelect={onSelectElement}
+            onSubmitReflection={onSubmitReflection}
+          />
+        )}
     </div>
   );
 }
