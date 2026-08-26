@@ -10,9 +10,12 @@ interface DreamReflectionProps {
   selectedElement: string | null;
   reflectionResult: DreamReflectionResult | null;
   reflectionErrored: boolean;
+  /** Revealed only once the dreamer has had enough time to read the reflection — see HeroDream's continueVisible timer. */
+  continueVisible: boolean;
   onSelect: (element: string) => void;
   onSubmitReflection: (text: string) => void;
   onRetryReflection: () => void;
+  onContinue: () => void;
 }
 
 const CHOICE_STEPS = new Set<InsideStep>(['choices', 'selected']);
@@ -37,9 +40,11 @@ export default function DreamReflection({
   selectedElement,
   reflectionResult,
   reflectionErrored,
+  continueVisible,
   onSelect,
   onSubmitReflection,
   onRetryReflection,
+  onContinue,
 }: DreamReflectionProps) {
   const [responseText, setResponseText] = useState('');
   const [lensesVisible, setLensesVisible] = useState(false);
@@ -154,6 +159,12 @@ export default function DreamReflection({
           )}
 
           <p className="drr-grounding">{reflectionResult.groundingStatement}</p>
+
+          <div className={`drr-continue-wrap${continueVisible ? ' is-visible' : ''}`}>
+            <button type="button" className="dr-choice dr-choice--yes" data-cursor-hover onClick={onContinue}>
+              CONTINUE
+            </button>
+          </div>
         </div>
       )}
     </div>

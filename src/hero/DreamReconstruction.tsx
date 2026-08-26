@@ -6,6 +6,7 @@ import { deriveVisualCues } from './reconstructionVisualCues';
 import { deriveDreamWorldEffects } from './dreamWorldEffects';
 import DreamWorld from './DreamWorld';
 import DreamReflection from './DreamReflection';
+import DreamClosing from './DreamClosing';
 import './DreamReconstruction.css';
 
 export type ReconstructionPhase =
@@ -34,9 +35,15 @@ export type InsideStep =
   | 'selected'
   | 'reflecting'
   | 'interpreting'
-  | 'reflection';
+  | 'reflection'
+  | 'closing'
+  | 'saved'
+  | 'letting-go'
+  | 'gone';
 
 const REFLECTION_ENGINE_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting', 'interpreting', 'reflection']);
+const CLOSING_STEPS = new Set<InsideStep>(['closing', 'saved', 'letting-go', 'gone']);
+const DISSOLVING_STEPS = new Set<InsideStep>(['letting-go', 'gone']);
 
 interface DreamReconstructionProps {
   phase: ReconstructionPhase;
@@ -50,6 +57,8 @@ interface DreamReconstructionProps {
   /** The one grounded reflection from the real reflection engine — null until it resolves. */
   reflectionResult: DreamReflectionResult | null;
   reflectionErrored: boolean;
+  /** Revealed only once the dreamer has had enough time to read the reflection. */
+  continueVisible: boolean;
   /** The last successfully generated image, already fully revealed. Null until the first generation succeeds. */
   displayedImageUrl: string | null;
   /** A freshly generated image mid-reveal during the 'imaging' phase (room→image the first time, image→image on regeneration). */
@@ -61,6 +70,10 @@ interface DreamReconstructionProps {
   onSelectElement: (element: string) => void;
   onSubmitReflection: (text: string) => void;
   onRetryReflection: () => void;
+  onContinueFromReflection: () => void;
+  onSaveDream: () => void;
+  onLetGo: () => void;
+  onReturnToRoom: () => void;
 }
 
 /**
@@ -79,6 +92,7 @@ export default function DreamReconstruction({
   selectedElement,
   reflectionResult,
   reflectionErrored,
+  continueVisible,
   displayedImageUrl,
   incomingImageUrl,
   onNotQuite,
@@ -88,6 +102,10 @@ export default function DreamReconstruction({
   onSelectElement,
   onSubmitReflection,
   onRetryReflection,
+  onContinueFromReflection,
+  onSaveDream,
+  onLetGo,
+  onReturnToRoom,
 }: DreamReconstructionProps) {
   const [correctionText, setCorrectionText] = useState('');
 
@@ -126,7 +144,12 @@ export default function DreamReconstruction({
       {/* The real generated dream — never a separate card/gallery, always
           overtaking the room itself through organic, irregular masks. */}
       {(displayedImageUrl || incomingImageUrl) && (
-        <div className="dr-image-layer" data-falling={worldEffects?.falling ? 'true' : 'false'} aria-hidden="true">
+        <div
+          className="dr-image-layer"
+          data-falling={worldEffects?.falling ? 'true' : 'false'}
+          data-dissolving={DISSOLVING_STEPS.has(insideStep) ? 'true' : 'false'}
+          aria-hidden="true"
+        >
           {displayedImageUrl && <img className="dr-image dr-image-current" src={displayedImageUrl} alt="" />}
           {incomingImageUrl && (
             <>
@@ -212,9 +235,21 @@ export default function DreamReconstruction({
           selectedElement={selectedElement}
           reflectionResult={reflectionResult}
           reflectionErrored={reflectionErrored}
+          continueVisible={continueVisible}
           onSelect={onSelectElement}
           onSubmitReflection={onSubmitReflection}
           onRetryReflection={onRetryReflection}
+          onContinue={onContinueFromReflection}
+        />
+      )}
+
+      {phase === 'inside' && CLOSING_STEPS.has(insideStep) && reflectionResult && (
+        <DreamClosing
+          step={insideStep}
+          reflectionResult={reflectionResult}
+          onSave={onSaveDream}
+          onLetGo={onLetGo}
+          onReturnToRoom={onReturnToRoom}
         />
       )}
     </div>

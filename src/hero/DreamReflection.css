@@ -228,9 +228,9 @@
 .drr-label {
   margin: 0;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.62rem;
+  font-size: clamp(0.78rem, 1.7vw, 0.9rem);
   font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--dream-warm-neutral-dim);
   opacity: 0.85;
@@ -333,12 +333,26 @@
   margin: 0.6rem 0 0;
   max-width: 30em;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.66rem;
+  font-size: clamp(0.82rem, 1.7vw, 0.92rem);
   font-weight: 400;
   letter-spacing: 0.02em;
   color: var(--dream-warm-neutral-dim);
   text-align: center;
-  opacity: 0.6;
+  opacity: 0.72;
+}
+
+/* ---- CONTINUE — revealed only once the dreamer has had time to read the
+   reflection; the dreamer controls when to move on, never an auto-advance. ---- */
+.drr-continue-wrap {
+  margin-top: 1rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.8s var(--ease-memory);
+}
+
+.drr-continue-wrap.is-visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -348,7 +362,8 @@
   .dr-response,
   .dr-response-textarea,
   .dream-reflection-result,
-  .drr-lenses-toggle {
+  .drr-lenses-toggle,
+  .drr-continue-wrap {
     transition-duration: 0.01s !important;
   }
   .dr-interpreting {

@@ -1,4 +1,5 @@
 import { validateElementLabels, type ElementLabelsResult, type ElementLabelErrorReason } from './dreamElementLabelsSchema';
+import { getAppLanguage } from './appLanguage';
 
 const KNOWN_REASONS: ElementLabelErrorReason[] = ['not_configured', 'invalid_response', 'request_failed', 'rate_limited', 'billing_issue'];
 
@@ -46,4 +47,20 @@ export async function getEnglishElementLabels(sourceText: string, elements: stri
       message: err instanceof Error ? err.message : 'Unknown network error while requesting dream element labels.',
     };
   }
+}
+
+/**
+ * Language-aware entry point for short display labels of real dream
+ * phrases — gated on the single appLanguage abstraction rather than
+ * hardcoding "translate to English" at every call site. While appLanguage
+ * is 'en' this delegates to the English-translation backend above; a
+ * future non-English appLanguage would branch here instead of requiring
+ * changes anywhere that currently calls this function.
+ */
+export async function getDisplayLabels(sourceText: string, phrases: string[]): Promise<ElementLabelsResult> {
+  if (getAppLanguage() === 'en') {
+    return getEnglishElementLabels(sourceText, phrases);
+  }
+  // No other appLanguage is implemented yet — nothing to translate to.
+  return { status: 'ok', labels: phrases };
 }

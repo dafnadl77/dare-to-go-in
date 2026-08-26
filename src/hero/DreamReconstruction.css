@@ -261,6 +261,25 @@
   }
 }
 
+/* ---- LET IT GO — a restrained dissolve back into nothing: the image
+   softens, darkens, and disappears, never a particle-effect flourish.
+   Overrides the ambient drift/falling animations outright rather than
+   fighting them. ---- */
+.dr-image-layer[data-dissolving='true'] .dr-image-current {
+  animation: dr-image-letting-go 3.6s var(--ease-memory) forwards;
+}
+
+@keyframes dr-image-letting-go {
+  0% {
+    opacity: 1;
+    filter: brightness(1) saturate(1) blur(0);
+  }
+  100% {
+    opacity: 0;
+    filter: brightness(0.5) saturate(0.5) blur(30px);
+  }
+}
+
 .dr-image-incoming,
 .dr-image-incoming-patch {
   opacity: 0;
@@ -626,6 +645,9 @@
   }
   .is-phase-entering .dr-image-current,
   .is-phase-inside .dr-image-current {
+    animation-duration: 0.4s !important;
+  }
+  .dr-image-layer[data-dissolving='true'] .dr-image-current {
     animation-duration: 0.4s !important;
   }
 }

@@ -22,10 +22,11 @@ import DreamReconstruction, { type ReconstructionPhase, type InsideStep } from '
 import { buildReconstructionBrief, type ReconstructionBrief } from './reconstructionBrief';
 import { pickMemoryFragments } from './memoryFragments';
 import { deriveDreamElements } from './dreamElements';
-import { getEnglishElementLabels } from './dreamElementLabels';
+import { getDisplayLabels } from './dreamElementLabels';
 import { generateDreamImage, type ImageResult } from './dreamImage';
 import { getDreamReflection, type DreamReflectionRequest } from './dreamReflectionEngine';
 import type { ReflectionResult } from './dreamReflectionSchema';
+import { saveDream, buildSavedDream } from './dreamStorage';
 import type { CentralMode } from './centralMode';
 import './HeroDream.css';
 
@@ -49,6 +50,14 @@ const INSIDE_QUIET2_MS = 1800;
 // before the reflection question takes over.
 const PROMPT_TO_CHOICES_MS = 1500;
 const SELECTED_TO_REFLECTING_MS = 1400;
+// The dreamer controls when to move on from the reflection — this only
+// gates when the quiet CONTINUE cue is revealed, never an auto-advance.
+const REFLECTION_CONTINUE_DELAY_MS = 6000;
+// LET IT GO — must stay in sync with the CSS dissolve (dr-image-letting-go
+// in DreamReconstruction.css) so 'gone' only appears once the image has
+// actually finished dissolving.
+const LETTING_GO_DISSOLVE_MS = 3600;
+const GONE_HOLD_MS = 1800;
 
 const TITLE_PHASES = new Set(['title', 'prompt', 'interaction', 'idle']);
 const PROMPT_PHASES = new Set(['prompt', 'interaction', 'idle']);
@@ -108,6 +117,12 @@ export default function HeroDream() {
   const reflectionTokenRef = useRef<string | null>(null);
   const reflectionRetryCountRef = useRef(0);
 
+  // CLOSE THE DREAM JOURNEY — CONTINUE reveals quietly once the dreamer has
+  // had time to read the reflection; SAVE THIS DREAM is guarded by a ref so
+  // a double-click (or any re-render) can never persist the same dream twice.
+  const [continueVisible, setContinueVisible] = useState(false);
+  const dreamSavedRef = useRef(false);
+
   const startReflectionEngine = useCallback((token: string, request: DreamReflectionRequest) => {
     if (reflectionTokenRef.current === token) return;
     reflectionTokenRef.current = token;
@@ -166,18 +181,29 @@ export default function HeroDream() {
     const analysis = analysisResult.analysis;
     const newBrief = buildReconstructionBrief(analysis, []);
     setBrief(newBrief);
-    setFragments(pickMemoryFragments(analysis));
-    // DARE's UI is English-only regardless of the dream's own language —
-    // show the raw (possibly non-English) candidates immediately so choices
-    // are never blocked, then swap in short English labels once ready. The
-    // original analysis/sourceText is never touched by this — display only.
+
+    // DARE's UI language is a single abstraction (see appLanguage.ts) —
+    // every displayed fragment/element must match it, so nothing renders
+    // until translated. The original analysis/sourceText is never touched
+    // by this — display only. A combined single request keeps this to one
+    // round trip; only if translation genuinely fails do the raw (possibly
+    // non-appLanguage) candidates get used, as a last resort so the journey
+    // never dead-ends.
+    const rawFragments = pickMemoryFragments(analysis);
     const rawElements = deriveDreamElements(analysis);
-    setDreamElements(rawElements);
-    if (rawElements.length > 0) {
-      getEnglishElementLabels(analysis.sourceText, rawElements).then((result) => {
-        if (result.status === 'ok') setDreamElements(result.labels);
+    const combined = [...rawFragments, ...rawElements];
+    if (combined.length > 0) {
+      getDisplayLabels(analysis.sourceText, combined).then((result) => {
+        if (result.status === 'ok') {
+          setFragments(result.labels.slice(0, rawFragments.length));
+          setDreamElements(result.labels.slice(rawFragments.length));
+        } else {
+          setFragments(rawFragments);
+          setDreamElements(rawElements);
+        }
       });
     }
+
     startImageGeneration('initial', newBrief);
     const t = setTimeout(() => setReconstructionPhase('dissolving'), SETTLE_PAUSE_MS);
     return () => clearTimeout(t);
@@ -366,6 +392,58 @@ export default function HeroDream() {
     });
   };
 
+  // CONTINUE reveals quietly once the dreamer has had time to read the
+  // reflection — the dreamer still controls the actual advance, this only
+  // controls the cue's visibility.
+  useEffect(() => {
+    if (insideStep !== 'reflection') {
+      setContinueVisible(false);
+      return;
+    }
+    const t = setTimeout(() => setContinueVisible(true), REFLECTION_CONTINUE_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [insideStep]);
+
+  const handleContinueFromReflection = () => setInsideStep('closing');
+
+  const handleSaveDream = () => {
+    if (dreamSavedRef.current) return;
+    if (analysisResult?.status !== 'ok' || !selectedElement || !reflectionResponse) return;
+    if (reflectionEngineResult?.status !== 'ok') return;
+    dreamSavedRef.current = true;
+    const record = buildSavedDream({
+      sourceText: analysisResult.analysis.sourceText,
+      inputMode: dreamInputRef.current?.inputMode ?? 'text',
+      dreamAnalysis: analysisResult.analysis,
+      dreamImageDataUrl: displayedImageUrl,
+      selectedElement,
+      reflectionResponse,
+      dreamReflection: reflectionEngineResult.reflection,
+      corrections,
+    });
+    saveDream(record);
+    setInsideStep('saved');
+  };
+
+  const handleLetGo = () => setInsideStep('letting-go');
+
+  // LET IT GO — the image dissolves (CSS-driven), then GONE. holds briefly,
+  // then returns to the room automatically. Nothing is persisted.
+  useEffect(() => {
+    if (insideStep !== 'letting-go') return;
+    const t = setTimeout(() => setInsideStep('gone'), LETTING_GO_DISSOLVE_MS);
+    return () => clearTimeout(t);
+  }, [insideStep]);
+
+  useEffect(() => {
+    if (insideStep !== 'gone') return;
+    const t = setTimeout(() => handleGoHome(), GONE_HOLD_MS);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [insideStep]);
+
+  const handleReturnToRoom = () => handleGoHome();
+
   // Debug-only QA hook (never part of the normal user journey, only present
   // with ?debug=1): lets a real already-generated image be dropped straight
   // into state so later phases (e.g. ENTER THE DREAM) can be verified
@@ -426,11 +504,13 @@ export default function HeroDream() {
     setAnalysisResult(null);
     setAnalysisPending(false);
     setCentralMode('hold');
+    setContinueVisible(false);
     generationTokenRef.current = null;
     reflectionTokenRef.current = null;
     correctionCountRef.current = 0;
     retryCountRef.current = 0;
     reflectionRetryCountRef.current = 0;
+    dreamSavedRef.current = false;
   };
 
   const isReconstructing = reconstructionPhase !== 'none';
@@ -528,6 +608,7 @@ export default function HeroDream() {
         selectedElement={selectedElement}
         reflectionResult={reflectionEngineResult?.status === 'ok' ? reflectionEngineResult.reflection : null}
         reflectionErrored={reflectionEngineResult?.status === 'error'}
+        continueVisible={continueVisible}
         displayedImageUrl={displayedImageUrl}
         incomingImageUrl={incomingImageUrl}
         onNotQuite={handleNotQuite}
@@ -537,6 +618,10 @@ export default function HeroDream() {
         onSelectElement={handleSelectElement}
         onSubmitReflection={handleSubmitReflection}
         onRetryReflection={handleRetryReflection}
+        onContinueFromReflection={handleContinueFromReflection}
+        onSaveDream={handleSaveDream}
+        onLetGo={handleLetGo}
+        onReturnToRoom={handleReturnToRoom}
       />
 
       {/* Development aid only — never part of the normal user journey.

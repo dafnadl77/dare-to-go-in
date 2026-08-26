@@ -1,0 +1,111 @@
+.dream-closing {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.2rem;
+  padding: 6vh 6vw;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* ---- The reflection quietly letting go — plays once on mount, never
+   re-triggered, so the transition into the closing moment never feels
+   like a normal UI state swap. ---- */
+.dc-fading-reflection {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  max-width: 34em;
+  opacity: 1;
+  animation: dc-fade-out 2.6s var(--ease-memory) 0.4s forwards;
+}
+
+.dc-fading-text {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  line-height: 1.55;
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
+}
+
+.dc-fading-text--question {
+  font-style: italic;
+  color: var(--dream-warm-neutral);
+}
+
+@keyframes dc-fade-out {
+  from {
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    filter: blur(8px);
+  }
+}
+
+/* ---- DON'T LET IT DISAPPEAR — reveals only once the reflection has had
+   room to fade, same restrained language as the rest of the journey: no
+   card, no panel, just centered typography over the living image. ---- */
+.dc-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.dc-block--closing {
+  opacity: 0;
+  animation: dc-fade-in 2.2s var(--ease-memory) 2.8s forwards;
+}
+
+.dc-block--enter {
+  opacity: 0;
+  animation: dc-fade-in 1.8s var(--ease-memory) 0.2s forwards;
+}
+
+@keyframes dc-fade-in {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    pointer-events: none;
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    pointer-events: auto;
+  }
+}
+
+.dc-title {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1.4rem, 3.4vw, 2.1rem);
+  letter-spacing: 0.01em;
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.7em rgba(0, 0, 0, 0.55);
+}
+
+.dc-choices {
+  display: flex;
+  align-items: center;
+  gap: 2.6rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dc-fading-reflection,
+  .dc-block--closing,
+  .dc-block--enter {
+    animation-duration: 0.01s !important;
+  }
+}
