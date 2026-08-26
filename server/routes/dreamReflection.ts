@@ -1,7 +1,7 @@
-import { Router, type Request, type Response } from 'express';
 import OpenAI from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
-import { validateDreamAnalysis, type DreamAnalysis, type AnalysisErrorReason } from '../../src/hero/dreamAnalysisSchema.js';
+import { okResult, errorResult, type HandlerResult } from '../httpResult.js';
+import { validateDreamAnalysis, type DreamAnalysis } from '../../src/hero/dreamAnalysisSchema.js';
 import {
   DREAM_REFLECTION_SYSTEM_PROMPT,
   DREAM_REFLECTION_JSON_SCHEMA,
@@ -10,12 +10,6 @@ import {
 } from '../../src/hero/dreamReflectionSchema.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
-
-export const dreamReflectionRouter = Router();
-
-function sendError(res: Response, status: number, reason: AnalysisErrorReason, message: string) {
-  res.status(status).json({ reason, message });
-}
 
 function actionPhrase(a: DreamAnalysis['actions'][number]): string {
   return [a.subject, a.action, a.target].filter(Boolean).join(' ').trim();
@@ -46,8 +40,8 @@ THE ELEMENT THE DREAMER CHOSE AS STANDING OUT TO THEM: ${selectedElement}
 THE DREAMER'S OWN ASSOCIATION WITH THAT ELEMENT (their exact words): "${reflectionResponse}"`;
 }
 
-dreamReflectionRouter.post('/dream-reflection', async (req: Request, res: Response) => {
-  const body = req.body as {
+export async function handleDreamReflection(rawBody: unknown): Promise<HandlerResult> {
+  const body = (rawBody ?? {}) as {
     dreamAnalysis?: unknown;
     selectedElement?: unknown;
     reflectionResponse?: unknown;
@@ -56,18 +50,15 @@ dreamReflectionRouter.post('/dream-reflection', async (req: Request, res: Respon
 
   const dreamAnalysis = validateDreamAnalysis(body.dreamAnalysis);
   if (!dreamAnalysis) {
-    sendError(res, 400, 'invalid_response', 'dreamAnalysis is missing or does not match the expected DreamAnalysis shape.');
-    return;
+    return errorResult(400, 'invalid_response', 'dreamAnalysis is missing or does not match the expected DreamAnalysis shape.');
   }
   const selectedElement = typeof body.selectedElement === 'string' ? body.selectedElement.trim() : '';
   if (!selectedElement) {
-    sendError(res, 400, 'empty_input', 'selectedElement must be a non-empty string.');
-    return;
+    return errorResult(400, 'empty_input', 'selectedElement must be a non-empty string.');
   }
   const reflectionResponse = typeof body.reflectionResponse === 'string' ? body.reflectionResponse.trim() : '';
   if (!reflectionResponse) {
-    sendError(res, 400, 'empty_input', 'reflectionResponse must be a non-empty string.');
-    return;
+    return errorResult(400, 'empty_input', 'reflectionResponse must be a non-empty string.');
   }
   const reconstructionCorrections = Array.isArray(body.reconstructionCorrections)
     ? body.reconstructionCorrections.filter((c): c is string => typeof c === 'string')
@@ -75,8 +66,7 @@ dreamReflectionRouter.post('/dream-reflection', async (req: Request, res: Respon
 
   const client = getOpenAIClient();
   if (!client) {
-    sendError(res, 503, 'not_configured', 'The Dream Reflection backend is missing OPENAI_API_KEY.');
-    return;
+    return errorResult(503, 'not_configured', 'The Dream Reflection backend is missing OPENAI_API_KEY.');
   }
 
   const input = buildReflectionInput(dreamAnalysis, selectedElement, reflectionResponse, reconstructionCorrections);
@@ -100,38 +90,32 @@ dreamReflectionRouter.post('/dream-reflection', async (req: Request, res: Respon
     try {
       parsed = JSON.parse(response.output_text);
     } catch {
-      sendError(res, 502, 'invalid_response', 'The AI response was not valid JSON.');
-      return;
+      return errorResult(502, 'invalid_response', 'The AI response was not valid JSON.');
     }
 
     const validated = validateDreamReflectionResult(parsed);
     if (!validated) {
-      sendError(res, 502, 'invalid_response', 'The AI response did not match the expected DreamReflectionResult schema.');
-      return;
+      return errorResult(502, 'invalid_response', 'The AI response did not match the expected DreamReflectionResult schema.');
     }
 
     // The grounding line's exact wording/tone is safety-relevant — always
     // enforced by the server, never left to the model's own phrasing.
     validated.groundingStatement = GROUNDING_STATEMENT;
 
-    res.status(200).json(validated);
+    return okResult(validated);
   } catch (err) {
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {
-        sendError(res, 502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.');
-        return;
+        return errorResult(502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.');
       }
       if (err.status === 429) {
-        sendError(res, 429, 'rate_limited', 'The OpenAI API rate limit was reached. Please try again shortly.');
-        return;
+        return errorResult(429, 'rate_limited', 'The OpenAI API rate limit was reached. Please try again shortly.');
       }
       if (err.status === 402 || (typeof err.message === 'string' && /billing|quota|credit/i.test(err.message))) {
-        sendError(res, 402, 'billing_issue', 'The OpenAI account has a billing or quota issue.');
-        return;
+        return errorResult(402, 'billing_issue', 'The OpenAI account has a billing or quota issue.');
       }
-      sendError(res, 502, 'request_failed', 'The OpenAI API request failed.');
-      return;
+      return errorResult(502, 'request_failed', 'The OpenAI API request failed.');
     }
-    sendError(res, 500, 'request_failed', 'An unexpected error occurred while generating the dream reflection.');
+    return errorResult(500, 'request_failed', 'An unexpected error occurred while generating the dream reflection.');
   }
-});
+}

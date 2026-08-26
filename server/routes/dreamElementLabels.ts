@@ -1,35 +1,26 @@
-import { Router, type Request, type Response } from 'express';
 import OpenAI from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
+import { okResult, errorResult, type HandlerResult } from '../httpResult.js';
 import {
   DREAM_ELEMENT_LABEL_SYSTEM_PROMPT,
   DREAM_ELEMENT_LABELS_JSON_SCHEMA,
   validateElementLabels,
 } from '../../src/hero/dreamElementLabelsSchema.js';
-import type { AnalysisErrorReason } from '../../src/hero/dreamAnalysisSchema.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
 
-export const dreamElementLabelsRouter = Router();
-
-function sendError(res: Response, status: number, reason: AnalysisErrorReason, message: string) {
-  res.status(status).json({ reason, message });
-}
-
-dreamElementLabelsRouter.post('/dream-element-labels', async (req: Request, res: Response) => {
-  const body = req.body as { sourceText?: unknown; elements?: unknown };
+export async function handleDreamElementLabels(rawBody: unknown): Promise<HandlerResult> {
+  const body = (rawBody ?? {}) as { sourceText?: unknown; elements?: unknown };
   const sourceText = typeof body.sourceText === 'string' ? body.sourceText : '';
   const elements = Array.isArray(body.elements) ? body.elements.filter((e): e is string => typeof e === 'string' && e.trim().length > 0) : [];
 
   if (elements.length === 0) {
-    sendError(res, 400, 'empty_input', 'elements must be a non-empty array of strings.');
-    return;
+    return errorResult(400, 'empty_input', 'elements must be a non-empty array of strings.');
   }
 
   const client = getOpenAIClient();
   if (!client) {
-    sendError(res, 503, 'not_configured', 'The Dream Element Labels backend is missing OPENAI_API_KEY.');
-    return;
+    return errorResult(503, 'not_configured', 'The Dream Element Labels backend is missing OPENAI_API_KEY.');
   }
 
   const input = `DREAM CONTEXT (for disambiguation only — do not label this line itself): ${sourceText || '(not provided)'}
@@ -56,34 +47,28 @@ ${elements.map((e, i) => `${i + 1}. ${e}`).join('\n')}`;
     try {
       parsed = JSON.parse(response.output_text);
     } catch {
-      sendError(res, 502, 'invalid_response', 'The AI response was not valid JSON.');
-      return;
+      return errorResult(502, 'invalid_response', 'The AI response was not valid JSON.');
     }
 
     const labels = validateElementLabels(parsed, elements.length);
     if (!labels) {
-      sendError(res, 502, 'invalid_response', 'The AI response did not match the expected labels schema.');
-      return;
+      return errorResult(502, 'invalid_response', 'The AI response did not match the expected labels schema.');
     }
 
-    res.status(200).json({ labels });
+    return okResult({ labels });
   } catch (err) {
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {
-        sendError(res, 502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.');
-        return;
+        return errorResult(502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.');
       }
       if (err.status === 429) {
-        sendError(res, 429, 'rate_limited', 'The OpenAI API rate limit was reached. Please try again shortly.');
-        return;
+        return errorResult(429, 'rate_limited', 'The OpenAI API rate limit was reached. Please try again shortly.');
       }
       if (err.status === 402 || (typeof err.message === 'string' && /billing|quota|credit/i.test(err.message))) {
-        sendError(res, 402, 'billing_issue', 'The OpenAI account has a billing or quota issue.');
-        return;
+        return errorResult(402, 'billing_issue', 'The OpenAI account has a billing or quota issue.');
       }
-      sendError(res, 502, 'request_failed', 'The OpenAI API request failed.');
-      return;
+      return errorResult(502, 'request_failed', 'The OpenAI API request failed.');
     }
-    sendError(res, 500, 'request_failed', 'An unexpected error occurred while labeling dream elements.');
+    return errorResult(500, 'request_failed', 'An unexpected error occurred while labeling dream elements.');
   }
-});
+}

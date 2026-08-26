@@ -1,44 +1,34 @@
-import { Router, type Request, type Response } from 'express';
 import OpenAI from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
-import {
-  DREAM_EXTRACTION_SYSTEM_PROMPT,
-  DREAM_ANALYSIS_JSON_SCHEMA,
-  validateDreamAnalysis,
-  type AnalysisErrorReason,
-} from '../../src/hero/dreamAnalysisSchema.js';
+import { okResult, errorResult, type HandlerResult } from '../httpResult.js';
+import { DREAM_EXTRACTION_SYSTEM_PROMPT, DREAM_ANALYSIS_JSON_SCHEMA, validateDreamAnalysis } from '../../src/hero/dreamAnalysisSchema.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
 
-export const dreamAnalysisRouter = Router();
-
-function sendError(res: Response, status: number, reason: AnalysisErrorReason, message: string) {
-  res.status(status).json({ reason, message });
-}
-
-dreamAnalysisRouter.post('/dream-analysis', async (req: Request, res: Response) => {
-  const body = req.body as { sourceText?: unknown; inputMode?: unknown };
+/**
+ * Core POST /api/dream-analysis logic — framework-agnostic (no Express
+ * Request/Response, no Vercel types) so it can be called identically from
+ * the local Express server and from the Vercel serverless function.
+ */
+export async function handleDreamAnalysis(rawBody: unknown): Promise<HandlerResult> {
+  const body = (rawBody ?? {}) as { sourceText?: unknown; inputMode?: unknown };
   const sourceText = typeof body.sourceText === 'string' ? body.sourceText.trim() : '';
   const inputMode = body.inputMode === 'voice' || body.inputMode === 'text' ? body.inputMode : null;
 
   if (!sourceText) {
-    sendError(res, 400, 'empty_input', 'sourceText must be a non-empty string.');
-    return;
+    return errorResult(400, 'empty_input', 'sourceText must be a non-empty string.');
   }
   if (!inputMode) {
-    sendError(res, 400, 'invalid_response', 'inputMode must be "text" or "voice".');
-    return;
+    return errorResult(400, 'invalid_response', 'inputMode must be "text" or "voice".');
   }
 
   const client = getOpenAIClient();
   if (!client) {
-    sendError(
-      res,
+    return errorResult(
       503,
       'not_configured',
       'The Dream Analysis backend is missing OPENAI_API_KEY. Set it in a server-side .env file (see .env.example).',
     );
-    return;
   }
 
   try {
@@ -60,34 +50,28 @@ dreamAnalysisRouter.post('/dream-analysis', async (req: Request, res: Response) 
     try {
       parsed = JSON.parse(response.output_text);
     } catch {
-      sendError(res, 502, 'invalid_response', 'The AI response was not valid JSON.');
-      return;
+      return errorResult(502, 'invalid_response', 'The AI response was not valid JSON.');
     }
 
     const validated = validateDreamAnalysis(parsed);
     if (!validated) {
-      sendError(res, 502, 'invalid_response', 'The AI response did not match the expected DreamAnalysis schema.');
-      return;
+      return errorResult(502, 'invalid_response', 'The AI response did not match the expected DreamAnalysis schema.');
     }
 
-    res.status(200).json(validated);
+    return okResult(validated);
   } catch (err) {
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {
-        sendError(res, 502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.');
-        return;
+        return errorResult(502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.');
       }
       if (err.status === 429) {
-        sendError(res, 429, 'rate_limited', 'The OpenAI API rate limit was reached. Please try again shortly.');
-        return;
+        return errorResult(429, 'rate_limited', 'The OpenAI API rate limit was reached. Please try again shortly.');
       }
       if (err.status === 402 || (typeof err.message === 'string' && /billing|quota|credit/i.test(err.message))) {
-        sendError(res, 402, 'billing_issue', 'The OpenAI account has a billing or quota issue.');
-        return;
+        return errorResult(402, 'billing_issue', 'The OpenAI account has a billing or quota issue.');
       }
-      sendError(res, 502, 'request_failed', 'The OpenAI API request failed.');
-      return;
+      return errorResult(502, 'request_failed', 'The OpenAI API request failed.');
     }
-    sendError(res, 500, 'request_failed', 'An unexpected error occurred while analyzing the dream.');
+    return errorResult(500, 'request_failed', 'An unexpected error occurred while analyzing the dream.');
   }
-});
+}
