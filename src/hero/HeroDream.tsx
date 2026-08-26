@@ -23,6 +23,8 @@ import { buildReconstructionBrief, type ReconstructionBrief } from './reconstruc
 import { pickMemoryFragments } from './memoryFragments';
 import { deriveDreamElements } from './dreamElements';
 import { generateDreamImage, type ImageResult } from './dreamImage';
+import { getDreamReflection, type DreamReflectionRequest } from './dreamReflectionEngine';
+import type { ReflectionResult } from './dreamReflectionSchema';
 import type { CentralMode } from './centralMode';
 import './HeroDream.css';
 
@@ -96,8 +98,25 @@ export default function HeroDream() {
   // (never invented, never hardcoded per-dream) — see dreamElements.ts.
   const [dreamElements, setDreamElements] = useState<string[]>([]);
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
-  // Stored for the next stage — not used or interpreted here.
   const [reflectionResponse, setReflectionResponse] = useState<string | null>(null);
+
+  // The one grounded reflection engine call — real OpenAI, idempotent per
+  // token exactly like image generation, never re-fired by rerenders.
+  const [reflectionPending, setReflectionPending] = useState(false);
+  const [reflectionEngineResult, setReflectionEngineResult] = useState<ReflectionResult | null>(null);
+  const reflectionTokenRef = useRef<string | null>(null);
+  const reflectionRetryCountRef = useRef(0);
+
+  const startReflectionEngine = useCallback((token: string, request: DreamReflectionRequest) => {
+    if (reflectionTokenRef.current === token) return;
+    reflectionTokenRef.current = token;
+    setReflectionPending(true);
+    setReflectionEngineResult(null);
+    getDreamReflection(request).then((result) => {
+      setReflectionEngineResult(result);
+      setReflectionPending(false);
+    });
+  }, []);
 
   // Real image generation. `displayedImageUrl` is the last fully-settled
   // image; `incomingImageUrl` is a freshly generated one mid-reveal during
@@ -303,7 +322,37 @@ export default function HeroDream() {
 
   const handleSubmitReflection = (text: string) => {
     setReflectionResponse(text);
-    setInsideStep('stored');
+    setInsideStep('interpreting');
+    if (analysisResult?.status === 'ok' && selectedElement) {
+      startReflectionEngine('initial', {
+        dreamAnalysis: analysisResult.analysis,
+        selectedElement,
+        reflectionResponse: text,
+        reconstructionCorrections: corrections,
+      });
+    }
+  };
+
+  // 'interpreting' hands off to the terminal 'reflection' step the instant
+  // the real reflection engine resolves successfully. On failure it stays
+  // at 'interpreting' — DreamReflection shows the honest error + retry there.
+  useEffect(() => {
+    if (insideStep !== 'interpreting') return;
+    if (reflectionPending || !reflectionEngineResult) return;
+    if (reflectionEngineResult.status === 'ok') {
+      setInsideStep('reflection');
+    }
+  }, [insideStep, reflectionPending, reflectionEngineResult]);
+
+  const handleRetryReflection = () => {
+    if (analysisResult?.status !== 'ok' || !selectedElement || !reflectionResponse) return;
+    reflectionRetryCountRef.current += 1;
+    startReflectionEngine(`retry-${reflectionRetryCountRef.current}`, {
+      dreamAnalysis: analysisResult.analysis,
+      selectedElement,
+      reflectionResponse,
+      reconstructionCorrections: corrections,
+    });
   };
 
   // Debug-only QA hook (never part of the normal user journey, only present
@@ -319,7 +368,13 @@ export default function HeroDream() {
       setDisplayedImage: ((url: string) => setDisplayedImageUrl(url)) as (...args: never[]) => void,
       setAnalysis: ((a: unknown) => setAnalysisResult({ status: 'ok', analysis: a } as AnalysisResult)) as (...args: never[]) => void,
       setDreamElements: ((els: string[]) => setDreamElements(els)) as (...args: never[]) => void,
-      getReflectionState: (() => ({ selectedElement, reflectionResponse })) as (...args: never[]) => void,
+      getReflectionState: (() => ({ selectedElement, reflectionResponse, reflectionEngineResult })) as (...args: never[]) => void,
+      setReflectionResult: ((r: unknown) =>
+        setReflectionEngineResult({ status: 'ok', reflection: r } as ReflectionResult)) as (...args: never[]) => void,
+      setReflectionErrored: (() =>
+        setReflectionEngineResult({ status: 'error', reason: 'request_failed', message: 'debug-forced error' })) as (
+        ...args: never[]
+      ) => void,
       // Read-only QA introspection: confirms at runtime (not just by code
       // reading) that the room's own animation scheduler is genuinely
       // unpaused while waiting for the real image.
@@ -330,7 +385,7 @@ export default function HeroDream() {
     return () => {
       delete w.__dreamDebug;
     };
-  }, [debugMode, selectedElement, reflectionResponse]);
+  }, [debugMode, selectedElement, reflectionResponse, reflectionEngineResult]);
 
   const isReconstructing = reconstructionPhase !== 'none';
 
@@ -416,6 +471,8 @@ export default function HeroDream() {
         fragments={fragments}
         dreamElements={dreamElements}
         selectedElement={selectedElement}
+        reflectionResult={reflectionEngineResult?.status === 'ok' ? reflectionEngineResult.reflection : null}
+        reflectionErrored={reflectionEngineResult?.status === 'error'}
         displayedImageUrl={displayedImageUrl}
         incomingImageUrl={incomingImageUrl}
         onNotQuite={handleNotQuite}
@@ -424,6 +481,7 @@ export default function HeroDream() {
         onYes={handleYes}
         onSelectElement={handleSelectElement}
         onSubmitReflection={handleSubmitReflection}
+        onRetryReflection={handleRetryReflection}
       />
 
       {/* Development aid only — never part of the normal user journey.

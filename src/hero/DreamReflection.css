@@ -33,8 +33,7 @@
 .dream-reflection[data-step='prompt'] .dr-question,
 .dream-reflection[data-step='choices'] .dr-question,
 .dream-reflection[data-step='selected'] .dr-question,
-.dream-reflection[data-step='reflecting'] .dr-question,
-.dream-reflection[data-step='stored'] .dr-question {
+.dream-reflection[data-step='reflecting'] .dr-question {
   opacity: 0.92;
   filter: blur(0);
 }
@@ -130,8 +129,7 @@
   transition: opacity 1.6s var(--ease-memory);
 }
 
-.dream-reflection[data-step='reflecting'] .dr-response,
-.dream-reflection[data-step='stored'] .dr-response {
+.dream-reflection[data-step='reflecting'] .dr-response {
   opacity: 1;
   pointer-events: auto;
 }
@@ -163,8 +161,184 @@
   border-bottom-color: rgba(244, 240, 232, 0.55);
 }
 
-.dream-reflection[data-step='stored'] .dr-response-textarea {
-  border-bottom-color: transparent;
+/* ---- Waiting for the real reflection engine — same restrained language
+   as REMEMBERING..., no spinner, no percentage, no box. ---- */
+.dr-interpreting {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
+  opacity: 0.45;
+  animation: dr-interpreting-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes dr-interpreting-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.82;
+  }
+}
+
+.dr-reflection-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6rem;
+  pointer-events: auto;
+}
+
+/* ---- The grounded reflection itself — short, quiet sections over the
+   living image, never a dashboard, never raw JSON. Scrolls internally on
+   short viewports rather than overflowing the screen. ---- */
+.dream-reflection-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: min(90vw, 560px);
+  max-height: 82vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.5rem 0.25rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 2s var(--ease-memory);
+}
+
+.dream-reflection[data-step='reflection'] .dream-reflection-result {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.drr-label {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral-dim);
+  opacity: 0.85;
+}
+
+.drr-text {
+  margin: 0;
+  max-width: 34em;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1rem, 2.1vw, 1.22rem);
+  line-height: 1.55;
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
+}
+
+.drr-text--question {
+  font-style: italic;
+}
+
+.drr-lenses-toggle-wrap {
+  margin-top: 0.4rem;
+}
+
+.drr-lenses-toggle {
+  position: relative;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral-dim);
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0.5em 0.2em;
+  cursor: pointer;
+  opacity: 0.7;
+  transition:
+    opacity 0.4s var(--ease-soft),
+    color 0.4s var(--ease-soft),
+    letter-spacing 0.4s var(--ease-soft);
+}
+
+.drr-lenses-toggle::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.15em;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--ease-memory);
+}
+
+.drr-lenses-toggle:hover,
+.drr-lenses-toggle:focus-visible {
+  opacity: 1;
+  color: var(--dream-white);
+  letter-spacing: 0.24em;
+}
+
+.drr-lenses-toggle:hover::after,
+.drr-lenses-toggle:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.drr-lenses {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  width: 100%;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(244, 240, 232, 0.14);
+}
+
+.drr-lens {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  text-align: center;
+}
+
+.drr-lens-label {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral-dim);
+  opacity: 0.75;
+}
+
+.drr-grounding {
+  margin: 0.6rem 0 0;
+  max-width: 30em;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.66rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--dream-warm-neutral-dim);
+  text-align: center;
+  opacity: 0.6;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -172,7 +346,12 @@
   .dr-elements,
   .dr-element,
   .dr-response,
-  .dr-response-textarea {
+  .dr-response-textarea,
+  .dream-reflection-result,
+  .drr-lenses-toggle {
     transition-duration: 0.01s !important;
+  }
+  .dr-interpreting {
+    animation: none !important;
   }
 }

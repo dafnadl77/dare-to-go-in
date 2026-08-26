@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from 'react';
 import type { DreamAnalysis } from './dreamAnalysisSchema';
 import type { ReconstructionBrief } from './reconstructionBrief';
+import type { DreamReflectionResult } from './dreamReflectionSchema';
 import { deriveVisualCues } from './reconstructionVisualCues';
 import { deriveDreamWorldEffects } from './dreamWorldEffects';
 import DreamWorld from './DreamWorld';
@@ -22,8 +23,20 @@ export type ReconstructionPhase =
 
 /** Sub-steps inside the 'inside' phase — a quiet look, LOOK AROUND fades in
     and out, then WHAT STANDS OUT TO YOU? → choices → selected → reflecting
-    on the chosen element → stored (terminal). */
-export type InsideStep = 'quiet' | 'look-around' | 'quiet2' | 'prompt' | 'choices' | 'selected' | 'reflecting' | 'stored';
+    on the chosen element → interpreting (real reflection engine call) →
+    reflection (terminal — the grounded reflection is shown). */
+export type InsideStep =
+  | 'quiet'
+  | 'look-around'
+  | 'quiet2'
+  | 'prompt'
+  | 'choices'
+  | 'selected'
+  | 'reflecting'
+  | 'interpreting'
+  | 'reflection';
+
+const REFLECTION_ENGINE_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting', 'interpreting', 'reflection']);
 
 interface DreamReconstructionProps {
   phase: ReconstructionPhase;
@@ -34,6 +47,9 @@ interface DreamReconstructionProps {
   /** Selectable real dream elements for the WHAT STANDS OUT TO YOU? step — derived from DreamAnalysis, never invented. */
   dreamElements: string[];
   selectedElement: string | null;
+  /** The one grounded reflection from the real reflection engine — null until it resolves. */
+  reflectionResult: DreamReflectionResult | null;
+  reflectionErrored: boolean;
   /** The last successfully generated image, already fully revealed. Null until the first generation succeeds. */
   displayedImageUrl: string | null;
   /** A freshly generated image mid-reveal during the 'imaging' phase (room→image the first time, image→image on regeneration). */
@@ -44,6 +60,7 @@ interface DreamReconstructionProps {
   onYes: () => void;
   onSelectElement: (element: string) => void;
   onSubmitReflection: (text: string) => void;
+  onRetryReflection: () => void;
 }
 
 /**
@@ -60,6 +77,8 @@ export default function DreamReconstruction({
   fragments,
   dreamElements,
   selectedElement,
+  reflectionResult,
+  reflectionErrored,
   displayedImageUrl,
   incomingImageUrl,
   onNotQuite,
@@ -68,6 +87,7 @@ export default function DreamReconstruction({
   onYes,
   onSelectElement,
   onSubmitReflection,
+  onRetryReflection,
 }: DreamReconstructionProps) {
   const [correctionText, setCorrectionText] = useState('');
 
@@ -185,16 +205,18 @@ export default function DreamReconstruction({
         </div>
       )}
 
-      {phase === 'inside' &&
-        (insideStep === 'prompt' || insideStep === 'choices' || insideStep === 'selected' || insideStep === 'reflecting' || insideStep === 'stored') && (
-          <DreamReflection
-            step={insideStep}
-            elements={dreamElements}
-            selectedElement={selectedElement}
-            onSelect={onSelectElement}
-            onSubmitReflection={onSubmitReflection}
-          />
-        )}
+      {phase === 'inside' && REFLECTION_ENGINE_STEPS.has(insideStep) && (
+        <DreamReflection
+          step={insideStep}
+          elements={dreamElements}
+          selectedElement={selectedElement}
+          reflectionResult={reflectionResult}
+          reflectionErrored={reflectionErrored}
+          onSelect={onSelectElement}
+          onSubmitReflection={onSubmitReflection}
+          onRetryReflection={onRetryReflection}
+        />
+      )}
     </div>
   );
 }
