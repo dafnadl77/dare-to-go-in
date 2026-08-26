@@ -9,6 +9,7 @@
   gap: 2.4rem;
   padding: 6vh 6vw;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .dr-question {
@@ -71,11 +72,11 @@
   }
 }
 
-/* ---- The real dream elements — floating translucent glass fragments
-   suspended inside the dream, irregularly placed (never a grid), each at
-   its own depth with slow independent motion. Positions/depths come from
-   ELEMENT_LAYOUT in the component, cycled by index — never randomized per
-   render, so layout stays stable across re-renders. ---- */
+/* ---- The real dream elements — floating TYPOGRAPHIC OBJECTS, never a
+   pill, never a card. Each is just large type with a soft local haze
+   behind it (`.dr-element-glow`), irregularly placed and at its own depth.
+   Positions/depths come from ELEMENT_LAYOUT in the component, cycled by
+   index — never randomized per render, so layout stays stable. ---- */
 .dr-elements {
   position: absolute;
   inset: 8vh 4vw;
@@ -98,25 +99,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  max-width: min(46vw, 280px);
-  padding: 0.9em 1.5em;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: clamp(1rem, 2.3vw, 1.3rem);
-  font-weight: 500;
-  letter-spacing: 0.06em;
+  max-width: min(60vw, 340px);
+  padding: 0.3em;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(22px, 2vw, 34px);
+  font-weight: 400;
+  letter-spacing: 0.01em;
   text-align: center;
   text-transform: uppercase;
   color: var(--dream-white);
   cursor: pointer;
-  background: linear-gradient(155deg, rgba(244, 240, 232, 0.14), rgba(244, 240, 232, 0.03));
-  border: 1px solid rgba(244, 240, 232, 0.22);
-  border-radius: 44% 56% 58% 42% / 52% 46% 54% 48%;
-  backdrop-filter: blur(14px) saturate(1.2);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
-  box-shadow:
-    0 0 1.6rem rgba(244, 240, 232, 0.08),
-    inset 0 1px 0 rgba(244, 240, 232, 0.18);
-  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0.06em 0.7em rgba(0, 0, 0, 0.6);
   /* The appear animation ends by holding (via `forwards`) whatever opacity
      its keyframe specifies — a plain `opacity` override on the depth
      variants below can never win against that. Routing the target through
@@ -124,13 +120,10 @@
      the property the keyframe actually reads, instead of losing to it. */
   --target-opacity: 0.82;
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.9);
-  animation: dr-element-appear 1.4s var(--ease-memory) forwards, dr-element-float calc(13s + var(--fi) * 2.4s) ease-in-out infinite;
-  animation-delay: calc(var(--fi) * 0.16s), calc(1.4s + var(--fi) * -3.1s);
-  transition:
-    filter 0.6s var(--ease-soft),
-    box-shadow 0.6s var(--ease-soft),
-    border-color 0.6s var(--ease-soft);
+  transform: translate(-50%, -50%) scale(0.94);
+  animation: dr-element-appear 1.6s var(--ease-memory) forwards, dr-element-float calc(13s + var(--fi) * 2.4s) ease-in-out infinite;
+  animation-delay: calc(var(--fi) * 0.16s), calc(1.6s + var(--fi) * -3.1s);
+  transition: filter 0.7s var(--ease-soft);
 }
 
 @keyframes dr-element-appear {
@@ -153,24 +146,37 @@
   }
 }
 
+/* A soft, borderless pool of light behind the word — never a rectangle. */
+.dr-element-glow {
+  position: absolute;
+  inset: -1.4em -1.8em;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(244, 240, 232, 0.16) 0%, rgba(244, 240, 232, 0.05) 46%, transparent 72%);
+  filter: blur(6px);
+  opacity: 0.55;
+  transition: opacity 0.8s var(--ease-soft), filter 0.8s var(--ease-soft);
+  pointer-events: none;
+}
+
 .dr-element[data-depth='0'] {
-  font-size: clamp(1.05rem, 2.5vw, 1.4rem);
+  font-size: clamp(24px, 2.3vw, 38px);
   filter: blur(0);
 }
 
 .dr-element[data-depth='1'] {
-  --target-opacity: 0.74;
-  filter: blur(0.4px);
+  --target-opacity: 0.76;
+  filter: blur(0.6px);
 }
 
 .dr-element[data-depth='2'] {
-  font-size: clamp(0.92rem, 2vw, 1.15rem);
-  --target-opacity: 0.62;
-  filter: blur(0.8px);
+  font-size: clamp(20px, 1.8vw, 28px);
+  --target-opacity: 0.66;
+  filter: blur(1.1px);
 }
 
 .dr-element-label {
   pointer-events: none;
+  position: relative;
 }
 
 /* These re-cascade --target-opacity (read continuously by the still-active,
@@ -179,24 +185,27 @@
 .dr-element:hover:not(:disabled),
 .dr-element:focus-visible {
   --target-opacity: 1;
-  filter: blur(0) brightness(1.08);
-  border-color: rgba(244, 240, 232, 0.5);
-  box-shadow:
-    0 0 2.4rem rgba(244, 240, 232, 0.22),
-    inset 0 1px 0 rgba(244, 240, 232, 0.3);
+  filter: blur(0) brightness(1.1);
+  transform: translate(-50%, -50%) scale(1.08);
 }
 
-/* Surrounding elements subtly recede while one is hovered. */
+.dr-element:hover:not(:disabled) .dr-element-glow,
+.dr-element:focus-visible .dr-element-glow {
+  opacity: 1;
+  filter: blur(10px);
+}
+
+/* Surrounding words drift a touch farther away while one is focused. */
 .dream-reflection[data-step='choices'] .dr-elements:has(.dr-element:hover) .dr-element:not(:hover):not(:disabled) {
-  --target-opacity: 0.32;
-  filter: blur(2px);
+  --target-opacity: 0.3;
+  filter: blur(2.4px);
+  transform: translate(-50%, -50%) scale(0.96);
 }
 
 .dream-reflection[data-step='selected'] .dr-element.is-selected {
   opacity: 1;
-  filter: blur(0) brightness(1.1);
-  border-color: rgba(244, 240, 232, 0.55);
-  transform: translate(-50%, -50%) scale(1.14);
+  filter: blur(0) brightness(1.12);
+  transform: translate(-50%, -50%) scale(1.3);
   animation: none;
   transition:
     transform 1.1s var(--ease-memory),
@@ -204,10 +213,15 @@
     filter 0.8s var(--ease-soft);
 }
 
+.dream-reflection[data-step='selected'] .dr-element.is-selected .dr-element-glow {
+  opacity: 1;
+  filter: blur(14px);
+}
+
 .dream-reflection[data-step='selected'] .dr-element.is-fading {
   opacity: 0;
-  filter: blur(10px);
-  transform: translate(-50%, -50%) scale(0.8);
+  filter: blur(14px);
+  transform: translate(-50%, -50%) scale(0.7);
   animation: none;
   transition:
     opacity 0.9s var(--ease-soft),
@@ -292,125 +306,143 @@
   pointer-events: auto;
 }
 
-/* ---- The grounded reflection itself — short, quiet sections over the
-   living image, never a dashboard, never raw JSON. Scrolls internally on
-   short viewports rather than overflowing the screen. ---- */
-.dream-reflection-result {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-  width: min(90vw, 560px);
-  max-height: 82vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0.5rem 0.25rem;
-  opacity: 0;
+/* =====================================================================
+   DREAM THOUGHTS IN SPACE — the reflection reveal.
+   No cards, no scrolling, no rectangles. Four thoughts materialize one at
+   a time at fixed "safe" positions (left/right thirds, lower half — never
+   the upper-center zone where a generated portrait's face usually sits),
+   each resolving from blur into focus, holding as the visual focus, then
+   drifting to a smaller, quieter resting state as the next one takes over.
+   By the time the question appears, all four are gently visible at once —
+   never stacked, never scrolled, always inside the viewport. ===================================================================== */
+.dream-thought-sequence {
+  position: absolute;
+  inset: 0;
   pointer-events: none;
-  transition: opacity 2s var(--ease-memory);
+  transform: translate3d(var(--parallax-x, 0px), var(--parallax-y, 0px), 0);
 }
 
-.dream-reflection[data-step='reflection'] .dream-reflection-result {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* ---- Four cinematic thought fragments, each its own translucent floating
-   glass plane — not stacked paragraphs, not dashboard cards. Alternating
-   horizontal drift keeps a vertical reading order (and short-viewport
-   scrolling) intact while still feeling suspended rather than listed.
-   Each plane resolves from blur into focus on its own, staggered by --fi
-   so they arrive one at a time rather than all at once. ---- */
-.drr-plane {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.65rem;
-  width: 100%;
-  max-width: 38em;
-  text-align: center;
-  padding: 1.4rem 1.8rem;
-  background: linear-gradient(160deg, rgba(244, 240, 232, 0.09), rgba(244, 240, 232, 0.02));
-  border: 1px solid rgba(244, 240, 232, 0.14);
-  border-radius: 22px;
-  backdrop-filter: blur(16px) saturate(1.15);
-  -webkit-backdrop-filter: blur(16px) saturate(1.15);
-  box-shadow: inset 0 1px 0 rgba(244, 240, 232, 0.12);
+.dr-thought {
+  position: absolute;
+  transform: translate(-50%, -50%) translateY(10px) scale(0.92);
   opacity: 0;
   filter: blur(14px);
-  transform: translateY(16px) translateX(calc((var(--fi, 0) - 1.5) * 1.4%));
-  animation: drr-plane-resolve 1.6s var(--ease-memory) forwards;
-  animation-delay: calc(0.3s + var(--fi, 0) * 0.85s);
+  transition:
+    opacity 2.2s var(--ease-memory),
+    filter 2.2s var(--ease-memory),
+    transform 2.2s var(--ease-memory);
 }
 
-@keyframes drr-plane-resolve {
-  to {
-    opacity: 1;
-    filter: blur(0);
-    transform: translateY(0) translateX(calc((var(--fi, 0) - 1.5) * 1.4%));
-  }
+.dr-thought[data-state='active'] {
+  opacity: 1;
+  filter: blur(0);
+  transform: translate(-50%, -50%) translateY(0) scale(1.04);
 }
 
-.drr-plane--emphasis {
-  border-color: rgba(244, 240, 232, 0.24);
-  box-shadow:
-    0 0 2.2rem rgba(244, 240, 232, 0.1),
-    inset 0 1px 0 rgba(244, 240, 232, 0.16);
-  animation: drr-plane-resolve 1.6s var(--ease-memory) forwards, drr-plane-glow 5s ease-in-out 2.3s infinite;
+.dr-thought[data-state='settled'] {
+  opacity: 0.4;
+  filter: blur(0.3px);
+  transform: translate(-50%, -50%) translateY(-1.4vh) translateX(-1vw) scale(0.72);
 }
 
-@keyframes drr-plane-glow {
-  0%,
-  100% {
-    box-shadow:
-      0 0 2.2rem rgba(244, 240, 232, 0.1),
-      inset 0 1px 0 rgba(244, 240, 232, 0.16);
-  }
-  50% {
-    box-shadow:
-      0 0 3rem rgba(244, 240, 232, 0.2),
-      inset 0 1px 0 rgba(244, 240, 232, 0.22);
-  }
+.dr-thought-glow {
+  position: absolute;
+  inset: -2.4em -3em;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(244, 240, 232, 0.14) 0%, rgba(244, 240, 232, 0.04) 48%, transparent 74%);
+  filter: blur(10px);
+  opacity: 0;
+  transition: opacity 2.2s var(--ease-memory);
+  pointer-events: none;
 }
 
-.drr-label {
-  margin: 0;
+.dr-thought[data-state='active'] .dr-thought-glow {
+  opacity: 1;
+}
+
+.dr-thought-label {
+  margin: 0 0 0.5rem;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: clamp(0.92rem, 1.9vw, 1.05rem);
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--dream-warm-neutral-dim);
-  opacity: 0.9;
 }
 
-.drr-text {
+.dr-thought-text {
   margin: 0;
-  max-width: 32em;
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 400;
-  font-size: clamp(1.15rem, 2.6vw, 1.5rem);
-  line-height: 1.55;
+  font-size: clamp(20px, 1.65vw, 30px);
+  line-height: 1.4;
   color: var(--dream-white);
-  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0.06em 0.7em rgba(0, 0, 0, 0.6);
 }
 
-.drr-plane--emphasis .drr-text {
-  font-size: clamp(1.25rem, 2.9vw, 1.7rem);
+.dr-thought--thread .dr-thought-text {
+  font-size: clamp(24px, 2vw, 36px);
 }
 
-.drr-text--question {
-  font-style: italic;
+.dr-thought--question .dr-thought-text {
+  font-size: clamp(27px, 2.2vw, 40px);
 }
 
-.drr-lenses-toggle-wrap {
-  margin-top: 0.4rem;
+/* A brief, unlabeled wisp of light traveling between the first two settled
+   thoughts as the interpretive thread connects them — deliberately vague
+   in position/angle (never a precise diagram or literal arrow), heavily
+   blurred, and gone again within a few seconds. */
+.dr-thought-connector {
+  position: absolute;
+  left: 30vw;
+  top: 42vh;
+  width: 46vmax;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(244, 240, 232, 0.5), transparent);
+  filter: blur(6px);
+  transform-origin: left center;
+  transform: rotate(-32deg);
+  opacity: 0;
+  animation: dr-connector-trace 4.6s var(--ease-memory) forwards;
 }
 
-.drr-lenses-toggle {
+@keyframes dr-connector-trace {
+  0% {
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.dr-lenses-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: 15vh;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  max-width: min(90vw, 520px);
+  opacity: 0;
+  animation: dr-quiet-fade-in 2s var(--ease-memory) forwards;
+}
+
+@keyframes dr-quiet-fade-in {
+  to {
+    opacity: 1;
+  }
+}
+
+.dr-lenses-toggle {
   position: relative;
+  pointer-events: auto;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.64rem;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -421,98 +453,80 @@
   padding: 0.5em 0.2em;
   cursor: pointer;
   opacity: 0.7;
-  transition:
-    opacity 0.4s var(--ease-soft),
-    color 0.4s var(--ease-soft),
-    letter-spacing 0.4s var(--ease-soft);
+  transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
 }
 
-.drr-lenses-toggle::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0.15em;
-  height: 1px;
-  background: currentColor;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.5s var(--ease-memory);
-}
-
-.drr-lenses-toggle:hover,
-.drr-lenses-toggle:focus-visible {
+.dr-lenses-toggle:hover,
+.dr-lenses-toggle:focus-visible {
   opacity: 1;
-  color: var(--dream-white);
   letter-spacing: 0.24em;
 }
 
-.drr-lenses-toggle:hover::after,
-.drr-lenses-toggle:focus-visible::after {
-  transform: scaleX(1);
-}
-
-.drr-lenses {
+.dr-lenses {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.2rem;
-  width: 100%;
-  padding-top: 0.6rem;
-  border-top: 1px solid rgba(244, 240, 232, 0.14);
-}
-
-.drr-lens {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
+  gap: 0.8rem;
   text-align: center;
 }
 
-.drr-lens-label {
+.dr-lens {
   margin: 0;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--dream-warm-neutral-dim);
-  opacity: 0.75;
+  max-width: 30em;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(0.95rem, 1.8vw, 1.15rem);
+  line-height: 1.5;
+  color: var(--dream-warm-neutral);
 }
 
-.drr-grounding {
-  margin: 0.6rem 0 0;
-  max-width: 30em;
+.dr-lens-label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--dream-warm-neutral-dim);
+}
+
+.dr-grounding {
+  position: absolute;
+  left: 50%;
+  bottom: 7vh;
+  transform: translateX(-50%);
+  margin: 0;
+  max-width: 28em;
   font-family: 'Inter', system-ui, sans-serif;
   font-size: clamp(0.82rem, 1.7vw, 0.92rem);
   font-weight: 400;
   letter-spacing: 0.02em;
   color: var(--dream-warm-neutral-dim);
   text-align: center;
-  opacity: 0.72;
+  opacity: 0;
+  animation: dr-quiet-fade-in 2s var(--ease-memory) 0.4s forwards;
 }
 
 /* ---- CONTINUE — revealed only once the dreamer has had time to read the
    reflection; the dreamer controls when to move on, never an auto-advance. ---- */
-.drr-continue-wrap {
-  margin-top: 1.2rem;
+.dr-continue-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: 3vh;
+  transform: translateX(-50%);
   opacity: 0;
   pointer-events: none;
   transition: opacity 1.8s var(--ease-memory);
 }
 
-.drr-continue-wrap.is-visible {
+.dr-continue-wrap.is-visible {
   opacity: 1;
   pointer-events: auto;
 }
 
 /* A quiet but unmistakable invitation — never hidden for long, never loud. */
-.drr-continue-wrap.is-visible .dr-choice {
-  animation: drr-continue-pulse 3.2s ease-in-out 0.6s infinite;
+.dr-continue-wrap.is-visible .dr-choice {
+  animation: dr-continue-pulse 3.2s ease-in-out 0.6s infinite;
 }
 
-@keyframes drr-continue-pulse {
+@keyframes dr-continue-pulse {
   0%,
   100% {
     text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
@@ -526,14 +540,17 @@
   .dr-question,
   .dr-elements,
   .dr-element,
+  .dr-element-glow,
   .dr-response,
   .dr-response-textarea,
-  .dream-reflection-result,
-  .drr-lenses-toggle,
-  .drr-continue-wrap {
+  .dr-thought,
+  .dr-thought-glow,
+  .dr-lenses-toggle,
+  .dr-continue-wrap {
     transition-duration: 0.01s !important;
   }
-  .dr-elements {
+  .dr-elements,
+  .dream-thought-sequence {
     transform: none !important;
   }
   .dr-element {
@@ -542,13 +559,14 @@
   .dr-anchor {
     animation-duration: 0.4s !important;
   }
-  .drr-plane {
+  .dr-thought-connector {
     animation-duration: 0.4s !important;
   }
-  .drr-plane--emphasis {
-    animation-duration: 0.4s, 0s !important;
+  .dr-lenses-wrap,
+  .dr-grounding {
+    animation-duration: 0.4s !important;
   }
-  .drr-continue-wrap.is-visible .dr-choice {
+  .dr-continue-wrap.is-visible .dr-choice {
     animation: none !important;
   }
   .dr-interpreting {

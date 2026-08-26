@@ -52,7 +52,10 @@ const PROMPT_TO_CHOICES_MS = 1500;
 const SELECTED_TO_REFLECTING_MS = 1400;
 // The dreamer controls when to move on from the reflection — this only
 // gates when the quiet CONTINUE cue is revealed, never an auto-advance.
-const REFLECTION_CONTINUE_DELAY_MS = 6000;
+// Must comfortably exceed DreamReflection's own internal reveal sequence
+// (observation → association → thread, ~13.2s via STAGE_HOLD_MS, before the
+// question itself settles in) so CONTINUE never appears mid-sequence.
+const REFLECTION_CONTINUE_DELAY_MS = 16000;
 // LET IT GO — must stay in sync with the CSS dissolve (dr-image-letting-go
 // in DreamReconstruction.css) so 'gone' only appears once the image has
 // actually finished dissolving.
