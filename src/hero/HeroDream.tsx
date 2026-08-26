@@ -27,7 +27,7 @@ import { generateDreamImage, type ImageResult } from './dreamImage';
 import { getDreamReflection, type DreamReflectionRequest } from './dreamReflectionEngine';
 import type { ReflectionResult } from './dreamReflectionSchema';
 import { saveDream, buildSavedDream } from './dreamStorage';
-import { extractAccentColor, type AccentColor } from './dreamAccentColor';
+import { extractAccentColor, extractDreamPalette, type AccentColor } from './dreamAccentColor';
 import type { CentralMode } from './centralMode';
 import './HeroDream.css';
 
@@ -47,7 +47,10 @@ const INSIDE_QUIET2_MS = 1800;
 // real choices reveal beneath it; after picking one, the others fade
 // before the reflection question takes over.
 const PROMPT_TO_CHOICES_MS = 1500;
-const SELECTED_TO_REFLECTING_MS = 1400;
+// The selected bubble brightens, the others dissolve into the clouds, the
+// choice moves toward center and its light spreads before the question
+// materializes — a real multi-beat transition, not an instant swap.
+const SELECTED_TO_REFLECTING_MS = 2200;
 // The dreamer controls when to move on from the reflection — this only
 // gates when the quiet CONTINUE cue is revealed, never an auto-advance.
 // Must comfortably exceed DreamReflection's own internal reveal sequence
@@ -152,6 +155,10 @@ export default function HeroDream() {
   // portal's light/particles and the dream-world ambience. Extracted
   // client-side from the already-generated image, no extra API call.
   const [accentColor, setAccentColor] = useState<AccentColor | null>(null);
+  // A small harmonious multi-color palette from the same image, for the
+  // richer dream-arrival atmosphere (nebula clouds, per-element bubbles) —
+  // one accent alone reads as too flat for that scene.
+  const [dreamPalette, setDreamPalette] = useState<AccentColor[] | null>(null);
   const generationTokenRef = useRef<string | null>(null);
   const correctionCountRef = useRef(0);
   const retryCountRef = useRef(0);
@@ -298,7 +305,10 @@ export default function HeroDream() {
   useEffect(() => {
     if (!displayedImageUrl) return;
     const img = new Image();
-    img.onload = () => setAccentColor(extractAccentColor(img));
+    img.onload = () => {
+      setAccentColor(extractAccentColor(img));
+      setDreamPalette(extractDreamPalette(img));
+    };
     img.src = displayedImageUrl;
   }, [displayedImageUrl]);
 
@@ -523,6 +533,7 @@ export default function HeroDream() {
     setCorrections([]);
     setDisplayedImageUrl(null);
     setAccentColor(null);
+    setDreamPalette(null);
     setIncomingImageUrl(null);
     setImagePending(false);
     setImageResult(null);
@@ -639,6 +650,7 @@ export default function HeroDream() {
         displayedImageUrl={displayedImageUrl}
         incomingImageUrl={incomingImageUrl}
         accentColor={accentColor}
+        dreamPalette={dreamPalette}
         onNotQuite={handleNotQuite}
         onCorrectionSubmit={handleCorrectionSubmit}
         onRetryImage={handleRetryImage}

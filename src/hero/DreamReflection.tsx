@@ -16,6 +16,8 @@ interface DreamReflectionProps {
   /** Revealed only once the dreamer has had enough time to read the reflection — see HeroDream's continueVisible timer. */
   continueVisible: boolean;
   accentColor: AccentColor | null;
+  /** This dream's own harmonious palette — cycled one color per bubble, so the arrival scene never reduces to one accent. */
+  dreamPalette: AccentColor[] | null;
   onSelect: (element: string) => void;
   onSubmitReflection: (text: string) => void;
   onRetryReflection: () => void;
@@ -53,25 +55,13 @@ const NODE_ICONS: ReactNode[] = [
 
 const CHOICE_STEPS = new Set<InsideStep>(['choices', 'selected']);
 const QUESTION_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting']);
+const ARRIVAL_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting']);
 
 const LENS_LABELS: Record<'cognitive' | 'jungian' | 'psychodynamic', string> = {
   cognitive: 'COGNITIVE',
   jungian: 'JUNGIAN',
   psychodynamic: 'PSYCHODYNAMIC',
 };
-
-/** Irregular, hand-placed positions/depths for the floating dream-element
-    thoughts — deliberately not a grid, no enclosing box. Cycled by index so
-    any number of real elements (never more than 6, see dreamElements.ts)
-    gets a varied arrangement. */
-const ELEMENT_LAYOUT: { x: number; y: number; depth: 0 | 1 | 2 }[] = [
-  { x: -27, y: -16, depth: 1 },
-  { x: 24, y: -21, depth: 0 },
-  { x: -33, y: 12, depth: 2 },
-  { x: 31, y: 9, depth: 1 },
-  { x: -9, y: 26, depth: 0 },
-  { x: 12, y: -30, depth: 2 },
-];
 
 /** The node path sits in the frame's left third, clear of the upper-center
     zone where a generated portrait's face most often sits — vertical
@@ -112,6 +102,7 @@ export default function DreamReflection({
   reflectionErrored,
   continueVisible,
   accentColor,
+  dreamPalette,
   onSelect,
   onSubmitReflection,
   onRetryReflection,
@@ -124,6 +115,7 @@ export default function DreamReflection({
   usePointerParallax(fieldRef, 16, CHOICE_STEPS.has(step));
   usePointerParallax(sequenceRef, 10, step === 'reflection');
   const accent = accentColor ?? FALLBACK_ACCENT;
+  const palette = dreamPalette && dreamPalette.length > 0 ? dreamPalette : [accent, accent, accent, accent];
 
   // The cinematic reveal sequence — stage 0 = nothing shown yet, 1..3 = that
   // thought is the active/focused one, 4 = the question holds as the final,
@@ -145,8 +137,7 @@ export default function DreamReflection({
   }, [stage]);
 
   const questionText = QUESTION_STEPS.has(step) && selectedElement ? buildReflectionQuestion(selectedElement) : null;
-  const showPromptOnly = step === 'prompt' || step === 'choices' || step === 'selected';
-  const showAnchor = selectedElement && (step === 'reflecting' || step === 'interpreting' || step === 'reflection');
+  const showAnchor = selectedElement && (step === 'interpreting' || step === 'reflection');
 
   const handleContinue = () => {
     const text = responseText.trim();
@@ -160,69 +151,76 @@ export default function DreamReflection({
 
   return (
     <div className="dream-reflection" data-step={step} style={{ '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties}>
-      {questionText && (
-        <p className={`dr-question${step === 'reflecting' ? ' dr-question--asking' : ''}`}>
-          {showPromptOnly ? 'WHAT STANDS OUT TO YOU?' : questionText}
-        </p>
+      {ARRIVAL_STEPS.has(step) && (
+        <div className="dream-arrival" data-step={step}>
+          <div className="da-content">
+            {(step === 'prompt' || step === 'choices' || step === 'selected') && (
+              <>
+                <h2 className="da-title">THIS IS YOUR DREAM</h2>
+                <p className="da-subtitle">Choose the moment that stands out to you</p>
+              </>
+            )}
+
+            {(step === 'choices' || step === 'selected') && elements.length > 0 && (
+              <div className="da-bubbles" ref={fieldRef} aria-hidden={step !== 'choices'}>
+                {elements.map((el, i) => {
+                  const bubbleColor = palette[i % palette.length];
+                  return (
+                    <button
+                      key={el}
+                      type="button"
+                      className={`da-bubble${selectedElement === el ? ' is-selected' : ''}${
+                        selectedElement && selectedElement !== el ? ' is-fading' : ''
+                      }`}
+                      data-cursor-hover
+                      disabled={!!selectedElement}
+                      onClick={() => onSelect(el)}
+                      style={
+                        {
+                          '--bubble-rgb': `${bubbleColor.r}, ${bubbleColor.g}, ${bubbleColor.b}`,
+                          '--bi': i,
+                        } as CSSProperties
+                      }
+                    >
+                      <span className="da-bubble-cloud" aria-hidden="true" />
+                      <span className="da-bubble-ring" aria-hidden="true" />
+                      <span className="da-bubble-pulse" aria-hidden="true" />
+                      <span className="da-bubble-particles" aria-hidden="true">
+                        <span className="da-bubble-particle" />
+                        <span className="da-bubble-particle da-bubble-particle--b" />
+                        <span className="da-bubble-particle da-bubble-particle--c" />
+                      </span>
+                      <span className="da-bubble-label">{el.toUpperCase()}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {step === 'reflecting' && (
+              <>
+                <p className="dr-question dr-question--asking">{questionText}</p>
+                {selectedElement && <p className="dr-anchor">{selectedElement}</p>}
+                <div className="dr-response">
+                  <textarea
+                    className="dr-response-textarea"
+                    value={responseText}
+                    onChange={(e) => setResponseText(e.target.value)}
+                    placeholder="TYPE WHAT COMES TO MIND..."
+                    dir="auto"
+                    rows={3}
+                  />
+                  <button type="button" className="dr-choice" data-cursor-hover onClick={handleContinue}>
+                    CONTINUE
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
 
       {showAnchor && <p className="dr-anchor">{selectedElement}</p>}
-
-      {CHOICE_STEPS.has(step) && elements.length > 0 && (
-        <div
-          className="dr-elements"
-          ref={fieldRef}
-          aria-hidden={step !== 'choices'}
-          style={{ '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties}
-        >
-          {elements.map((el, i) => {
-            const layout = ELEMENT_LAYOUT[i % ELEMENT_LAYOUT.length];
-            return (
-              <button
-                key={el}
-                type="button"
-                className={`dr-element${selectedElement === el ? ' is-selected' : ''}${
-                  selectedElement && selectedElement !== el ? ' is-fading' : ''
-                }`}
-                data-depth={layout.depth}
-                data-cursor-hover
-                disabled={!!selectedElement}
-                onClick={() => onSelect(el)}
-                style={
-                  {
-                    '--ex': `${layout.x}vw`,
-                    '--ey': `${layout.y}vh`,
-                    '--fi': i,
-                  } as CSSProperties
-                }
-              >
-                <span className="dr-element-glow" aria-hidden="true" />
-                <span className="dr-element-orbit" aria-hidden="true">
-                  <span className="dr-element-particle" />
-                  <span className="dr-element-particle dr-element-particle--b" />
-                </span>
-                <span className="dr-element-label">{el.toUpperCase()}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {step === 'reflecting' && (
-        <div className="dr-response">
-          <textarea
-            className="dr-response-textarea"
-            value={responseText}
-            onChange={(e) => setResponseText(e.target.value)}
-            placeholder="TYPE WHAT COMES TO MIND..."
-            dir="auto"
-            rows={3}
-          />
-          <button type="button" className="dr-choice" data-cursor-hover onClick={handleContinue}>
-            CONTINUE
-          </button>
-        </div>
-      )}
 
       {step === 'interpreting' && !reflectionErrored && <p className="dr-interpreting">REFLECTING&hellip;</p>}
 

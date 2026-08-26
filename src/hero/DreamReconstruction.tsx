@@ -7,6 +7,7 @@ import { deriveDreamWorldEffects } from './dreamWorldEffects';
 import { usePointerParallax } from './usePointerParallax';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
 import DreamPortalTransition from './DreamPortalTransition';
+import DreamArrivalAtmosphere from './DreamArrivalAtmosphere';
 import DreamWorld from './DreamWorld';
 import DreamReflection from './DreamReflection';
 import DreamClosing from './DreamClosing';
@@ -49,6 +50,11 @@ const REFLECTION_ENGINE_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selec
 const CLOSING_STEPS = new Set<InsideStep>(['closing', 'saving', 'saved', 'letting-go', 'gone']);
 const DISSOLVING_STEPS = new Set<InsideStep>(['letting-go', 'gone']);
 const SAVING_STEPS = new Set<InsideStep>(['saving']);
+/** PORTAL EXIT → DREAM ARRIVAL → DREAM ELEMENT SELECTION → ASSOCIATION
+    QUESTION — the reconstructed image contracts onto the cloud atmosphere
+    for exactly these steps, then returns to its full-bleed treatment for
+    the (unrelated, untouched) interpreting/reflection/closing steps. */
+const ARRIVAL_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting']);
 
 interface DreamReconstructionProps {
   phase: ReconstructionPhase;
@@ -70,6 +76,8 @@ interface DreamReconstructionProps {
   incomingImageUrl: string | null;
   /** This dream's own extracted accent color — null until the image has loaded and been sampled. */
   accentColor: AccentColor | null;
+  /** A small harmonious palette from the same image, for the richer dream-arrival atmosphere. */
+  dreamPalette: AccentColor[] | null;
   onNotQuite: () => void;
   onCorrectionSubmit: (text: string) => void;
   onRetryImage: () => void;
@@ -104,6 +112,7 @@ export default function DreamReconstruction({
   displayedImageUrl,
   incomingImageUrl,
   accentColor,
+  dreamPalette,
   onNotQuite,
   onCorrectionSubmit,
   onRetryImage,
@@ -157,6 +166,14 @@ export default function DreamReconstruction({
         <div className="dr-silhouette" />
       </div>
 
+      {/* DREAM ARRIVAL — the rich, colorful nebula/cloud space the image
+          rests inside once selecting/answering; sits behind the image
+          layer in DOM order, only meaningfully visible while the image
+          itself has contracted to make room for it. */}
+      {phase === 'inside' && (
+        <DreamArrivalAtmosphere palette={dreamPalette} active={ARRIVAL_STEPS.has(insideStep)} />
+      )}
+
       {/* The real generated dream — never a separate card/gallery, always
           overtaking the room itself through organic, irregular masks. */}
       {(displayedImageUrl || incomingImageUrl) && (
@@ -167,7 +184,9 @@ export default function DreamReconstruction({
           data-dissolving={DISSOLVING_STEPS.has(insideStep) ? 'true' : 'false'}
           data-saving={SAVING_STEPS.has(insideStep) ? 'true' : 'false'}
           data-portal-active={phase === 'entering' ? 'true' : 'false'}
+          data-arrival={ARRIVAL_STEPS.has(insideStep) ? 'true' : 'false'}
           aria-hidden="true"
+          style={{ '--accent-rgb': `${(accentColor ?? FALLBACK_ACCENT).r}, ${(accentColor ?? FALLBACK_ACCENT).g}, ${(accentColor ?? FALLBACK_ACCENT).b}` } as CSSProperties}
         >
           {displayedImageUrl && <img className="dr-image dr-image-current" src={displayedImageUrl} alt="" />}
           {incomingImageUrl && (
@@ -281,6 +300,7 @@ export default function DreamReconstruction({
           reflectionErrored={reflectionErrored}
           continueVisible={continueVisible}
           accentColor={accentColor}
+          dreamPalette={dreamPalette}
           onSelect={onSelectElement}
           onSubmitReflection={onSubmitReflection}
           onRetryReflection={onRetryReflection}

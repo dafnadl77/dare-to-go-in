@@ -210,6 +210,23 @@
   opacity: 1;
 }
 
+/* ---- DREAM ARRIVAL — the reconstructed image contracts into a framed
+   memory resting on the cloud atmosphere behind it (DreamArrivalAtmosphere)
+   rather than staying a full-bleed backdrop, for exactly the arrival/
+   selection/question steps. Its edges dissolve via a soft mask rather than
+   a hard crop. Reverts to full-bleed automatically once those steps end. ---- */
+.dr-image-layer[data-arrival='true'] {
+  inset: 4vh 15vw 42vh 15vw;
+  border-radius: min(4vw, 48px);
+  -webkit-mask-image: radial-gradient(ellipse 84% 80% at 50% 44%, black 58%, transparent 100%);
+  mask-image: radial-gradient(ellipse 84% 80% at 50% 44%, black 58%, transparent 100%);
+  box-shadow: 0 6vh 10vh -2vh rgba(var(--accent-rgb), 0.4);
+  transition:
+    inset 1.8s var(--ease-memory),
+    border-radius 1.8s var(--ease-memory),
+    box-shadow 1.8s var(--ease-memory);
+}
+
 /* ENTER THE DREAM — a very slow, almost imperceptible push into the image
    (never a dramatic zoom), held for a beat first via animation-delay so it
    reads as crossing through rather than zooming into a JPEG. 'inside'
