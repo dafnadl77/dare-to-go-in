@@ -27,6 +27,7 @@ import { generateDreamImage, type ImageResult } from './dreamImage';
 import { getDreamReflection, type DreamReflectionRequest } from './dreamReflectionEngine';
 import type { ReflectionResult } from './dreamReflectionSchema';
 import { saveDream, buildSavedDream } from './dreamStorage';
+import { extractAccentColor, type AccentColor } from './dreamAccentColor';
 import type { CentralMode } from './centralMode';
 import './HeroDream.css';
 
@@ -39,9 +40,6 @@ const RECONSTRUCTING_MIN_MS = 2200;
 // Must stay in sync with the CSS reveal animation duration (DreamReconstruction.css).
 const IMAGING_MS = 6500;
 const SETTLE_PAUSE_MS = 1500;
-// ENTER THE DREAM — must stay roughly in sync with the CSS push-in
-// (1s hold + 6s slow push, see .dr-enter-push in DreamReconstruction.css).
-const ENTERING_MS = 7200;
 const INSIDE_QUIET_MS = 5000;
 const LOOK_AROUND_VISIBLE_MS = 3000;
 const INSIDE_QUIET2_MS = 1800;
@@ -150,6 +148,10 @@ export default function HeroDream() {
   const [incomingImageUrl, setIncomingImageUrl] = useState<string | null>(null);
   const [imagePending, setImagePending] = useState(false);
   const [imageResult, setImageResult] = useState<ImageResult | null>(null);
+  // This dream's own accent color (never a fixed teal/gold) — feeds the
+  // portal's light/particles and the dream-world ambience. Extracted
+  // client-side from the already-generated image, no extra API call.
+  const [accentColor, setAccentColor] = useState<AccentColor | null>(null);
   const generationTokenRef = useRef<string | null>(null);
   const correctionCountRef = useRef(0);
   const retryCountRef = useRef(0);
@@ -290,6 +292,16 @@ export default function HeroDream() {
     return () => clearTimeout(t);
   }, [reconstructionPhase, incomingImageUrl]);
 
+  // Recompute this dream's accent color whenever the settled image changes
+  // (initial generation or a NOT QUITE correction) — cheap, synchronous,
+  // no network call.
+  useEffect(() => {
+    if (!displayedImageUrl) return;
+    const img = new Image();
+    img.onload = () => setAccentColor(extractAccentColor(img));
+    img.src = displayedImageUrl;
+  }, [displayedImageUrl]);
+
   const handleNotQuite = () => setReconstructionPhase('correcting');
 
   const handleCorrectionSubmit = (text: string) => {
@@ -313,14 +325,12 @@ export default function HeroDream() {
 
   const handleYes = () => setReconstructionPhase('entering');
 
-  // 'entering': gently dissolve the reveal UI, hold the settled image, then
-  // slowly push into it (CSS-driven) — once that's had time to play out,
-  // cross fully into DreamWorld.
-  useEffect(() => {
-    if (reconstructionPhase !== 'entering') return;
-    const t = setTimeout(() => setReconstructionPhase('inside'), ENTERING_MS);
-    return () => clearTimeout(t);
-  }, [reconstructionPhase]);
+  // 'entering': the reveal UI dissolves (CSS-driven) while the real dream
+  // portal (WebGL vortex, see DreamPortalTransition) plays out over the
+  // settled image; its own GSAP timeline calls this back on completion —
+  // event-driven rather than a fixed timer, so state and animation can
+  // never drift apart.
+  const handlePortalComplete = () => setReconstructionPhase('inside');
 
   // 'inside': a quiet look at the living image, then "LOOK AROUND." fades
   // in and back out, a short pause, then the terminal "WHAT STANDS OUT TO
@@ -512,6 +522,7 @@ export default function HeroDream() {
     setReflectionResponse(null);
     setCorrections([]);
     setDisplayedImageUrl(null);
+    setAccentColor(null);
     setIncomingImageUrl(null);
     setImagePending(false);
     setImageResult(null);
@@ -627,10 +638,12 @@ export default function HeroDream() {
         continueVisible={continueVisible}
         displayedImageUrl={displayedImageUrl}
         incomingImageUrl={incomingImageUrl}
+        accentColor={accentColor}
         onNotQuite={handleNotQuite}
         onCorrectionSubmit={handleCorrectionSubmit}
         onRetryImage={handleRetryImage}
         onYes={handleYes}
+        onPortalComplete={handlePortalComplete}
         onSelectElement={handleSelectElement}
         onSubmitReflection={handleSubmitReflection}
         onRetryReflection={handleRetryReflection}

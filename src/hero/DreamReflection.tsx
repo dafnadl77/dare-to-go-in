@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { buildReflectionQuestion } from './dreamElements';
 import { usePointerParallax } from './usePointerParallax';
 import { sanitizeAiTextForDisplay } from './appLanguage';
+import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
 import type { InsideStep } from './DreamReconstruction';
 import './DreamReflection.css';
@@ -14,11 +15,41 @@ interface DreamReflectionProps {
   reflectionErrored: boolean;
   /** Revealed only once the dreamer has had enough time to read the reflection — see HeroDream's continueVisible timer. */
   continueVisible: boolean;
+  accentColor: AccentColor | null;
   onSelect: (element: string) => void;
   onSubmitReflection: (text: string) => void;
   onRetryReflection: () => void;
   onContinue: () => void;
 }
+
+/** Simple line-art glyphs for the four reflection nodes — thin strokes that
+    inherit `currentColor` so they pick up each node's own glow tint. */
+const NODE_ICONS: ReactNode[] = [
+  // WHAT I NOTICE — an eye.
+  <svg key="eye" viewBox="0 0 32 32" fill="none">
+    <path d="M4 16c3.5-6 8-9 12-9s8.5 3 12 9c-3.5 6-8 9-12 9s-8.5-3-12-9Z" stroke="currentColor" strokeWidth="1.4" />
+    <circle cx="16" cy="16" r="3.4" stroke="currentColor" strokeWidth="1.4" />
+  </svg>,
+  // YOUR ASSOCIATION — a heart.
+  <svg key="heart" viewBox="0 0 32 32" fill="none">
+    <path
+      d="M16 25S5 18.2 5 11.6C5 7.9 7.9 5 11.4 5c2 0 3.8 1 4.6 2.6C16.8 6 18.6 5 20.6 5 24.1 5 27 7.9 27 11.6 27 18.2 16 25 16 25Z"
+      stroke="currentColor"
+      strokeWidth="1.4"
+    />
+  </svg>,
+  // ONE POSSIBLE THREAD — a link.
+  <svg key="link" viewBox="0 0 32 32" fill="none">
+    <rect x="5" y="12" width="14" height="8" rx="4" transform="rotate(-25 5 12)" stroke="currentColor" strokeWidth="1.4" />
+    <rect x="13" y="12" width="14" height="8" rx="4" transform="rotate(-25 13 12)" stroke="currentColor" strokeWidth="1.4" />
+  </svg>,
+  // A QUESTION WORTH KEEPING — a question mark.
+  <svg key="question" viewBox="0 0 32 32" fill="none">
+    <circle cx="16" cy="16" r="12" stroke="currentColor" strokeWidth="1.4" />
+    <path d="M12.5 12.5c0-2 1.6-3.5 3.6-3.5s3.6 1.4 3.6 3.2c0 2.6-3.6 2.6-3.6 5.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    <circle cx="16.1" cy="21.6" r="0.9" fill="currentColor" />
+  </svg>,
+];
 
 const CHOICE_STEPS = new Set<InsideStep>(['choices', 'selected']);
 const QUESTION_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting']);
@@ -42,16 +73,11 @@ const ELEMENT_LAYOUT: { x: number; y: number; depth: 0 | 1 | 2 }[] = [
   { x: 12, y: -30, depth: 2 },
 ];
 
-/** Fixed "home" position for each reflection thought, chosen to stay off
-    the safer margins of the frame (left/right thirds, lower half) rather
-    than the upper-center zone where a generated portrait's face most often
-    sits — see "SPATIAL COMPOSITION": frame the image, never obscure it. */
-const THOUGHT_HOME = [
-  { left: '17vw', top: '58vh', align: 'left', maxWidth: '30em' }, // WHAT I NOTICE
-  { left: '80vw', top: '24vh', align: 'right', maxWidth: '26em' }, // YOUR ASSOCIATION
-  { left: '50vw', top: '86vh', align: 'center', maxWidth: '38em' }, // ONE POSSIBLE THREAD
-  { left: '50vw', top: '56vh', align: 'center', maxWidth: '30em' }, // A QUESTION WORTH KEEPING
-] as const;
+/** The node path sits in the frame's left third, clear of the upper-center
+    zone where a generated portrait's face most often sits — vertical
+    spacing between the four nodes is handled by flexbox, not hand-placed
+    coordinates, per the approved reflection-path reference. */
+const NODE_LEFT_VW = 8;
 
 const REFLECTION_FRAGMENTS: {
   key: keyof Pick<DreamReflectionResult, 'observation' | 'personalAssociation' | 'possibleThread' | 'continuityQuestion'>;
@@ -85,6 +111,7 @@ export default function DreamReflection({
   reflectionResult,
   reflectionErrored,
   continueVisible,
+  accentColor,
   onSelect,
   onSubmitReflection,
   onRetryReflection,
@@ -96,6 +123,7 @@ export default function DreamReflection({
   const sequenceRef = useRef<HTMLDivElement>(null);
   usePointerParallax(fieldRef, 16, CHOICE_STEPS.has(step));
   usePointerParallax(sequenceRef, 10, step === 'reflection');
+  const accent = accentColor ?? FALLBACK_ACCENT;
 
   // The cinematic reveal sequence — stage 0 = nothing shown yet, 1..3 = that
   // thought is the active/focused one, 4 = the question holds as the final,
@@ -131,7 +159,7 @@ export default function DreamReflection({
     : [];
 
   return (
-    <div className="dream-reflection" data-step={step}>
+    <div className="dream-reflection" data-step={step} style={{ '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties}>
       {questionText && (
         <p className={`dr-question${step === 'reflecting' ? ' dr-question--asking' : ''}`}>
           {showPromptOnly ? 'WHAT STANDS OUT TO YOU?' : questionText}
@@ -141,7 +169,12 @@ export default function DreamReflection({
       {showAnchor && <p className="dr-anchor">{selectedElement}</p>}
 
       {CHOICE_STEPS.has(step) && elements.length > 0 && (
-        <div className="dr-elements" ref={fieldRef} aria-hidden={step !== 'choices'}>
+        <div
+          className="dr-elements"
+          ref={fieldRef}
+          aria-hidden={step !== 'choices'}
+          style={{ '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties}
+        >
           {elements.map((el, i) => {
             const layout = ELEMENT_LAYOUT[i % ELEMENT_LAYOUT.length];
             return (
@@ -164,6 +197,10 @@ export default function DreamReflection({
                 }
               >
                 <span className="dr-element-glow" aria-hidden="true" />
+                <span className="dr-element-orbit" aria-hidden="true">
+                  <span className="dr-element-particle" />
+                  <span className="dr-element-particle dr-element-particle--b" />
+                </span>
                 <span className="dr-element-label">{el.toUpperCase()}</span>
               </button>
             );
@@ -199,37 +236,41 @@ export default function DreamReflection({
       )}
 
       {step === 'reflection' && reflectionResult && (
-        <div className="dream-thought-sequence" ref={sequenceRef} data-stage={stage}>
-          {REFLECTION_FRAGMENTS.map((f, i) => {
-            const stageNumber = i + 1;
-            const home = THOUGHT_HOME[i];
-            const state = stageNumber > stage ? 'pending' : stageNumber === stage ? 'active' : 'settled';
-            return (
-              <div
-                key={f.key}
-                className={`dr-thought dr-thought--${f.tier}`}
-                data-state={state}
-                style={
-                  {
-                    left: home.left,
-                    top: home.top,
-                    textAlign: home.align,
-                    maxWidth: home.maxWidth,
-                    '--fi': i,
-                  } as CSSProperties
-                }
-              >
-                <span className="dr-thought-glow" aria-hidden="true" />
-                <h3 className="dr-thought-label">{f.label}</h3>
-                <p className="dr-thought-text">{sanitizeAiTextForDisplay(reflectionResult[f.key])}</p>
-              </div>
-            );
-          })}
-
-          {/* A brief, unlabeled wisp of light traveling between the first two
-              settled thoughts as the interpretive thread connects them —
-              never a diagram, never literal, gone again just as quietly. */}
-          {stage === 3 && <div className="dr-thought-connector" aria-hidden="true" />}
+        <div
+          className="dream-thought-sequence"
+          ref={sequenceRef}
+          data-stage={stage}
+          style={
+            {
+              '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}`,
+              '--lit-fraction': String(Math.max(0, Math.min(1, (stage - 1) / (REFLECTION_FRAGMENTS.length - 1)))),
+            } as CSSProperties
+          }
+        >
+          {/* A single reflection path — four glowing nodes connected by one
+              light that travels down as each thought resolves. Previous
+              nodes stay visible, just quieter, never removed. */}
+          <div className="dr-node-path" style={{ left: `${NODE_LEFT_VW}vw` } as CSSProperties}>
+            <div className="dr-node-line" aria-hidden="true">
+              <div className="dr-node-line-fill" />
+            </div>
+            {REFLECTION_FRAGMENTS.map((f, i) => {
+              const stageNumber = i + 1;
+              const state = stageNumber > stage ? 'pending' : stageNumber === stage ? 'active' : 'settled';
+              return (
+                <div key={f.key} className="dr-node-row" data-state={state}>
+                  <span className="dr-node-icon" aria-hidden="true">
+                    <span className="dr-node-icon-glow" />
+                    {NODE_ICONS[i]}
+                  </span>
+                  <div className={`dr-thought dr-thought--${f.tier}`}>
+                    <h3 className="dr-thought-label">{f.label}</h3>
+                    <p className="dr-thought-text">{sanitizeAiTextForDisplay(reflectionResult[f.key])}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
           {stage >= 4 && activeLenses.length > 0 && (
             <div className="dr-lenses-wrap">

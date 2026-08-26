@@ -219,6 +219,15 @@
   animation: dr-enter-push 6s var(--ease-memory) 1s forwards;
 }
 
+/* The real portal (WebGL) draws fully opaque output on top of this when it
+   successfully initializes — dimming rather than fully hiding the raw
+   image underneath means there is still something on screen (never a
+   black gap) in the rare case WebGL isn't available in the browser. */
+.dr-image-layer[data-portal-active='true'] .dr-image-current {
+  opacity: 0.3;
+  transition: opacity 0.6s var(--ease-soft);
+}
+
 @keyframes dr-enter-push {
   0% {
     transform: scale(1);

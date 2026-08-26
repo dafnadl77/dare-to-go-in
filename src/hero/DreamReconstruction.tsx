@@ -5,6 +5,8 @@ import type { DreamReflectionResult } from './dreamReflectionSchema';
 import { deriveVisualCues } from './reconstructionVisualCues';
 import { deriveDreamWorldEffects } from './dreamWorldEffects';
 import { usePointerParallax } from './usePointerParallax';
+import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
+import DreamPortalTransition from './DreamPortalTransition';
 import DreamWorld from './DreamWorld';
 import DreamReflection from './DreamReflection';
 import DreamClosing from './DreamClosing';
@@ -66,10 +68,13 @@ interface DreamReconstructionProps {
   displayedImageUrl: string | null;
   /** A freshly generated image mid-reveal during the 'imaging' phase (room→image the first time, image→image on regeneration). */
   incomingImageUrl: string | null;
+  /** This dream's own extracted accent color — null until the image has loaded and been sampled. */
+  accentColor: AccentColor | null;
   onNotQuite: () => void;
   onCorrectionSubmit: (text: string) => void;
   onRetryImage: () => void;
   onYes: () => void;
+  onPortalComplete: () => void;
   onSelectElement: (element: string) => void;
   onSubmitReflection: (text: string) => void;
   onRetryReflection: () => void;
@@ -98,10 +103,12 @@ export default function DreamReconstruction({
   continueVisible,
   displayedImageUrl,
   incomingImageUrl,
+  accentColor,
   onNotQuite,
   onCorrectionSubmit,
   onRetryImage,
   onYes,
+  onPortalComplete,
   onSelectElement,
   onSubmitReflection,
   onRetryReflection,
@@ -159,6 +166,7 @@ export default function DreamReconstruction({
           data-falling={worldEffects?.falling ? 'true' : 'false'}
           data-dissolving={DISSOLVING_STEPS.has(insideStep) ? 'true' : 'false'}
           data-saving={SAVING_STEPS.has(insideStep) ? 'true' : 'false'}
+          data-portal-active={phase === 'entering' ? 'true' : 'false'}
           aria-hidden="true"
         >
           {displayedImageUrl && <img className="dr-image dr-image-current" src={displayedImageUrl} alt="" />}
@@ -185,6 +193,14 @@ export default function DreamReconstruction({
           )}
           {SAVING_STEPS.has(insideStep) && <div className="dr-memory-frame" />}
         </div>
+      )}
+
+      {/* YES — TAKE ME IN: a real WebGL vortex built from the settled image
+          itself (see DreamPortalTransition/DreamPortal) — no new image, no
+          pre-rendered asset. Its own GSAP timeline calls onPortalComplete
+          when the travel finishes. */}
+      {phase === 'entering' && displayedImageUrl && (
+        <DreamPortalTransition imageUrl={displayedImageUrl} accent={accentColor ?? FALLBACK_ACCENT} onComplete={onPortalComplete} />
       )}
 
       {phase === 'fragments' && fragments.length > 0 && (
@@ -246,7 +262,9 @@ export default function DreamReconstruction({
       {/* ENTER THE DREAM — the existing generated image is the entire visual
           foundation; DreamWorld only adds subtle motion derived from the
           real DreamAnalysis on top of it. No new image, no new content. */}
-      {(phase === 'entering' || phase === 'inside') && worldEffects && <DreamWorld effects={worldEffects} />}
+      {(phase === 'entering' || phase === 'inside') && worldEffects && (
+        <DreamWorld effects={worldEffects} accentColor={accentColor} />
+      )}
 
       {phase === 'inside' && (insideStep === 'quiet' || insideStep === 'look-around' || insideStep === 'quiet2') && (
         <div className="dream-world-text" data-step={insideStep} aria-hidden="true">
@@ -262,6 +280,7 @@ export default function DreamReconstruction({
           reflectionResult={reflectionResult}
           reflectionErrored={reflectionErrored}
           continueVisible={continueVisible}
+          accentColor={accentColor}
           onSelect={onSelectElement}
           onSubmitReflection={onSubmitReflection}
           onRetryReflection={onRetryReflection}
@@ -273,6 +292,7 @@ export default function DreamReconstruction({
         <DreamClosing
           step={insideStep}
           reflectionResult={reflectionResult}
+          accentColor={accentColor}
           onSave={onSaveDream}
           onLetGo={onLetGo}
           onReturnToRoom={onReturnToRoom}

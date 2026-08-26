@@ -1,0 +1,33 @@
+.dream-portal-transition {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.dream-portal-label {
+  position: absolute;
+  left: 50%;
+  bottom: 16vh;
+  transform: translateX(-50%);
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.7em rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 1.2s var(--ease-memory);
+}
+
+.dream-portal-label.is-visible {
+  opacity: 0.75;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dream-portal-label {
+    transition-duration: 0.01s;
+  }
+}

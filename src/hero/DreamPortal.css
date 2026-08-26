@@ -1,0 +1,20 @@
+.dream-portal {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.dream-portal-gl,
+.dream-portal-particles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.dream-portal-particles {
+  mix-blend-mode: screen;
+}

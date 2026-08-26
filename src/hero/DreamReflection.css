@@ -146,16 +146,58 @@
   }
 }
 
-/* A soft, borderless pool of light behind the word — never a rectangle. */
+/* A soft, borderless pool of light behind the word — never a rectangle —
+   tinted by this dream's own accent color rather than a fixed hue. */
 .dr-element-glow {
   position: absolute;
   inset: -1.4em -1.8em;
   border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(244, 240, 232, 0.16) 0%, rgba(244, 240, 232, 0.05) 46%, transparent 72%);
+  background: radial-gradient(ellipse at center, rgba(var(--accent-rgb, 244, 240, 232), 0.22) 0%, rgba(var(--accent-rgb, 244, 240, 232), 0.06) 46%, transparent 72%);
   filter: blur(6px);
   opacity: 0.55;
   transition: opacity 0.8s var(--ease-soft), filter 0.8s var(--ease-soft);
   pointer-events: none;
+}
+
+/* A pair of tiny particles slowly orbiting the word — the halo has
+   company, never a static pool of light alone. */
+.dr-element-orbit {
+  position: absolute;
+  inset: -2.2em -2.6em;
+  pointer-events: none;
+}
+
+.dr-element-particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: rgb(var(--accent-rgb, 244, 240, 232));
+  box-shadow: 0 0 0.5rem rgba(var(--accent-rgb, 244, 240, 232), 0.8);
+  opacity: 0.7;
+  animation: dr-element-orbit-spin 9s linear infinite;
+  transform-origin: center;
+}
+
+.dr-element-particle--b {
+  width: 3px;
+  height: 3px;
+  margin: -1.5px 0 0 -1.5px;
+  opacity: 0.5;
+  animation-duration: 13s;
+  animation-direction: reverse;
+}
+
+@keyframes dr-element-orbit-spin {
+  from {
+    transform: rotate(0deg) translateX(1.6em) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(1.6em) rotate(-360deg);
+  }
 }
 
 .dr-element[data-depth='0'] {
@@ -251,7 +293,7 @@
   min-height: 3.6em;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(244, 240, 232, 0.26);
+  border-bottom: 1px solid rgba(var(--accent-rgb, 244, 240, 232), 0.32);
   color: var(--dream-white);
   font-family: 'Inter', system-ui, sans-serif;
   font-size: clamp(1rem, 2vw, 1.15rem);
@@ -261,7 +303,7 @@
   outline: none;
   padding: 0.5em 0.15em 0.7em;
   text-shadow: 0 0.04em 0.5em rgba(0, 0, 0, 0.4);
-  transition: border-color 0.4s var(--ease-soft);
+  transition: border-color 0.5s var(--ease-soft), box-shadow 0.5s var(--ease-soft);
 }
 
 .dr-response-textarea::placeholder {
@@ -270,7 +312,8 @@
 }
 
 .dr-response-textarea:focus {
-  border-bottom-color: rgba(244, 240, 232, 0.55);
+  border-bottom-color: rgba(var(--accent-rgb, 244, 240, 232), 0.75);
+  box-shadow: 0 1px 0.8rem rgba(var(--accent-rgb, 244, 240, 232), 0.3);
 }
 
 /* ---- Waiting for the real reflection engine — same restrained language
@@ -322,46 +365,131 @@
   transform: translate3d(var(--parallax-x, 0px), var(--parallax-y, 0px), 0);
 }
 
-.dr-thought {
+/* ---- The reflection path — four glowing nodes connected by one light
+   that travels down as each thought resolves, tinted by this dream's own
+   accent color. Vertical spacing is flexbox (space-between), never
+   hand-placed coordinates, so it always fits inside the viewport. ---- */
+.dr-node-path {
   position: absolute;
-  transform: translate(-50%, -50%) translateY(10px) scale(0.92);
-  opacity: 0;
-  filter: blur(14px);
-  transition:
-    opacity 2.2s var(--ease-memory),
-    filter 2.2s var(--ease-memory),
-    transform 2.2s var(--ease-memory);
+  top: 46vh;
+  bottom: 8vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.dr-thought[data-state='active'] {
+.dr-node-line {
+  position: absolute;
+  left: 21px;
+  top: 21px;
+  bottom: 21px;
+  width: 1px;
+  background: rgba(244, 240, 232, 0.16);
+}
+
+.dr-node-line-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: calc(var(--lit-fraction, 0) * 100%);
+  background: linear-gradient(to bottom, transparent, rgb(var(--accent-rgb)));
+  transition: height 1.8s var(--ease-memory);
+}
+
+.dr-node-line-fill::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: rgb(var(--accent-rgb));
+  box-shadow: 0 0 0.9rem rgba(var(--accent-rgb), 0.9);
+  opacity: var(--lit-fraction, 0);
+  transition: opacity 1.8s var(--ease-memory);
+}
+
+.dr-node-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+}
+
+.dr-node-icon {
+  position: relative;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 240, 232, 0.3);
+  color: var(--dream-warm-neutral-dim);
+  background: rgba(6, 7, 6, 0.25);
+  transition:
+    color 1.8s var(--ease-memory),
+    border-color 1.8s var(--ease-memory);
+}
+
+.dr-node-icon svg {
+  width: 20px;
+  height: 20px;
+  position: relative;
+}
+
+.dr-node-icon-glow {
+  position: absolute;
+  inset: -0.7em;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(var(--accent-rgb), 0.4) 0%, transparent 70%);
+  filter: blur(6px);
+  opacity: 0;
+  transition: opacity 1.8s var(--ease-memory);
+}
+
+.dr-node-row[data-state='active'] .dr-node-icon,
+.dr-node-row[data-state='settled'] .dr-node-icon {
+  color: rgb(var(--accent-rgb));
+  border-color: rgba(var(--accent-rgb), 0.7);
+}
+
+.dr-node-row[data-state='active'] .dr-node-icon-glow {
+  opacity: 1;
+}
+
+.dr-node-row[data-state='settled'] .dr-node-icon-glow {
+  opacity: 0.45;
+}
+
+.dr-thought {
+  opacity: 0;
+  filter: blur(10px);
+  transform: translateX(-8px) scale(0.96);
+  transition:
+    opacity 2s var(--ease-memory),
+    filter 2s var(--ease-memory),
+    transform 2s var(--ease-memory);
+}
+
+.dr-node-row[data-state='active'] .dr-thought {
   opacity: 1;
   filter: blur(0);
-  transform: translate(-50%, -50%) translateY(0) scale(1.04);
+  transform: translateX(0) scale(1.02);
 }
 
-.dr-thought[data-state='settled'] {
-  opacity: 0.4;
-  filter: blur(0.3px);
-  transform: translate(-50%, -50%) translateY(-1.4vh) translateX(-1vw) scale(0.72);
-}
-
-.dr-thought-glow {
-  position: absolute;
-  inset: -2.4em -3em;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(244, 240, 232, 0.14) 0%, rgba(244, 240, 232, 0.04) 48%, transparent 74%);
-  filter: blur(10px);
-  opacity: 0;
-  transition: opacity 2.2s var(--ease-memory);
-  pointer-events: none;
-}
-
-.dr-thought[data-state='active'] .dr-thought-glow {
-  opacity: 1;
+.dr-node-row[data-state='settled'] .dr-thought {
+  opacity: 0.55;
+  filter: blur(0);
+  transform: translateX(0) scale(1);
 }
 
 .dr-thought-label {
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.4rem;
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 12px;
   font-weight: 600;
@@ -372,50 +500,22 @@
 
 .dr-thought-text {
   margin: 0;
+  max-width: min(48vw, 34em);
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 400;
-  font-size: clamp(20px, 1.65vw, 30px);
+  font-size: clamp(18px, 1.5vw, 27px);
   line-height: 1.4;
   color: var(--dream-white);
   text-shadow: 0 0.06em 0.7em rgba(0, 0, 0, 0.6);
 }
 
 .dr-thought--thread .dr-thought-text {
-  font-size: clamp(24px, 2vw, 36px);
+  font-size: clamp(21px, 1.8vw, 32px);
 }
 
 .dr-thought--question .dr-thought-text {
-  font-size: clamp(27px, 2.2vw, 40px);
-}
-
-/* A brief, unlabeled wisp of light traveling between the first two settled
-   thoughts as the interpretive thread connects them — deliberately vague
-   in position/angle (never a precise diagram or literal arrow), heavily
-   blurred, and gone again within a few seconds. */
-.dr-thought-connector {
-  position: absolute;
-  left: 30vw;
-  top: 42vh;
-  width: 46vmax;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(244, 240, 232, 0.5), transparent);
-  filter: blur(6px);
-  transform-origin: left center;
-  transform: rotate(-32deg);
-  opacity: 0;
-  animation: dr-connector-trace 4.6s var(--ease-memory) forwards;
-}
-
-@keyframes dr-connector-trace {
-  0% {
-    opacity: 0;
-  }
-  35% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 0;
-  }
+  font-size: clamp(23px, 2vw, 35px);
+  font-style: italic;
 }
 
 .dr-lenses-wrap {
@@ -541,10 +641,13 @@
   .dr-elements,
   .dr-element,
   .dr-element-glow,
+  .dr-element-particle,
   .dr-response,
   .dr-response-textarea,
   .dr-thought,
-  .dr-thought-glow,
+  .dr-node-icon,
+  .dr-node-icon-glow,
+  .dr-node-line-fill,
   .dr-lenses-toggle,
   .dr-continue-wrap {
     transition-duration: 0.01s !important;
@@ -553,13 +656,13 @@
   .dream-thought-sequence {
     transform: none !important;
   }
+  .dr-element-particle {
+    animation: none !important;
+  }
   .dr-element {
     animation-duration: 0.4s, 0s !important;
   }
   .dr-anchor {
-    animation-duration: 0.4s !important;
-  }
-  .dr-thought-connector {
     animation-duration: 0.4s !important;
   }
   .dr-lenses-wrap,
