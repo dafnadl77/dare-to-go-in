@@ -1,9 +1,10 @@
-import { useState, type CSSProperties } from 'react';
+import { useRef, useState, type CSSProperties } from 'react';
 import type { DreamAnalysis } from './dreamAnalysisSchema';
 import type { ReconstructionBrief } from './reconstructionBrief';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
 import { deriveVisualCues } from './reconstructionVisualCues';
 import { deriveDreamWorldEffects } from './dreamWorldEffects';
+import { usePointerParallax } from './usePointerParallax';
 import DreamWorld from './DreamWorld';
 import DreamReflection from './DreamReflection';
 import DreamClosing from './DreamClosing';
@@ -37,13 +38,15 @@ export type InsideStep =
   | 'interpreting'
   | 'reflection'
   | 'closing'
+  | 'saving'
   | 'saved'
   | 'letting-go'
   | 'gone';
 
 const REFLECTION_ENGINE_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting', 'interpreting', 'reflection']);
-const CLOSING_STEPS = new Set<InsideStep>(['closing', 'saved', 'letting-go', 'gone']);
+const CLOSING_STEPS = new Set<InsideStep>(['closing', 'saving', 'saved', 'letting-go', 'gone']);
 const DISSOLVING_STEPS = new Set<InsideStep>(['letting-go', 'gone']);
+const SAVING_STEPS = new Set<InsideStep>(['saving']);
 
 interface DreamReconstructionProps {
   phase: ReconstructionPhase;
@@ -108,6 +111,12 @@ export default function DreamReconstruction({
   onReturnToRoom,
 }: DreamReconstructionProps) {
   const [correctionText, setCorrectionText] = useState('');
+  const imageLayerRef = useRef<HTMLDivElement>(null);
+  // The generated image itself never changes without a new API call — this
+  // only adds subtle procedural motion on top of it (parallax, drifting
+  // light, grain) so the experience feels alive without generating anything
+  // new. Only active once there's actually a living image to sit over.
+  usePointerParallax(imageLayerRef, 7, phase === 'entering' || phase === 'inside');
 
   if (phase === 'none') return null;
 
@@ -145,9 +154,11 @@ export default function DreamReconstruction({
           overtaking the room itself through organic, irregular masks. */}
       {(displayedImageUrl || incomingImageUrl) && (
         <div
+          ref={imageLayerRef}
           className="dr-image-layer"
           data-falling={worldEffects?.falling ? 'true' : 'false'}
           data-dissolving={DISSOLVING_STEPS.has(insideStep) ? 'true' : 'false'}
+          data-saving={SAVING_STEPS.has(insideStep) ? 'true' : 'false'}
           aria-hidden="true"
         >
           {displayedImageUrl && <img className="dr-image dr-image-current" src={displayedImageUrl} alt="" />}
@@ -158,6 +169,21 @@ export default function DreamReconstruction({
               <img className="dr-image dr-image-incoming-patch dr-image-incoming-patch--b" src={incomingImageUrl} alt="" />
             </>
           )}
+          {/* Purely procedural "alive" layers over the settled image — no new
+              image content, just drifting light and grain so a static frame
+              doesn't read as static. Only meaningful once inside. */}
+          {(phase === 'entering' || phase === 'inside') && displayedImageUrl && (
+            <>
+              <div className="dr-image-light-drift" />
+              <div className="dr-image-grain" />
+              <div className="dr-image-motes">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <span key={i} className="dr-mote" style={{ '--mi': i } as CSSProperties} />
+                ))}
+              </div>
+            </>
+          )}
+          {SAVING_STEPS.has(insideStep) && <div className="dr-memory-frame" />}
         </div>
       )}
 

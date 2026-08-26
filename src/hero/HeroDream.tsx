@@ -58,6 +58,10 @@ const REFLECTION_CONTINUE_DELAY_MS = 6000;
 // actually finished dissolving.
 const LETTING_GO_DISSOLVE_MS = 3600;
 const GONE_HOLD_MS = 1800;
+// SAVE THIS DREAM — must stay in sync with the CSS memory-lock moment
+// (dr-image-memory-lock / dr-memory-frame-trace in DreamReconstruction.css)
+// so DREAM SAVED. only appears once that visual beat has actually played.
+const SAVE_LOCK_MS = 1600;
 
 const TITLE_PHASES = new Set(['title', 'prompt', 'interaction', 'idle']);
 const PROMPT_PHASES = new Set(['prompt', 'interaction', 'idle']);
@@ -422,8 +426,17 @@ export default function HeroDream() {
       corrections,
     });
     saveDream(record);
-    setInsideStep('saved');
+    setInsideStep('saving');
   };
+
+  // The data is already safely written above — this is purely the visual
+  // memory-lock beat (image contracts, luminous frame traces) before
+  // DREAM SAVED. appears, never a delay on the actual save itself.
+  useEffect(() => {
+    if (insideStep !== 'saving') return;
+    const t = setTimeout(() => setInsideStep('saved'), SAVE_LOCK_MS);
+    return () => clearTimeout(t);
+  }, [insideStep]);
 
   const handleLetGo = () => setInsideStep('letting-go');
 

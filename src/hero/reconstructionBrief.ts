@@ -184,11 +184,11 @@ export function buildReconstructionBrief(analysis: DreamAnalysis, corrections: s
 
   const toneBlock = atmosphereText
     ? `Emotional atmosphere (from the dream itself): ${atmosphereText}.`
-    : 'Emotional atmosphere is not stated — render it as emotionally ambiguous, quiet, observational, dreamlike. Do not substitute fear, dread, or "creepy" for missing emotional data.';
+    : 'Emotional atmosphere is not stated — render it as emotionally alive and intriguing by default, never gloomy, muddy, or ominous by default. Do not substitute fear, dread, or "creepy" for missing emotional data.';
 
-  const horrorGuardBlock = fearIsExplicit
-    ? 'The dream itself expresses fear or danger — you may reflect that honestly, but stay cinematic and surreal rather than a horror-genre still.'
-    : 'IMPORTANT — default is NOT horror: surreal and physically impossible is not the same as scary. This should read as a beautiful, mysterious, quietly impossible dream image, not a horror-film still — no ominous lighting, no sinister framing, no haunted-house styling, no ghosts, no monsters, unless the dream explicitly described them (it did not here).';
+  const visualDirectionBlock = fearIsExplicit
+    ? 'The dream itself expresses fear, danger, or darkness — you may reflect that honestly and let the palette and lighting turn darker or more tense where the dream itself calls for it, but stay cinematic and surreal rather than a horror-genre still, and keep any darkness motivated specifically by what the dream described.'
+    : 'IMPORTANT — default is NOT horror, NOT gloom, and NOT a muddy grey/green/desaturated color grade: this dream did not describe fear, danger, or darkness, so the image should default to feeling visually rich, luminous, and emotionally alive — no ominous lighting, no sinister framing, no haunted-house styling, no fog-everywhere or desaturated default mood, unless the dream explicitly described those qualities (it did not here).';
 
   const correctionLines = corrections.length ? `\n\nUSER CORRECTIONS (apply literally, do not reinterpret):\n${corrections.map((c) => `- ${c}`).join('\n')}` : '';
 
@@ -220,14 +220,17 @@ UNKNOWN / DO NOT SPECIFY (render obscured, minimal, silhouetted, fogged, or visu
 ${unknownLines}${correctionLines}
 
 VISUAL ATMOSPHERE:
-- surreal but photorealistic, cinematic, beautiful, mysterious, poetic
+- visually rich, luminous, surreal, cinematic, beautiful, strange in an intriguing way, emotionally alive, dimensional, sophisticated, contemporary, immersive — a frame from an extraordinary surreal cinematic production, never a generic hazy AI dream illustration
 - ${toneBlock}
-- ${horrorGuardBlock}
-- ambiguous / soft-focus wherever memory is incomplete
-- render the explicitly known impossible/surreal details boldly and vividly — do not soften or minimize what the dream actually described; the restraint applies only to inventing NEW content, never to how vividly the KNOWN impossible events are depicted
+- ${visualDirectionBlock}
+- preserve believable cinematic color: rich color separation, luminous highlights, atmospheric depth; allow saturated or vivid color where it suits the actual dream; skin, nature, sky, water, interiors, and objects should keep recognizable, distinct color rather than being pushed into one uniform teal/green/grey grade — do not desaturate the whole scene simply because it is a dream
+- favor interesting motivated lighting compatible with the dream — sunlight, reflected water light, neon, moonlight, warm interior light, colored atmospheric light, glowing surfaces, reflections — over flat, dim, or murky lighting by default
+- render the explicitly known impossible/surreal details as visually extraordinary, luminous, and unforgettable — boldly and vividly, never muted or softened; the restraint below applies only to inventing NEW content, never to how vividly the KNOWN impossible events are depicted
+- ONLY the details listed under UNKNOWN / DO NOT SPECIFY should stay ambiguous, soft-focus, or visually unresolved — that restraint is local to what is genuinely unknown, never applied to the overall color grade, brightness, or mood of the whole image
 
 COMPOSITION:
 - widescreen landscape framing
+- strong cinematic composition and depth: foreground, midground, and background elements, interesting framing, a real sense of scale, reflections, motivated light, and environmental storytelling
 - no text, no UI, no watermark
 - no fantasy clichés, no purple AI aesthetic, no glowing magical effects
 

@@ -84,6 +84,47 @@
   }
 }
 
+/* ---- SAVE THIS DREAM — the two carried-over reflection fragments briefly
+   converge toward center and shrink away, in sync with the image's own
+   memory-lock contraction (see dr-image-memory-lock in
+   DreamReconstruction.css), before DREAM SAVED. appears. ---- */
+.dc-converging {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  max-width: 30em;
+}
+
+.dc-converge-text {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  line-height: 1.5;
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
+  animation: dc-converge 1.5s var(--ease-memory) forwards;
+}
+
+.dc-converge-text--question {
+  font-style: italic;
+  color: var(--dream-warm-neutral);
+  animation-delay: 0.08s;
+}
+
+@keyframes dc-converge {
+  0% {
+    opacity: 0.85;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.7) translateY(-10px);
+    filter: blur(6px);
+  }
+}
+
 .dc-title {
   margin: 0;
   font-family: 'Fraunces', Georgia, serif;
@@ -105,7 +146,8 @@
 @media (prefers-reduced-motion: reduce) {
   .dc-fading-reflection,
   .dc-block--closing,
-  .dc-block--enter {
+  .dc-block--enter,
+  .dc-converge-text {
     animation-duration: 0.01s !important;
   }
 }

@@ -40,6 +40,13 @@ export default function DreamClosing({ step, reflectionResult, onSave, onLetGo, 
         </>
       )}
 
+      {step === 'saving' && (
+        <div className="dc-converging" aria-hidden="true">
+          <p className="dc-converge-text">{reflectionResult.observation}</p>
+          <p className="dc-converge-text dc-converge-text--question">{reflectionResult.continuityQuestion}</p>
+        </div>
+      )}
+
       {step === 'saved' && (
         <div className="dc-block dc-block--enter">
           <p className="dc-title">DREAM SAVED.</p>

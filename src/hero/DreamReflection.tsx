@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useRef, useState, type CSSProperties } from 'react';
 import { buildReflectionQuestion } from './dreamElements';
+import { usePointerParallax } from './usePointerParallax';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
 import type { InsideStep } from './DreamReconstruction';
 import './DreamReflection.css';
@@ -27,12 +28,37 @@ const LENS_LABELS: Record<'cognitive' | 'jungian' | 'psychodynamic', string> = {
   psychodynamic: 'PSYCHODYNAMIC',
 };
 
+/** Irregular, hand-placed positions/depths for the floating glass elements —
+    deliberately not a grid. Cycled by index so any number of real elements
+    (never more than 6, see dreamElements.ts) gets a varied arrangement. */
+const ELEMENT_LAYOUT: { x: number; y: number; depth: 0 | 1 | 2 }[] = [
+  { x: -27, y: -16, depth: 1 },
+  { x: 24, y: -21, depth: 0 },
+  { x: -33, y: 12, depth: 2 },
+  { x: 31, y: 9, depth: 1 },
+  { x: -9, y: 26, depth: 0 },
+  { x: 12, y: -30, depth: 2 },
+];
+
+const REFLECTION_FRAGMENTS: {
+  key: keyof Pick<DreamReflectionResult, 'observation' | 'personalAssociation' | 'possibleThread' | 'continuityQuestion'>;
+  label: string;
+  emphasis?: boolean;
+}[] = [
+  { key: 'observation', label: 'WHAT I NOTICE' },
+  { key: 'personalAssociation', label: 'YOUR ASSOCIATION' },
+  { key: 'possibleThread', label: 'ONE POSSIBLE THREAD' },
+  { key: 'continuityQuestion', label: 'A QUESTION WORTH KEEPING', emphasis: true },
+];
+
 /**
  * WHAT STANDS OUT TO YOU? → pick one real dream element → a reflection
  * question generated from that exact element → free-text response → one
  * grounded reflection from the real reflection engine. Every choice and
  * every reflection field comes from the real dream/response — nothing
- * here is invented, no dream-dictionary meanings, no diagnosis.
+ * here is invented, no dream-dictionary meanings, no diagnosis. This file
+ * only governs presentation; the selection/reflection logic above is
+ * untouched from the props down.
  */
 export default function DreamReflection({
   step,
@@ -48,9 +74,12 @@ export default function DreamReflection({
 }: DreamReflectionProps) {
   const [responseText, setResponseText] = useState('');
   const [lensesVisible, setLensesVisible] = useState(false);
+  const fieldRef = useRef<HTMLDivElement>(null);
+  usePointerParallax(fieldRef, 16, CHOICE_STEPS.has(step));
 
   const questionText = QUESTION_STEPS.has(step) && selectedElement ? buildReflectionQuestion(selectedElement) : null;
   const showPromptOnly = step === 'prompt' || step === 'choices' || step === 'selected';
+  const showAnchor = selectedElement && (step === 'reflecting' || step === 'interpreting' || step === 'reflection');
 
   const handleContinue = () => {
     const text = responseText.trim();
@@ -64,24 +93,41 @@ export default function DreamReflection({
 
   return (
     <div className="dream-reflection" data-step={step}>
-      {questionText && <p className="dr-question">{showPromptOnly ? 'WHAT STANDS OUT TO YOU?' : questionText}</p>}
+      {questionText && (
+        <p className={`dr-question${step === 'reflecting' ? ' dr-question--asking' : ''}`}>
+          {showPromptOnly ? 'WHAT STANDS OUT TO YOU?' : questionText}
+        </p>
+      )}
+
+      {showAnchor && <p className="dr-anchor">{selectedElement}</p>}
 
       {CHOICE_STEPS.has(step) && elements.length > 0 && (
-        <div className="dr-elements" aria-hidden={step !== 'choices'}>
-          {elements.map((el) => (
-            <button
-              key={el}
-              type="button"
-              className={`dr-element${selectedElement === el ? ' is-selected' : ''}${
-                selectedElement && selectedElement !== el ? ' is-fading' : ''
-              }`}
-              data-cursor-hover
-              disabled={!!selectedElement}
-              onClick={() => onSelect(el)}
-            >
-              {el.toUpperCase()}
-            </button>
-          ))}
+        <div className="dr-elements" ref={fieldRef} aria-hidden={step !== 'choices'}>
+          {elements.map((el, i) => {
+            const layout = ELEMENT_LAYOUT[i % ELEMENT_LAYOUT.length];
+            return (
+              <button
+                key={el}
+                type="button"
+                className={`dr-element${selectedElement === el ? ' is-selected' : ''}${
+                  selectedElement && selectedElement !== el ? ' is-fading' : ''
+                }`}
+                data-depth={layout.depth}
+                data-cursor-hover
+                disabled={!!selectedElement}
+                onClick={() => onSelect(el)}
+                style={
+                  {
+                    '--ex': `${layout.x}vw`,
+                    '--ey': `${layout.y}vh`,
+                    '--fi': i,
+                  } as CSSProperties
+                }
+              >
+                <span className="dr-element-label">{el.toUpperCase()}</span>
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -114,25 +160,16 @@ export default function DreamReflection({
 
       {step === 'reflection' && reflectionResult && (
         <div className="dream-reflection-result">
-          <div className="drr-section">
-            <h3 className="drr-label">WHAT I NOTICE</h3>
-            <p className="drr-text">{reflectionResult.observation}</p>
-          </div>
-
-          <div className="drr-section">
-            <h3 className="drr-label">YOUR ASSOCIATION</h3>
-            <p className="drr-text">{reflectionResult.personalAssociation}</p>
-          </div>
-
-          <div className="drr-section">
-            <h3 className="drr-label">ONE POSSIBLE THREAD</h3>
-            <p className="drr-text">{reflectionResult.possibleThread}</p>
-          </div>
-
-          <div className="drr-section">
-            <h3 className="drr-label">A QUESTION WORTH KEEPING</h3>
-            <p className="drr-text drr-text--question">{reflectionResult.continuityQuestion}</p>
-          </div>
+          {REFLECTION_FRAGMENTS.map((f, i) => (
+            <div
+              key={f.key}
+              className={`drr-plane${f.emphasis ? ' drr-plane--emphasis' : ''}`}
+              style={{ '--fi': i } as CSSProperties}
+            >
+              <h3 className="drr-label">{f.label}</h3>
+              <p className={`drr-text${f.emphasis ? ' drr-text--question' : ''}`}>{reflectionResult[f.key]}</p>
+            </div>
+          ))}
 
           {activeLenses.length > 0 && (
             <div className="drr-lenses-toggle-wrap">

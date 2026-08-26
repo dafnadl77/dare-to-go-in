@@ -190,8 +190,11 @@
    irregular masks rather than one uniform wipe or fade. ---- */
 .dr-image-layer {
   position: absolute;
-  inset: 0;
+  /* Slightly larger than the viewport so the pointer-parallax translate
+     below always has headroom — never reveals an edge/gap. */
+  inset: -4%;
   overflow: hidden;
+  transform: translate3d(var(--parallax-x, 0px), var(--parallax-y, 0px), 0);
 }
 
 .dr-image {
@@ -269,14 +272,168 @@
   animation: dr-image-letting-go 3.6s var(--ease-memory) forwards;
 }
 
+.dr-image-layer[data-dissolving='true'] .dr-image-light-drift,
+.dr-image-layer[data-dissolving='true'] .dr-image-grain,
+.dr-image-layer[data-dissolving='true'] .dr-image-motes {
+  transition: opacity 2s var(--ease-memory);
+  opacity: 0;
+}
+
 @keyframes dr-image-letting-go {
   0% {
     opacity: 1;
     filter: brightness(1) saturate(1) blur(0);
   }
+  40% {
+    opacity: 0.78;
+    filter: brightness(0.8) saturate(0.72) blur(9px);
+  }
   100% {
     opacity: 0;
-    filter: brightness(0.5) saturate(0.5) blur(30px);
+    filter: brightness(0.3) saturate(0.35) blur(34px);
+  }
+}
+
+/* ---- MAKE THE DREAM IMAGE FEEL ALIVE — purely procedural layers over the
+   one settled image (no new image content, no extra API calls): a slow
+   drifting light, gentle film grain, and a handful of soft motes. Every
+   effect is restrained and slow enough to feel almost subconscious. ---- */
+.dr-image-light-drift {
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(
+    ellipse 46% 38% at 30% 28%,
+    rgba(244, 240, 232, 0.16) 0%,
+    rgba(244, 240, 232, 0.05) 45%,
+    transparent 72%
+  );
+  mix-blend-mode: soft-light;
+  opacity: 0.85;
+  animation: dr-light-drift 52s ease-in-out infinite;
+}
+
+@keyframes dr-light-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(6%, 4%) scale(1.08);
+  }
+  66% {
+    transform: translate(-4%, 6%) scale(1.04);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+.dr-image-grain {
+  position: absolute;
+  inset: -10%;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  animation: dr-grain-shift 1.4s steps(4) infinite;
+}
+
+@keyframes dr-grain-shift {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-2%, 1%);
+  }
+  50% {
+    transform: translate(1%, -2%);
+  }
+  75% {
+    transform: translate(-1%, -1%);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+.dr-image-motes {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.dr-mote {
+  position: absolute;
+  left: calc(12% + (var(--mi) * 17%));
+  bottom: -4%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(244, 240, 232, 0.55);
+  filter: blur(1.5px);
+  opacity: 0;
+  animation: dr-mote-drift calc(22s + var(--mi) * 6s) ease-in-out infinite;
+  animation-delay: calc(var(--mi) * -4.5s);
+}
+
+@keyframes dr-mote-drift {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  12% {
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate(2%, -46%);
+  }
+  88% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-2%, -92%);
+  }
+}
+
+/* ---- SAVE THIS DREAM — a short memory-lock moment: the image contracts
+   very slightly and a thin luminous frame traces in around it. ---- */
+.dr-image-layer[data-saving='true'] .dr-image-current {
+  animation: dr-image-memory-lock 1.6s var(--ease-memory) forwards;
+}
+
+@keyframes dr-image-memory-lock {
+  0% {
+    filter: brightness(1) saturate(1);
+  }
+  55% {
+    filter: brightness(1.1) saturate(1.12);
+  }
+  100% {
+    transform: scale(1.03);
+    filter: brightness(1.04) saturate(1.05);
+  }
+}
+
+.dr-memory-frame {
+  position: absolute;
+  inset: 4%;
+  border: 1px solid rgba(244, 240, 232, 0.85);
+  box-shadow: 0 0 2.4rem rgba(244, 240, 232, 0.35), inset 0 0 2.4rem rgba(244, 240, 232, 0.2);
+  opacity: 0;
+  animation: dr-memory-frame-trace 1.6s var(--ease-memory) forwards;
+}
+
+@keyframes dr-memory-frame-trace {
+  0% {
+    inset: 12%;
+    opacity: 0;
+  }
+  45% {
+    opacity: 0.9;
+  }
+  100% {
+    inset: 4%;
+    opacity: 0;
   }
 }
 
@@ -648,6 +805,16 @@
     animation-duration: 0.4s !important;
   }
   .dr-image-layer[data-dissolving='true'] .dr-image-current {
+    animation-duration: 0.4s !important;
+  }
+  .dr-image-light-drift,
+  .dr-image-grain,
+  .dr-mote {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+  .dr-image-layer[data-saving='true'] .dr-image-current,
+  .dr-memory-frame {
     animation-duration: 0.4s !important;
   }
 }
