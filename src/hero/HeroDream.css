@@ -50,3 +50,41 @@
   gap: clamp(1.75rem, 5vh, 3.25rem);
   padding: 6vh 5vw;
 }
+
+/* Minimal, persistent way back once inside the immersive experience — a
+   brand mark, never a navbar. Readable over both the original room and any
+   generated dream image. */
+.dare-home {
+  position: fixed;
+  top: max(20px, env(safe-area-inset-top));
+  left: max(20px, env(safe-area-inset-left));
+  z-index: 50;
+  margin: 0;
+  padding: 0.4em 0.3em;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  color: var(--dream-white);
+  opacity: 0.55;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+  transition:
+    opacity 0.4s var(--ease-soft),
+    letter-spacing 0.4s var(--ease-soft);
+}
+
+.dare-home:hover,
+.dare-home:focus-visible {
+  opacity: 0.95;
+  letter-spacing: 0.3em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dare-home {
+    transition-duration: 0.01s;
+  }
+}

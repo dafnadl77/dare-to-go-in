@@ -3,12 +3,14 @@ import express from 'express';
 import { dreamAnalysisRouter } from './routes/dreamAnalysis.js';
 import { dreamImageRouter } from './routes/dreamImage.js';
 import { dreamReflectionRouter } from './routes/dreamReflection.js';
+import { dreamElementLabelsRouter } from './routes/dreamElementLabels.js';
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
 app.use('/api', dreamAnalysisRouter);
 app.use('/api', dreamImageRouter);
 app.use('/api', dreamReflectionRouter);
+app.use('/api', dreamElementLabelsRouter);
 
 // A distinct name (not PORT) so it can never collide with an ambient PORT
 // env var some other tool (e.g. the frontend dev server) already uses.

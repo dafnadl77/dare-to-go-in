@@ -22,6 +22,7 @@ import DreamReconstruction, { type ReconstructionPhase, type InsideStep } from '
 import { buildReconstructionBrief, type ReconstructionBrief } from './reconstructionBrief';
 import { pickMemoryFragments } from './memoryFragments';
 import { deriveDreamElements } from './dreamElements';
+import { getEnglishElementLabels } from './dreamElementLabels';
 import { generateDreamImage, type ImageResult } from './dreamImage';
 import { getDreamReflection, type DreamReflectionRequest } from './dreamReflectionEngine';
 import type { ReflectionResult } from './dreamReflectionSchema';
@@ -166,7 +167,17 @@ export default function HeroDream() {
     const newBrief = buildReconstructionBrief(analysis, []);
     setBrief(newBrief);
     setFragments(pickMemoryFragments(analysis));
-    setDreamElements(deriveDreamElements(analysis));
+    // DARE's UI is English-only regardless of the dream's own language —
+    // show the raw (possibly non-English) candidates immediately so choices
+    // are never blocked, then swap in short English labels once ready. The
+    // original analysis/sourceText is never touched by this — display only.
+    const rawElements = deriveDreamElements(analysis);
+    setDreamElements(rawElements);
+    if (rawElements.length > 0) {
+      getEnglishElementLabels(analysis.sourceText, rawElements).then((result) => {
+        if (result.status === 'ok') setDreamElements(result.labels);
+      });
+    }
     startImageGeneration('initial', newBrief);
     const t = setTimeout(() => setReconstructionPhase('dissolving'), SETTLE_PAUSE_MS);
     return () => clearTimeout(t);
@@ -375,6 +386,10 @@ export default function HeroDream() {
         setReflectionEngineResult({ status: 'error', reason: 'request_failed', message: 'debug-forced error' })) as (
         ...args: never[]
       ) => void,
+      // Sets reflectionResponse directly without firing a real request — lets
+      // a simulated-failure test set up TRY AGAIN's precondition state
+      // without racing a real in-flight fetch that would later overwrite it.
+      setReflectionResponseDebug: ((text: string) => setReflectionResponse(text)) as (...args: never[]) => void,
       // Read-only QA introspection: confirms at runtime (not just by code
       // reading) that the room's own animation scheduler is genuinely
       // unpaused while waiting for the real image.
@@ -386,6 +401,37 @@ export default function HeroDream() {
       delete w.__dreamDebug;
     };
   }, [debugMode, selectedElement, reflectionResponse, reflectionEngineResult]);
+
+  // Subtle DARE home control — the only way back once inside the immersive
+  // reconstruction/dream/reflection experience. A full reset of everything
+  // past the initial Hero; no confirmation needed yet (no history/accounts
+  // exist to lose). In-flight requests are left to resolve — their tokens
+  // simply won't match anything relevant once state is reset, so a late
+  // resolve is a harmless no-op.
+  const handleGoHome = () => {
+    setReconstructionPhase('none');
+    setInsideStep('quiet');
+    setBrief(null);
+    setFragments([]);
+    setDreamElements([]);
+    setSelectedElement(null);
+    setReflectionResponse(null);
+    setCorrections([]);
+    setDisplayedImageUrl(null);
+    setIncomingImageUrl(null);
+    setImagePending(false);
+    setImageResult(null);
+    setReflectionPending(false);
+    setReflectionEngineResult(null);
+    setAnalysisResult(null);
+    setAnalysisPending(false);
+    setCentralMode('hold');
+    generationTokenRef.current = null;
+    reflectionTokenRef.current = null;
+    correctionCountRef.current = 0;
+    retryCountRef.current = 0;
+    reflectionRetryCountRef.current = 0;
+  };
 
   const isReconstructing = reconstructionPhase !== 'none';
 
@@ -462,6 +508,15 @@ export default function HeroDream() {
       </div>
 
       <CustomCursor pointerRef={pointerRef} holdRef={holdRef} />
+
+      {/* The only way back once inside the immersive experience — minimal,
+          never a navbar. Only shown once there's actually somewhere to
+          return from. */}
+      {isReconstructing && (
+        <button type="button" className="dare-home" data-cursor-hover onClick={handleGoHome} aria-label="Return to DARE">
+          DARE
+        </button>
+      )}
 
       <DreamReconstruction
         phase={reconstructionPhase}
