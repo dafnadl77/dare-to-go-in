@@ -93,7 +93,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(6vh + min(40vw, 72vh, 693px) + 3vh);
+  top: calc(6vh + min(32.6vw, 58vh, 618px) + 2.4vh);
   bottom: 2vh;
   display: flex;
   flex-direction: column;
@@ -139,10 +139,14 @@
 
 .da-choice-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: baseline;
   justify-content: center;
-  gap: 1.6rem 3.6rem;
+  width: 100%;
+  /* Shrinks as more real dream elements are extracted (up to 6, see
+     deriveDreamElements) so the row always fits on one line, per spec —
+     never wraps, never scrolls. */
+  gap: clamp(0.9rem, calc(3.4rem - var(--choice-count, 3) * 0.32rem), 3rem);
   pointer-events: auto;
   transform: translate3d(var(--parallax-x, 0px), var(--parallax-y, 0px), 0);
 }
@@ -197,11 +201,11 @@
 
 .da-choice-aura {
   position: absolute;
-  inset: -70% -30%;
+  inset: -60% -22%;
   border-radius: 46% 54% 58% 42% / 54% 46% 54% 46%;
-  background: radial-gradient(ellipse at 45% 45%, rgba(var(--trace-rgb), 0.32) 0%, rgba(var(--trace-rgb), 0.1) 52%, transparent 78%);
+  background: radial-gradient(ellipse at 45% 45%, rgba(var(--trace-rgb), 0.22) 0%, rgba(var(--trace-rgb), 0.06) 52%, transparent 76%);
   filter: blur(14px);
-  opacity: 0.7;
+  opacity: 0.55;
   pointer-events: none;
   animation: da-choice-aura-breathe calc(4.4s + var(--ci) * 0.5s) ease-in-out infinite;
 }
@@ -209,12 +213,12 @@
 @keyframes da-choice-aura-breathe {
   0%,
   100% {
-    opacity: 0.55;
+    opacity: 0.4;
     transform: scale(1);
   }
   50% {
-    opacity: 0.85;
-    transform: scale(1.1);
+    opacity: 0.62;
+    transform: scale(1.08);
   }
 }
 
@@ -303,7 +307,9 @@
   font-family: 'Fraunces', Georgia, serif;
   font-style: italic;
   font-weight: 400;
-  font-size: clamp(1.05rem, 2.1vw, 1.55rem);
+  /* The vw multiplier shrinks as more real elements are extracted (up to
+     6) so the whole row keeps fitting on one line without wrapping. */
+  font-size: clamp(0.85rem, calc(2.3vw - var(--choice-count, 3) * 0.16vw), 1.5rem);
   letter-spacing: 0.01em;
   color: var(--dream-white);
   white-space: nowrap;
@@ -410,12 +416,27 @@
   }
 }
 
-/* ---- Writing into light — no box, no rectangle: a luminous line beneath
-   the words with a point of light that runs along it continuously, and a
-   scatter of sparks that come alive once the dreamer starts typing. ---- */
+/* ---- Writing into light — a soft luminous field rather than a generic
+   web textarea: a faint dark wash behind the words, a thin warm-gold edge
+   that brightens once the dreamer starts typing, and a point of light
+   that continues to travel along it. Never a hard rectangle: the corners
+   are soft and the edge glows outward rather than being drawn as a border. ---- */
 .dr-writing-surface {
   position: relative;
   width: 100%;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(18, 14, 9, 0.34), rgba(18, 14, 9, 0.22));
+  border: 1px solid rgba(var(--dream-gold-rgb, 214, 178, 110), 0.38);
+  box-shadow: 0 0 1.8rem rgba(var(--dream-gold-rgb, 214, 178, 110), 0.14), inset 0 0.05em 0.6em rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: border-color 0.6s var(--ease-soft), box-shadow 0.6s var(--ease-soft);
+}
+
+.dr-writing-surface.has-text,
+.dr-writing-surface:focus-within {
+  border-color: rgba(var(--dream-gold-rgb, 214, 178, 110), 0.65);
+  box-shadow: 0 0 2.6rem rgba(var(--dream-gold-rgb, 214, 178, 110), 0.24), inset 0 0.05em 0.6em rgba(0, 0, 0, 0.28);
 }
 
 .dr-response-textarea {
@@ -431,7 +452,7 @@
   text-align: center;
   resize: none;
   outline: none;
-  padding: 0.5em 0.15em 0.7em;
+  padding: 0.9em 1.1em 0.7em;
   text-shadow: 0 0.04em 0.5em rgba(0, 0, 0, 0.4);
 }
 
@@ -580,8 +601,10 @@
    hand-placed coordinates, so it always fits inside the viewport. ---- */
 .dr-node-path {
   position: absolute;
-  top: 46vh;
-  bottom: 8vh;
+  top: 32vh;
+  bottom: 20vh;
+  left: 6vw;
+  right: 6vw;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -664,7 +687,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 1.6rem;
+  gap: 1.4rem;
 }
 
 .dr-node-icon {
@@ -715,6 +738,12 @@
 }
 
 .dr-thought {
+  /* min-width:0 lets this flex item actually shrink/wrap inside the row
+     instead of forcing max-width past what's left after the icon+gap —
+     without it a long reflection line could push the row past the
+     viewport edge rather than wrapping. */
+  min-width: 0;
+  flex: 1 1 auto;
   opacity: 0;
   filter: blur(10px);
   transform: translateX(-8px) scale(0.96);
@@ -731,7 +760,7 @@
 }
 
 .dr-node-row[data-state='settled'] .dr-thought {
-  opacity: 0.7;
+  opacity: 0.78;
   filter: blur(0);
   transform: translateX(0) scale(1);
 }
@@ -752,38 +781,63 @@
 
 .dr-thought-text {
   margin: 0;
-  max-width: min(50vw, 36em);
+  max-width: min(48vw, 28em);
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 400;
-  font-size: clamp(21px, 1.9vw, 33px);
-  line-height: 1.42;
+  font-size: clamp(18px, 1.7vw, 28px);
+  line-height: 1.4;
   color: var(--dream-white);
   text-shadow: 0 0.06em 0.7em rgba(0, 0, 0, 0.7);
+  transition: max-width 1s var(--ease-memory);
 }
 
+/* Only the ACTIVE node shows its full text wrapped over several lines —
+   this is what actually keeps four nodes' worth of real reflection text
+   from exceeding the space between the image above and the grounding
+   statement / SEE OTHER LENSES corner below, regardless of how long the
+   real AI-generated sentences run. Wide enough to keep line count low
+   while still capped short of the bottom-right corner (see
+   .dr-lenses-wrap) at any real text length. */
 .dr-node-row[data-state='active'] .dr-thought-text {
+  max-width: min(54vw, 34em);
   text-shadow: 0 0.06em 0.7em rgba(0, 0, 0, 0.7), 0 0 1.8rem rgba(var(--accent-rgb), 0.35);
 }
 
+/* A previous node stays visible but quiets down to a single luminous
+   line — "still clearly readable", per spec, never fully hidden — so
+   three settled nodes plus one fully-expanded active one always fit. */
+.dr-node-row[data-state='settled'] .dr-thought-text {
+  max-width: min(42vw, 26em);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .dr-thought--thread .dr-thought-text {
-  font-size: clamp(24px, 2.2vw, 38px);
+  font-size: clamp(20px, 1.9vw, 31px);
 }
 
 .dr-thought--question .dr-thought-text {
-  font-size: clamp(26px, 2.5vw, 42px);
+  font-size: clamp(22px, 2.2vw, 34px);
   font-style: italic;
 }
 
+/* Anchored to the bottom-right corner rather than centered — the node
+   path's real reflection text is left-anchored and its length varies with
+   the actual AI-generated content, so a centered toggle risks sitting
+   underneath a longer thought; the right corner stays clear of it at any
+   text length since the thought column never grows past its own
+   max-width from the left. */
 .dr-lenses-wrap {
   position: absolute;
-  left: 50%;
-  bottom: 15vh;
-  transform: translateX(-50%);
+  right: 4vw;
+  bottom: 9vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.9rem;
-  max-width: min(90vw, 520px);
+  max-width: min(28vw, 380px);
+  text-align: right;
   opacity: 0;
   animation: dr-quiet-fade-in 2s var(--ease-memory) forwards;
 }
@@ -821,9 +875,9 @@
 .dr-lenses {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.8rem;
-  text-align: center;
+  text-align: right;
 }
 
 .dr-lens {

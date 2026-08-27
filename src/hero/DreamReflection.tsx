@@ -67,7 +67,7 @@ const LENS_LABELS: Record<'cognitive' | 'jungian' | 'psychodynamic', string> = {
     zone where a generated portrait's face most often sits — vertical
     spacing between the four nodes is handled by flexbox, not hand-placed
     coordinates, per the approved reflection-path reference. */
-const NODE_LEFT_VW = 8;
+const NODE_LEFT_VW = 6;
 
 const REFLECTION_FRAGMENTS: {
   key: keyof Pick<DreamReflectionResult, 'observation' | 'personalAssociation' | 'possibleThread' | 'continuityQuestion'>;
@@ -162,7 +162,12 @@ export default function DreamReflection({
             )}
 
             {(step === 'choices' || step === 'selected') && elements.length > 0 && (
-              <div className="da-choice-row" ref={fieldRef} aria-hidden={step !== 'choices'}>
+              <div
+                className="da-choice-row"
+                ref={fieldRef}
+                aria-hidden={step !== 'choices'}
+                style={{ '--choice-count': elements.length } as CSSProperties}
+              >
                 {elements.map((el, i) => {
                   const traceColor = palette[i % palette.length];
                   return (

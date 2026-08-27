@@ -143,8 +143,8 @@
 .dc-portal {
   position: relative;
   pointer-events: auto;
-  width: min(30vw, 240px);
-  height: min(30vw, 240px);
+  width: min(34vw, 280px);
+  height: min(34vw, 280px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -155,7 +155,7 @@
   outline: none;
   cursor: pointer;
   color: var(--dream-white);
-  --orbit-radius: min(15vw, 118px);
+  --orbit-radius: min(17.5vw, 138px);
 }
 
 /* Soft filled glow field — this is what stops the portal reading as a thin
@@ -285,7 +285,7 @@
 
 .dc-portal--keep:hover,
 .dc-portal--keep:focus-visible {
-  --orbit-radius: min(9vw, 68px);
+  --orbit-radius: min(10.5vw, 79px);
 }
 
 .dc-portal--keep:hover .dc-portal-particle,
@@ -444,8 +444,8 @@
 
 .dc-saving-portal {
   position: absolute;
-  width: min(30vw, 240px);
-  height: min(30vw, 240px);
+  width: min(34vw, 280px);
+  height: min(34vw, 280px);
   border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(var(--accent-rgb), 0.7) 38%, transparent 74%);
   filter: blur(4px);
@@ -541,8 +541,8 @@
 
 .dc-breaking-portal {
   position: relative;
-  width: min(30vw, 240px);
-  height: min(30vw, 240px);
+  width: min(34vw, 280px);
+  height: min(34vw, 280px);
 }
 
 .dc-breaking-arc {

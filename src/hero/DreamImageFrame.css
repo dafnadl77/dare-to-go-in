@@ -23,14 +23,14 @@
 }
 
 .dr-image-frame[data-size='hero'] {
-  width: min(60vw, 108vh, 1040px);
-  height: min(40vw, 72vh, 693px);
+  width: min(58vw, 103vh, 1100px);
+  height: min(32.6vw, 58vh, 618px);
 }
 
 .dr-image-frame[data-size='secondary'] {
   top: 4vh;
-  width: min(28vw, 54vh, 460px);
-  height: min(18.7vw, 36vh, 307px);
+  width: min(26vw, 46vh, 480px);
+  height: min(14.6vw, 26vh, 270px);
 }
 
 .dr-cloud-wisp {
