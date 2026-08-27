@@ -211,18 +211,12 @@
 }
 
 /* =====================================================================
-   THE DREAM STAGE — the reconstructed image sits directly over the
-   moving cloud video background (see DreamStageBackground), never inside
-   a card. Two sizes share the exact same centering math (top/left/
-   right/margin-inline, never transform, so the existing pointer-
-   parallax translate3d on the base .dr-image-layer rule keeps working
-   untouched):
-     "hero"      (prompt/choices/selected/reflecting) — ~48-55vw.
-     "secondary" (interpreting/reflection/closing/…) — smaller and
-                 quieter so the reflection path / final choice have room,
-                 while the image stays visibly present throughout. ===================================================================== */
-.dr-image-layer[data-arrival='true'],
-.dr-image-layer[data-secondary='true'] {
+   THE DREAM STAGE — on THIS IS YOUR DREAM / WHAT STANDS OUT TO YOU?
+   (prompt/choices/selected) only, the reconstructed image reappears over
+   the moving cloud video background (see DreamStageBackground), never
+   inside a card. Every later step (the association question onward)
+   stays image-free — see DreamReconstruction.tsx's DREAM_IMAGE_STEPS. ===================================================================== */
+.dr-image-layer[data-arrival='true'] {
   top: 6vh;
   left: 0;
   right: 0;
@@ -230,21 +224,12 @@
   transition: width 1.8s var(--ease-memory), height 1.8s var(--ease-memory), top 1.8s var(--ease-memory);
 }
 
-/* NOTE — dead once inside the Dream Stage: .dr-image-layer no longer
-   renders at all during phase 'inside' (see DreamReconstruction.tsx), so
-   none of data-arrival/data-secondary/data-step ever reach 'true'/a real
-   value there any more. This block only still matters for the pre-portal
-   THIS IS WHAT I FOUND reveal screen, which never sets those attributes
-   either — kept as-is rather than purged so the exact-mask work stays
-   available if the arrival image treatment ever comes back; harmless
-   either way since it currently never matches. */
-/* EVERY "arrival"/hero step (WHAT STANDS OUT TO YOU? choice picking, and
-   the WHEN YOU THINK ABOUT… question) uses the exact organic contour
-   traced from the approved reference shape — never an ellipse, never a
-   border-radius/polygon/vignette approximation. The generated image is
-   visible ONLY inside this shape's interior; everything else is fully
-   transparent, revealing the existing animated cloud environment behind
-   and in front of it (see DreamStageBackground).
+/* THIS IS YOUR DREAM / WHAT STANDS OUT TO YOU? uses the exact organic
+   contour traced from the approved reference shape — never an ellipse,
+   never a border-radius/polygon/vignette approximation. The generated
+   image is visible ONLY inside this shape's interior; everything else is
+   fully transparent, revealing the existing animated cloud environment
+   behind and in front of it (see DreamStageBackground).
    The path is baked into one small SVG data URI (viewBox 0 0 1000 562,
    matching this box's own ~16:9 ratio so it never stretches/distorts)
    with an feGaussianBlur filter doing a ~30-50px feather on the inner
@@ -252,8 +237,7 @@
    automatically for every future generated image, never baked into the
    image itself. mask-size:100% 100% stretches the mask's own coordinate
    space to fill whatever this box's real rendered size is, at any
-   viewport — same shape, same feather, at "hero" and "reflecting" sizes
-   alike. */
+   viewport. */
 .dr-image-layer[data-arrival='true'] {
   /* A wide, cinematic ~16:9 crop of the source image (not its native 3:2)
      — deliberate: at the image's native 3:2 ratio, even this reduced
@@ -271,38 +255,6 @@
   mask-repeat: no-repeat;
   -webkit-mask-position: center;
   mask-position: center;
-}
-
-/* WHEN YOU THINK ABOUT… — noticeably smaller than the hero size (not
-   just eased upward) so there is genuine breathing room between image,
-   question, response field and CONTINUE — verified at 1280x720. Same
-   exact mask shape/feather as every other arrival step above; only the
-   box size, position and color grading differ here. */
-.dr-image-layer[data-arrival='true'][data-step='reflecting'] {
-  top: 4vh;
-  width: min(32vw, 56.9vh, 608px);
-  height: min(18vw, 32vh, 342px);
-  filter: brightness(0.9) saturate(0.96);
-  transition: width 1.8s var(--ease-memory), height 1.8s var(--ease-memory), top 1.8s var(--ease-memory), filter 1.8s var(--ease-memory);
-}
-
-/* interpreting/reflection/closing/… — the general soft ellipse assist,
-   unchanged; the exact reference mask above is scoped to the arrival
-   steps only, per spec. */
-.dr-image-layer[data-secondary='true'] {
-  top: 4vh;
-  width: min(26vw, 46vh, 480px);
-  height: min(14.6vw, 26vh, 270px);
-  -webkit-mask-image: radial-gradient(ellipse 68% 66% at 50% 50%, black 74%, transparent 100%),
-    radial-gradient(ellipse 24% 18% at 14% 10%, black 15%, transparent 90%),
-    radial-gradient(ellipse 22% 16% at 87% 9%, black 15%, transparent 90%),
-    radial-gradient(ellipse 22% 20% at 10% 90%, black 15%, transparent 90%),
-    radial-gradient(ellipse 24% 18% at 89% 91%, black 15%, transparent 90%);
-  mask-image: radial-gradient(ellipse 68% 66% at 50% 50%, black 74%, transparent 100%),
-    radial-gradient(ellipse 24% 18% at 14% 10%, black 15%, transparent 90%),
-    radial-gradient(ellipse 22% 16% at 87% 9%, black 15%, transparent 90%),
-    radial-gradient(ellipse 22% 20% at 10% 90%, black 15%, transparent 90%),
-    radial-gradient(ellipse 24% 18% at 89% 91%, black 15%, transparent 90%);
 }
 
 /* THE REFLECTION / INSIGHTS screen removes the dream image entirely — the
@@ -370,13 +322,8 @@
    its own colors (never recolored toward the cloud palette) but reads as
    richer/more cinematic against the Dream Stage: a touch more saturation,
    contrast and highlight brightness, never an Instagram-filter push. ---- */
-.dr-image-layer[data-arrival='true'] .dr-image-current,
-.dr-image-layer[data-secondary='true'] .dr-image-current {
+.dr-image-layer[data-arrival='true'] .dr-image-current {
   --dr-image-enhance: saturate(1.15) contrast(1.06) brightness(1.04);
-}
-
-.dr-image-layer[data-secondary='true'] .dr-image-current {
-  filter: var(--dr-image-enhance);
 }
 
 @keyframes dr-ambient-drift {

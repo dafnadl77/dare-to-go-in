@@ -48,6 +48,11 @@ const REFLECTION_ENGINE_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selec
 const CLOSING_STEPS = new Set<InsideStep>(['closing', 'saving', 'saved', 'letting-go', 'gone']);
 const DISSOLVING_STEPS = new Set<InsideStep>(['letting-go', 'gone']);
 const SAVING_STEPS = new Set<InsideStep>(['saving']);
+/** THIS IS YOUR DREAM / WHAT STANDS OUT TO YOU? — the only inside-phase
+    steps where the generated image reappears, masked to the exact organic
+    reference silhouette (never a rectangle). Every other step (the
+    association question and beyond) stays image-free, per spec. */
+const DREAM_IMAGE_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected']);
 
 interface DreamReconstructionProps {
   phase: ReconstructionPhase;
@@ -73,7 +78,6 @@ interface DreamReconstructionProps {
   dreamPalette: AccentColor[] | null;
   onNotQuite: () => void;
   onCorrectionSubmit: (text: string) => void;
-  onRetryImage: () => void;
   onYes: () => void;
   onPortalComplete: () => void;
   onSelectElement: (element: string) => void;
@@ -108,7 +112,6 @@ export default function DreamReconstruction({
   dreamPalette,
   onNotQuite,
   onCorrectionSubmit,
-  onRetryImage,
   onYes,
   onPortalComplete,
   onSelectElement,
@@ -177,14 +180,15 @@ export default function DreamReconstruction({
           visual layer once inside; nothing else sits over it. */}
       {(phase === 'entering' || phase === 'inside') && <DreamStageBackground ref={bgVideoRef} active={phase === 'inside'} />}
 
-      {/* THE DREAM STAGE (phase 'inside') never shows the generated image in
-          a picture/frame of any kind — the moving cloud video above is the
-          entire environment, and the title/choices/question/reflection text
-          floats directly over it (see DreamReflection/DreamClosing below).
-          The reconstructed image itself is still shown pre-portal, on the
-          THIS IS WHAT I FOUND / IS THIS HOW IT FELT reveal screen and during
-          the vortex crossing — untouched, not part of this restriction. */}
-      {(displayedImageUrl || incomingImageUrl) && phase !== 'inside' && (
+      {/* THE DREAM STAGE (phase 'inside') only shows the generated image on
+          THIS IS YOUR DREAM / WHAT STANDS OUT TO YOU? (DREAM_IMAGE_STEPS) —
+          masked to the exact organic reference silhouette below, never a
+          rectangle. Every other inside step (the association question
+          onward) stays image-free: the moving cloud video is the entire
+          environment there, with title/question/reflection text floating
+          directly over it. Pre-portal (reveal/entering/correcting/
+          regenerating), the reconstructed image is always shown, untouched. */}
+      {(displayedImageUrl || incomingImageUrl) && (phase !== 'inside' || DREAM_IMAGE_STEPS.has(insideStep)) && (
         <div
           ref={imageLayerRef}
           className="dr-image-layer"
@@ -192,12 +196,10 @@ export default function DreamReconstruction({
           data-dissolving={DISSOLVING_STEPS.has(insideStep) ? 'true' : 'false'}
           data-saving={SAVING_STEPS.has(insideStep) ? 'true' : 'false'}
           data-portal-active={phase === 'entering' ? 'true' : 'false'}
-          /* Never 'inside' here (see the guard above) — the arrival/secondary
-             hero sizing never applies pre-portal, only to the full-bleed
-             reveal image itself. */
-          data-arrival="false"
+          data-arrival={phase === 'inside' && DREAM_IMAGE_STEPS.has(insideStep) ? 'true' : 'false'}
           data-secondary="false"
-          data-hide-image={insideStep === 'reflection' || CLOSING_STEPS.has(insideStep) ? 'true' : 'false'}
+          data-step={phase === 'inside' ? insideStep : undefined}
+          data-hide-image="false"
           aria-hidden="true"
           style={{ '--accent-rgb': `${(accentColor ?? FALLBACK_ACCENT).r}, ${(accentColor ?? FALLBACK_ACCENT).g}, ${(accentColor ?? FALLBACK_ACCENT).b}` } as CSSProperties}
         >
@@ -212,7 +214,7 @@ export default function DreamReconstruction({
           {/* Purely procedural "alive" layers over the settled image — no new
               image content, just drifting light and grain so a static frame
               doesn't read as static. */}
-          {phase === 'entering' && displayedImageUrl && (
+          {(phase === 'entering' || phase === 'inside') && displayedImageUrl && (
             <>
               <div className="dr-image-light-drift" />
               <div className="dr-image-grain" />
@@ -250,8 +252,11 @@ export default function DreamReconstruction({
       {phase === 'image-error' && (
         <div className="dr-image-error">
           <p className="dr-line">I COULDN&rsquo;T SEE ALL OF IT.</p>
-          <button type="button" className="dr-choice" data-cursor-hover onClick={onRetryImage}>
-            TRY AGAIN
+          {/* A failed generation has nothing to retry from within this same
+              session — send the dreamer back to the very start rather than
+              re-firing the same request against the same brief. */}
+          <button type="button" className="dr-choice" data-cursor-hover onClick={onReturnToRoom}>
+            RESTART
           </button>
         </div>
       )}

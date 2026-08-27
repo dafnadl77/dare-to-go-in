@@ -162,7 +162,6 @@ export default function HeroDream() {
   const [dreamPalette, setDreamPalette] = useState<AccentColor[] | null>(null);
   const generationTokenRef = useRef<string | null>(null);
   const correctionCountRef = useRef(0);
-  const retryCountRef = useRef(0);
   const reconstructingEnteredAtRef = useRef(0);
 
   const startImageGeneration = useCallback((token: string, briefToUse: ReconstructionBrief) => {
@@ -324,14 +323,6 @@ export default function HeroDream() {
     correctionCountRef.current += 1;
     setReconstructionPhase('regenerating');
     startImageGeneration(`correction-${correctionCountRef.current}`, newBrief);
-  };
-
-  const handleRetryImage = () => {
-    if (!brief) return;
-    retryCountRef.current += 1;
-    const token = `${generationTokenRef.current ?? 'initial'}-retry-${retryCountRef.current}`;
-    setReconstructionPhase(displayedImageUrl ? 'regenerating' : 'reconstructing');
-    startImageGeneration(token, brief);
   };
 
   const handleYes = () => setReconstructionPhase('entering');
@@ -535,7 +526,6 @@ export default function HeroDream() {
     generationTokenRef.current = null;
     reflectionTokenRef.current = null;
     correctionCountRef.current = 0;
-    retryCountRef.current = 0;
     reflectionRetryCountRef.current = 0;
     dreamSavedRef.current = false;
   };
@@ -642,7 +632,6 @@ export default function HeroDream() {
         dreamPalette={dreamPalette}
         onNotQuite={handleNotQuite}
         onCorrectionSubmit={handleCorrectionSubmit}
-        onRetryImage={handleRetryImage}
         onYes={handleYes}
         onPortalComplete={handlePortalComplete}
         onSelectElement={handleSelectElement}
