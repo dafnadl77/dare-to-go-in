@@ -10,11 +10,9 @@ const STAR_COUNT = 12;
 /**
  * The approved Dream Stage backdrop — the real moving cloud MP4, playing
  * full-screen. This IS the post-portal environment; nothing here recolors
- * it or tints it with the dream's palette. The same clip is reused a
- * second time as the foreground layer over the dream image (see
- * DreamStageForegroundClouds) — kept perfectly in sync with this instance
- * via a ref DreamReconstruction wires up, so both copies show the exact
- * same cloud motion at the exact same moment.
+ * it or tints it with the dream's palette, and no image or overlay of any
+ * kind sits over it — the title/choices/question/reflection text floats
+ * directly on top.
  *
  * A handful of star points twinkle independently on top, each on its own
  * unsynchronized timer — the only extra "life" layered on beyond the real

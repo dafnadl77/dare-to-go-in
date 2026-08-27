@@ -230,13 +230,21 @@
   transition: width 1.8s var(--ease-memory), height 1.8s var(--ease-memory), top 1.8s var(--ease-memory);
 }
 
+/* NOTE — dead once inside the Dream Stage: .dr-image-layer no longer
+   renders at all during phase 'inside' (see DreamReconstruction.tsx), so
+   none of data-arrival/data-secondary/data-step ever reach 'true'/a real
+   value there any more. This block only still matters for the pre-portal
+   THIS IS WHAT I FOUND reveal screen, which never sets those attributes
+   either — kept as-is rather than purged so the exact-mask work stays
+   available if the arrival image treatment ever comes back; harmless
+   either way since it currently never matches. */
 /* EVERY "arrival"/hero step (WHAT STANDS OUT TO YOU? choice picking, and
    the WHEN YOU THINK ABOUT… question) uses the exact organic contour
    traced from the approved reference shape — never an ellipse, never a
    border-radius/polygon/vignette approximation. The generated image is
    visible ONLY inside this shape's interior; everything else is fully
    transparent, revealing the existing animated cloud environment behind
-   and in front of it (see DreamStageBackground / DreamStageForegroundClouds).
+   and in front of it (see DreamStageBackground).
    The path is baked into one small SVG data URI (viewBox 0 0 1000 562,
    matching this box's own ~16:9 ratio so it never stretches/distorts)
    with an feGaussianBlur filter doing a ~30-50px feather on the inner

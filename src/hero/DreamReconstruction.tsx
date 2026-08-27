@@ -8,8 +8,6 @@ import { usePointerParallax } from './usePointerParallax';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
 import DreamPortalTransition from './DreamPortalTransition';
 import DreamStageBackground from './DreamStageBackground';
-import DreamStageForegroundClouds from './DreamStageForegroundClouds';
-import DreamImageHaze from './DreamImageHaze';
 import DreamWorld from './DreamWorld';
 import DreamReflection from './DreamReflection';
 import DreamClosing from './DreamClosing';
@@ -50,15 +48,6 @@ const REFLECTION_ENGINE_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selec
 const CLOSING_STEPS = new Set<InsideStep>(['closing', 'saving', 'saved', 'letting-go', 'gone']);
 const DISSOLVING_STEPS = new Set<InsideStep>(['letting-go', 'gone']);
 const SAVING_STEPS = new Set<InsideStep>(['saving']);
-/** PORTAL EXIT → DREAM STAGE ARRIVAL → DREAM ELEMENT SELECTION →
-    ASSOCIATION QUESTION — the reconstructed image is the large "hero" of
-    the Dream Stage for exactly these steps. */
-const STAGE_HERO_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting']);
-/** interpreting/reflection/closing — the image stays present but shrinks to
-    a quieter, secondary size so the reflection path and final choice have
-    room; the moving Dream Stage video remains the world underneath either
-    way (see DreamStageVideo, active for the entire 'inside' phase). */
-const STAGE_SECONDARY_STEPS = new Set<InsideStep>(['interpreting', 'reflection', 'closing', 'saving', 'saved', 'letting-go', 'gone']);
 
 interface DreamReconstructionProps {
   phase: ReconstructionPhase;
@@ -138,36 +127,15 @@ export default function DreamReconstruction({
   // new. Only active once there's actually a living image to sit over.
   usePointerParallax(imageLayerRef, 7, phase === 'entering' || phase === 'inside');
 
-  // TWO INSTANCES OF THE SAME CLOUD MP4 — the background copy and the
-  // masked foreground copy over the dream image must show identical
-  // motion at every moment, not just start together. Both elements decode
-  // the video independently, so a periodic correction (via the
-  // background's own 'timeupdate', which fires ~4x/second) snaps the
-  // foreground back in step the moment it drifts more than 150ms —
-  // cheap, and imperceptible for a looping, textural cloud clip.
+  // THE DREAM STAGE background video — the only visual environment once
+  // inside; no generated image or cloud overlay sits over it anymore.
   const bgVideoRef = useRef<HTMLVideoElement>(null);
-  const fgVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     // The `autoplay` attribute alone isn't always reliable the instant a
     // video mounts (depends on the browser/embedding context) — an
     // explicit .play() call is the robust fallback for a muted clip,
     // which is always allowed regardless of user gesture.
     bgVideoRef.current?.play().catch(() => {});
-    fgVideoRef.current?.play().catch(() => {});
-    const bg = bgVideoRef.current;
-    const fg = fgVideoRef.current;
-    if (!bg || !fg) return;
-    const resync = () => {
-      if (!fg || fg.readyState < 2) return;
-      if (Math.abs(fg.currentTime - bg.currentTime) > 0.15) {
-        fg.currentTime = bg.currentTime;
-      }
-    };
-    bg.addEventListener('timeupdate', resync);
-    return () => bg.removeEventListener('timeupdate', resync);
-    // Re-checked on every phase change: DreamStageForegroundClouds only
-    // mounts once inside, well after this effect's first run, so the
-    // refs aren't both populated until then.
   }, [phase]);
 
   if (phase === 'none') return null;
@@ -205,27 +173,18 @@ export default function DreamReconstruction({
       {/* THE DREAM STAGE — the approved moving cloud MP4, the actual
           post-portal environment. Mounted slightly early (through
           'entering' too) so it's already playing/buffered the instant the
-          vortex hands off, then simply revealed — no load flash. The same
-          clip is reused a second time as the foreground layer over the
-          dream image (see DreamStageForegroundClouds below), kept in sync
-          via bgVideoRef/fgVideoRef. */}
+          vortex hands off, then simply revealed — no load flash. The only
+          visual layer once inside; nothing else sits over it. */}
       {(phase === 'entering' || phase === 'inside') && <DreamStageBackground ref={bgVideoRef} active={phase === 'inside'} />}
 
-      {/* LAYER 3 — soft atmospheric haze BEHIND the dream image, so it
-          glows out of the surrounding clouds rather than sitting flat on
-          top of them. Removed for the same steps as the image itself. */}
-      {(displayedImageUrl || incomingImageUrl) && phase === 'inside' && (
-        <DreamImageHaze
-          active={true}
-          accentColor={accentColor}
-          size={STAGE_HERO_STEPS.has(insideStep) ? 'hero' : 'secondary'}
-          hidden={insideStep === 'reflection' || CLOSING_STEPS.has(insideStep)}
-          step={insideStep}
-        />
-      )}
-
-      {/* LAYER 2 — the real generated dream. Never a separate card/gallery. */}
-      {(displayedImageUrl || incomingImageUrl) && (
+      {/* THE DREAM STAGE (phase 'inside') never shows the generated image in
+          a picture/frame of any kind — the moving cloud video above is the
+          entire environment, and the title/choices/question/reflection text
+          floats directly over it (see DreamReflection/DreamClosing below).
+          The reconstructed image itself is still shown pre-portal, on the
+          THIS IS WHAT I FOUND / IS THIS HOW IT FELT reveal screen and during
+          the vortex crossing — untouched, not part of this restriction. */}
+      {(displayedImageUrl || incomingImageUrl) && phase !== 'inside' && (
         <div
           ref={imageLayerRef}
           className="dr-image-layer"
@@ -233,9 +192,11 @@ export default function DreamReconstruction({
           data-dissolving={DISSOLVING_STEPS.has(insideStep) ? 'true' : 'false'}
           data-saving={SAVING_STEPS.has(insideStep) ? 'true' : 'false'}
           data-portal-active={phase === 'entering' ? 'true' : 'false'}
-          data-arrival={phase === 'inside' && STAGE_HERO_STEPS.has(insideStep) ? 'true' : 'false'}
-          data-secondary={phase === 'inside' && STAGE_SECONDARY_STEPS.has(insideStep) ? 'true' : 'false'}
-          data-step={phase === 'inside' ? insideStep : undefined}
+          /* Never 'inside' here (see the guard above) — the arrival/secondary
+             hero sizing never applies pre-portal, only to the full-bleed
+             reveal image itself. */
+          data-arrival="false"
+          data-secondary="false"
           data-hide-image={insideStep === 'reflection' || CLOSING_STEPS.has(insideStep) ? 'true' : 'false'}
           aria-hidden="true"
           style={{ '--accent-rgb': `${(accentColor ?? FALLBACK_ACCENT).r}, ${(accentColor ?? FALLBACK_ACCENT).g}, ${(accentColor ?? FALLBACK_ACCENT).b}` } as CSSProperties}
@@ -250,8 +211,8 @@ export default function DreamReconstruction({
           )}
           {/* Purely procedural "alive" layers over the settled image — no new
               image content, just drifting light and grain so a static frame
-              doesn't read as static. Only meaningful once inside. */}
-          {(phase === 'entering' || phase === 'inside') && displayedImageUrl && (
+              doesn't read as static. */}
+          {phase === 'entering' && displayedImageUrl && (
             <>
               <div className="dr-image-light-drift" />
               <div className="dr-image-grain" />
@@ -264,23 +225,6 @@ export default function DreamReconstruction({
           )}
           {SAVING_STEPS.has(insideStep) && <div className="dr-memory-frame" />}
         </div>
-      )}
-
-      {/* LAYER 3 — a second instance of the exact same cloud MP4,
-          positioned over the dream image and masked so only its cloud
-          regions stay visible, overlapping the image's edges (heaviest at
-          the bottom and sides). This — real moving clouds passing in
-          front of the photo — is what actually hides the rectangle, not
-          the mask on the image alone. Kept frame-synced with the
-          background copy via fgVideoRef/bgVideoRef above. */}
-      {(displayedImageUrl || incomingImageUrl) && phase === 'inside' && (
-        <DreamStageForegroundClouds
-          ref={fgVideoRef}
-          active={true}
-          size={STAGE_HERO_STEPS.has(insideStep) ? 'hero' : 'secondary'}
-          hidden={insideStep === 'reflection' || CLOSING_STEPS.has(insideStep)}
-          step={insideStep}
-        />
       )}
 
       {/* YES — TAKE ME IN: a real WebGL vortex built from the settled image
