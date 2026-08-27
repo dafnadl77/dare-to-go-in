@@ -84,7 +84,7 @@
    bare luminous typography with an organic energy trace, tinted by this
    dream's own extracted palette. Positioned to clear the hero image box
    (see .dr-image-layer[data-arrival] in DreamReconstruction.css — top:6vh,
-   height up to min(40vw, 60vh, 693px); kept in sync by hand). ===================================================================== */
+   height up to min(32.6vw, 58vh, 618px); kept in sync by hand). ===================================================================== */
 .dream-arrival {
   position: absolute;
   inset: 0;
@@ -95,7 +95,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(6vh + min(28.1vw, 50vh, 533px) + 2.8vh);
+  top: calc(6vh + min(32.6vw, 58vh, 618px) + 2.8vh);
   bottom: 2vh;
   display: flex;
   flex-direction: column;
