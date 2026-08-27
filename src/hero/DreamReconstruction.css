@@ -213,16 +213,10 @@
 /* =====================================================================
    THE DREAM STAGE — the reconstructed image sits directly over the
    moving cloud video background (see DreamStageBackground), never inside
-   a card. The rectangle is hidden mainly by a SECOND instance of the
-   same cloud video layered on top (see DreamStageForegroundClouds,
-   rendered just below) — real moving clouds physically overlapping the
-   image's edges. The mask on the image itself here is only a gentle
-   secondary assist: a wide crisp center (70-80% of the box) with a
-   simple, mild fade at the outer perimeter — it doesn't need to do the
-   heavy lifting alone. Two sizes share the exact same centering math
-   (top/left/right/margin-inline, never transform, so the existing
-   pointer-parallax translate3d on the base .dr-image-layer rule keeps
-   working untouched):
+   a card. Two sizes share the exact same centering math (top/left/
+   right/margin-inline, never transform, so the existing pointer-
+   parallax translate3d on the base .dr-image-layer rule keeps working
+   untouched):
      "hero"      (prompt/choices/selected/reflecting) — ~48-55vw.
      "secondary" (interpreting/reflection/closing/…) — smaller and
                  quieter so the reflection path / final choice have room,
@@ -233,10 +227,64 @@
   left: 0;
   right: 0;
   margin-inline: auto;
-  /* One broad ellipse (crisp out to ~74% of the box) plus four small,
-     unevenly-sized corner softeners so the silhouette isn't a perfectly
-     clean oval — a light touch only, since the foreground cloud video
-     does the real work of hiding the rectangle. */
+  transition: width 1.8s var(--ease-memory), height 1.8s var(--ease-memory), top 1.8s var(--ease-memory);
+}
+
+/* EVERY "arrival"/hero step (WHAT STANDS OUT TO YOU? choice picking, and
+   the WHEN YOU THINK ABOUT… question) uses the exact organic contour
+   traced from the approved reference shape — never an ellipse, never a
+   border-radius/polygon/vignette approximation. The generated image is
+   visible ONLY inside this shape's interior; everything else is fully
+   transparent, revealing the existing animated cloud environment behind
+   and in front of it (see DreamStageBackground / DreamStageForegroundClouds).
+   The path is baked into one small SVG data URI (viewBox 0 0 1000 562,
+   matching this box's own ~16:9 ratio so it never stretches/distorts)
+   with an feGaussianBlur filter doing a ~30-50px feather on the inner
+   perimeter in one pass — applied purely as a mask, so it works
+   automatically for every future generated image, never baked into the
+   image itself. mask-size:100% 100% stretches the mask's own coordinate
+   space to fill whatever this box's real rendered size is, at any
+   viewport — same shape, same feather, at "hero" and "reflecting" sizes
+   alike. */
+.dr-image-layer[data-arrival='true'] {
+  /* A wide, cinematic ~16:9 crop of the source image (not its native 3:2)
+     — deliberate: at the image's native 3:2 ratio, even this reduced
+     ~50vw width would force more height than a 1280x720 window can
+     spare above the choices. Each width/height pair below keeps the
+     SAME ~16:9 ratio across all three min() branches so whichever one
+     binds never distorts the box. */
+  width: min(50vw, 88.8vh, 948px);
+  height: min(28.1vw, 50vh, 533px);
+  -webkit-mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAwIDU2MiI+PGRlZnM+PGZpbHRlciBpZD0iZiIgeD0iLTMwJSIgeT0iLTMwJSIgd2lkdGg9IjE2MCUiIGhlaWdodD0iMTYwJSI+PGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iMTciLz48L2ZpbHRlcj48L2RlZnM+PHBhdGggZD0iTSA0NS45NiAyODAuNzAgUSAyMC4wMCAyNTguNTIgNDYuNTMgMjQwLjcxIFEgNzMuMDYgMjIyLjkwIDEwNS4zOSAyMTQuOTYgUSAxMzcuNzIgMjA3LjAyIDE1NS4yMyAxNzMuODcgUSAxNzIuNzUgMTQwLjcyIDIxMC4zNyAxNDEuODAgUSAyNDguMDAgMTQyLjg4IDI2Ny4yMiAxMTIuNjMgUSAyODYuNDUgODIuMzkgMzIwLjc5IDc3Ljg3IFEgMzU1LjEzIDczLjM2IDM3Ny4wMSA0Ny42NSBRIDM5OC45MCAyMS45MyA0MjkuNDUgMTAuOTcgUSA0NjAuMDAgMC4wMCA0OTUuMDkgMTQuNzAgUSA1MzAuMTggMjkuNDAgNTU3LjY0IDU3Ljk0IFEgNTg1LjEwIDg2LjQ4IDYyNS40MiA5MS43MCBRIDY2NS43MyA5Ni45MiA2OTIuMzggMTI2LjkzIFEgNzE5LjAzIDE1Ni45NCA3NjEuMzcgMTU4LjQ5IFEgODAzLjcxIDE2MC4wNCA4MjUuNTIgMTk4Ljg0IFEgODQ3LjMyIDIzNy42NCA4ODcuMzggMjQzLjMzIFEgOTI3LjQ0IDI0OS4wMyA5NTguNzIgMjcwLjYzIFEgOTkwLjAwIDI5Mi4yNCA5NTguODYgMzExLjcyIFEgOTI3LjcxIDMzMS4xOSA4OTEuMzQgMzQwLjU5IFEgODU0Ljk3IDM0OS45OSA4MjcuOTkgMzc3LjQ5IFEgODAxLjAyIDQwNS4wMCA3NjEuNTcgNDA4LjQ2IFEgNzIyLjEyIDQxMS45MyA2OTYuMTcgNDQxLjQyIFEgNjcwLjIyIDQ3MC45MSA2MzAuNTkgNDc0LjAyIFEgNTkwLjk2IDQ3Ny4xMyA1NjQuOTAgNTA2LjQwIFEgNTM4LjgzIDUzNS42NyA1MDQuNDIgNTQ4Ljg0IFEgNDcwLjAwIDU2Mi4wMCA0MzguODIgNTQ3LjU3IFEgNDA3LjY0IDUzMy4xMyAzODcuNzUgNTAxLjk1IFEgMzY3Ljg2IDQ3MC43NiAzMzEuNTMgNDYzLjk3IFEgMjk1LjE5IDQ1Ny4xNyAyNzYuMjEgNDI0LjY2IFEgMjU3LjIyIDM5Mi4xNCAyMTkuNjYgMzg3LjE3IFEgMTgyLjEwIDM4Mi4xOSAxNjMuMDMgMzQ5LjgwIFEgMTQzLjk2IDMxNy40MCAxMDcuOTQgMzEwLjE0IFEgNzEuOTIgMzAyLjg3IDQ1Ljk2IDI4MC43MCBaIiBmaWxsPSIjZmZmIiBmaWx0ZXI9InVybCgjZikiLz48L3N2Zz4=");
+  mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAwIDU2MiI+PGRlZnM+PGZpbHRlciBpZD0iZiIgeD0iLTMwJSIgeT0iLTMwJSIgd2lkdGg9IjE2MCUiIGhlaWdodD0iMTYwJSI+PGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iMTciLz48L2ZpbHRlcj48L2RlZnM+PHBhdGggZD0iTSA0NS45NiAyODAuNzAgUSAyMC4wMCAyNTguNTIgNDYuNTMgMjQwLjcxIFEgNzMuMDYgMjIyLjkwIDEwNS4zOSAyMTQuOTYgUSAxMzcuNzIgMjA3LjAyIDE1NS4yMyAxNzMuODcgUSAxNzIuNzUgMTQwLjcyIDIxMC4zNyAxNDEuODAgUSAyNDguMDAgMTQyLjg4IDI2Ny4yMiAxMTIuNjMgUSAyODYuNDUgODIuMzkgMzIwLjc5IDc3Ljg3IFEgMzU1LjEzIDczLjM2IDM3Ny4wMSA0Ny42NSBRIDM5OC45MCAyMS45MyA0MjkuNDUgMTAuOTcgUSA0NjAuMDAgMC4wMCA0OTUuMDkgMTQuNzAgUSA1MzAuMTggMjkuNDAgNTU3LjY0IDU3Ljk0IFEgNTg1LjEwIDg2LjQ4IDYyNS40MiA5MS43MCBRIDY2NS43MyA5Ni45MiA2OTIuMzggMTI2LjkzIFEgNzE5LjAzIDE1Ni45NCA3NjEuMzcgMTU4LjQ5IFEgODAzLjcxIDE2MC4wNCA4MjUuNTIgMTk4Ljg0IFEgODQ3LjMyIDIzNy42NCA4ODcuMzggMjQzLjMzIFEgOTI3LjQ0IDI0OS4wMyA5NTguNzIgMjcwLjYzIFEgOTkwLjAwIDI5Mi4yNCA5NTguODYgMzExLjcyIFEgOTI3LjcxIDMzMS4xOSA4OTEuMzQgMzQwLjU5IFEgODU0Ljk3IDM0OS45OSA4MjcuOTkgMzc3LjQ5IFEgODAxLjAyIDQwNS4wMCA3NjEuNTcgNDA4LjQ2IFEgNzIyLjEyIDQxMS45MyA2OTYuMTcgNDQxLjQyIFEgNjcwLjIyIDQ3MC45MSA2MzAuNTkgNDc0LjAyIFEgNTkwLjk2IDQ3Ny4xMyA1NjQuOTAgNTA2LjQwIFEgNTM4LjgzIDUzNS42NyA1MDQuNDIgNTQ4Ljg0IFEgNDcwLjAwIDU2Mi4wMCA0MzguODIgNTQ3LjU3IFEgNDA3LjY0IDUzMy4xMyAzODcuNzUgNTAxLjk1IFEgMzY3Ljg2IDQ3MC43NiAzMzEuNTMgNDYzLjk3IFEgMjk1LjE5IDQ1Ny4xNyAyNzYuMjEgNDI0LjY2IFEgMjU3LjIyIDM5Mi4xNCAyMTkuNjYgMzg3LjE3IFEgMTgyLjEwIDM4Mi4xOSAxNjMuMDMgMzQ5LjgwIFEgMTQzLjk2IDMxNy40MCAxMDcuOTQgMzEwLjE0IFEgNzEuOTIgMzAyLjg3IDQ1Ljk2IDI4MC43MCBaIiBmaWxsPSIjZmZmIiBmaWx0ZXI9InVybCgjZikiLz48L3N2Zz4=");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+/* WHEN YOU THINK ABOUT… — noticeably smaller than the hero size (not
+   just eased upward) so there is genuine breathing room between image,
+   question, response field and CONTINUE — verified at 1280x720. Same
+   exact mask shape/feather as every other arrival step above; only the
+   box size, position and color grading differ here. */
+.dr-image-layer[data-arrival='true'][data-step='reflecting'] {
+  top: 4vh;
+  width: min(32vw, 56.9vh, 608px);
+  height: min(18vw, 32vh, 342px);
+  filter: brightness(0.9) saturate(0.96);
+  transition: width 1.8s var(--ease-memory), height 1.8s var(--ease-memory), top 1.8s var(--ease-memory), filter 1.8s var(--ease-memory);
+}
+
+/* interpreting/reflection/closing/… — the general soft ellipse assist,
+   unchanged; the exact reference mask above is scoped to the arrival
+   steps only, per spec. */
+.dr-image-layer[data-secondary='true'] {
+  top: 4vh;
+  width: min(26vw, 46vh, 480px);
+  height: min(14.6vw, 26vh, 270px);
   -webkit-mask-image: radial-gradient(ellipse 68% 66% at 50% 50%, black 74%, transparent 100%),
     radial-gradient(ellipse 24% 18% at 14% 10%, black 15%, transparent 90%),
     radial-gradient(ellipse 22% 16% at 87% 9%, black 15%, transparent 90%),
@@ -247,53 +295,6 @@
     radial-gradient(ellipse 22% 16% at 87% 9%, black 15%, transparent 90%),
     radial-gradient(ellipse 22% 20% at 10% 90%, black 15%, transparent 90%),
     radial-gradient(ellipse 24% 18% at 89% 91%, black 15%, transparent 90%);
-  transition: width 1.8s var(--ease-memory), height 1.8s var(--ease-memory), top 1.8s var(--ease-memory);
-}
-
-.dr-image-layer[data-arrival='true'] {
-  /* A wide, cinematic ~16:9 crop of the source image (not its native 3:2)
-     — deliberate: at the image's native 3:2 ratio, even this reduced
-     ~50vw width would force more height than a 1280x720 window can
-     spare above the choices. Each width/height pair below keeps the
-     SAME ~16:9 ratio across all three min() branches so whichever one
-     binds never distorts the box. */
-  width: min(50vw, 88.8vh, 948px);
-  height: min(28.1vw, 50vh, 533px);
-}
-
-/* WHEN YOU THINK ABOUT… — noticeably smaller than the hero size (not
-   just eased upward) so there is genuine breathing room between image,
-   question, response field and CONTINUE — verified at 1280x720. */
-.dr-image-layer[data-arrival='true'][data-step='reflecting'] {
-  top: 4vh;
-  width: min(32vw, 56.9vh, 608px);
-  height: min(18vw, 32vh, 342px);
-  filter: brightness(0.9) saturate(0.96);
-  transition: width 1.8s var(--ease-memory), height 1.8s var(--ease-memory), top 1.8s var(--ease-memory), filter 1.8s var(--ease-memory);
-  /* QUESTION SCREEN ONLY — an exact organic contour (traced from the
-     approved reference shape), not the gentle-ellipse mask every other
-     screen uses. The path is baked into this one small SVG data URI
-     (viewBox 0 0 1000 562, matching this box's own ~16:9 ratio so it
-     never stretches/distorts) with an feGaussianBlur filter doing the
-     40-70px feather in one pass — this is applied purely as a mask, so
-     it works automatically for every future generated image, never
-     baked into the image itself. mask-size:100% 100% stretches the
-     mask's own coordinate space to fill whatever this box's real
-     rendered size is, at any viewport. */
-  -webkit-mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAwIDU2MiI+PGRlZnM+PGZpbHRlciBpZD0iZiIgeD0iLTMwJSIgeT0iLTMwJSIgd2lkdGg9IjE2MCUiIGhlaWdodD0iMTYwJSI+PGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iODAiLz48L2ZpbHRlcj48L2RlZnM+PHBhdGggZD0iTSA0NS45NiAyODAuNzAgUSAyMC4wMCAyNTguNTIgNDYuNTMgMjQwLjcxIFEgNzMuMDYgMjIyLjkwIDEwNS4zOSAyMTQuOTYgUSAxMzcuNzIgMjA3LjAyIDE1NS4yMyAxNzMuODcgUSAxNzIuNzUgMTQwLjcyIDIxMC4zNyAxNDEuODAgUSAyNDguMDAgMTQyLjg4IDI2Ny4yMiAxMTIuNjMgUSAyODYuNDUgODIuMzkgMzIwLjc5IDc3Ljg3IFEgMzU1LjEzIDczLjM2IDM3Ny4wMSA0Ny42NSBRIDM5OC45MCAyMS45MyA0MjkuNDUgMTAuOTcgUSA0NjAuMDAgMC4wMCA0OTUuMDkgMTQuNzAgUSA1MzAuMTggMjkuNDAgNTU3LjY0IDU3Ljk0IFEgNTg1LjEwIDg2LjQ4IDYyNS40MiA5MS43MCBRIDY2NS43MyA5Ni45MiA2OTIuMzggMTI2LjkzIFEgNzE5LjAzIDE1Ni45NCA3NjEuMzcgMTU4LjQ5IFEgODAzLjcxIDE2MC4wNCA4MjUuNTIgMTk4Ljg0IFEgODQ3LjMyIDIzNy42NCA4ODcuMzggMjQzLjMzIFEgOTI3LjQ0IDI0OS4wMyA5NTguNzIgMjcwLjYzIFEgOTkwLjAwIDI5Mi4yNCA5NTguODYgMzExLjcyIFEgOTI3LjcxIDMzMS4xOSA4OTEuMzQgMzQwLjU5IFEgODU0Ljk3IDM0OS45OSA4MjcuOTkgMzc3LjQ5IFEgODAxLjAyIDQwNS4wMCA3NjEuNTcgNDA4LjQ2IFEgNzIyLjEyIDQxMS45MyA2OTYuMTcgNDQxLjQyIFEgNjcwLjIyIDQ3MC45MSA2MzAuNTkgNDc0LjAyIFEgNTkwLjk2IDQ3Ny4xMyA1NjQuOTAgNTA2LjQwIFEgNTM4LjgzIDUzNS42NyA1MDQuNDIgNTQ4Ljg0IFEgNDcwLjAwIDU2Mi4wMCA0MzguODIgNTQ3LjU3IFEgNDA3LjY0IDUzMy4xMyAzODcuNzUgNTAxLjk1IFEgMzY3Ljg2IDQ3MC43NiAzMzEuNTMgNDYzLjk3IFEgMjk1LjE5IDQ1Ny4xNyAyNzYuMjEgNDI0LjY2IFEgMjU3LjIyIDM5Mi4xNCAyMTkuNjYgMzg3LjE3IFEgMTgyLjEwIDM4Mi4xOSAxNjMuMDMgMzQ5LjgwIFEgMTQzLjk2IDMxNy40MCAxMDcuOTQgMzEwLjE0IFEgNzEuOTIgMzAyLjg3IDQ1Ljk2IDI4MC43MCBaIiBmaWxsPSIjZmZmIiBmaWx0ZXI9InVybCgjZikiLz48L3N2Zz4=");
-  mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAwIDU2MiI+PGRlZnM+PGZpbHRlciBpZD0iZiIgeD0iLTMwJSIgeT0iLTMwJSIgd2lkdGg9IjE2MCUiIGhlaWdodD0iMTYwJSI+PGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iODAiLz48L2ZpbHRlcj48L2RlZnM+PHBhdGggZD0iTSA0NS45NiAyODAuNzAgUSAyMC4wMCAyNTguNTIgNDYuNTMgMjQwLjcxIFEgNzMuMDYgMjIyLjkwIDEwNS4zOSAyMTQuOTYgUSAxMzcuNzIgMjA3LjAyIDE1NS4yMyAxNzMuODcgUSAxNzIuNzUgMTQwLjcyIDIxMC4zNyAxNDEuODAgUSAyNDguMDAgMTQyLjg4IDI2Ny4yMiAxMTIuNjMgUSAyODYuNDUgODIuMzkgMzIwLjc5IDc3Ljg3IFEgMzU1LjEzIDczLjM2IDM3Ny4wMSA0Ny42NSBRIDM5OC45MCAyMS45MyA0MjkuNDUgMTAuOTcgUSA0NjAuMDAgMC4wMCA0OTUuMDkgMTQuNzAgUSA1MzAuMTggMjkuNDAgNTU3LjY0IDU3Ljk0IFEgNTg1LjEwIDg2LjQ4IDYyNS40MiA5MS43MCBRIDY2NS43MyA5Ni45MiA2OTIuMzggMTI2LjkzIFEgNzE5LjAzIDE1Ni45NCA3NjEuMzcgMTU4LjQ5IFEgODAzLjcxIDE2MC4wNCA4MjUuNTIgMTk4Ljg0IFEgODQ3LjMyIDIzNy42NCA4ODcuMzggMjQzLjMzIFEgOTI3LjQ0IDI0OS4wMyA5NTguNzIgMjcwLjYzIFEgOTkwLjAwIDI5Mi4yNCA5NTguODYgMzExLjcyIFEgOTI3LjcxIDMzMS4xOSA4OTEuMzQgMzQwLjU5IFEgODU0Ljk3IDM0OS45OSA4MjcuOTkgMzc3LjQ5IFEgODAxLjAyIDQwNS4wMCA3NjEuNTcgNDA4LjQ2IFEgNzIyLjEyIDQxMS45MyA2OTYuMTcgNDQxLjQyIFEgNjcwLjIyIDQ3MC45MSA2MzAuNTkgNDc0LjAyIFEgNTkwLjk2IDQ3Ny4xMyA1NjQuOTAgNTA2LjQwIFEgNTM4LjgzIDUzNS42NyA1MDQuNDIgNTQ4Ljg0IFEgNDcwLjAwIDU2Mi4wMCA0MzguODIgNTQ3LjU3IFEgNDA3LjY0IDUzMy4xMyAzODcuNzUgNTAxLjk1IFEgMzY3Ljg2IDQ3MC43NiAzMzEuNTMgNDYzLjk3IFEgMjk1LjE5IDQ1Ny4xNyAyNzYuMjEgNDI0LjY2IFEgMjU3LjIyIDM5Mi4xNCAyMTkuNjYgMzg3LjE3IFEgMTgyLjEwIDM4Mi4xOSAxNjMuMDMgMzQ5LjgwIFEgMTQzLjk2IDMxNy40MCAxMDcuOTQgMzEwLjE0IFEgNzEuOTIgMzAyLjg3IDQ1Ljk2IDI4MC43MCBaIiBmaWxsPSIjZmZmIiBmaWx0ZXI9InVybCgjZikiLz48L3N2Zz4=");
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-}
-
-.dr-image-layer[data-secondary='true'] {
-  top: 4vh;
-  width: min(26vw, 46vh, 480px);
-  height: min(14.6vw, 26vh, 270px);
 }
 
 /* THE REFLECTION / INSIGHTS screen removes the dream image entirely — the
