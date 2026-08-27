@@ -42,8 +42,10 @@
 /* ---- The association question itself — the dream asking, not a form
    label — substantially larger than the rest of the copy. ---- */
 .dr-question--asking {
-  font-size: clamp(1.9rem, 4.6vw, 3.1rem);
-  max-width: 15em;
+  /* Still cinematic, but doesn't need to dominate half the viewport — the
+     response field and CONTINUE must stay comfortably on-screen too. */
+  font-size: clamp(1.3rem, 2.8vw, 2rem);
+  max-width: 16em;
 }
 
 /* ---- The chosen element, kept as a quiet visual anchor once the
@@ -93,7 +95,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(6vh + min(32.6vw, 58vh, 618px) + 2.4vh);
+  top: calc(6vh + min(28.1vw, 50vh, 533px) + 2.8vh);
   bottom: 2vh;
   display: flex;
   flex-direction: column;
@@ -101,6 +103,20 @@
   justify-content: center;
   gap: 1.7rem;
   padding: 0 4vw;
+}
+
+/* WHEN YOU THINK ABOUT… — matches the image's own smaller size on this
+   step (see .dr-image-layer[data-step='reflecting'] in
+   DreamReconstruction.css). justify-content:flex-start (not center) so
+   content anchors under the image instead of centering into it when the
+   block is tall; verified to keep CONTINUE fully on-screen at 100% zoom
+   on a real 1280x720 viewport. */
+.dream-arrival[data-step='reflecting'] .da-content {
+  /* A clear, generous gap below the (now noticeably smaller) image — the
+     question must never touch or overlap it. */
+  top: calc(4vh + min(18vw, 32vh, 342px) + 4vh);
+  justify-content: flex-start;
+  gap: 1.1rem;
 }
 
 /* Arrival timeline: hero image resolves 0-1.4s (see dr-image-hero-in in
@@ -403,7 +419,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.4rem;
+  gap: 0.8rem;
   width: min(90vw, 480px);
   opacity: 0;
   pointer-events: auto;
@@ -442,7 +458,7 @@
 .dr-response-textarea {
   position: relative;
   width: 100%;
-  min-height: 3.6em;
+  min-height: 2.2em;
   background: transparent;
   border: none;
   color: var(--dream-white);
@@ -452,7 +468,7 @@
   text-align: center;
   resize: none;
   outline: none;
-  padding: 0.9em 1.1em 0.7em;
+  padding: 0.6em 1.1em 0.5em;
   text-shadow: 0 0.04em 0.5em rgba(0, 0, 0, 0.4);
 }
 
@@ -601,13 +617,30 @@
    hand-placed coordinates, so it always fits inside the viewport. ---- */
 .dr-node-path {
   position: absolute;
-  top: 32vh;
-  bottom: 20vh;
-  left: 6vw;
-  right: 6vw;
+  /* No dream image on this screen (see .dr-image-layer[data-hide-image]
+     in DreamReconstruction.css) — the open cloud space is the stage, so
+     the path uses the reclaimed height and sits slightly left of center
+     (11vw from the left, 15vw of breathing room on the right, where the
+     SEE OTHER LENSES corner lives) rather than pinned to the edge. */
+  top: 12vh;
+  bottom: 18vh;
+  left: 11vw;
+  right: 15vw;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+}
+
+/* A very subtle localized atmospheric wash behind the interpretation text
+   only — never a full-screen overlay — purely to lift body-text contrast
+   against a busy patch of cloud footage when needed. */
+.dr-node-path::before {
+  content: '';
+  position: absolute;
+  inset: -6vh -4vw;
+  background: radial-gradient(ellipse 72% 82% at 32% 50%, rgba(8, 7, 6, 0.32) 0%, rgba(8, 7, 6, 0.12) 55%, transparent 78%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .dr-node-line {
@@ -760,7 +793,9 @@
 }
 
 .dr-node-row[data-state='settled'] .dr-thought {
-  opacity: 0.78;
+  /* Still clearly readable, never low-opacity grey — only quieter than
+     the active node, not faded out. */
+  opacity: 0.88;
   filter: blur(0);
   transform: translateX(0) scale(1);
 }
@@ -768,57 +803,40 @@
 .dr-thought-label {
   margin: 0 0 0.4rem;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--dream-warm-neutral-dim);
+  color: rgba(var(--dream-gold-rgb, 214, 178, 110), 0.85);
 }
 
 .dr-node-row[data-state='active'] .dr-thought-label {
   color: rgb(var(--accent-rgb));
 }
 
+/* Every generated sentence displays in full — no ellipsis, no line-clamp,
+   no fixed height that could clip content. Wide enough to keep line
+   count low while staying short of the bottom-right SEE OTHER LENSES
+   corner (see .dr-lenses-wrap) at any real reflection text length. */
 .dr-thought-text {
   margin: 0;
-  max-width: min(48vw, 28em);
+  max-width: min(54vw, 32em);
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 400;
-  font-size: clamp(18px, 1.7vw, 28px);
-  line-height: 1.4;
+  /* approx. clamp(17px, 1.35vw, 24px) per spec */
+  font-size: clamp(17px, 1.35vw, 24px);
+  line-height: 1.45;
   color: var(--dream-white);
-  text-shadow: 0 0.06em 0.7em rgba(0, 0, 0, 0.7);
-  transition: max-width 1s var(--ease-memory);
+  text-shadow: 0 0.06em 0.8em rgba(0, 0, 0, 0.75);
 }
 
-/* Only the ACTIVE node shows its full text wrapped over several lines —
-   this is what actually keeps four nodes' worth of real reflection text
-   from exceeding the space between the image above and the grounding
-   statement / SEE OTHER LENSES corner below, regardless of how long the
-   real AI-generated sentences run. Wide enough to keep line count low
-   while still capped short of the bottom-right corner (see
-   .dr-lenses-wrap) at any real text length. */
 .dr-node-row[data-state='active'] .dr-thought-text {
-  max-width: min(54vw, 34em);
-  text-shadow: 0 0.06em 0.7em rgba(0, 0, 0, 0.7), 0 0 1.8rem rgba(var(--accent-rgb), 0.35);
-}
-
-/* A previous node stays visible but quiets down to a single luminous
-   line — "still clearly readable", per spec, never fully hidden — so
-   three settled nodes plus one fully-expanded active one always fit. */
-.dr-node-row[data-state='settled'] .dr-thought-text {
-  max-width: min(42vw, 26em);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dr-thought--thread .dr-thought-text {
-  font-size: clamp(20px, 1.9vw, 31px);
+  text-shadow: 0 0.06em 0.8em rgba(0, 0, 0, 0.75), 0 0 1.8rem rgba(var(--accent-rgb), 0.35);
 }
 
 .dr-thought--question .dr-thought-text {
-  font-size: clamp(22px, 2.2vw, 34px);
+  /* approx. clamp(21px, 1.8vw, 31px) per spec */
+  font-size: clamp(21px, 1.8vw, 31px);
   font-style: italic;
 }
 
@@ -830,13 +848,13 @@
    max-width from the left. */
 .dr-lenses-wrap {
   position: absolute;
-  right: 4vw;
+  right: 3vw;
   bottom: 9vh;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 0.9rem;
-  max-width: min(28vw, 380px);
+  max-width: min(22vw, 320px);
   text-align: right;
   opacity: 0;
   animation: dr-quiet-fade-in 2s var(--ease-memory) forwards;

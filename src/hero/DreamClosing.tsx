@@ -15,13 +15,16 @@ interface DreamClosingProps {
 }
 
 /** Renders text as individually-spanned letters so LET IT GO can disperse
-    letter-by-letter on hover — a pure-CSS effect, no per-letter JS needed. */
+    letter-by-letter on hover — a pure-CSS effect, no per-letter JS needed.
+    Word spaces render as a non-breaking space (not a plain " "): a plain
+    space text node inside a `display: inline-block` span collapses to
+    zero width in HTML, which would render "LET IT GO" as "LETITGO". */
 function DispersingLetters({ text }: { text: string }) {
   return (
     <>
       {text.split('').map((ch, i) => (
         <span key={i} className="dc-letter" style={{ '--li': i } as CSSProperties}>
-          {ch === ' ' ? ' ' : ch}
+          {ch === ' ' ? ' ' : ch}
         </span>
       ))}
     </>

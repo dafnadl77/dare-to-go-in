@@ -1,4 +1,4 @@
-import { useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { DreamAnalysis } from './dreamAnalysisSchema';
 import type { ReconstructionBrief } from './reconstructionBrief';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
@@ -7,8 +7,9 @@ import { deriveDreamWorldEffects } from './dreamWorldEffects';
 import { usePointerParallax } from './usePointerParallax';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
 import DreamPortalTransition from './DreamPortalTransition';
-import DreamStageVideo from './DreamStageVideo';
-import DreamImageFrame from './DreamImageFrame';
+import DreamStageBackground from './DreamStageBackground';
+import DreamStageForegroundClouds from './DreamStageForegroundClouds';
+import DreamImageHaze from './DreamImageHaze';
 import DreamWorld from './DreamWorld';
 import DreamReflection from './DreamReflection';
 import DreamClosing from './DreamClosing';
@@ -137,6 +138,38 @@ export default function DreamReconstruction({
   // new. Only active once there's actually a living image to sit over.
   usePointerParallax(imageLayerRef, 7, phase === 'entering' || phase === 'inside');
 
+  // TWO INSTANCES OF THE SAME CLOUD MP4 — the background copy and the
+  // masked foreground copy over the dream image must show identical
+  // motion at every moment, not just start together. Both elements decode
+  // the video independently, so a periodic correction (via the
+  // background's own 'timeupdate', which fires ~4x/second) snaps the
+  // foreground back in step the moment it drifts more than 150ms —
+  // cheap, and imperceptible for a looping, textural cloud clip.
+  const bgVideoRef = useRef<HTMLVideoElement>(null);
+  const fgVideoRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    // The `autoplay` attribute alone isn't always reliable the instant a
+    // video mounts (depends on the browser/embedding context) — an
+    // explicit .play() call is the robust fallback for a muted clip,
+    // which is always allowed regardless of user gesture.
+    bgVideoRef.current?.play().catch(() => {});
+    fgVideoRef.current?.play().catch(() => {});
+    const bg = bgVideoRef.current;
+    const fg = fgVideoRef.current;
+    if (!bg || !fg) return;
+    const resync = () => {
+      if (!fg || fg.readyState < 2) return;
+      if (Math.abs(fg.currentTime - bg.currentTime) > 0.15) {
+        fg.currentTime = bg.currentTime;
+      }
+    };
+    bg.addEventListener('timeupdate', resync);
+    return () => bg.removeEventListener('timeupdate', resync);
+    // Re-checked on every phase change: DreamStageForegroundClouds only
+    // mounts once inside, well after this effect's first run, so the
+    // refs aren't both populated until then.
+  }, [phase]);
+
   if (phase === 'none') return null;
 
   const cues = analysis && brief ? deriveVisualCues(analysis, brief) : null;
@@ -169,16 +202,29 @@ export default function DreamReconstruction({
         <div className="dr-silhouette" />
       </div>
 
-      {/* THE DREAM STAGE — the approved moving cloud video, the actual
-          post-portal environment (not a CSS/canvas recreation of one).
-          Mounted slightly early (through 'entering' too) so it's already
-          playing/buffered the instant the vortex hands off, then simply
-          revealed — no load flash, no CSS-generated backdrop of any kind
-          behind it. */}
-      {(phase === 'entering' || phase === 'inside') && <DreamStageVideo active={phase === 'inside'} />}
+      {/* THE DREAM STAGE — the approved moving cloud MP4, the actual
+          post-portal environment. Mounted slightly early (through
+          'entering' too) so it's already playing/buffered the instant the
+          vortex hands off, then simply revealed — no load flash. The same
+          clip is reused a second time as the foreground layer over the
+          dream image (see DreamStageForegroundClouds below), kept in sync
+          via bgVideoRef/fgVideoRef. */}
+      {(phase === 'entering' || phase === 'inside') && <DreamStageBackground ref={bgVideoRef} active={phase === 'inside'} />}
 
-      {/* The real generated dream — never a separate card/gallery, always
-          overtaking the room itself through organic, irregular masks. */}
+      {/* LAYER 3 — soft atmospheric haze BEHIND the dream image, so it
+          glows out of the surrounding clouds rather than sitting flat on
+          top of them. Removed for the same steps as the image itself. */}
+      {(displayedImageUrl || incomingImageUrl) && phase === 'inside' && (
+        <DreamImageHaze
+          active={true}
+          accentColor={accentColor}
+          size={STAGE_HERO_STEPS.has(insideStep) ? 'hero' : 'secondary'}
+          hidden={insideStep === 'reflection' || CLOSING_STEPS.has(insideStep)}
+          step={insideStep}
+        />
+      )}
+
+      {/* LAYER 2 — the real generated dream. Never a separate card/gallery. */}
       {(displayedImageUrl || incomingImageUrl) && (
         <div
           ref={imageLayerRef}
@@ -190,6 +236,7 @@ export default function DreamReconstruction({
           data-arrival={phase === 'inside' && STAGE_HERO_STEPS.has(insideStep) ? 'true' : 'false'}
           data-secondary={phase === 'inside' && STAGE_SECONDARY_STEPS.has(insideStep) ? 'true' : 'false'}
           data-step={phase === 'inside' ? insideStep : undefined}
+          data-hide-image={insideStep === 'reflection' || CLOSING_STEPS.has(insideStep) ? 'true' : 'false'}
           aria-hidden="true"
           style={{ '--accent-rgb': `${(accentColor ?? FALLBACK_ACCENT).r}, ${(accentColor ?? FALLBACK_ACCENT).g}, ${(accentColor ?? FALLBACK_ACCENT).b}` } as CSSProperties}
         >
@@ -219,11 +266,21 @@ export default function DreamReconstruction({
         </div>
       )}
 
-      {/* DREAM STAGE — foreground cloud/mist passing in front of the
-          image's lower edges, so the video's clouds visibly overlap the
-          photo rather than sitting only behind it. */}
+      {/* LAYER 3 — a second instance of the exact same cloud MP4,
+          positioned over the dream image and masked so only its cloud
+          regions stay visible, overlapping the image's edges (heaviest at
+          the bottom and sides). This — real moving clouds passing in
+          front of the photo — is what actually hides the rectangle, not
+          the mask on the image alone. Kept frame-synced with the
+          background copy via fgVideoRef/bgVideoRef above. */}
       {(displayedImageUrl || incomingImageUrl) && phase === 'inside' && (
-        <DreamImageFrame active={true} palette={dreamPalette} size={STAGE_HERO_STEPS.has(insideStep) ? 'hero' : 'secondary'} />
+        <DreamStageForegroundClouds
+          ref={fgVideoRef}
+          active={true}
+          size={STAGE_HERO_STEPS.has(insideStep) ? 'hero' : 'secondary'}
+          hidden={insideStep === 'reflection' || CLOSING_STEPS.has(insideStep)}
+          step={insideStep}
+        />
       )}
 
       {/* YES — TAKE ME IN: a real WebGL vortex built from the settled image

@@ -1,0 +1,85 @@
+/* Shares the exact same box formulas as .dr-image-layer (see
+   DreamReconstruction.css) — kept in sync by hand — then scales up from
+   its own center via transform, so no separate width/height math is
+   needed to make the haze bigger than the photo it surrounds. */
+.dr-image-haze {
+  position: absolute;
+  top: 6vh;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: min(50vw, 88.8vh, 948px);
+  height: min(28.1vw, 50vh, 533px);
+  overflow: visible;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease-memory), top 1.8s var(--ease-memory);
+}
+
+.dr-image-haze[data-arrival='true'] {
+  opacity: 1;
+}
+
+.dr-image-haze[data-size='secondary'] {
+  top: 4vh;
+  width: min(26vw, 46vh, 480px);
+  height: min(14.6vw, 26vh, 270px);
+}
+
+.dr-image-haze[data-size='hero'][data-step='reflecting'] {
+  top: 4vh;
+  width: min(32vw, 56.9vh, 608px);
+  height: min(18vw, 32vh, 342px);
+}
+
+/* LIGHT HAZE — a broad, very soft glow well beyond the image's own edges,
+   extremely slow opacity breathing ("barely perceptible", per spec). */
+.dr-haze-glow {
+  position: absolute;
+  inset: 0;
+  transform: scale(1.55);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(var(--haze-rgb), 0.4) 0%, rgba(var(--haze-rgb), 0.14) 45%, transparent 74%);
+  filter: blur(30px);
+  animation: dr-haze-breathe 14s ease-in-out infinite;
+}
+
+@keyframes dr-haze-breathe {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* SECONDARY MIST — a tighter, slightly warmer glow closer to the image
+   edge, drifting vertically and breathing scale very subtly. */
+.dr-haze-mist {
+  position: absolute;
+  inset: 6%;
+  border-radius: 46% 54% 58% 42% / 54% 46% 54% 46%;
+  background: radial-gradient(ellipse at 45% 45%, rgba(255, 250, 240, 0.22) 0%, rgba(var(--haze-rgb), 0.18) 48%, transparent 78%);
+  filter: blur(22px);
+  animation: dr-haze-mist-drift 16s cubic-bezier(0.445, 0.05, 0.55, 0.95) infinite alternate;
+}
+
+@keyframes dr-haze-mist-drift {
+  from {
+    transform: translateY(-8px) scale(0.99);
+  }
+  to {
+    transform: translateY(8px) scale(1.015);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dr-haze-glow,
+  .dr-haze-mist {
+    animation: none !important;
+  }
+  .dr-image-haze {
+    transition-duration: 0.01s !important;
+  }
+}
