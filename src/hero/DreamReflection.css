@@ -73,13 +73,16 @@
 }
 
 /* =====================================================================
-   DREAM ARRIVAL — after the portal, the dreamer has crossed a threshold:
-   the reconstructed image contracts onto the cloud atmosphere behind it
-   (DreamArrivalAtmosphere, rendered by DreamReconstruction) and this
-   fills the space below it with the title, the floating dream-element
-   bubbles, and — at 'reflecting' — the full association question. Never a
-   card, never a pill: each bubble is a soft cloud + luminous energy ring,
-   tinted by its own color from this dream's extracted palette. ===================================================================== */
+   THE DREAM STAGE — after the portal, the dreamer has arrived directly
+   inside the approved moving cloud video (DreamStageVideo, rendered by
+   DreamReconstruction, behind everything here). This fills the space
+   below the large hero image with the title, the dream-element choices in
+   one horizontal row, and — at 'reflecting' — the full association
+   question. Never a card, never a pill, never a circle: each choice is
+   bare luminous typography with an organic energy trace, tinted by this
+   dream's own extracted palette. Positioned to clear the hero image box
+   (see .dr-image-layer[data-arrival] in DreamReconstruction.css — top:6vh,
+   height up to min(40vw, 60vh, 693px); kept in sync by hand). ===================================================================== */
 .dream-arrival {
   position: absolute;
   inset: 0;
@@ -90,7 +93,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 55vh;
+  top: calc(6vh + min(40vw, 72vh, 693px) + 3vh);
   bottom: 2vh;
   display: flex;
   flex-direction: column;
@@ -100,6 +103,9 @@
   padding: 0 4vw;
 }
 
+/* Arrival timeline: hero image resolves 0-1.4s (see dr-image-hero-in in
+   DreamReconstruction.css), title 1.4-2s, subtitle just after, choices
+   emerge 2-3s (staggered per-choice delay, see .da-choice below). */
 .da-title {
   margin: 0;
   font-family: 'Fraunces', Georgia, serif;
@@ -110,7 +116,7 @@
   text-align: center;
   text-shadow: 0 0 1.8rem rgba(var(--accent-rgb), 0.5), 0 0.05em 0.8em rgba(0, 0, 0, 0.6);
   opacity: 0;
-  animation: da-fade-in 1.8s var(--ease-memory) forwards;
+  animation: da-fade-in 1.4s var(--ease-memory) 1.4s forwards;
 }
 
 .da-subtitle {
@@ -122,7 +128,7 @@
   color: var(--dream-warm-neutral);
   text-align: center;
   opacity: 0;
-  animation: da-fade-in 1.8s var(--ease-memory) 0.4s forwards;
+  animation: da-fade-in 1.4s var(--ease-memory) 1.7s forwards;
 }
 
 @keyframes da-fade-in {
@@ -131,121 +137,94 @@
   }
 }
 
-.da-bubbles {
+.da-choice-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: baseline;
   justify-content: center;
-  gap: 2.6rem;
+  gap: 1.6rem 3.6rem;
   pointer-events: auto;
   transform: translate3d(var(--parallax-x, 0px), var(--parallax-y, 0px), 0);
 }
 
-.da-bubble {
+/* ---- Each dream-element choice is bare luminous typography embedded in
+   the clouds — never a button, never a circle/pill. A soft organic aura
+   sits behind the words, a couple of small lights orbit near them as an
+   "energy trace", and an occasional sparkle keeps it feeling alive even
+   at rest. --choice-lift is a custom property (not a literal transform)
+   because the still-active, forwards-held entrance animation below owns
+   `transform` — a plain override on hover would otherwise be silently
+   ignored (see da-choice-in). ---- */
+.da-choice {
   position: relative;
-  width: clamp(104px, 13vw, 150px);
-  height: clamp(104px, 13vw, 150px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: none;
   border: none;
   outline: none;
   cursor: pointer;
-  color: var(--dream-white);
-  /* Routed through a custom property because the still-active, forwards-
-     held appear animation below owns `transform` — a plain override on
-     hover/etc. would silently lose to it otherwise. */
-  --bubble-scale: 1;
+  padding: 0.7em 0.4em;
+  --choice-lift: 0px;
+  --orbit-radius: 2.6em;
   opacity: 0;
-  transform: scale(0.85);
-  animation: da-bubble-in 1.4s var(--ease-memory) forwards, da-bubble-float calc(7s + var(--bi) * 1.1s) ease-in-out infinite;
-  animation-delay: calc(var(--bi) * 0.18s), calc(1.4s + var(--bi) * -2.4s);
+  animation: da-choice-in 1.3s var(--ease-memory) forwards, da-choice-float calc(8s + var(--ci) * 1.3s) ease-in-out infinite;
+  animation-delay: calc(2s + var(--ci) * 0.22s), calc(3.4s + var(--ci) * -2.7s);
 }
 
-@keyframes da-bubble-in {
+@keyframes da-choice-in {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(calc(10px + var(--choice-lift, 0px)));
+  }
   to {
     opacity: 1;
-    transform: scale(var(--bubble-scale, 1));
+    filter: blur(0);
+    transform: translateY(var(--choice-lift, 0px));
   }
 }
 
-@keyframes da-bubble-float {
+/* Idle floating uses `margin`, never `transform` — composing two
+   simultaneous animations on the same property is unreliable (only one
+   wins), the same reasoning documented for da-bubble-float previously. */
+@keyframes da-choice-float {
   0%,
   100% {
-    margin: 0 0;
+    margin-top: 0;
   }
   50% {
-    margin: -8px 4px;
+    margin-top: -4px;
   }
 }
 
-.da-bubble-cloud {
+.da-choice-aura {
   position: absolute;
-  inset: -20%;
-  border-radius: 48% 52% 55% 45% / 52% 48% 52% 48%;
-  background: radial-gradient(ellipse at 38% 34%, rgba(var(--bubble-rgb), 0.34) 0%, rgba(var(--bubble-rgb), 0.1) 55%, transparent 78%);
-  filter: blur(11px);
+  inset: -70% -30%;
+  border-radius: 46% 54% 58% 42% / 54% 46% 54% 46%;
+  background: radial-gradient(ellipse at 45% 45%, rgba(var(--trace-rgb), 0.32) 0%, rgba(var(--trace-rgb), 0.1) 52%, transparent 78%);
+  filter: blur(14px);
+  opacity: 0.7;
   pointer-events: none;
+  animation: da-choice-aura-breathe calc(4.4s + var(--ci) * 0.5s) ease-in-out infinite;
 }
 
-.da-bubble-ring {
-  position: absolute;
-  inset: 6%;
-  border-radius: 50%;
-  border: 1px solid rgba(var(--bubble-rgb), 0.6);
-  background: radial-gradient(ellipse at 35% 30%, rgba(255, 255, 255, 0.08), transparent 60%);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  box-shadow: 0 0 1.6rem rgba(var(--bubble-rgb), 0.3), inset 0 0 1.2rem rgba(var(--bubble-rgb), 0.16);
-  animation: da-ring-breathe 5s ease-in-out infinite;
-  transition: box-shadow 0.6s var(--ease-soft), border-color 0.6s var(--ease-soft);
-}
-
-@keyframes da-ring-breathe {
+@keyframes da-choice-aura-breathe {
   0%,
   100% {
-    box-shadow: 0 0 1.6rem rgba(var(--bubble-rgb), 0.28), inset 0 0 1.2rem rgba(var(--bubble-rgb), 0.15);
-  }
-  50% {
-    box-shadow: 0 0 2.2rem rgba(var(--bubble-rgb), 0.42), inset 0 0 1.6rem rgba(var(--bubble-rgb), 0.22);
-  }
-}
-
-/* A light pulse traveling around the circumference on hover — an
-   expanding, fading ring rather than a literal moving dot. */
-.da-bubble-pulse {
-  position: absolute;
-  inset: 6%;
-  border-radius: 50%;
-  border: 1px solid rgba(var(--bubble-rgb), 0.8);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.da-bubble:hover .da-bubble-pulse,
-.da-bubble:focus-visible .da-bubble-pulse {
-  animation: da-pulse-ring 1.5s ease-out infinite;
-}
-
-@keyframes da-pulse-ring {
-  0% {
-    opacity: 0.7;
+    opacity: 0.55;
     transform: scale(1);
   }
-  100% {
-    opacity: 0;
-    transform: scale(1.4);
+  50% {
+    opacity: 0.85;
+    transform: scale(1.1);
   }
 }
 
-.da-bubble-particles {
+.da-choice-trace {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 
-.da-bubble-particle {
+.da-choice-trace-particle {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -253,87 +232,157 @@
   height: 3px;
   margin: -1.5px 0 0 -1.5px;
   border-radius: 50%;
-  background: rgb(var(--bubble-rgb));
-  box-shadow: 0 0 0.5rem rgba(var(--bubble-rgb), 0.85);
-  opacity: 0.75;
-  animation: da-particle-orbit 7s linear infinite;
+  background: rgb(var(--trace-rgb));
+  box-shadow: 0 0 0.5rem rgba(var(--trace-rgb), 0.85);
+  opacity: 0.7;
+  animation: da-trace-orbit 6s linear infinite;
   transition: animation-duration 0.4s var(--ease-soft);
 }
 
-.da-bubble-particle--b {
-  animation-duration: 10s;
+.da-choice-trace-particle--b {
+  animation-duration: 8.5s;
   animation-direction: reverse;
-  opacity: 0.55;
+  opacity: 0.45;
 }
 
-.da-bubble-particle--c {
-  width: 2px;
-  height: 2px;
-  margin: -1px 0 0 -1px;
-  animation-duration: 5.5s;
-  opacity: 0.5;
-}
-
-@keyframes da-particle-orbit {
+@keyframes da-trace-orbit {
   from {
-    transform: rotate(0deg) translateX(58%) rotate(0deg);
+    transform: rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg);
   }
   to {
-    transform: rotate(360deg) translateX(58%) rotate(-360deg);
+    transform: rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg);
   }
 }
 
-.da-bubble-label {
-  position: relative;
-  max-width: 80%;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: clamp(0.68rem, 1.3vw, 0.82rem);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-align: center;
-  line-height: 1.3;
-  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.6);
+/* An occasional single twinkle — deliberately not synchronized between
+   choices (each has its own phase via --ci). */
+.da-choice-sparkle {
+  position: absolute;
+  top: -0.3em;
+  right: 10%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0.5rem 0.05rem rgba(var(--trace-rgb), 0.9);
+  opacity: 0;
+  animation: da-choice-sparkle-twinkle calc(6s + var(--ci) * 1.1s) ease-in-out infinite;
+  animation-delay: calc(var(--ci) * -1.7s);
+}
+
+@keyframes da-choice-sparkle-twinkle {
+  0%,
+  88%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  94% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+}
+
+/* A one-shot pulse of light traveling outward through the nearby mist,
+   triggered only on selection (see .is-selected below). */
+.da-choice-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3em;
+  height: 3em;
+  margin: -1.5em 0 0 -1.5em;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(var(--trace-rgb), 0.5) 40%, transparent 74%);
+  opacity: 0;
   pointer-events: none;
 }
 
-.da-bubble:hover:not(:disabled),
-.da-bubble:focus-visible {
-  --bubble-scale: 1.07;
+.da-choice-text {
+  position: relative;
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.05rem, 2.1vw, 1.55rem);
+  letter-spacing: 0.01em;
+  color: var(--dream-white);
+  white-space: nowrap;
+  text-shadow: 0 0 1.2rem rgba(var(--trace-rgb), 0.4), 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+  transition: text-shadow 0.5s var(--ease-soft);
 }
 
-.da-bubble:hover:not(:disabled) .da-bubble-ring,
-.da-bubble:focus-visible .da-bubble-ring {
-  border-color: rgba(var(--bubble-rgb), 0.95);
-  box-shadow: 0 0 2.8rem rgba(var(--bubble-rgb), 0.55), inset 0 0 1.8rem rgba(var(--bubble-rgb), 0.3);
+.da-choice:hover:not(:disabled),
+.da-choice:focus-visible {
+  --choice-lift: -5px;
+  --orbit-radius: 1.6em;
 }
 
-.da-bubble:hover:not(:disabled) .da-bubble-particle,
-.da-bubble:focus-visible .da-bubble-particle {
-  animation-duration: 3s;
+.da-choice:hover:not(:disabled) .da-choice-aura,
+.da-choice:focus-visible .da-choice-aura {
+  opacity: 1;
+  filter: blur(16px);
 }
 
-/* Surrounding bubbles recede a touch while one is focused. */
-.da-bubbles:has(.da-bubble:hover) .da-bubble:not(:hover):not(:disabled) {
-  --bubble-scale: 0.95;
-  filter: blur(1px);
+.da-choice:hover:not(:disabled) .da-choice-trace-particle,
+.da-choice:focus-visible .da-choice-trace-particle {
+  animation-duration: 1.8s;
 }
 
-.da-bubble.is-selected {
+.da-choice:hover:not(:disabled) .da-choice-text,
+.da-choice:focus-visible .da-choice-text {
+  text-shadow: 0 0 2rem rgba(var(--trace-rgb), 0.75), 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+}
+
+/* Surrounding choices recede a touch while one is focused. */
+.da-choice-row:has(.da-choice:hover) .da-choice:not(:hover):not(:disabled) {
+  opacity: 0.6;
+}
+
+.da-choice.is-selected {
   animation: none;
-  transform: scale(1.28);
-  transition: transform 1.6s var(--ease-memory);
+  --choice-lift: 0px;
+  transform: scale(1.3);
+  transition: transform 1.4s var(--ease-memory);
 }
 
-.da-bubble.is-selected .da-bubble-ring {
-  border-color: rgba(var(--bubble-rgb), 1);
-  box-shadow: 0 0 3.6rem rgba(var(--bubble-rgb), 0.75), inset 0 0 2.4rem rgba(var(--bubble-rgb), 0.4);
+.da-choice.is-selected .da-choice-aura {
+  animation: none;
+  opacity: 1;
+  transform: scale(0.6);
+  filter: blur(10px);
+  transition: transform 0.6s var(--ease-memory), filter 0.6s var(--ease-memory);
 }
 
-.da-bubble.is-fading {
+.da-choice.is-selected .da-choice-trace {
+  transform: scale(0.5);
+  opacity: 0;
+  transition: transform 0.6s var(--ease-memory), opacity 0.6s var(--ease-memory);
+}
+
+.da-choice.is-selected .da-choice-text {
+  text-shadow: 0 0 2.6rem rgba(var(--trace-rgb), 0.9), 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+}
+
+.da-choice.is-selected .da-choice-pulse {
+  animation: da-choice-select-pulse 1s var(--ease-memory) forwards;
+}
+
+@keyframes da-choice-select-pulse {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(5);
+  }
+}
+
+.da-choice.is-fading {
   animation: none;
   opacity: 0;
   filter: blur(16px);
-  transform: scale(0.55);
+  transform: scale(0.7);
   transition:
     opacity 1.1s var(--ease-soft),
     filter 1.1s var(--ease-soft),
@@ -361,12 +410,20 @@
   }
 }
 
+/* ---- Writing into light — no box, no rectangle: a luminous line beneath
+   the words with a point of light that runs along it continuously, and a
+   scatter of sparks that come alive once the dreamer starts typing. ---- */
+.dr-writing-surface {
+  position: relative;
+  width: 100%;
+}
+
 .dr-response-textarea {
+  position: relative;
   width: 100%;
   min-height: 3.6em;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(var(--accent-rgb, 244, 240, 232), 0.32);
   color: var(--dream-white);
   font-family: 'Inter', system-ui, sans-serif;
   font-size: clamp(1rem, 2vw, 1.15rem);
@@ -376,7 +433,6 @@
   outline: none;
   padding: 0.5em 0.15em 0.7em;
   text-shadow: 0 0.04em 0.5em rgba(0, 0, 0, 0.4);
-  transition: border-color 0.5s var(--ease-soft), box-shadow 0.5s var(--ease-soft);
 }
 
 .dr-response-textarea::placeholder {
@@ -384,9 +440,89 @@
   opacity: 0.65;
 }
 
-.dr-response-textarea:focus {
-  border-bottom-color: rgba(var(--accent-rgb, 244, 240, 232), 0.75);
-  box-shadow: 0 1px 0.8rem rgba(var(--accent-rgb, 244, 240, 232), 0.3);
+.dr-writing-line {
+  position: relative;
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb, 244, 240, 232), 0.4) 50%, transparent);
+  overflow: visible;
+}
+
+.dr-writing-line-glow {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 22%;
+  height: 8px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.95) 0%, rgba(var(--accent-rgb, 244, 240, 232), 0.6) 45%, transparent 78%);
+  filter: blur(2px);
+  animation: dr-line-travel 4.5s ease-in-out infinite;
+}
+
+@keyframes dr-line-travel {
+  0%,
+  100% {
+    left: -2%;
+    opacity: 0.5;
+  }
+  50% {
+    left: 80%;
+    opacity: 1;
+  }
+}
+
+.has-text .dr-writing-line {
+  background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb, 244, 240, 232), 0.75) 50%, transparent);
+}
+
+.has-text .dr-writing-line-glow {
+  animation-duration: 1.8s;
+}
+
+.dr-response-textarea:focus ~ .dr-writing-line .dr-writing-line-glow {
+  animation-duration: 2.4s;
+}
+
+.dr-writing-sparks {
+  position: absolute;
+  inset: -0.6em -4% -1.2em;
+  pointer-events: none;
+}
+
+.dr-writing-spark {
+  position: absolute;
+  bottom: 0;
+  left: calc(8% + (var(--wsi) * 16%));
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: rgb(var(--accent-rgb, 244, 240, 232));
+  box-shadow: 0 0 0.5rem rgba(var(--accent-rgb, 244, 240, 232), 0.8);
+  opacity: 0;
+  animation: dr-spark-drift calc(2.6s + var(--wsi) * 0.3s) ease-out infinite;
+  animation-delay: calc(var(--wsi) * -0.4s);
+  animation-play-state: paused;
+}
+
+.has-text .dr-writing-spark {
+  animation-play-state: running;
+}
+
+@keyframes dr-spark-drift {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+  35% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-1.6em) scale(1.1);
+  }
 }
 
 /* ---- Waiting for the real reflection engine — same restrained language
@@ -458,6 +594,7 @@
   bottom: 21px;
   width: 1px;
   background: rgba(244, 240, 232, 0.16);
+  overflow: visible;
 }
 
 .dr-node-line-fill {
@@ -468,6 +605,44 @@
   height: calc(var(--lit-fraction, 0) * 100%);
   background: linear-gradient(to bottom, transparent, rgb(var(--accent-rgb)));
   transition: height 1.8s var(--ease-memory);
+  overflow: visible;
+}
+
+/* A point of light that continuously travels the lit portion of the path —
+   the meaning is actively moving through the dream, not a static bar. */
+.dr-node-line-spark {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: rgb(255, 255, 255);
+  box-shadow: 0 0 0.9rem 0.15rem rgba(var(--accent-rgb), 1);
+  opacity: 0;
+  animation: dr-node-spark-travel 2.6s ease-in-out infinite;
+}
+
+.dream-thought-sequence[data-stage='0'] .dr-node-line-spark {
+  animation-play-state: paused;
+}
+
+@keyframes dr-node-spark-travel {
+  0% {
+    top: 0%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
 }
 
 .dr-node-line-fill::after {
@@ -556,7 +731,7 @@
 }
 
 .dr-node-row[data-state='settled'] .dr-thought {
-  opacity: 0.55;
+  opacity: 0.7;
   filter: blur(0);
   transform: translateX(0) scale(1);
 }
@@ -571,23 +746,31 @@
   color: var(--dream-warm-neutral-dim);
 }
 
+.dr-node-row[data-state='active'] .dr-thought-label {
+  color: rgb(var(--accent-rgb));
+}
+
 .dr-thought-text {
   margin: 0;
-  max-width: min(48vw, 34em);
+  max-width: min(50vw, 36em);
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 400;
-  font-size: clamp(18px, 1.5vw, 27px);
-  line-height: 1.4;
+  font-size: clamp(21px, 1.9vw, 33px);
+  line-height: 1.42;
   color: var(--dream-white);
-  text-shadow: 0 0.06em 0.7em rgba(0, 0, 0, 0.6);
+  text-shadow: 0 0.06em 0.7em rgba(0, 0, 0, 0.7);
+}
+
+.dr-node-row[data-state='active'] .dr-thought-text {
+  text-shadow: 0 0.06em 0.7em rgba(0, 0, 0, 0.7), 0 0 1.8rem rgba(var(--accent-rgb), 0.35);
 }
 
 .dr-thought--thread .dr-thought-text {
-  font-size: clamp(21px, 1.8vw, 32px);
+  font-size: clamp(24px, 2.2vw, 38px);
 }
 
 .dr-thought--question .dr-thought-text {
-  font-size: clamp(23px, 2vw, 35px);
+  font-size: clamp(26px, 2.5vw, 42px);
   font-style: italic;
 }
 
@@ -717,23 +900,29 @@
   .dr-node-line-fill,
   .dr-lenses-toggle,
   .dr-continue-wrap,
-  .da-bubble-ring,
-  .da-bubble-particle {
+  .da-choice-text {
     transition-duration: 0.01s !important;
   }
-  .da-bubbles,
+  .dr-writing-line-glow,
+  .dr-writing-spark,
+  .dr-node-line-spark {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+  .da-choice-row,
   .dream-thought-sequence {
     transform: none !important;
   }
-  .da-bubble,
-  .da-bubble-ring,
-  .da-bubble-pulse,
-  .da-bubble-particle {
+  .da-choice,
+  .da-choice-aura,
+  .da-choice-trace-particle,
+  .da-choice-sparkle,
+  .da-choice-pulse {
     animation: none !important;
   }
-  .da-bubble {
+  .da-choice {
     opacity: 1 !important;
-    transform: scale(1) !important;
+    transform: none !important;
   }
   .dr-question,
   .dr-response,

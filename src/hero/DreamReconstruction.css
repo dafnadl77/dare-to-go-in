@@ -210,21 +210,57 @@
   opacity: 1;
 }
 
-/* ---- DREAM ARRIVAL — the reconstructed image contracts into a framed
-   memory resting on the cloud atmosphere behind it (DreamArrivalAtmosphere)
-   rather than staying a full-bleed backdrop, for exactly the arrival/
-   selection/question steps. Its edges dissolve via a soft mask rather than
-   a hard crop. Reverts to full-bleed automatically once those steps end. ---- */
+/* =====================================================================
+   THE DREAM STAGE — the reconstructed image is the hero of the approved
+   video cloud world (see DreamStageVideo), not a card floating over it.
+   No border-radius, no box-shadow: only a broad soft mask feathers the
+   OUTER edges while the center stays fully sharp, so no rectangular
+   boundary can be perceived. Two sizes share the exact same centering
+   math (top/left/right/margin-inline, never transform, so the existing
+   pointer-parallax translate3d on the base .dr-image-layer rule keeps
+   working untouched):
+     "hero"      (prompt/choices/selected/reflecting) — 55-65vw, the
+                 dominant element of the composition.
+     "secondary" (interpreting/reflection/closing/…) — smaller and
+                 quieter so the reflection path / final choice have room,
+                 while the image stays visibly present throughout.
+   DreamImageFrame's foreground mist uses the identical box for whichever
+   size is active — kept in sync by hand, see DreamImageFrame.css. ===================================================================== */
+.dr-image-layer[data-arrival='true'],
+.dr-image-layer[data-secondary='true'] {
+  top: 6vh;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  -webkit-mask-image: radial-gradient(ellipse 68% 68% at 50% 50%, black 54%, transparent 100%);
+  mask-image: radial-gradient(ellipse 68% 68% at 50% 50%, black 54%, transparent 100%);
+  transition: width 1.8s var(--ease-memory), height 1.8s var(--ease-memory), top 1.8s var(--ease-memory);
+}
+
 .dr-image-layer[data-arrival='true'] {
-  inset: 4vh 15vw 42vh 15vw;
-  border-radius: min(4vw, 48px);
-  -webkit-mask-image: radial-gradient(ellipse 84% 80% at 50% 44%, black 58%, transparent 100%);
-  mask-image: radial-gradient(ellipse 84% 80% at 50% 44%, black 58%, transparent 100%);
-  box-shadow: 0 6vh 10vh -2vh rgba(var(--accent-rgb), 0.4);
-  transition:
-    inset 1.8s var(--ease-memory),
-    border-radius 1.8s var(--ease-memory),
-    box-shadow 1.8s var(--ease-memory);
+  /* Each width/height pair keeps an exact 3:2 ratio (matching the
+     generated image's own aspect ratio) across all three branches, so
+     whichever min() branch binds never distorts the box — only a plain
+     vh-based cap (rather than pairing 60vw with a vh-equivalent of itself)
+     would fight the vw branch on ordinary 16:9 screens. */
+  width: min(60vw, 108vh, 1040px);
+  height: min(40vw, 72vh, 693px);
+}
+
+/* WHEN YOU THINK ABOUT… — the image stays present but eases slightly
+   upward and quieter while the association question takes the foreground,
+   per the approved arrival spec (never a full resize down to "secondary"
+   here — the dreamer just chose this moment, it should still feel large). */
+.dr-image-layer[data-arrival='true'][data-step='reflecting'] {
+  top: 4vh;
+  filter: brightness(0.88) saturate(0.94);
+  transition: width 1.8s var(--ease-memory), height 1.8s var(--ease-memory), top 1.8s var(--ease-memory), filter 1.8s var(--ease-memory);
+}
+
+.dr-image-layer[data-secondary='true'] {
+  top: 4vh;
+  width: min(28vw, 54vh, 460px);
+  height: min(18.7vw, 36vh, 307px);
 }
 
 /* ENTER THE DREAM — a very slow, almost imperceptible push into the image
@@ -259,6 +295,24 @@
 .is-phase-inside .dr-image-current {
   transform: scale(1.055);
   animation: dr-ambient-drift 46s ease-in-out infinite;
+}
+
+/* THE DREAM STAGE arrival — the hero image resolves from soft to sharp the
+   instant the portal hands off (0-1.4s of the approved arrival timeline).
+   A second, finite animation layered onto the same element's `filter`
+   only — never `transform`, which the always-running ambient drift above
+   already owns — so the two compose without conflict. */
+.is-phase-inside .dr-image-layer[data-arrival='true'] .dr-image-current {
+  animation: dr-ambient-drift 46s ease-in-out infinite, dr-image-hero-in 1.4s var(--ease-memory) forwards;
+}
+
+@keyframes dr-image-hero-in {
+  from {
+    filter: brightness(1) blur(7px);
+  }
+  to {
+    filter: brightness(1) blur(0);
+  }
 }
 
 @keyframes dr-ambient-drift {
@@ -771,38 +825,6 @@
   margin-top: 1.8rem;
 }
 
-/* ---- Inside the dream — no box, no panel, just quiet typography drifting
-   in and out over the living image. Both lines stay mounted the whole time
-   'inside' so their opacity transitions can actually fade, driven purely by
-   the data-step attribute (no imperative class juggling). ---- */
-.dream-world-text {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.dw-line {
-  position: absolute;
-  margin: 0;
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 400;
-  font-size: clamp(1.1rem, 2.6vw, 1.6rem);
-  letter-spacing: 0.02em;
-  color: var(--dream-white);
-  text-align: center;
-  text-shadow: 0 0.05em 0.7em rgba(0, 0, 0, 0.55);
-  opacity: 0;
-  transition: opacity 2s var(--ease-memory);
-}
-
-.dream-world-text[data-step='look-around'] .dw-line--look {
-  opacity: 0.85;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .dr-blur-veil,
   .dr-visual,
@@ -815,8 +837,7 @@
   .dr-line--felt,
   .dr-choices,
   .dr-choice,
-  .dr-correct-textarea,
-  .dw-line {
+  .dr-correct-textarea {
     transition-duration: 0.01s !important;
   }
   .dr-fragment {

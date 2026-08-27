@@ -7,7 +7,8 @@ import { deriveDreamWorldEffects } from './dreamWorldEffects';
 import { usePointerParallax } from './usePointerParallax';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
 import DreamPortalTransition from './DreamPortalTransition';
-import DreamArrivalAtmosphere from './DreamArrivalAtmosphere';
+import DreamStageVideo from './DreamStageVideo';
+import DreamImageFrame from './DreamImageFrame';
 import DreamWorld from './DreamWorld';
 import DreamReflection from './DreamReflection';
 import DreamClosing from './DreamClosing';
@@ -26,14 +27,12 @@ export type ReconstructionPhase =
   | 'entering'
   | 'inside';
 
-/** Sub-steps inside the 'inside' phase — a quiet look, LOOK AROUND fades in
-    and out, then WHAT STANDS OUT TO YOU? → choices → selected → reflecting
-    on the chosen element → interpreting (real reflection engine call) →
-    reflection (terminal — the grounded reflection is shown). */
+/** Sub-steps inside the 'inside' phase. The portal hands off directly into
+    'prompt' — no quiet/look-around pause, no bedroom flash — then WHAT
+    STANDS OUT TO YOU? → choices → selected → reflecting on the chosen
+    element → interpreting (real reflection engine call) → reflection
+    (terminal — the grounded reflection is shown). */
 export type InsideStep =
-  | 'quiet'
-  | 'look-around'
-  | 'quiet2'
   | 'prompt'
   | 'choices'
   | 'selected'
@@ -50,11 +49,15 @@ const REFLECTION_ENGINE_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selec
 const CLOSING_STEPS = new Set<InsideStep>(['closing', 'saving', 'saved', 'letting-go', 'gone']);
 const DISSOLVING_STEPS = new Set<InsideStep>(['letting-go', 'gone']);
 const SAVING_STEPS = new Set<InsideStep>(['saving']);
-/** PORTAL EXIT → DREAM ARRIVAL → DREAM ELEMENT SELECTION → ASSOCIATION
-    QUESTION — the reconstructed image contracts onto the cloud atmosphere
-    for exactly these steps, then returns to its full-bleed treatment for
-    the (unrelated, untouched) interpreting/reflection/closing steps. */
-const ARRIVAL_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting']);
+/** PORTAL EXIT → DREAM STAGE ARRIVAL → DREAM ELEMENT SELECTION →
+    ASSOCIATION QUESTION — the reconstructed image is the large "hero" of
+    the Dream Stage for exactly these steps. */
+const STAGE_HERO_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting']);
+/** interpreting/reflection/closing — the image stays present but shrinks to
+    a quieter, secondary size so the reflection path and final choice have
+    room; the moving Dream Stage video remains the world underneath either
+    way (see DreamStageVideo, active for the entire 'inside' phase). */
+const STAGE_SECONDARY_STEPS = new Set<InsideStep>(['interpreting', 'reflection', 'closing', 'saving', 'saved', 'letting-go', 'gone']);
 
 interface DreamReconstructionProps {
   phase: ReconstructionPhase;
@@ -166,13 +169,13 @@ export default function DreamReconstruction({
         <div className="dr-silhouette" />
       </div>
 
-      {/* DREAM ARRIVAL — the rich, colorful nebula/cloud space the image
-          rests inside once selecting/answering; sits behind the image
-          layer in DOM order, only meaningfully visible while the image
-          itself has contracted to make room for it. */}
-      {phase === 'inside' && (
-        <DreamArrivalAtmosphere palette={dreamPalette} active={ARRIVAL_STEPS.has(insideStep)} />
-      )}
+      {/* THE DREAM STAGE — the approved moving cloud video, the actual
+          post-portal environment (not a CSS/canvas recreation of one).
+          Mounted slightly early (through 'entering' too) so it's already
+          playing/buffered the instant the vortex hands off, then simply
+          revealed — no load flash, no CSS-generated backdrop of any kind
+          behind it. */}
+      {(phase === 'entering' || phase === 'inside') && <DreamStageVideo active={phase === 'inside'} />}
 
       {/* The real generated dream — never a separate card/gallery, always
           overtaking the room itself through organic, irregular masks. */}
@@ -184,7 +187,9 @@ export default function DreamReconstruction({
           data-dissolving={DISSOLVING_STEPS.has(insideStep) ? 'true' : 'false'}
           data-saving={SAVING_STEPS.has(insideStep) ? 'true' : 'false'}
           data-portal-active={phase === 'entering' ? 'true' : 'false'}
-          data-arrival={ARRIVAL_STEPS.has(insideStep) ? 'true' : 'false'}
+          data-arrival={phase === 'inside' && STAGE_HERO_STEPS.has(insideStep) ? 'true' : 'false'}
+          data-secondary={phase === 'inside' && STAGE_SECONDARY_STEPS.has(insideStep) ? 'true' : 'false'}
+          data-step={phase === 'inside' ? insideStep : undefined}
           aria-hidden="true"
           style={{ '--accent-rgb': `${(accentColor ?? FALLBACK_ACCENT).r}, ${(accentColor ?? FALLBACK_ACCENT).g}, ${(accentColor ?? FALLBACK_ACCENT).b}` } as CSSProperties}
         >
@@ -212,6 +217,13 @@ export default function DreamReconstruction({
           )}
           {SAVING_STEPS.has(insideStep) && <div className="dr-memory-frame" />}
         </div>
+      )}
+
+      {/* DREAM STAGE — foreground cloud/mist passing in front of the
+          image's lower edges, so the video's clouds visibly overlap the
+          photo rather than sitting only behind it. */}
+      {(displayedImageUrl || incomingImageUrl) && phase === 'inside' && (
+        <DreamImageFrame active={true} palette={dreamPalette} size={STAGE_HERO_STEPS.has(insideStep) ? 'hero' : 'secondary'} />
       )}
 
       {/* YES — TAKE ME IN: a real WebGL vortex built from the settled image
@@ -278,18 +290,11 @@ export default function DreamReconstruction({
         </div>
       )}
 
-      {/* ENTER THE DREAM — the existing generated image is the entire visual
-          foundation; DreamWorld only adds subtle motion derived from the
-          real DreamAnalysis on top of it. No new image, no new content. */}
-      {(phase === 'entering' || phase === 'inside') && worldEffects && (
-        <DreamWorld effects={worldEffects} accentColor={accentColor} />
-      )}
-
-      {phase === 'inside' && (insideStep === 'quiet' || insideStep === 'look-around' || insideStep === 'quiet2') && (
-        <div className="dream-world-text" data-step={insideStep} aria-hidden="true">
-          <p className="dw-line dw-line--look">LOOK AROUND.</p>
-        </div>
-      )}
+      {/* ENTER THE DREAM — only during the vortex crossing itself; once
+          'inside', the approved Dream Stage video is the entire
+          environment and DreamWorld's generated room/water ambience must
+          not layer on top of it. */}
+      {phase === 'entering' && worldEffects && <DreamWorld effects={worldEffects} accentColor={accentColor} />}
 
       {phase === 'inside' && REFLECTION_ENGINE_STEPS.has(insideStep) && (
         <DreamReflection

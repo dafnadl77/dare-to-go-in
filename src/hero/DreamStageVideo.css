@@ -1,0 +1,22 @@
+.dream-stage-video-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  /* Fast, near-instant reveal — the vortex's own fade covers the seam, but
+     the stage itself must never visibly fade in on its own afterwards. */
+  transition: opacity 0.25s linear;
+}
+
+.dream-stage-video-layer[data-active='true'] {
+  opacity: 1;
+}
+
+.dream-stage-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

@@ -1,0 +1,94 @@
+/* Shares the exact same box as .dr-image-layer's hero/secondary rules (see
+   DreamReconstruction.css) so the mist always tracks the image precisely —
+   kept in a separate stylesheet only for organization. Both must be
+   updated together if either changes. */
+.dr-image-frame {
+  position: absolute;
+  top: 6vh;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  overflow: visible;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity 1.2s var(--ease-memory),
+    width 1.8s var(--ease-memory),
+    height 1.8s var(--ease-memory),
+    top 1.8s var(--ease-memory);
+}
+
+.dr-image-frame[data-arrival='true'] {
+  opacity: 1;
+}
+
+.dr-image-frame[data-size='hero'] {
+  width: min(60vw, 108vh, 1040px);
+  height: min(40vw, 72vh, 693px);
+}
+
+.dr-image-frame[data-size='secondary'] {
+  top: 4vh;
+  width: min(28vw, 54vh, 460px);
+  height: min(18.7vw, 36vh, 307px);
+}
+
+.dr-cloud-wisp {
+  position: absolute;
+  border-radius: 44% 56% 58% 42% / 55% 45% 58% 42%;
+  background: radial-gradient(ellipse at 40% 35%, rgba(var(--wisp-rgb), 0.95) 0%, rgba(var(--wisp-rgb), 0.4) 45%, transparent 74%);
+  filter: blur(26px);
+  mix-blend-mode: screen;
+  animation: dr-wisp-drift calc(16s + var(--wi) * 1.6s) ease-in-out infinite;
+  animation-delay: calc(var(--wi) * -2.4s);
+}
+
+@keyframes dr-wisp-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(2%, -2%) scale(1.08);
+  }
+}
+
+.dr-frame-sparkles {
+  position: absolute;
+  inset: -6%;
+}
+
+.dr-frame-sparkle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgb(var(--sparkle-rgb));
+  box-shadow: 0 0 0.6rem 0.05rem rgba(var(--sparkle-rgb), 0.9), 0 0 0.15rem #fff;
+  opacity: 0;
+  animation: dr-sparkle-twinkle calc(3.2s + var(--si) * 0.35s) ease-in-out infinite;
+  animation-delay: calc(var(--si) * -0.6s);
+}
+
+@keyframes dr-sparkle-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dr-cloud-wisp,
+  .dr-frame-sparkle {
+    animation: none !important;
+    opacity: 0.5 !important;
+  }
+  .dr-image-frame {
+    transition-duration: 0.01s !important;
+  }
+}

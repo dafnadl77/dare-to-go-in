@@ -40,13 +40,13 @@ const RECONSTRUCTING_MIN_MS = 2200;
 // Must stay in sync with the CSS reveal animation duration (DreamReconstruction.css).
 const IMAGING_MS = 6500;
 const SETTLE_PAUSE_MS = 1500;
-const INSIDE_QUIET_MS = 5000;
-const LOOK_AROUND_VISIBLE_MS = 3000;
-const INSIDE_QUIET2_MS = 1800;
-// WHAT STANDS OUT TO YOU? — the question holds alone briefly, then the
-// real choices reveal beneath it; after picking one, the others fade
-// before the reflection question takes over.
-const PROMPT_TO_CHOICES_MS = 1500;
+// The portal hands off directly into the Dream Stage — no quiet/look-around
+// pause, no bedroom flash. THIS IS YOUR DREAM's title materializes while the
+// image is still resolving, then the real choices reveal beneath it; after
+// picking one, the others fade before the reflection question takes over.
+// Tuned to land within the approved arrival timeline (image 0-1.4s, title
+// 1.4-2s, choices 2-3s — see DreamReflection.css's da-title/da-choice-row).
+const PROMPT_TO_CHOICES_MS = 2000;
 // The selected bubble brightens, the others dissolve into the clouds, the
 // choice moves toward center and its light spreads before the question
 // materializes — a real multi-beat transition, not an instant swap.
@@ -109,9 +109,10 @@ export default function HeroDream() {
   const [brief, setBrief] = useState<ReconstructionBrief | null>(null);
   const [fragments, setFragments] = useState<string[]>([]);
   const [corrections, setCorrections] = useState<string[]>([]);
-  // ENTER THE DREAM — the quiet look → "LOOK AROUND." → pause → "WHAT
-  // STANDS OUT TO YOU?" → choices → reflection. Terminal at 'stored'.
-  const [insideStep, setInsideStep] = useState<InsideStep>('quiet');
+  // ENTER THE DREAM — the portal hands off directly into the Dream Stage at
+  // 'prompt' ("WHAT STANDS OUT TO YOU?") → choices → reflection. Terminal at
+  // 'stored'.
+  const [insideStep, setInsideStep] = useState<InsideStep>('prompt');
   // The selectable elements are derived once from the real DreamAnalysis
   // (never invented, never hardcoded per-dream) — see dreamElements.ts.
   const [dreamElements, setDreamElements] = useState<string[]>([]);
@@ -342,27 +343,15 @@ export default function HeroDream() {
   // never drift apart.
   const handlePortalComplete = () => setReconstructionPhase('inside');
 
-  // 'inside': a quiet look at the living image, then "LOOK AROUND." fades
-  // in and back out, a short pause, then the terminal "WHAT STANDS OUT TO
-  // YOU?" — nothing advances past that on its own.
+  // 'inside': the Dream Stage is immediate — the portal's end IS the
+  // stage's beginning. Straight to the terminal "WHAT STANDS OUT TO YOU?",
+  // no quiet pause, no look-around, no return to a bare fullscreen image.
   useEffect(() => {
-    if (reconstructionPhase === 'inside') setInsideStep('quiet');
+    if (reconstructionPhase === 'inside') setInsideStep('prompt');
   }, [reconstructionPhase]);
 
   useEffect(() => {
     if (reconstructionPhase !== 'inside') return;
-    if (insideStep === 'quiet') {
-      const t = setTimeout(() => setInsideStep('look-around'), INSIDE_QUIET_MS);
-      return () => clearTimeout(t);
-    }
-    if (insideStep === 'look-around') {
-      const t = setTimeout(() => setInsideStep('quiet2'), LOOK_AROUND_VISIBLE_MS);
-      return () => clearTimeout(t);
-    }
-    if (insideStep === 'quiet2') {
-      const t = setTimeout(() => setInsideStep('prompt'), INSIDE_QUIET2_MS);
-      return () => clearTimeout(t);
-    }
     // 'prompt' holds alone briefly, then the real choices reveal beneath it
     // — but only if there actually are any real elements to choose from.
     if (insideStep === 'prompt' && dreamElements.length > 0) {
@@ -524,7 +513,7 @@ export default function HeroDream() {
   // resolve is a harmless no-op.
   const handleGoHome = () => {
     setReconstructionPhase('none');
-    setInsideStep('quiet');
+    setInsideStep('prompt');
     setBrief(null);
     setFragments([]);
     setDreamElements([]);

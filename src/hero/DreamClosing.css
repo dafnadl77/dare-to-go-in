@@ -99,6 +99,27 @@
   font-size: clamp(1.8rem, 3.6vw, 2.6rem);
 }
 
+/* ---- DREAM SAVED. — materializes out of the flash's light rather than a
+   plain fade: starts bright/blurred/oversized and settles into focus. ---- */
+.dc-title--materialize {
+  animation: dc-materialize 1.6s var(--ease-memory) forwards;
+}
+
+@keyframes dc-materialize {
+  0% {
+    opacity: 0;
+    filter: blur(18px) brightness(2.4);
+    transform: scale(1.15);
+    text-shadow: 0 0 3rem rgba(var(--accent-rgb, 244, 240, 232), 0.9);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0) brightness(1);
+    transform: scale(1);
+    text-shadow: 0 0.05em 0.9em rgba(0, 0, 0, 0.6);
+  }
+}
+
 /* The two choices reveal only once the title has fully landed — this
    element's own opacity animation is nested inside .dc-block--closing's,
    which is ALSO animating opacity from 0; two independent opacity
@@ -115,66 +136,129 @@
   animation: dc-fade-in 1.6s var(--ease-memory) 5.4s forwards;
 }
 
-/* ---- The two energy-ring interactions — never ordinary buttons. Each is
-   a circular ring with an icon at its center and particles that either
-   orbit inward (KEEP) or drift outward and escape (LET IT GO), tinted by
-   this dream's own accent color rather than a fixed hue. ---- */
-.dc-ring {
+/* ---- The two energy portals — never ordinary buttons. Each is a layered
+   living structure (glow field, rotating arc segments, filled inner core,
+   orbiting particles, an icon) tinted by this dream's own accent color.
+   Sized as a real portion of the viewport, not a small outlined chip. ---- */
+.dc-portal {
   position: relative;
   pointer-events: auto;
-  width: min(34vw, 168px);
-  height: min(34vw, 168px);
+  width: min(30vw, 240px);
+  height: min(30vw, 240px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   background: none;
   border: none;
   outline: none;
   cursor: pointer;
   color: var(--dream-white);
+  --orbit-radius: min(15vw, 118px);
 }
 
-.dc-ring-circle {
+/* Soft filled glow field — this is what stops the portal reading as a thin
+   outlined circle: a real luminous body sits behind the icon/label. */
+.dc-portal-glow {
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 38%, rgba(var(--accent-rgb), 0.5) 0%, rgba(var(--accent-rgb), 0.16) 48%, transparent 75%);
+  filter: blur(6px);
+  animation: dc-glow-breathe 4.6s ease-in-out infinite;
+  transition: filter 0.7s var(--ease-soft);
+}
+
+@keyframes dc-glow-breathe {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+/* Rotating segmented energy ring — several arcs rather than one solid
+   outline, so it reads as woven light rather than a flat border. */
+.dc-portal-arcs {
   position: absolute;
   inset: 0;
+  animation: dc-arcs-spin 26s linear infinite;
+}
+
+.dc-portal-arc {
+  position: absolute;
+  inset: 3%;
   border-radius: 50%;
-  border: 1px solid rgba(var(--accent-rgb), 0.55);
-  box-shadow: 0 0 2rem rgba(var(--accent-rgb), 0.22), inset 0 0 1.6rem rgba(var(--accent-rgb), 0.12);
-  transition: box-shadow 0.7s var(--ease-soft), transform 0.7s var(--ease-soft), border-color 0.7s var(--ease-soft);
+  border: 2px solid transparent;
+  border-top-color: rgba(var(--accent-rgb), 0.75);
+  transform: rotate(calc(var(--ai) * 60deg));
+  transition: transform 1.2s var(--ease-memory), border-top-color 0.7s var(--ease-soft);
 }
 
-.dc-ring:hover .dc-ring-circle,
-.dc-ring:focus-visible .dc-ring-circle {
-  transform: scale(1.06);
-  box-shadow: 0 0 3.2rem rgba(var(--accent-rgb), 0.4), inset 0 0 2.2rem rgba(var(--accent-rgb), 0.2);
+@keyframes dc-arcs-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.dc-ring-icon {
-  width: 30px;
-  height: 30px;
-  color: rgb(var(--accent-rgb));
-  filter: drop-shadow(0 0 0.5rem rgba(var(--accent-rgb), 0.6));
+.dc-portal-core {
+  position: absolute;
+  inset: 38%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(var(--accent-rgb), 0.7) 40%, transparent 75%);
+  filter: blur(3px);
+  opacity: 0.85;
+  animation: dc-core-pulse 3.2s ease-in-out infinite;
 }
 
-.dc-ring-label {
+@keyframes dc-core-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+}
+
+.dc-portal-icon {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  color: rgb(255, 255, 255);
+  filter: drop-shadow(0 0 0.6rem rgba(var(--accent-rgb), 0.9));
+}
+
+.dc-portal-label {
+  position: relative;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   line-height: 1.4;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
 }
 
-/* KEEP THIS DREAM — particles orbit inward around the ring. */
-.dc-ring-particles {
+/* KEEP THIS DREAM — particles orbit steadily around the portal, echoing a
+   gathering pull; hovering tightens the orbit as if gravity increased. */
+.dc-portal-particles {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 
-.dc-ring-particle {
+.dc-portal-particle {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -183,58 +267,120 @@
   margin: -2px 0 0 -2px;
   border-radius: 50%;
   background: rgb(var(--accent-rgb));
-  box-shadow: 0 0 0.6rem rgba(var(--accent-rgb), 0.8);
-  opacity: 0.75;
-  animation: dc-ring-orbit calc(6s + var(--pi) * 1.1s) linear infinite;
+  box-shadow: 0 0 0.7rem rgba(var(--accent-rgb), 0.85);
+  opacity: 0.8;
+  animation: dc-portal-orbit calc(6s + var(--pi) * 1.1s) linear infinite;
   animation-delay: calc(var(--pi) * -1.4s);
+  transition: animation-duration 0.6s var(--ease-soft);
 }
 
-@keyframes dc-ring-orbit {
+@keyframes dc-portal-orbit {
   from {
-    transform: rotate(0deg) translateX(min(17vw, 84px)) rotate(0deg);
+    transform: rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg);
   }
   to {
-    transform: rotate(360deg) translateX(min(17vw, 84px)) rotate(-360deg);
+    transform: rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg);
   }
 }
 
-/* LET IT GO — a quieter ring; on hover its particles drift outward and
-   fade, echoing the letters' own dispersal, rather than orbiting inward. */
-.dc-ring--let-go .dc-ring-circle {
-  border-color: rgba(var(--accent-rgb), 0.28);
-  box-shadow: 0 0 1.2rem rgba(var(--accent-rgb), 0.1), inset 0 0 1rem rgba(var(--accent-rgb), 0.06);
+.dc-portal--keep:hover,
+.dc-portal--keep:focus-visible {
+  --orbit-radius: min(9vw, 68px);
 }
 
-.dc-ring--let-go .dc-ring-icon {
-  opacity: 0.75;
+.dc-portal--keep:hover .dc-portal-particle,
+.dc-portal--keep:focus-visible .dc-portal-particle {
+  animation-duration: 2.2s;
 }
 
-.dc-ring--let-go .dc-ring-label {
+.dc-portal--keep:hover .dc-portal-glow,
+.dc-portal--keep:focus-visible .dc-portal-glow {
+  filter: blur(3px) brightness(1.2);
+}
+
+/* LET IT GO — a quieter, cooler portal; hovering begins breaking the ring
+   apart (arcs drift open) and its particles escape outward rather than
+   orbiting, echoing the letters' own dispersal. */
+.dc-portal--let-go .dc-portal-glow {
+  background: radial-gradient(circle at 42% 38%, rgba(var(--accent-rgb), 0.3) 0%, rgba(var(--accent-rgb), 0.08) 48%, transparent 75%);
+}
+
+.dc-portal--let-go .dc-portal-core {
+  opacity: 0.55;
+}
+
+.dc-portal--let-go .dc-portal-icon {
+  opacity: 0.85;
+}
+
+.dc-portal--let-go .dc-portal-label {
   font-weight: 500;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
-.dc-ring-particles--escape .dc-ring-particle {
-  animation: dc-ring-drift calc(7s + var(--pi) * 1.3s) ease-in-out infinite;
+.dc-portal-arcs--loose .dc-portal-arc {
+  border-top-color: rgba(var(--accent-rgb), 0.4);
+}
+
+/* Each arc drifts outward along its own resting angle on hover — six
+   hand-placed offsets (rather than a trig calc(), for broad browser
+   support) so the ring visibly comes apart into separate pieces. */
+.dc-portal--let-go:hover .dc-portal-arc,
+.dc-portal--let-go:focus-visible .dc-portal-arc {
+  opacity: 0.35;
+}
+
+.dc-portal--let-go:hover .dc-portal-arc:nth-child(1),
+.dc-portal--let-go:focus-visible .dc-portal-arc:nth-child(1) {
+  transform: rotate(0deg) translateY(-14px);
+}
+
+.dc-portal--let-go:hover .dc-portal-arc:nth-child(2),
+.dc-portal--let-go:focus-visible .dc-portal-arc:nth-child(2) {
+  transform: rotate(60deg) translateY(-14px) translateX(12px);
+}
+
+.dc-portal--let-go:hover .dc-portal-arc:nth-child(3),
+.dc-portal--let-go:focus-visible .dc-portal-arc:nth-child(3) {
+  transform: rotate(120deg) translateY(-14px) translateX(12px);
+}
+
+.dc-portal--let-go:hover .dc-portal-arc:nth-child(4),
+.dc-portal--let-go:focus-visible .dc-portal-arc:nth-child(4) {
+  transform: rotate(180deg) translateY(-14px);
+}
+
+.dc-portal--let-go:hover .dc-portal-arc:nth-child(5),
+.dc-portal--let-go:focus-visible .dc-portal-arc:nth-child(5) {
+  transform: rotate(240deg) translateY(-14px) translateX(-12px);
+}
+
+.dc-portal--let-go:hover .dc-portal-arc:nth-child(6),
+.dc-portal--let-go:focus-visible .dc-portal-arc:nth-child(6) {
+  transform: rotate(300deg) translateY(-14px) translateX(-12px);
+}
+
+.dc-portal-particles--escape .dc-portal-particle {
+  animation: dc-portal-drift calc(7s + var(--pi) * 1.3s) ease-in-out infinite;
   animation-delay: calc(var(--pi) * -1.6s);
-  opacity: 0.4;
+  opacity: 0.45;
 }
 
-@keyframes dc-ring-drift {
+@keyframes dc-portal-drift {
   0%,
   100% {
     transform: translate(0, 0);
-    opacity: 0.4;
+    opacity: 0.45;
   }
   50% {
-    transform: rotate(calc(var(--pi) * 72deg)) translateX(min(20vw, 100px));
-    opacity: 0.15;
+    transform: rotate(calc(var(--pi) * 51deg)) translateX(min(16vw, 130px));
+    opacity: 0.1;
   }
 }
 
-.dc-ring--let-go:hover .dc-ring-particle,
-.dc-ring--let-go:focus-visible .dc-ring-particle {
-  animation-duration: 1.6s;
+.dc-portal--let-go:hover .dc-portal-particle,
+.dc-portal--let-go:focus-visible .dc-portal-particle {
+  animation-duration: 1.4s;
 }
 
 .dc-letter {
@@ -247,29 +393,29 @@
 
 /* A handful of hand-placed drift variants, cycled by letter index, so the
    dispersal reads as organic rather than a single uniform shift. */
-.dc-ring--let-go:hover .dc-letter,
-.dc-ring--let-go:focus-visible .dc-letter {
+.dc-portal--let-go:hover .dc-letter,
+.dc-portal--let-go:focus-visible .dc-letter {
   opacity: 0.4;
   filter: blur(1.5px);
 }
 
-.dc-ring--let-go:hover .dc-letter:nth-child(4n + 1),
-.dc-ring--let-go:focus-visible .dc-letter:nth-child(4n + 1) {
+.dc-portal--let-go:hover .dc-letter:nth-child(4n + 1),
+.dc-portal--let-go:focus-visible .dc-letter:nth-child(4n + 1) {
   transform: translate(-3px, 3px) rotate(-4deg);
 }
 
-.dc-ring--let-go:hover .dc-letter:nth-child(4n + 2),
-.dc-ring--let-go:focus-visible .dc-letter:nth-child(4n + 2) {
+.dc-portal--let-go:hover .dc-letter:nth-child(4n + 2),
+.dc-portal--let-go:focus-visible .dc-letter:nth-child(4n + 2) {
   transform: translate(2px, -4px) rotate(3deg);
 }
 
-.dc-ring--let-go:hover .dc-letter:nth-child(4n + 3),
-.dc-ring--let-go:focus-visible .dc-letter:nth-child(4n + 3) {
+.dc-portal--let-go:hover .dc-letter:nth-child(4n + 3),
+.dc-portal--let-go:focus-visible .dc-letter:nth-child(4n + 3) {
   transform: translate(-2px, -3px) rotate(-2deg);
 }
 
-.dc-ring--let-go:hover .dc-letter:nth-child(4n),
-.dc-ring--let-go:focus-visible .dc-letter:nth-child(4n) {
+.dc-portal--let-go:hover .dc-letter:nth-child(4n),
+.dc-portal--let-go:focus-visible .dc-letter:nth-child(4n) {
   transform: translate(3px, 4px) rotate(4deg);
 }
 
@@ -284,26 +430,196 @@
   opacity: 0.6;
 }
 
-/* ---- KEEP THIS DREAM's outcome — a brief soft flash, like a photograph
-   being taken, rather than a plain text swap. Synced to the 'saving' step's
-   duration (SAVE_LOCK_MS in HeroDream.tsx). ---- */
+/* ---- KEEP THIS DREAM's outcome — energy rushes to center, the portal
+   contracts, then a bright flash before DREAM SAVED. materializes. Synced
+   to the 'saving' step's duration (SAVE_LOCK_MS in HeroDream.tsx). ---- */
+.dc-saving {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.dc-saving-portal {
+  position: absolute;
+  width: min(30vw, 240px);
+  height: min(30vw, 240px);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(var(--accent-rgb), 0.7) 38%, transparent 74%);
+  filter: blur(4px);
+  animation: dc-saving-contract 1.6s var(--ease-memory) forwards;
+}
+
+@keyframes dc-saving-contract {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(0.35);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.06);
+    opacity: 1;
+  }
+}
+
+.dc-saving-particles {
+  position: absolute;
+  inset: 0;
+}
+
+.dc-saving-particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: rgb(var(--accent-rgb));
+  box-shadow: 0 0 0.7rem rgba(var(--accent-rgb), 0.9);
+  transform: rotate(calc(var(--pi) * 36deg)) translateX(min(22vw, 170px));
+  animation: dc-saving-rush 1.4s var(--ease-memory) forwards;
+  animation-delay: calc(var(--pi) * 0.03s);
+}
+
+@keyframes dc-saving-rush {
+  0% {
+    opacity: 0.9;
+    transform: rotate(calc(var(--pi) * 36deg)) translateX(min(22vw, 170px));
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(calc(var(--pi) * 36deg + 140deg)) translateX(0);
+  }
+}
+
 .dc-flash {
   position: absolute;
   inset: 0;
   background: var(--dream-white);
   opacity: 0;
-  animation: dc-flash-pulse 1.1s ease-out forwards;
+  animation: dc-flash-pulse 1.6s ease-out forwards;
 }
 
 @keyframes dc-flash-pulse {
   0% {
     opacity: 0;
   }
-  18% {
-    opacity: 0.32;
+  62% {
+    opacity: 0;
+  }
+  74% {
+    opacity: 0.85;
   }
   100% {
     opacity: 0;
+  }
+}
+
+/* =====================================================================
+   LET IT GO's outcome — the portal itself breaks apart (its arcs fly off
+   independently), particles escape outward past the edge of the screen,
+   and the words fragment and drift, while the reconstructed image behind
+   this (handled separately in DreamReconstruction.css via
+   data-dissolving) loses definition and dissolves into light. Duration
+   matches LETTING_GO_DISSOLVE_MS in HeroDream.tsx. ===================================================================== */
+.dc-letting-go {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  pointer-events: none;
+}
+
+.dc-breaking-portal {
+  position: relative;
+  width: min(30vw, 240px);
+  height: min(30vw, 240px);
+}
+
+.dc-breaking-arc {
+  position: absolute;
+  inset: 3%;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: rgba(var(--accent-rgb), 0.7);
+  transform: rotate(calc(var(--ai) * 60deg));
+  animation: dc-arc-break 3.6s var(--ease-memory) forwards;
+  animation-delay: calc(var(--ai) * 0.06s);
+}
+
+@keyframes dc-arc-break {
+  0% {
+    opacity: 0.8;
+    transform: rotate(calc(var(--ai) * 60deg)) translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(calc(var(--ai) * 90deg)) translateY(-38vh) scale(0.4);
+  }
+}
+
+.dc-breaking-particles {
+  position: absolute;
+  inset: 0;
+}
+
+.dc-breaking-particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  margin: -1.5px 0 0 -1.5px;
+  border-radius: 50%;
+  background: rgb(var(--accent-rgb));
+  box-shadow: 0 0 0.6rem rgba(var(--accent-rgb), 0.8);
+  opacity: 0.85;
+  animation: dc-breaking-escape calc(3s + var(--pi) * 0.25s) var(--ease-memory) forwards;
+  animation-delay: calc(var(--pi) * 0.08s);
+}
+
+@keyframes dc-breaking-escape {
+  0% {
+    opacity: 0.85;
+    transform: rotate(calc(var(--pi) * 36deg)) translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(calc(var(--pi) * 36deg)) translateX(48vw);
+  }
+}
+
+/* The words fragment letter-by-letter as soon as this step mounts — an
+   automatic dispersal (not hover-triggered, unlike the button itself). */
+.dc-breaking-words {
+  animation: dc-fade-in 0.6s var(--ease-memory) forwards;
+}
+
+.dc-breaking-words .dc-letter {
+  display: inline-block;
+  animation: dc-letter-scatter 3.2s var(--ease-memory) forwards;
+  animation-delay: calc(0.3s + var(--li) * 0.05s);
+}
+
+@keyframes dc-letter-scatter {
+  0% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translate(calc((var(--li) - 4) * 5px), calc(30px + var(--li) * 3px)) rotate(calc((var(--li) - 4) * 8deg));
   }
 }
 
@@ -312,14 +628,24 @@
   .dc-block--closing,
   .dc-block--enter,
   .dc-choices,
-  .dc-flash {
+  .dc-flash,
+  .dc-title--materialize {
     animation-duration: 0.01s !important;
   }
-  .dc-ring-particle {
+  .dc-portal-particle,
+  .dc-portal-arcs,
+  .dc-portal-arc,
+  .dc-portal-glow,
+  .dc-portal-core,
+  .dc-saving-portal,
+  .dc-saving-particle,
+  .dc-breaking-arc,
+  .dc-breaking-particle,
+  .dc-breaking-words .dc-letter {
     animation: none !important;
   }
-  .dc-ring-circle {
-    transition-duration: 0.01s !important;
+  .dc-breaking-words .dc-letter {
+    opacity: 0 !important;
   }
   .dc-letter {
     transition-duration: 0.2s !important;

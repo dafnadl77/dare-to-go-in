@@ -162,14 +162,14 @@ export default function DreamReflection({
             )}
 
             {(step === 'choices' || step === 'selected') && elements.length > 0 && (
-              <div className="da-bubbles" ref={fieldRef} aria-hidden={step !== 'choices'}>
+              <div className="da-choice-row" ref={fieldRef} aria-hidden={step !== 'choices'}>
                 {elements.map((el, i) => {
-                  const bubbleColor = palette[i % palette.length];
+                  const traceColor = palette[i % palette.length];
                   return (
                     <button
                       key={el}
                       type="button"
-                      className={`da-bubble${selectedElement === el ? ' is-selected' : ''}${
+                      className={`da-choice${selectedElement === el ? ' is-selected' : ''}${
                         selectedElement && selectedElement !== el ? ' is-fading' : ''
                       }`}
                       data-cursor-hover
@@ -177,20 +177,19 @@ export default function DreamReflection({
                       onClick={() => onSelect(el)}
                       style={
                         {
-                          '--bubble-rgb': `${bubbleColor.r}, ${bubbleColor.g}, ${bubbleColor.b}`,
-                          '--bi': i,
+                          '--trace-rgb': `${traceColor.r}, ${traceColor.g}, ${traceColor.b}`,
+                          '--ci': i,
                         } as CSSProperties
                       }
                     >
-                      <span className="da-bubble-cloud" aria-hidden="true" />
-                      <span className="da-bubble-ring" aria-hidden="true" />
-                      <span className="da-bubble-pulse" aria-hidden="true" />
-                      <span className="da-bubble-particles" aria-hidden="true">
-                        <span className="da-bubble-particle" />
-                        <span className="da-bubble-particle da-bubble-particle--b" />
-                        <span className="da-bubble-particle da-bubble-particle--c" />
+                      <span className="da-choice-aura" aria-hidden="true" />
+                      <span className="da-choice-trace" aria-hidden="true">
+                        <span className="da-choice-trace-particle" />
+                        <span className="da-choice-trace-particle da-choice-trace-particle--b" />
                       </span>
-                      <span className="da-bubble-label">{el.toUpperCase()}</span>
+                      <span className="da-choice-sparkle" aria-hidden="true" />
+                      <span className="da-choice-pulse" aria-hidden="true" />
+                      <span className="da-choice-text">{el}</span>
                     </button>
                   );
                 })}
@@ -202,14 +201,24 @@ export default function DreamReflection({
                 <p className="dr-question dr-question--asking">{questionText}</p>
                 {selectedElement && <p className="dr-anchor">{selectedElement}</p>}
                 <div className="dr-response">
-                  <textarea
-                    className="dr-response-textarea"
-                    value={responseText}
-                    onChange={(e) => setResponseText(e.target.value)}
-                    placeholder="TYPE WHAT COMES TO MIND..."
-                    dir="auto"
-                    rows={3}
-                  />
+                  <div className={`dr-writing-surface${responseText ? ' has-text' : ''}`}>
+                    <textarea
+                      className="dr-response-textarea"
+                      value={responseText}
+                      onChange={(e) => setResponseText(e.target.value)}
+                      placeholder="TYPE WHAT COMES TO MIND..."
+                      dir="auto"
+                      rows={3}
+                    />
+                    <span className="dr-writing-line" aria-hidden="true">
+                      <span className="dr-writing-line-glow" />
+                    </span>
+                    <span className="dr-writing-sparks" aria-hidden="true">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <span key={i} className="dr-writing-spark" style={{ '--wsi': i } as CSSProperties} />
+                      ))}
+                    </span>
+                  </div>
                   <button type="button" className="dr-choice" data-cursor-hover onClick={handleContinue}>
                     CONTINUE
                   </button>
@@ -250,7 +259,9 @@ export default function DreamReflection({
               nodes stay visible, just quieter, never removed. */}
           <div className="dr-node-path" style={{ left: `${NODE_LEFT_VW}vw` } as CSSProperties}>
             <div className="dr-node-line" aria-hidden="true">
-              <div className="dr-node-line-fill" />
+              <div className="dr-node-line-fill">
+                <span className="dr-node-line-spark" />
+              </div>
             </div>
             {REFLECTION_FRAGMENTS.map((f, i) => {
               const stageNumber = i + 1;

@@ -28,7 +28,9 @@ function DispersingLetters({ text }: { text: string }) {
   );
 }
 
-const RING_PARTICLE_COUNT = 5;
+const RING_PARTICLE_COUNT = 7;
+const RING_ARC_COUNT = 6;
+const SPARK_COUNT = 10;
 
 /**
  * The end of the dream journey — no dead end, no modal, no dashboard card.
@@ -54,32 +56,44 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
           <div className="dc-block dc-block--closing" style={accentVars}>
             <p className="dc-title">DON&rsquo;T LET IT DISAPPEAR.</p>
             <div className="dc-choices">
-              <button type="button" className="dc-ring dc-ring--keep" data-cursor-hover onClick={onSave}>
-                <span className="dc-ring-circle" aria-hidden="true" />
-                <span className="dc-ring-particles" aria-hidden="true">
-                  {Array.from({ length: RING_PARTICLE_COUNT }).map((_, i) => (
-                    <span key={i} className="dc-ring-particle" style={{ '--pi': i } as CSSProperties} />
+              <button type="button" className="dc-portal dc-portal--keep" data-cursor-hover onClick={onSave}>
+                <span className="dc-portal-glow" aria-hidden="true" />
+                <span className="dc-portal-arcs" aria-hidden="true">
+                  {Array.from({ length: RING_ARC_COUNT }).map((_, i) => (
+                    <span key={i} className="dc-portal-arc" style={{ '--ai': i } as CSSProperties} />
                   ))}
                 </span>
-                <svg className="dc-ring-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <span className="dc-portal-core" aria-hidden="true" />
+                <span className="dc-portal-particles" aria-hidden="true">
+                  {Array.from({ length: RING_PARTICLE_COUNT }).map((_, i) => (
+                    <span key={i} className="dc-portal-particle" style={{ '--pi': i } as CSSProperties} />
+                  ))}
+                </span>
+                <svg className="dc-portal-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
                   <path d="M16 9c-2.6-2-6.2-2.8-10-1.8v17c3.8-1 7.4-.2 10 1.8 2.6-2 6.2-2.8 10-1.8V7.2C22.2 6.2 18.6 7 16 9Z" stroke="currentColor" strokeWidth="1.3" />
                   <path d="M16 9v17.6" stroke="currentColor" strokeWidth="1.3" />
                 </svg>
-                <span className="dc-ring-label">
+                <span className="dc-portal-label">
                   KEEP THIS
                   <br />
                   DREAM
                 </span>
               </button>
 
-              <button type="button" className="dc-ring dc-ring--let-go" data-cursor-hover onClick={onLetGo}>
-                <span className="dc-ring-circle" aria-hidden="true" />
-                <span className="dc-ring-particles dc-ring-particles--escape" aria-hidden="true">
-                  {Array.from({ length: RING_PARTICLE_COUNT }).map((_, i) => (
-                    <span key={i} className="dc-ring-particle" style={{ '--pi': i } as CSSProperties} />
+              <button type="button" className="dc-portal dc-portal--let-go" data-cursor-hover onClick={onLetGo}>
+                <span className="dc-portal-glow" aria-hidden="true" />
+                <span className="dc-portal-arcs dc-portal-arcs--loose" aria-hidden="true">
+                  {Array.from({ length: RING_ARC_COUNT }).map((_, i) => (
+                    <span key={i} className="dc-portal-arc" style={{ '--ai': i } as CSSProperties} />
                   ))}
                 </span>
-                <svg className="dc-ring-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <span className="dc-portal-core" aria-hidden="true" />
+                <span className="dc-portal-particles dc-portal-particles--escape" aria-hidden="true">
+                  {Array.from({ length: RING_PARTICLE_COUNT }).map((_, i) => (
+                    <span key={i} className="dc-portal-particle" style={{ '--pi': i } as CSSProperties} />
+                  ))}
+                </span>
+                <svg className="dc-portal-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
                   <path
                     d="M24.5 5.5c-8.3 0-15 6.7-15 15v3.5h3.5c8.3 0 15-6.7 15-15V5.5h-3.5Z"
                     stroke="currentColor"
@@ -87,7 +101,7 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
                   />
                   <path d="M9.5 22.5 22 10" stroke="currentColor" strokeWidth="1.1" />
                 </svg>
-                <span className="dc-ring-label">
+                <span className="dc-portal-label">
                   <DispersingLetters text="LET IT GO" />
                 </span>
               </button>
@@ -97,14 +111,42 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
         </>
       )}
 
-      {step === 'saving' && <div className="dc-flash" aria-hidden="true" />}
+      {step === 'saving' && (
+        <div className="dc-saving" style={accentVars} aria-hidden="true">
+          <span className="dc-saving-portal" />
+          <span className="dc-saving-particles">
+            {Array.from({ length: SPARK_COUNT }).map((_, i) => (
+              <span key={i} className="dc-saving-particle" style={{ '--pi': i } as CSSProperties} />
+            ))}
+          </span>
+          <div className="dc-flash" />
+        </div>
+      )}
 
       {step === 'saved' && (
-        <div className="dc-block dc-block--enter">
-          <p className="dc-title dc-title--small">SAVED.</p>
+        <div className="dc-block dc-block--enter" style={accentVars}>
+          <p className="dc-title dc-title--small dc-title--materialize">DREAM SAVED.</p>
           <button type="button" className="dr-choice dr-choice--yes" data-cursor-hover onClick={onReturnToRoom}>
             RETURN TO THE ROOM
           </button>
+        </div>
+      )}
+
+      {step === 'letting-go' && (
+        <div className="dc-letting-go" style={accentVars} aria-hidden="true">
+          <span className="dc-breaking-portal">
+            {Array.from({ length: RING_ARC_COUNT }).map((_, i) => (
+              <span key={i} className="dc-breaking-arc" style={{ '--ai': i } as CSSProperties} />
+            ))}
+          </span>
+          <span className="dc-breaking-particles">
+            {Array.from({ length: SPARK_COUNT }).map((_, i) => (
+              <span key={i} className="dc-breaking-particle" style={{ '--pi': i } as CSSProperties} />
+            ))}
+          </span>
+          <p className="dc-title dc-title--small dc-breaking-words">
+            <DispersingLetters text="LET IT GO" />
+          </p>
         </div>
       )}
 
