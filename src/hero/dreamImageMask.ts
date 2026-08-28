@@ -1,24 +1,34 @@
-// Bakes the exact organic "revealed through an opening in the clouds"
-// silhouette directly into the settled dream image's own pixels (a canvas
-// destination-in composite against the supplied mask bitmap), instead of
-// relying on the CSS `mask-image`/`-webkit-mask-image` property at display
-// time.
+// Draws the exact organic "revealed through an opening in the clouds"
+// silhouette directly into a live <canvas> that DreamReconstruction keeps
+// mounted and displays in place of an <img> — instead of relying on CSS
+// `mask-image`/`-webkit-mask-image`, and instead of round-tripping through
+// a PNG data URL handed to a fresh <img>.
 //
-// Why: every previous attempt (external mask file, then inlined as a base64
-// data URI, then that same data URI downscaled 10x to cut decode/paint cost)
-// was verified correct from this end every single time — computed
-// `mask-image` value, the exact referenced bitmap rasterized and its alpha
-// silhouette measured pixel-by-pixel — yet the user kept reproducing a fully
-// UNMASKED rectangle in production, including in a brand-new Incognito
-// window (ruling out cache/extensions). That means the failure is in the
-// browser's mask *paint* step itself, not in anything inspectable from the
-// CSS/DOM side, and there was never a way to rule out a `mask-image`
-// rendering quirk as the real cause.
+// History, because both prior approaches were independently confirmed
+// broken in the field despite passing every remote check:
 //
-// Compositing client-side with <canvas> sidesteps CSS masking entirely: the
-// transparency is baked into the resulting PNG's own alpha channel before it
-// ever becomes an <img> src, so displaying it afterwards is just an ordinary
-// image — nothing left for `mask-image` support/timing to get wrong.
+// 1) CSS mask-image (external file, then inlined base64, then that data
+//    URI downscaled 10x): computed `mask-image` and the referenced bitmap
+//    always checked out correct, yet production kept showing a fully
+//    unmasked rectangle. Root cause found directly on production: applying
+//    mask-image forces the browser to rasterize the element into an
+//    intermediate compositing layer, and THAT layer never repainted when
+//    the image content underneath changed — invisible to any DOM/CSS
+//    inspection, since those all read the underlying resource, not the
+//    stale compositing layer painted from it.
+//
+// 2) Baking the mask into a PNG via <canvas>, then handing that data URL
+//    to a plain <img>: verified via getImageData — sampled live, on the
+//    user's own machine, straight off the actual on-screen <img> — that
+//    the decoded bitmap's alpha channel was 100% correct (transparent
+//    corners, opaque center) and confirmed zero CSS mask left anywhere on
+//    the element. The screen STILL showed a plain rectangle. That leaves
+//    only the final paint step for that specific <img>/data-URI/alpha-PNG
+//    combination as the remaining suspect.
+//
+// This draws directly into a <canvas> that stays in the DOM as the actual
+// displayed element — no PNG re-encode, no second <img> decode, a
+// completely different rendering code path than either attempt above.
 
 const MASK_URL = '/dream-mask-visible.png';
 
@@ -39,17 +49,19 @@ function getMaskImage(): Promise<HTMLImageElement> {
 }
 
 /**
- * Returns a data URL of `imageUrl` with the dream-mask silhouette (flood-
- * filled from the supplied reference outline, ~90-115px feather baked into
- * its own alpha channel) composited in — opaque only inside the organic
- * shape, fully transparent outside it. The photo is drawn into the mask's
- * own canvas using the same object-fit:cover math the CSS box already uses,
- * so the result matches the arrival box's ~16:9 aspect ratio directly.
+ * Draws `imageUrl` into `canvas`, masked to the dream-mask silhouette
+ * (flood-filled from the supplied reference outline, ~90-115px feather
+ * baked into its own alpha channel) — opaque only inside the organic
+ * shape, fully transparent outside it. The photo is drawn using the same
+ * object-fit:cover math the CSS box already used, sized to the mask
+ * bitmap's own ~16:9 aspect ratio so it matches the arrival box directly.
+ * Sets the canvas's pixel-buffer width/height to the mask's own
+ * resolution; CSS sizing (width/height:100% on .dr-image) scales that to
+ * the real rendered box, same as it did for the <img> before it.
  */
-export async function compositeDreamImageMask(imageUrl: string): Promise<string> {
+export async function drawDreamImageMask(canvas: HTMLCanvasElement, imageUrl: string): Promise<void> {
   const [photo, mask] = await Promise.all([loadImage(imageUrl), getMaskImage()]);
 
-  const canvas = document.createElement('canvas');
   canvas.width = mask.naturalWidth;
   canvas.height = mask.naturalHeight;
   const ctx = canvas.getContext('2d');
@@ -64,10 +76,12 @@ export async function compositeDreamImageMask(imageUrl: string): Promise<string>
   const dh = ih * scale;
   const dx = (cw - dw) / 2;
   const dy = (ch - dh) / 2;
+
+  ctx.clearRect(0, 0, cw, ch);
+  ctx.globalCompositeOperation = 'source-over';
   ctx.drawImage(photo, dx, dy, dw, dh);
 
   ctx.globalCompositeOperation = 'destination-in';
   ctx.drawImage(mask, 0, 0, cw, ch);
-
-  return canvas.toDataURL('image/png');
+  ctx.globalCompositeOperation = 'source-over';
 }

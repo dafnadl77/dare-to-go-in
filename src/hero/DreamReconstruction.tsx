@@ -6,6 +6,7 @@ import { deriveVisualCues } from './reconstructionVisualCues';
 import { deriveDreamWorldEffects } from './dreamWorldEffects';
 import { usePointerParallax } from './usePointerParallax';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
+import { drawDreamImageMask } from './dreamImageMask';
 import DreamPortalTransition from './DreamPortalTransition';
 import DreamStageBackground from './DreamStageBackground';
 import DreamCloudFrame from './DreamCloudFrame';
@@ -79,8 +80,6 @@ interface DreamReconstructionProps {
   dreamPalette: AccentColor[] | null;
   /** Whether the settled image reads as light behind THIS IS WHAT I FOUND — flips that screen's text dark for readability. */
   revealTextOnLight: boolean;
-  /** displayedImageUrl pre-masked into the organic dream shape via <canvas> (see dreamImageMask.ts) — null until compositing finishes. Used on THIS IS YOUR DREAM instead of a live CSS mask. */
-  maskedDreamImageUrl: string | null;
   onNotQuite: () => void;
   onCorrectionSubmit: (text: string) => void;
   onYes: () => void;
@@ -116,7 +115,6 @@ export default function DreamReconstruction({
   accentColor,
   dreamPalette,
   revealTextOnLight,
-  maskedDreamImageUrl,
   onNotQuite,
   onCorrectionSubmit,
   onYes,
@@ -168,6 +166,24 @@ export default function DreamReconstruction({
     // inside, well after this effect's first run, so the refs aren't
     // both populated until then.
   }, [phase]);
+
+  // THIS IS YOUR DREAM's image is masked into the organic dream shape by
+  // drawing directly into this <canvas> (see dreamImageMask.ts) — it stays
+  // mounted for the whole lifetime of the image layer (not just while
+  // isArrival) so the draw can start the moment displayedImageUrl settles,
+  // well before phase 'inside' can ever need it (the portal crossing alone
+  // takes ~5s). CSS toggles which of the canvas/plain <img> below is
+  // actually visible via data-arrival.
+  const maskCanvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    if (!displayedImageUrl) return;
+    const canvas = maskCanvasRef.current;
+    if (!canvas) return;
+    drawDreamImageMask(canvas, displayedImageUrl).catch(() => {
+      // Drawing failed (e.g. the mask asset didn't load) — the canvas stays
+      // blank; the plain <img> fallback below still shows the photo.
+    });
+  }, [displayedImageUrl]);
 
   if (phase === 'none') return null;
 
@@ -232,32 +248,28 @@ export default function DreamReconstruction({
           aria-hidden="true"
           style={{ '--accent-rgb': `${(accentColor ?? FALLBACK_ACCENT).r}, ${(accentColor ?? FALLBACK_ACCENT).g}, ${(accentColor ?? FALLBACK_ACCENT).b}` } as CSSProperties}
         >
-          {/* On THIS IS YOUR DREAM the mask is baked into the pixels
-              (maskedDreamImageUrl, via <canvas> — see dreamImageMask.ts).
-              Deliberately no CSS mask-image anywhere in this path — see the
-              CSS comment on .dr-image-layer[data-arrival='true'] for why
-              (a live CSS mask on this element was the actual persistent
-              bug, not the mask asset). Falls back to the plain unmasked
-              photo only for the brief moment before compositing finishes,
-              which in practice resolves well before phase 'inside' is ever
-              reached (compositing starts the moment the image settles,
-              during 'entering' — the portal crossing alone takes ~5s).
-
-              key={currentSrc} forces React to unmount and mount a BRAND NEW
-              <img> node whenever the src actually changes (raw photo →
-              masked composite, or between dreams) instead of patching the
-              src attribute on the same node. Verified directly in the
-              field: the composited PNG's own pixel data was already 100%
-              correct (getImageData sampled live in the browser reporting
-              it — corner alpha 0, center alpha 255) while the screen kept
-              showing the old unmasked frame regardless, meaning the
-              browser was repainting stale GPU-layer content instead of the
-              new src on an in-place swap. A fresh node has no stale layer
-              to fall back to. */}
-          {displayedImageUrl && (() => {
-            const currentSrc = isArrival && maskedDreamImageUrl ? maskedDreamImageUrl : displayedImageUrl;
-            return <img key={currentSrc} className="dr-image dr-image-current" src={currentSrc} alt="" />;
-          })()}
+          {/* On THIS IS YOUR DREAM the mask is drawn directly into a live
+              <canvas> (maskCanvasRef, via dreamImageMask.ts) — never a CSS
+              mask-image (see the CSS comment on
+              .dr-image-layer[data-arrival='true']) and never a PNG data URL
+              round-tripped back through a fresh <img> either. Both of those
+              were tried and independently confirmed broken in the field —
+              each time the underlying data checked out 100% correct
+              (computed styles, getImageData sampled live in the user's own
+              browser) while the screen kept showing a plain unmasked
+              rectangle regardless. A canvas that stays mounted and is
+              drawn into directly, then displayed as-is, is a categorically
+              different rendering path from either. The canvas is always
+              present once there's an image (the draw effect starts the
+              moment displayedImageUrl settles, well before phase 'inside'
+              can need it), CSS just switches which of it / the plain photo
+              is visible via data-arrival — see the CSS rule below. */}
+          {displayedImageUrl && (
+            <>
+              <canvas ref={maskCanvasRef} className="dr-image dr-image-current dr-image-canvas" />
+              <img className="dr-image dr-image-current dr-image-plain" src={displayedImageUrl} alt="" />
+            </>
+          )}
           {incomingImageUrl && (
             <>
               <img className="dr-image dr-image-incoming" src={incomingImageUrl} alt="" />
