@@ -28,6 +28,7 @@ import { getDreamReflection, type DreamReflectionRequest } from './dreamReflecti
 import type { ReflectionResult } from './dreamReflectionSchema';
 import { saveDream, buildSavedDream } from './dreamStorage';
 import { extractAccentColor, extractDreamPalette, isImageCenterLight, type AccentColor } from './dreamAccentColor';
+import { compositeDreamImageMask } from './dreamImageMask';
 import type { CentralMode } from './centralMode';
 import './HeroDream.css';
 
@@ -164,6 +165,12 @@ export default function HeroDream() {
   // FOUND text sits — flips that screen's text dark so it stays readable
   // against a bright photo; a dark photo keeps the existing light text.
   const [revealTextOnLight, setRevealTextOnLight] = useState(false);
+  // THIS IS YOUR DREAM's image, pre-masked into the organic "opening in the
+  // clouds" shape via <canvas> (see dreamImageMask.ts) rather than a live
+  // CSS mask-image — see that file for why. Computed once the settled image
+  // loads, well before phase 'inside' can ever need it (the portal crossing
+  // alone takes ~5s), so by the time it's shown this is already ready.
+  const [maskedDreamImageUrl, setMaskedDreamImageUrl] = useState<string | null>(null);
   const generationTokenRef = useRef<string | null>(null);
   const correctionCountRef = useRef(0);
   const reconstructingEnteredAtRef = useRef(0);
@@ -315,6 +322,21 @@ export default function HeroDream() {
       setRevealTextOnLight(isImageCenterLight(img));
     };
     img.src = displayedImageUrl;
+
+    let cancelled = false;
+    setMaskedDreamImageUrl(null);
+    compositeDreamImageMask(displayedImageUrl)
+      .then((maskedUrl) => {
+        if (!cancelled) setMaskedDreamImageUrl(maskedUrl);
+      })
+      .catch(() => {
+        // Compositing failed (e.g. the mask asset didn't load) — leave
+        // maskedDreamImageUrl null, DreamReconstruction falls back to the
+        // plain photo rather than showing nothing.
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [displayedImageUrl]);
 
   const handleNotQuite = () => setReconstructionPhase('correcting');
@@ -520,6 +542,7 @@ export default function HeroDream() {
     setAccentColor(null);
     setDreamPalette(null);
     setRevealTextOnLight(false);
+    setMaskedDreamImageUrl(null);
     setIncomingImageUrl(null);
     setImagePending(false);
     setImageResult(null);
@@ -637,6 +660,7 @@ export default function HeroDream() {
         accentColor={accentColor}
         dreamPalette={dreamPalette}
         revealTextOnLight={revealTextOnLight}
+        maskedDreamImageUrl={maskedDreamImageUrl}
         onNotQuite={handleNotQuite}
         onCorrectionSubmit={handleCorrectionSubmit}
         onYes={handleYes}

@@ -79,6 +79,8 @@ interface DreamReconstructionProps {
   dreamPalette: AccentColor[] | null;
   /** Whether the settled image reads as light behind THIS IS WHAT I FOUND — flips that screen's text dark for readability. */
   revealTextOnLight: boolean;
+  /** displayedImageUrl pre-masked into the organic dream shape via <canvas> (see dreamImageMask.ts) — null until compositing finishes. Used on THIS IS YOUR DREAM instead of a live CSS mask. */
+  maskedDreamImageUrl: string | null;
   onNotQuite: () => void;
   onCorrectionSubmit: (text: string) => void;
   onYes: () => void;
@@ -114,6 +116,7 @@ export default function DreamReconstruction({
   accentColor,
   dreamPalette,
   revealTextOnLight,
+  maskedDreamImageUrl,
   onNotQuite,
   onCorrectionSubmit,
   onYes,
@@ -170,6 +173,7 @@ export default function DreamReconstruction({
 
   const cues = analysis && brief ? deriveVisualCues(analysis, brief) : null;
   const worldEffects = analysis ? deriveDreamWorldEffects(analysis) : null;
+  const isArrival = phase === 'inside' && DREAM_IMAGE_STEPS.has(insideStep);
 
   const handleTryAgain = () => {
     const text = correctionText.trim();
@@ -221,14 +225,26 @@ export default function DreamReconstruction({
           data-dissolving={DISSOLVING_STEPS.has(insideStep) ? 'true' : 'false'}
           data-saving={SAVING_STEPS.has(insideStep) ? 'true' : 'false'}
           data-portal-active={phase === 'entering' ? 'true' : 'false'}
-          data-arrival={phase === 'inside' && DREAM_IMAGE_STEPS.has(insideStep) ? 'true' : 'false'}
+          data-arrival={isArrival ? 'true' : 'false'}
           data-secondary="false"
           data-step={phase === 'inside' ? insideStep : undefined}
           data-hide-image="false"
           aria-hidden="true"
           style={{ '--accent-rgb': `${(accentColor ?? FALLBACK_ACCENT).r}, ${(accentColor ?? FALLBACK_ACCENT).g}, ${(accentColor ?? FALLBACK_ACCENT).b}` } as CSSProperties}
         >
-          {displayedImageUrl && <img className="dr-image dr-image-current" src={displayedImageUrl} alt="" />}
+          {/* On THIS IS YOUR DREAM the mask is already baked into the pixels
+              (maskedDreamImageUrl, via <canvas> — see dreamImageMask.ts),
+              not applied live via CSS mask-image — see the CSS comment on
+              .dr-image-layer[data-arrival='true'] for why. Falls back to the
+              plain photo (still CSS-masked as a safety net) for the brief
+              moment before compositing finishes. */}
+          {displayedImageUrl && (
+            <img
+              className="dr-image dr-image-current"
+              src={isArrival && maskedDreamImageUrl ? maskedDreamImageUrl : displayedImageUrl}
+              alt=""
+            />
+          )}
           {incomingImageUrl && (
             <>
               <img className="dr-image dr-image-incoming" src={incomingImageUrl} alt="" />
@@ -260,7 +276,7 @@ export default function DreamReconstruction({
           image's true edge — see DreamCloudFrame.css for the full
           reasoning. Mounted for exactly the same steps as the image
           itself, kept frame-synced via frameVideoRef/bgVideoRef above. */}
-      {(displayedImageUrl || incomingImageUrl) && phase === 'inside' && DREAM_IMAGE_STEPS.has(insideStep) && (
+      {(displayedImageUrl || incomingImageUrl) && isArrival && (
         <DreamCloudFrame ref={frameVideoRef} active={true} />
       )}
 

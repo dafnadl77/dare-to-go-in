@@ -224,37 +224,33 @@
   transition: width 1.8s var(--ease-memory), height 1.8s var(--ease-memory), top 1.8s var(--ease-memory);
 }
 
-/* THIS IS YOUR DREAM / WHAT STANDS OUT TO YOU? uses the SUPPLIED mask file
-   itself as the alpha mask — its interior, flood-filled from the exact
-   traced outline. Opaque white inside the traced contour, fully
-   transparent outside, no approximated SVG path, no border-radius/
-   clip-path/gradient/blob standing in for it, with a real, generous
-   ~90-115px Gaussian feather baked directly into the bitmap's own alpha
-   channel — widened from an earlier, tighter pass that still read as a
-   pasted-on picture; never a visible hard contour. The generated image
-   is visible ONLY inside that shape's interior; everything outside is
-   fully transparent, revealing the animated cloud environment behind it
-   (see DreamStageBackground) and the real cloud footage layered in
-   front of it (see DreamCloudFrame, rendered just below) — that overlap
-   onto the image's own outer edge is what finishes hiding the mask
-   boundary, not the feather alone.
+/* THIS IS YOUR DREAM / WHAT STANDS OUT TO YOU? — the image itself is now
+   pre-masked into the organic "opening in the clouds" shape BEFORE it ever
+   becomes this <img>'s src: DreamReconstruction.tsx composites it onto a
+   <canvas> against the SUPPLIED mask file's own flood-filled interior
+   (opaque inside the traced contour, transparent outside, ~90-115px
+   feather baked into the bitmap's alpha channel) via destination-in, and
+   uses the resulting PNG data URL directly (see dreamImageMask.ts). That
+   is the real fix — everything below is a fallback, not the mechanism.
 
-   Inlined as a base64 data URI (not a separate network request) — a
-   mask served from its own external URL can lose the race against first
-   paint, or fail outright on a flaky connection, and Chrome/WebKit's
-   fallback for a not-yet-loaded or failed mask-image is to show the
-   element FULLY UNMASKED, i.e. exactly the plain rectangle this feature
-   exists to prevent (reproduced by the user on a fresh Chrome Incognito
-   window against production, ruling out cache/extensions). Downscaled
-   to 418x235 (from the original 1672x941 trace) before inlining — at
-   this element's real rendered size the heavy feather already erases
-   any resolution difference, and the smaller payload (~43KB vs ~330KB
-   per mask, ~86KB vs ~870KB total across both masks) meaningfully cuts
-   the decode/paint cost of a same-frame inline raster mask, which was
-   suspected as a second, independent way this could still render
-   unmasked even once inlined. mask-size:100% 100% stretches the mask
-   bitmap's own pixel dimensions to fill whatever this box's real
-   rendered size is, at any viewport. */
+   Why the fix moved out of CSS: three consecutive mitigations here (an
+   external mask file, then inlined as base64, then that same data URI
+   downscaled 10x to rule out a decode/paint-cost theory) were each
+   independently verified correct from every angle inspectable remotely —
+   computed mask-image, the exact referenced bitmap rasterized and its
+   silhouette measured pixel-by-pixel — and the user still reproduced a
+   fully unmasked rectangle in production every time, including in a fresh
+   Incognito window (ruling out cache/extensions). That means whatever was
+   failing was in the browser's mask *paint* step itself, invisible to any
+   check of the CSS/DOM. Baking the mask into the image's own pixels with
+   <canvas> removes CSS masking from the equation entirely: displaying the
+   result afterwards is just an ordinary <img>, nothing left for
+   mask-image support/timing to get wrong.
+
+   The rule below is kept as a belt-and-suspenders fallback for the brief
+   moment before the canvas composite finishes (or if it ever fails) — it
+   is applied to the SAME already-transparent pixels in the normal case, so
+   it is a harmless no-op then, not a second live dependency. */
 .dr-image-layer[data-arrival='true'] {
   /* A wide, cinematic ~16:9 crop of the source image (not its native 3:2)
      — deliberate: at the image's native 3:2 ratio, even this size would
