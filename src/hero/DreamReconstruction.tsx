@@ -237,14 +237,23 @@ export default function DreamReconstruction({
               not applied live via CSS mask-image — see the CSS comment on
               .dr-image-layer[data-arrival='true'] for why. Falls back to the
               plain photo (still CSS-masked as a safety net) for the brief
-              moment before compositing finishes. */}
-          {displayedImageUrl && (
-            <img
-              className="dr-image dr-image-current"
-              src={isArrival && maskedDreamImageUrl ? maskedDreamImageUrl : displayedImageUrl}
-              alt=""
-            />
-          )}
+              moment before compositing finishes.
+
+              key={currentSrc} forces React to unmount and mount a BRAND NEW
+              <img> node whenever the src actually changes (raw photo →
+              masked composite, or between dreams) instead of patching the
+              src attribute on the same node. Verified directly in the
+              field: the composited PNG's own pixel data was already 100%
+              correct (getImageData sampled live in the browser reporting
+              it — corner alpha 0, center alpha 255) while the screen kept
+              showing the old unmasked frame regardless, meaning the
+              browser was repainting stale GPU-layer content instead of the
+              new src on an in-place swap. A fresh node has no stale layer
+              to fall back to. */}
+          {displayedImageUrl && (() => {
+            const currentSrc = isArrival && maskedDreamImageUrl ? maskedDreamImageUrl : displayedImageUrl;
+            return <img key={currentSrc} className="dr-image dr-image-current" src={currentSrc} alt="" />;
+          })()}
           {incomingImageUrl && (
             <>
               <img className="dr-image dr-image-incoming" src={incomingImageUrl} alt="" />
