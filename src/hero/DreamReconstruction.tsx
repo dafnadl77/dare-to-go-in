@@ -8,6 +8,7 @@ import { usePointerParallax } from './usePointerParallax';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
 import DreamPortalTransition from './DreamPortalTransition';
 import DreamStageBackground from './DreamStageBackground';
+import DreamCloudFrame from './DreamCloudFrame';
 import DreamWorld from './DreamWorld';
 import DreamReflection from './DreamReflection';
 import DreamClosing from './DreamClosing';
@@ -130,15 +131,36 @@ export default function DreamReconstruction({
   // new. Only active once there's actually a living image to sit over.
   usePointerParallax(imageLayerRef, 7, phase === 'entering' || phase === 'inside');
 
-  // THE DREAM STAGE background video — the only visual environment once
-  // inside; no generated image or cloud overlay sits over it anymore.
+  // THE DREAM STAGE background video, plus a second synced instance
+  // (DreamCloudFrame) that layers real cloud footage IN FRONT of the
+  // dream image on THIS IS YOUR DREAM / WHAT STANDS OUT TO YOU?. Both
+  // elements decode the video independently, so a periodic correction
+  // (via the background's own 'timeupdate', which fires ~4x/second)
+  // snaps the frame copy back in step the moment it drifts more than
+  // 150ms — cheap, and imperceptible for a looping, textural cloud clip.
   const bgVideoRef = useRef<HTMLVideoElement>(null);
+  const frameVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     // The `autoplay` attribute alone isn't always reliable the instant a
     // video mounts (depends on the browser/embedding context) — an
     // explicit .play() call is the robust fallback for a muted clip,
     // which is always allowed regardless of user gesture.
     bgVideoRef.current?.play().catch(() => {});
+    frameVideoRef.current?.play().catch(() => {});
+    const bg = bgVideoRef.current;
+    const frame = frameVideoRef.current;
+    if (!bg || !frame) return;
+    const resync = () => {
+      if (!frame || frame.readyState < 2) return;
+      if (Math.abs(frame.currentTime - bg.currentTime) > 0.15) {
+        frame.currentTime = bg.currentTime;
+      }
+    };
+    bg.addEventListener('timeupdate', resync);
+    return () => bg.removeEventListener('timeupdate', resync);
+    // Re-checked on every phase change: DreamCloudFrame only mounts once
+    // inside, well after this effect's first run, so the refs aren't
+    // both populated until then.
   }, [phase]);
 
   if (phase === 'none') return null;
@@ -227,6 +249,16 @@ export default function DreamReconstruction({
           )}
           {SAVING_STEPS.has(insideStep) && <div className="dr-memory-frame" />}
         </div>
+      )}
+
+      {/* A second instance of the exact same cloud MP4, layered IN FRONT of
+          the dream image and masked (inverted reference shape) so only its
+          outer cloud regions stay visible, physically overlapping the
+          image's true edge — see DreamCloudFrame.css for the full
+          reasoning. Mounted for exactly the same steps as the image
+          itself, kept frame-synced via frameVideoRef/bgVideoRef above. */}
+      {(displayedImageUrl || incomingImageUrl) && phase === 'inside' && DREAM_IMAGE_STEPS.has(insideStep) && (
+        <DreamCloudFrame ref={frameVideoRef} active={true} />
       )}
 
       {/* YES — TAKE ME IN: a real WebGL vortex built from the settled image

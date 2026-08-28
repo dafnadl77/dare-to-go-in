@@ -1,0 +1,52 @@
+/* =====================================================================
+   DREAM CLOUD FRAME — a second instance of the exact same approved cloud
+   MP4 (see DreamCloudFrame.tsx), layered IN FRONT of the dream image,
+   real moving cloud footage physically overlapping the image's outer
+   edge. This — not the mask/feather alone — is what finishes hiding the
+   mask boundary: the dreamer never sees where the cutout ends, only
+   clouds opening onto the dream inside them.
+
+   The box below is IDENTICAL (top/width/height, same formulas) to
+   .dr-image-layer[data-arrival='true'] in DreamReconstruction.css (kept
+   in sync by hand) — no separate enlargement of the box itself. The
+   overlap instead lives inside the mask asset: public/dream-mask-frame.png
+   is the SAME reference contour, filled and INVERTED, then shrunk ~12%
+   from its own centroid before inverting, so its transparent "hole" is
+   genuinely smaller than the image's own visible silhouette while its
+   opaque surround still reaches all the way to this box's real edges
+   (mask-size:100%, no undefined border). That inward margin is exactly
+   the overlap the spec calls for — real cloud texture sitting on top of
+   the image's outer rim, all the way around. ===================================================================== */
+.dr-cloud-frame {
+  position: absolute;
+  top: 6vh;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: min(74vw, 131vh, 1400px);
+  height: min(41.6vw, 74vh, 788px);
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease-memory), width 1.8s var(--ease-memory), height 1.8s var(--ease-memory), top 1.8s var(--ease-memory);
+}
+
+.dr-cloud-frame[data-active='true'] {
+  opacity: 1;
+}
+
+.dr-cloud-frame-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-mask-image: url("/dream-mask-frame.png");
+  mask-image: url("/dream-mask-frame.png");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}

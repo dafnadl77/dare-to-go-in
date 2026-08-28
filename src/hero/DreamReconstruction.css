@@ -224,30 +224,34 @@
   transition: width 1.8s var(--ease-memory), height 1.8s var(--ease-memory), top 1.8s var(--ease-memory);
 }
 
-/* THIS IS YOUR DREAM / WHAT STANDS OUT TO YOU? uses the exact organic
-   contour traced from the approved reference shape — never an ellipse,
-   never a border-radius/polygon/vignette approximation, and now a crisp
-   edge with no feather. The generated image is visible ONLY inside this
-   shape's interior; everything else is fully transparent, revealing the
-   existing animated cloud environment behind and in front of it (see
-   DreamStageBackground). The path is baked into one small SVG data URI
-   (viewBox 0 0 1000 562, matching this box's own ~16:9 ratio so it never
-   stretches/distorts) — applied purely as a mask, so it works
-   automatically for every future generated image, never baked into the
-   image itself. mask-size:100% 100% stretches the mask's own coordinate
-   space to fill whatever this box's real rendered size is, at any
-   viewport. */
+/* THIS IS YOUR DREAM / WHAT STANDS OUT TO YOU? uses the SUPPLIED mask file
+   itself as the alpha mask — its interior, flood-filled from the exact
+   traced outline (public/dream-mask-visible.png, generated from the
+   approved reference file: opaque white inside the traced contour,
+   fully transparent outside, no approximated SVG path, no border-radius/
+   clip-path/gradient/blob standing in for it), with a real, generous
+   ~90-115px Gaussian feather baked directly into the bitmap's own alpha
+   channel — widened from an earlier, tighter pass that still read as a
+   pasted-on picture; never a visible hard contour. The generated image is visible ONLY
+   inside that shape's interior; everything outside is fully transparent,
+   revealing the animated cloud environment behind it (see
+   DreamStageBackground) and the real cloud footage layered in front of
+   it (see DreamCloudFrame, rendered just below) — that overlap onto the
+   image's own outer edge is what finishes hiding the mask boundary, not
+   the feather alone. mask-size:100% 100% stretches the mask bitmap's own
+   pixel dimensions to fill whatever this box's real rendered size is, at
+   any viewport. */
 .dr-image-layer[data-arrival='true'] {
   /* A wide, cinematic ~16:9 crop of the source image (not its native 3:2)
      — deliberate: at the image's native 3:2 ratio, even this size would
      force more height than a 1280x720 window can spare above the
      choices. Each width/height pair below keeps the SAME ~16:9 ratio
-     across all three min() branches so whichever one binds never
-     distorts the box. */
-  width: min(58vw, 103vh, 1100px);
-  height: min(32.6vw, 58vh, 618px);
-  -webkit-mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAwIDU2MiI+PHBhdGggZD0iTSA0NS45NiAyODAuNzAgUSAyMC4wMCAyNTguNTIgNDYuNTMgMjQwLjcxIFEgNzMuMDYgMjIyLjkwIDEwNS4zOSAyMTQuOTYgUSAxMzcuNzIgMjA3LjAyIDE1NS4yMyAxNzMuODcgUSAxNzIuNzUgMTQwLjcyIDIxMC4zNyAxNDEuODAgUSAyNDguMDAgMTQyLjg4IDI2Ny4yMiAxMTIuNjMgUSAyODYuNDUgODIuMzkgMzIwLjc5IDc3Ljg3IFEgMzU1LjEzIDczLjM2IDM3Ny4wMSA0Ny42NSBRIDM5OC45MCAyMS45MyA0MjkuNDUgMTAuOTcgUSA0NjAuMDAgMC4wMCA0OTUuMDkgMTQuNzAgUSA1MzAuMTggMjkuNDAgNTU3LjY0IDU3Ljk0IFEgNTg1LjEwIDg2LjQ4IDYyNS40MiA5MS43MCBRIDY2NS43MyA5Ni45MiA2OTIuMzggMTI2LjkzIFEgNzE5LjAzIDE1Ni45NCA3NjEuMzcgMTU4LjQ5IFEgODAzLjcxIDE2MC4wNCA4MjUuNTIgMTk4Ljg0IFEgODQ3LjMyIDIzNy42NCA4ODcuMzggMjQzLjMzIFEgOTI3LjQ0IDI0OS4wMyA5NTguNzIgMjcwLjYzIFEgOTkwLjAwIDI5Mi4yNCA5NTguODYgMzExLjcyIFEgOTI3LjcxIDMzMS4xOSA4OTEuMzQgMzQwLjU5IFEgODU0Ljk3IDM0OS45OSA4MjcuOTkgMzc3LjQ5IFEgODAxLjAyIDQwNS4wMCA3NjEuNTcgNDA4LjQ2IFEgNzIyLjEyIDQxMS45MyA2OTYuMTcgNDQxLjQyIFEgNjcwLjIyIDQ3MC45MSA2MzAuNTkgNDc0LjAyIFEgNTkwLjk2IDQ3Ny4xMyA1NjQuOTAgNTA2LjQwIFEgNTM4LjgzIDUzNS42NyA1MDQuNDIgNTQ4Ljg0IFEgNDcwLjAwIDU2Mi4wMCA0MzguODIgNTQ3LjU3IFEgNDA3LjY0IDUzMy4xMyAzODcuNzUgNTAxLjk1IFEgMzY3Ljg2IDQ3MC43NiAzMzEuNTMgNDYzLjk3IFEgMjk1LjE5IDQ1Ny4xNyAyNzYuMjEgNDI0LjY2IFEgMjU3LjIyIDM5Mi4xNCAyMTkuNjYgMzg3LjE3IFEgMTgyLjEwIDM4Mi4xOSAxNjMuMDMgMzQ5LjgwIFEgMTQzLjk2IDMxNy40MCAxMDcuOTQgMzEwLjE0IFEgNzEuOTIgMzAyLjg3IDQ1Ljk2IDI4MC43MCBaIiBmaWxsPSIjZmZmIi8+PC9zdmc+");
-  mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAwIDU2MiI+PHBhdGggZD0iTSA0NS45NiAyODAuNzAgUSAyMC4wMCAyNTguNTIgNDYuNTMgMjQwLjcxIFEgNzMuMDYgMjIyLjkwIDEwNS4zOSAyMTQuOTYgUSAxMzcuNzIgMjA3LjAyIDE1NS4yMyAxNzMuODcgUSAxNzIuNzUgMTQwLjcyIDIxMC4zNyAxNDEuODAgUSAyNDguMDAgMTQyLjg4IDI2Ny4yMiAxMTIuNjMgUSAyODYuNDUgODIuMzkgMzIwLjc5IDc3Ljg3IFEgMzU1LjEzIDczLjM2IDM3Ny4wMSA0Ny42NSBRIDM5OC45MCAyMS45MyA0MjkuNDUgMTAuOTcgUSA0NjAuMDAgMC4wMCA0OTUuMDkgMTQuNzAgUSA1MzAuMTggMjkuNDAgNTU3LjY0IDU3Ljk0IFEgNTg1LjEwIDg2LjQ4IDYyNS40MiA5MS43MCBRIDY2NS43MyA5Ni45MiA2OTIuMzggMTI2LjkzIFEgNzE5LjAzIDE1Ni45NCA3NjEuMzcgMTU4LjQ5IFEgODAzLjcxIDE2MC4wNCA4MjUuNTIgMTk4Ljg0IFEgODQ3LjMyIDIzNy42NCA4ODcuMzggMjQzLjMzIFEgOTI3LjQ0IDI0OS4wMyA5NTguNzIgMjcwLjYzIFEgOTkwLjAwIDI5Mi4yNCA5NTguODYgMzExLjcyIFEgOTI3LjcxIDMzMS4xOSA4OTEuMzQgMzQwLjU5IFEgODU0Ljk3IDM0OS45OSA4MjcuOTkgMzc3LjQ5IFEgODAxLjAyIDQwNS4wMCA3NjEuNTcgNDA4LjQ2IFEgNzIyLjEyIDQxMS45MyA2OTYuMTcgNDQxLjQyIFEgNjcwLjIyIDQ3MC45MSA2MzAuNTkgNDc0LjAyIFEgNTkwLjk2IDQ3Ny4xMyA1NjQuOTAgNTA2LjQwIFEgNTM4LjgzIDUzNS42NyA1MDQuNDIgNTQ4Ljg0IFEgNDcwLjAwIDU2Mi4wMCA0MzguODIgNTQ3LjU3IFEgNDA3LjY0IDUzMy4xMyAzODcuNzUgNTAxLjk1IFEgMzY3Ljg2IDQ3MC43NiAzMzEuNTMgNDYzLjk3IFEgMjk1LjE5IDQ1Ny4xNyAyNzYuMjEgNDI0LjY2IFEgMjU3LjIyIDM5Mi4xNCAyMTkuNjYgMzg3LjE3IFEgMTgyLjEwIDM4Mi4xOSAxNjMuMDMgMzQ5LjgwIFEgMTQzLjk2IDMxNy40MCAxMDcuOTQgMzEwLjE0IFEgNzEuOTIgMzAyLjg3IDQ1Ljk2IDI4MC43MCBaIiBmaWxsPSIjZmZmIi8+PC9zdmc+");
+     (matching the mask bitmap's own 1672x941) across all three min()
+     branches so whichever one binds never distorts the box. */
+  width: min(74vw, 131vh, 1400px);
+  height: min(41.6vw, 74vh, 788px);
+  -webkit-mask-image: url("/dream-mask-visible.png");
+  mask-image: url("/dream-mask-visible.png");
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat;
