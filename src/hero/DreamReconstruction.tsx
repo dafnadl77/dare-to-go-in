@@ -232,12 +232,16 @@ export default function DreamReconstruction({
           aria-hidden="true"
           style={{ '--accent-rgb': `${(accentColor ?? FALLBACK_ACCENT).r}, ${(accentColor ?? FALLBACK_ACCENT).g}, ${(accentColor ?? FALLBACK_ACCENT).b}` } as CSSProperties}
         >
-          {/* On THIS IS YOUR DREAM the mask is already baked into the pixels
-              (maskedDreamImageUrl, via <canvas> — see dreamImageMask.ts),
-              not applied live via CSS mask-image — see the CSS comment on
-              .dr-image-layer[data-arrival='true'] for why. Falls back to the
-              plain photo (still CSS-masked as a safety net) for the brief
-              moment before compositing finishes.
+          {/* On THIS IS YOUR DREAM the mask is baked into the pixels
+              (maskedDreamImageUrl, via <canvas> — see dreamImageMask.ts).
+              Deliberately no CSS mask-image anywhere in this path — see the
+              CSS comment on .dr-image-layer[data-arrival='true'] for why
+              (a live CSS mask on this element was the actual persistent
+              bug, not the mask asset). Falls back to the plain unmasked
+              photo only for the brief moment before compositing finishes,
+              which in practice resolves well before phase 'inside' is ever
+              reached (compositing starts the moment the image settles,
+              during 'entering' — the portal crossing alone takes ~5s).
 
               key={currentSrc} forces React to unmount and mount a BRAND NEW
               <img> node whenever the src actually changes (raw photo →
