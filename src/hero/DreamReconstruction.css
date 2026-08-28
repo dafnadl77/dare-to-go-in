@@ -261,9 +261,15 @@
      force more height than a 1280x720 window can spare above the
      choices. Each width/height pair below keeps the SAME ~16:9 ratio
      (matching the canvas's own 1600x900 draw size) across all three
-     min() branches so whichever one binds never distorts the box. */
-  width: min(74vw, 131vh, 1400px);
-  height: min(41.6vw, 74vh, 788px);
+     min() branches so whichever one binds never distorts the box.
+
+     Deliberately smaller than earlier passes (was 74vw/1400px) — at that
+     size there wasn't enough surrounding cloud video left on any side for
+     the cloud-overlap ring (dreamImageMask.ts) to read as the photo
+     sitting under real clouds; it just read as decoration on a giant
+     rectangle. */
+  width: min(50vw, 89vh, 950px);
+  height: min(28.1vw, 50vh, 534px);
 }
 
 .dr-image-canvas {

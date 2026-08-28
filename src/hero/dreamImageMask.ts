@@ -13,6 +13,20 @@
 // straight into the live <canvas> that's the displayed element — no CSS
 // mask-image, no PNG re-encode — which is the part that's actually been
 // verified to paint correctly.
+//
+// Two defensive rules learned the hard way and worth keeping:
+// 1. Never draw a canvas onto its own context (even via a helper that
+//    "returns" it) while a filter/composite op is active — that
+//    self-referential draw is exactly the kind of thing that has behaved
+//    inconsistently across browsers all through this feature's history.
+//    Every blur here writes into a SEPARATE destination canvas.
+// 2. The photo is drawn to the canvas (full, unmasked) before the mask is
+//    built. If mask-building ever throws, an un-caught error there would
+//    leave that raw unmasked draw as the final visible state — a plain
+//    rectangle, indistinguishable from every previous version of this bug.
+//    The primary mask step is therefore wrapped so any failure falls back
+//    to a trivial, hard-to-break radial vignette instead of leaving the
+//    canvas unmasked.
 
 const CLOUD_TEXTURE_URL = '/dream-cloud-overlap.jpg';
 
@@ -56,20 +70,36 @@ function coverRect(iw: number, ih: number, cw: number, ch: number) {
   return { dx: (cw - dw) / 2, dy: (ch - dh) / 2, dw, dh };
 }
 
+function makeCanvas(cw: number, ch: number): HTMLCanvasElement {
+  const c = document.createElement('canvas');
+  c.width = cw;
+  c.height = ch;
+  return c;
+}
+
+/** Blurs `source` into a new canvas of the same size — never writes back into `source` itself. */
+function blurToNewCanvas(source: HTMLCanvasElement, radiusPx: number): HTMLCanvasElement {
+  const out = makeCanvas(source.width, source.height);
+  const octx = out.getContext('2d');
+  if (!octx) return source;
+  octx.filter = `blur(${radiusPx}px)`;
+  octx.drawImage(source, 0, 0);
+  octx.filter = 'none';
+  return out;
+}
+
 /**
  * Builds a soft "cloud-lobe" alpha mask at the given scale (1.0 = the
  * photo's normal edge, >1 expands outward, <1 shrinks inward) — a ring of
  * overlapping soft circles around a base ellipse, unioned additively and
  * blurred so the union reads as an irregular cloud silhouette rather than
  * a smooth curve or a scalloped polygon. Same seed at different scales
- * stays concentric with itself, which is what lets buildCloudOverlayRing
+ * stays concentric with itself, which is what lets drawCloudOverlayRing
  * carve a ring out of two of these.
  */
 function buildLobeMask(cw: number, ch: number, seed: number, scale: number): HTMLCanvasElement {
   const rand = mulberry32(seed);
-  const m = document.createElement('canvas');
-  m.width = cw;
-  m.height = ch;
+  const m = makeCanvas(cw, ch);
   const mctx = m.getContext('2d');
   if (!mctx) return m;
 
@@ -102,16 +132,36 @@ function buildLobeMask(cw: number, ch: number, seed: number, scale: number): HTM
   coreG.addColorStop(0, 'rgba(255, 255, 255, 1)');
   coreG.addColorStop(1, 'rgba(255, 255, 255, 0.95)');
   mctx.fillStyle = coreG;
+  mctx.globalCompositeOperation = 'lighter';
   mctx.beginPath();
   mctx.ellipse(cx, cy, baseRx * 0.9, baseRy * 0.9, 0, 0, Math.PI * 2);
   mctx.fill();
 
-  // Soften the lumpy union into a cloud-like edge.
-  mctx.filter = 'blur(26px)';
-  mctx.globalCompositeOperation = 'source-over';
-  mctx.drawImage(m, 0, 0);
-  mctx.filter = 'none';
+  // Soften the lumpy union into a cloud-like edge — into a fresh canvas,
+  // never back into `m` itself.
+  return blurToNewCanvas(m, 26);
+}
 
+/** A trivial, hard-to-break fallback: a single soft ellipse, no lobes, no blur filter. */
+function buildSimpleVignetteMask(cw: number, ch: number): HTMLCanvasElement {
+  const m = makeCanvas(cw, ch);
+  const mctx = m.getContext('2d');
+  if (!mctx) return m;
+  const cx = cw / 2;
+  const cy = ch * 0.48;
+  const rx = cw * 0.62;
+  const ry = ch * 0.64;
+  const g = mctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+  g.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  g.addColorStop(0.55, 'rgba(255, 255, 255, 1)');
+  g.addColorStop(0.75, 'rgba(255, 255, 255, 0.6)');
+  g.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  mctx.save();
+  mctx.translate(cx, cy);
+  mctx.scale(rx, ry);
+  mctx.fillStyle = g;
+  mctx.fillRect(-4, -4, 8, 8);
+  mctx.restore();
   return m;
 }
 
@@ -139,9 +189,7 @@ async function drawCloudOverlayRing(
 
   const outer = buildLobeMask(cw, ch, seed, 1.16);
   const innerShrunk = buildLobeMask(cw, ch, seed, 0.9);
-  const ring = document.createElement('canvas');
-  ring.width = cw;
-  ring.height = ch;
+  const ring = makeCanvas(cw, ch);
   const rctx = ring.getContext('2d');
   if (!rctx) return;
   rctx.drawImage(outer, 0, 0);
@@ -149,9 +197,7 @@ async function drawCloudOverlayRing(
   rctx.drawImage(innerShrunk, 0, 0);
   rctx.globalCompositeOperation = 'source-over';
 
-  const cloudLayer = document.createElement('canvas');
-  cloudLayer.width = cw;
-  cloudLayer.height = ch;
+  const cloudLayer = makeCanvas(cw, ch);
   const cctx = cloudLayer.getContext('2d');
   if (!cctx) return;
   const cr = coverRect(cloudTexture.naturalWidth, cloudTexture.naturalHeight, cw, ch);
@@ -168,8 +214,13 @@ async function drawCloudOverlayRing(
  * overlaid with a ring of real cloud footage along its edge. Sized to a
  * fixed ~16:9 canvas so the result matches the arrival box's own aspect
  * ratio; CSS sizing (width/height:100% on .dr-image) scales that to the
- * real rendered box. The cloud overlay is best-effort: if it fails to
- * load, the photo still shows correctly with just its own cut edge.
+ * real rendered box (kept meaningfully smaller than earlier passes so
+ * there's always real cloud around every side, not just at the edges of
+ * an already-huge box). The primary mask can never fail silently into an
+ * unmasked photo — if the organic lobe shape throws for any reason, a
+ * trivial ellipse vignette is applied instead. The cloud overlay ring is
+ * separately best-effort: if the texture fails to load, the already-cut
+ * photo is still a complete, correct result on its own.
  */
 export async function drawDreamImageMask(canvas: HTMLCanvasElement, imageUrl: string): Promise<void> {
   const photo = await loadImage(imageUrl);
@@ -186,7 +237,11 @@ export async function drawDreamImageMask(canvas: HTMLCanvasElement, imageUrl: st
   ctx.globalCompositeOperation = 'source-over';
   ctx.drawImage(photo, r.dx, r.dy, r.dw, r.dh);
 
-  applyMask(ctx, buildLobeMask(cw, ch, SHAPE_SEED, 1.0));
+  try {
+    applyMask(ctx, buildLobeMask(cw, ch, SHAPE_SEED, 1.0));
+  } catch {
+    applyMask(ctx, buildSimpleVignetteMask(cw, ch));
+  }
 
   try {
     await drawCloudOverlayRing(ctx, cw, ch, SHAPE_SEED);
