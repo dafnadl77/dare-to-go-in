@@ -1,31 +1,175 @@
 // Draws the settled dream image directly into a live <canvas> that
-// DreamReconstruction keeps mounted and displays in place of an <img>,
-// with a soft radial-gradient feather baked into its alpha channel — no
-// hard edge, no separate "frame", just the photo dissolving into the
-// cloud environment behind it.
-//
-// This replaces an earlier, much more elaborate approach (an exact
-// organic "opening in the clouds" silhouette, hand-traced from a
-// reference outline, plus a second cloud-video layer masked to overlap
-// the image's edge) that went through several rounds of debugging in the
-// field without ever reliably rendering correctly for the user — right
-// down to the traced-shape PNG mask itself, applied via CSS mask-image,
-// then via <canvas> compositing to a data URL, then finally drawn
-// straight into a live <canvas>: all three were independently verified
-// pixel-correct (including via getImageData sampled live in the user's
-// own browser console) yet still didn't consistently paint correctly on
-// screen. Simplifying to a plain radial-gradient vignette — generated
-// procedurally, no external mask asset, no custom shape — removes that
-// entire class of risk: it's the same live-<canvas> rendering path
-// already confirmed to work, just with the simplest possible mask.
+// DreamReconstruction keeps mounted and displays in place of an <img>:
+// the photo itself is cut to a soft, irregular "gap between clouds" shape
+// (not a smooth oval, not a hard rectangle), and a band of real cloud
+// footage is drawn on top straddling that edge, so clouds visibly drape
+// over the photo rather than the photo just fading to reveal whatever is
+// behind it. Approved via a side-by-side reference mockup before this was
+// built — see the mockup's own notes for the earlier candidates it beat
+// (a plain radial vignette, and a hand-traced exact silhouette applied via
+// CSS mask-image / a PNG data URL round-tripped through an <img>, both of
+// which independently proved unreliable in the field despite checking out
+// pixel-correct on every remote inspection). Everything here draws
+// straight into the live <canvas> that's the displayed element — no CSS
+// mask-image, no PNG re-encode — which is the part that's actually been
+// verified to paint correctly.
+
+const CLOUD_TEXTURE_URL = '/dream-cloud-overlap.jpg';
+
+// Fixed, not per-dream-random: one deterministic "gap" shape, chosen from
+// a handful the user reviewed in the approval mockup.
+const SHAPE_SEED = 7;
+
+let cloudTexturePromise: Promise<HTMLImageElement> | null = null;
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`failed to load image: ${src}`));
+    img.src = src;
+  });
+}
+
+function getCloudTexture(): Promise<HTMLImageElement> {
+  if (!cloudTexturePromise) cloudTexturePromise = loadImage(CLOUD_TEXTURE_URL);
+  return cloudTexturePromise;
+}
+
+// Deterministic PRNG (mulberry32) so the same seed always reproduces the
+// same lobe layout — no external shape asset to load or keep in sync.
+function mulberry32(seed: number): () => number {
+  let a = seed;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function coverRect(iw: number, ih: number, cw: number, ch: number) {
+  const scale = Math.max(cw / iw, ch / ih);
+  const dw = iw * scale;
+  const dh = ih * scale;
+  return { dx: (cw - dw) / 2, dy: (ch - dh) / 2, dw, dh };
+}
 
 /**
- * Draws `imageUrl` into `canvas`, feathered by a soft radial-gradient
- * vignette instead of a hard rectangular edge — opaque through the
- * center, fading to fully transparent toward the corners. Sized to a
+ * Builds a soft "cloud-lobe" alpha mask at the given scale (1.0 = the
+ * photo's normal edge, >1 expands outward, <1 shrinks inward) — a ring of
+ * overlapping soft circles around a base ellipse, unioned additively and
+ * blurred so the union reads as an irregular cloud silhouette rather than
+ * a smooth curve or a scalloped polygon. Same seed at different scales
+ * stays concentric with itself, which is what lets buildCloudOverlayRing
+ * carve a ring out of two of these.
+ */
+function buildLobeMask(cw: number, ch: number, seed: number, scale: number): HTMLCanvasElement {
+  const rand = mulberry32(seed);
+  const m = document.createElement('canvas');
+  m.width = cw;
+  m.height = ch;
+  const mctx = m.getContext('2d');
+  if (!mctx) return m;
+
+  const cx = cw / 2;
+  const cy = ch * 0.48;
+  const baseRx = cw * 0.4 * scale;
+  const baseRy = ch * 0.4 * scale;
+  const lobes = 13;
+
+  mctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < lobes; i++) {
+    const angle = (i / lobes) * Math.PI * 2 + rand() * 0.35;
+    const wobble = 0.72 + rand() * 0.56;
+    const lx = cx + Math.cos(angle) * baseRx * wobble;
+    const ly = cy + Math.sin(angle) * baseRy * wobble;
+    const lobeR = cw * 0.2 * scale * (0.65 + rand() * 0.6);
+    const g = mctx.createRadialGradient(lx, ly, 0, lx, ly, lobeR);
+    g.addColorStop(0, 'rgba(255, 255, 255, 1)');
+    g.addColorStop(0.6, 'rgba(255, 255, 255, 0.9)');
+    g.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    mctx.fillStyle = g;
+    mctx.beginPath();
+    mctx.arc(lx, ly, lobeR, 0, Math.PI * 2);
+    mctx.fill();
+  }
+
+  // A solid core so the center never thins out between lobes.
+  const coreR = Math.min(baseRx, baseRy) * 0.9;
+  const coreG = mctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
+  coreG.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  coreG.addColorStop(1, 'rgba(255, 255, 255, 0.95)');
+  mctx.fillStyle = coreG;
+  mctx.beginPath();
+  mctx.ellipse(cx, cy, baseRx * 0.9, baseRy * 0.9, 0, 0, Math.PI * 2);
+  mctx.fill();
+
+  // Soften the lumpy union into a cloud-like edge.
+  mctx.filter = 'blur(26px)';
+  mctx.globalCompositeOperation = 'source-over';
+  mctx.drawImage(m, 0, 0);
+  mctx.filter = 'none';
+
+  return m;
+}
+
+function applyMask(ctx: CanvasRenderingContext2D, mask: HTMLCanvasElement): void {
+  ctx.globalCompositeOperation = 'destination-in';
+  ctx.drawImage(mask, 0, 0);
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+/**
+ * Draws real cloud footage (a still frame from the same approved cloud
+ * video used as the Dream Stage background) into a ring that straddles
+ * the photo's edge — built from the outer lobe shape minus a slightly
+ * shrunk inner one, so part of the ring overlaps onto the photo itself
+ * (occluding it, not just revealing background through it) and part
+ * spills past the photo's edge into the surrounding environment.
+ */
+async function drawCloudOverlayRing(
+  ctx: CanvasRenderingContext2D,
+  cw: number,
+  ch: number,
+  seed: number,
+): Promise<void> {
+  const cloudTexture = await getCloudTexture();
+
+  const outer = buildLobeMask(cw, ch, seed, 1.16);
+  const innerShrunk = buildLobeMask(cw, ch, seed, 0.9);
+  const ring = document.createElement('canvas');
+  ring.width = cw;
+  ring.height = ch;
+  const rctx = ring.getContext('2d');
+  if (!rctx) return;
+  rctx.drawImage(outer, 0, 0);
+  rctx.globalCompositeOperation = 'destination-out';
+  rctx.drawImage(innerShrunk, 0, 0);
+  rctx.globalCompositeOperation = 'source-over';
+
+  const cloudLayer = document.createElement('canvas');
+  cloudLayer.width = cw;
+  cloudLayer.height = ch;
+  const cctx = cloudLayer.getContext('2d');
+  if (!cctx) return;
+  const cr = coverRect(cloudTexture.naturalWidth, cloudTexture.naturalHeight, cw, ch);
+  cctx.drawImage(cloudTexture, cr.dx, cr.dy, cr.dw, cr.dh);
+  cctx.globalCompositeOperation = 'destination-in';
+  cctx.drawImage(ring, 0, 0);
+  cctx.globalCompositeOperation = 'source-over';
+
+  ctx.drawImage(cloudLayer, 0, 0);
+}
+
+/**
+ * Draws `imageUrl` into `canvas`, cut to the irregular cloud-gap shape and
+ * overlaid with a ring of real cloud footage along its edge. Sized to a
  * fixed ~16:9 canvas so the result matches the arrival box's own aspect
  * ratio; CSS sizing (width/height:100% on .dr-image) scales that to the
- * real rendered box.
+ * real rendered box. The cloud overlay is best-effort: if it fails to
+ * load, the photo still shows correctly with just its own cut edge.
  */
 export async function drawDreamImageMask(canvas: HTMLCanvasElement, imageUrl: string): Promise<void> {
   const photo = await loadImage(imageUrl);
@@ -37,50 +181,17 @@ export async function drawDreamImageMask(canvas: HTMLCanvasElement, imageUrl: st
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('2d canvas context unavailable');
 
-  const iw = photo.naturalWidth;
-  const ih = photo.naturalHeight;
-  const scale = Math.max(cw / iw, ch / ih);
-  const dw = iw * scale;
-  const dh = ih * scale;
-  const dx = (cw - dw) / 2;
-  const dy = (ch - dh) / 2;
-
+  const r = coverRect(photo.naturalWidth, photo.naturalHeight, cw, ch);
   ctx.clearRect(0, 0, cw, ch);
   ctx.globalCompositeOperation = 'source-over';
-  ctx.drawImage(photo, dx, dy, dw, dh);
+  ctx.drawImage(photo, r.dx, r.dy, r.dw, r.dh);
 
-  // A soft ellipse (matching the box's own aspect ratio, not a circle):
-  // fully opaque through the middle, fading out over the outer ~30-45% so
-  // the photo's own edge is never a visible line. Canvas 2D only offers
-  // circular radial gradients, so the ellipse comes from a non-uniform
-  // scale around the gradient fill — the same 64%/66% proportions
-  // approved in the reference mockup.
-  const cx = cw / 2;
-  const cy = ch * 0.48;
-  const rx = cw * 0.64;
-  const ry = ch * 0.66;
+  applyMask(ctx, buildLobeMask(cw, ch, SHAPE_SEED, 1.0));
 
-  const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
-  gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
-  gradient.addColorStop(0.52, 'rgba(0, 0, 0, 1)');
-  gradient.addColorStop(0.7, 'rgba(0, 0, 0, 0.65)');
-  gradient.addColorStop(0.92, 'rgba(0, 0, 0, 0)');
-
-  ctx.globalCompositeOperation = 'destination-in';
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.scale(rx, ry);
-  ctx.fillStyle = gradient;
-  ctx.fillRect(-4, -4, 8, 8);
-  ctx.restore();
-  ctx.globalCompositeOperation = 'source-over';
-}
-
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`failed to load image: ${src}`));
-    img.src = src;
-  });
+  try {
+    await drawCloudOverlayRing(ctx, cw, ch, SHAPE_SEED);
+  } catch {
+    // Cloud texture failed to load — the cut-edge photo above is already
+    // a complete, correct result on its own.
+  }
 }
