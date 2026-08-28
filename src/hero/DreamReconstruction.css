@@ -224,34 +224,35 @@
   transition: width 1.8s var(--ease-memory), height 1.8s var(--ease-memory), top 1.8s var(--ease-memory);
 }
 
-/* THIS IS YOUR DREAM / WHAT STANDS OUT TO YOU? — the image is masked into
-   the organic "opening in the clouds" shape by drawing it directly onto a
-   live <canvas> (.dr-image-canvas, drawn by DreamReconstruction.tsx via
-   dreamImageMask.ts, against the SUPPLIED mask file's own flood-filled
-   interior — opaque inside the traced contour, transparent outside,
-   ~90-115px feather baked into the bitmap's alpha channel). The plain
-   <img> (.dr-image-plain) is what every other image-bearing step already
-   used; here it's kept mounted alongside the canvas purely as the source
-   for that draw and hidden the instant this rule's selector matches.
+/* THIS IS YOUR DREAM / WHAT STANDS OUT TO YOU? — the image sits directly
+   on the cloud environment with a soft radial-gradient feather (opaque
+   through the middle, fading fully transparent toward the edges) instead
+   of a hard rectangle, an organic cutout shape, or a second cloud-video
+   "frame" layered in front of it — see dreamImageMask.ts. Drawn straight
+   into a live <canvas> (.dr-image-canvas) that stays mounted and IS the
+   displayed element; the plain <img> (.dr-image-plain) is what every
+   other image-bearing step already used, kept mounted here purely as the
+   draw source and hidden the instant this rule's selector matches.
 
-   Deliberately NO mask-image/-webkit-mask-image/mask-size/etc. anywhere in
-   this path, and deliberately NOT a PNG data URL handed back to a fresh
-   <img> either — do not reintroduce either. Both were tried and each
-   independently confirmed broken in the field, more than once: the
-   underlying data checked out 100% correct every time (computed
-   mask-image, getImageData sampled live in the user's own browser
-   console — corner alpha 0, center alpha 255) while the screen kept
-   showing a plain unmasked rectangle regardless. mask-image forces the
-   browser to rasterize the element into an intermediate compositing layer
-   that never repainted when the image content underneath changed,
-   independent of the mask asset, the src, or the DOM node's own identity.
-   A round-tripped PNG data URL handed to an <img> hit the same wall one
+   Deliberately NO mask-image/-webkit-mask-image/mask-size/etc. anywhere
+   in this path — do not reintroduce one. An exact traced organic mask
+   asset (hand-traced silhouette, feathered PNG) applied via CSS
+   mask-image, then via <canvas> compositing to a PNG data URL handed to
+   a fresh <img>, were each independently confirmed broken in the field
+   more than once: the underlying data checked out 100% correct every
+   time (computed mask-image, getImageData sampled live in the user's own
+   browser console — corner alpha 0, center alpha 255) while the screen
+   kept showing a plain unmasked rectangle regardless. mask-image forces
+   the browser to rasterize the element into an intermediate compositing
+   layer that never repainted when the image content underneath changed;
+   a round-tripped PNG data URL handed to an <img> hit the same wall one
    layer down, for reasons that never surfaced in any DOM/CSS/pixel check
    available remotely. Drawing directly into a <canvas> that IS the
-   displayed element sidesteps both: nothing to rasterize into a separate
-   layer, and nothing re-decoded from a re-encoded PNG. If a live CSS mask
-   or an <img>-based approach is ever reintroduced here, verify with a
-   real screenshot on the actual target device — computed styles and
+   displayed element sidesteps both, and a plain radial-gradient feather
+   (generated in JS, no external mask asset, no custom shape) is the
+   simplest possible thing to draw with it. If a live CSS mask or an
+   <img>-based approach is ever reintroduced here, verify with a real
+   screenshot on the actual target device — computed styles and
    getImageData both kept reporting correct while the visible output
    stayed wrong. */
 .dr-image-layer[data-arrival='true'] {
@@ -259,8 +260,8 @@
      — deliberate: at the image's native 3:2 ratio, even this size would
      force more height than a 1280x720 window can spare above the
      choices. Each width/height pair below keeps the SAME ~16:9 ratio
-     (matching the mask bitmap's own 1672x941) across all three min()
-     branches so whichever one binds never distorts the box. */
+     (matching the canvas's own 1600x900 draw size) across all three
+     min() branches so whichever one binds never distorts the box. */
   width: min(74vw, 131vh, 1400px);
   height: min(41.6vw, 74vh, 788px);
 }
