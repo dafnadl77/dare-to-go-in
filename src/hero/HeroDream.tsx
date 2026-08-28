@@ -27,7 +27,7 @@ import { generateDreamImage, type ImageResult } from './dreamImage';
 import { getDreamReflection, type DreamReflectionRequest } from './dreamReflectionEngine';
 import type { ReflectionResult } from './dreamReflectionSchema';
 import { saveDream, buildSavedDream } from './dreamStorage';
-import { extractAccentColor, extractDreamPalette, type AccentColor } from './dreamAccentColor';
+import { extractAccentColor, extractDreamPalette, isImageCenterLight, type AccentColor } from './dreamAccentColor';
 import type { CentralMode } from './centralMode';
 import './HeroDream.css';
 
@@ -160,6 +160,10 @@ export default function HeroDream() {
   // richer dream-arrival atmosphere (nebula clouds, per-element bubbles) —
   // one accent alone reads as too flat for that scene.
   const [dreamPalette, setDreamPalette] = useState<AccentColor[] | null>(null);
+  // Whether the settled image reads as light where the THIS IS WHAT I
+  // FOUND text sits — flips that screen's text dark so it stays readable
+  // against a bright photo; a dark photo keeps the existing light text.
+  const [revealTextOnLight, setRevealTextOnLight] = useState(false);
   const generationTokenRef = useRef<string | null>(null);
   const correctionCountRef = useRef(0);
   const reconstructingEnteredAtRef = useRef(0);
@@ -308,6 +312,7 @@ export default function HeroDream() {
     img.onload = () => {
       setAccentColor(extractAccentColor(img));
       setDreamPalette(extractDreamPalette(img));
+      setRevealTextOnLight(isImageCenterLight(img));
     };
     img.src = displayedImageUrl;
   }, [displayedImageUrl]);
@@ -514,6 +519,7 @@ export default function HeroDream() {
     setDisplayedImageUrl(null);
     setAccentColor(null);
     setDreamPalette(null);
+    setRevealTextOnLight(false);
     setIncomingImageUrl(null);
     setImagePending(false);
     setImageResult(null);
@@ -630,6 +636,7 @@ export default function HeroDream() {
         incomingImageUrl={incomingImageUrl}
         accentColor={accentColor}
         dreamPalette={dreamPalette}
+        revealTextOnLight={revealTextOnLight}
         onNotQuite={handleNotQuite}
         onCorrectionSubmit={handleCorrectionSubmit}
         onYes={handleYes}

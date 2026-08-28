@@ -808,6 +808,31 @@
   opacity: 0.92;
 }
 
+/* THIS IS WHAT I FOUND — when the settled image reads as light where this
+   text sits (a bright sky, fog, wall, snow…), the usual light warm text
+   washes out against it. Flips to dark text with a soft light backing
+   glow (in place of the dark drop-shadow, which would do nothing useful
+   against a light photo) instead. A dark image keeps the default light
+   text untouched — see isImageCenterLight in dreamAccentColor.ts. */
+.dr-reveal[data-light-bg='true'] .dr-line {
+  color: var(--dream-black);
+  text-shadow: 0 0.05em 0.6em rgba(244, 240, 232, 0.55);
+}
+
+.dr-reveal[data-light-bg='true'] .dr-line--felt {
+  color: var(--dream-warm-neutral-dark);
+}
+
+.dr-reveal[data-light-bg='true'] .dr-choice {
+  color: var(--dream-warm-neutral-dark);
+}
+
+.dr-reveal[data-light-bg='true'] .dr-choice:hover,
+.dr-reveal[data-light-bg='true'] .dr-choice:focus-visible,
+.dr-reveal[data-light-bg='true'] .dr-choice--yes {
+  color: var(--dream-black);
+}
+
 .dr-correct-textarea {
   width: 100%;
   min-height: 4.2em;

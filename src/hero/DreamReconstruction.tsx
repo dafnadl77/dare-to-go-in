@@ -77,6 +77,8 @@ interface DreamReconstructionProps {
   accentColor: AccentColor | null;
   /** A small harmonious palette from the same image, for the richer dream-arrival atmosphere. */
   dreamPalette: AccentColor[] | null;
+  /** Whether the settled image reads as light behind THIS IS WHAT I FOUND — flips that screen's text dark for readability. */
+  revealTextOnLight: boolean;
   onNotQuite: () => void;
   onCorrectionSubmit: (text: string) => void;
   onYes: () => void;
@@ -111,6 +113,7 @@ export default function DreamReconstruction({
   incomingImageUrl,
   accentColor,
   dreamPalette,
+  revealTextOnLight,
   onNotQuite,
   onCorrectionSubmit,
   onYes,
@@ -297,7 +300,7 @@ export default function DreamReconstruction({
           CSS opacity transition can actually play as a fade — unmounting
           exactly on the phase change would just make it vanish instantly. */}
       {(phase === 'reveal' || phase === 'entering') && (
-        <div className="dr-reveal">
+        <div className="dr-reveal" data-light-bg={revealTextOnLight ? 'true' : 'false'}>
           <p className="dr-line dr-line--found">THIS IS WHAT I FOUND.</p>
           <p className="dr-line dr-line--felt">IS THIS HOW IT FELT?</p>
           <div className="dr-choices">

@@ -147,6 +147,47 @@ export function extractDreamPalette(img: HTMLImageElement, count = 4): AccentCol
   }
 }
 
+/**
+ * Whether the CENTER of a generated image — where the reveal screen's
+ * "THIS IS WHAT I FOUND" text sits, full-bleed over the photo — reads as
+ * light overall. Used to flip that screen's text to a dark color so it
+ * stays readable against a bright sky/wall/fog instead of washing out;
+ * a dark photo keeps the existing light text untouched.
+ */
+export function isImageCenterLight(img: HTMLImageElement): boolean {
+  try {
+    if (!img.naturalWidth || !img.naturalHeight) return false;
+    const size = 32;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return false;
+    ctx.drawImage(img, 0, 0, size, size);
+    // Only the middle band, roughly where the centered text overlays the
+    // image — a bright sky with dark foreground at the edges (or vice
+    // versa) should judge itself by what's actually behind the words.
+    const x0 = Math.floor(size * 0.25);
+    const x1 = Math.ceil(size * 0.75);
+    const y0 = Math.floor(size * 0.3);
+    const y1 = Math.ceil(size * 0.7);
+    const { data } = ctx.getImageData(x0, y0, x1 - x0, y1 - y0);
+    let sum = 0;
+    let count = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      sum += 0.299 * r + 0.587 * g + 0.114 * b;
+      count += 1;
+    }
+    if (count === 0) return false;
+    return sum / count > 150;
+  } catch {
+    return false;
+  }
+}
+
 export function extractAccentColor(img: HTMLImageElement): AccentColor {
   try {
     if (!img.naturalWidth || !img.naturalHeight) return FALLBACK_ACCENT;
