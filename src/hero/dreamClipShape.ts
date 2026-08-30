@@ -41,9 +41,14 @@ export const DREAM_CLIP_PATH =
 // size. Never reintroduce a size/feather drop partway through the
 // arrival steps without confirming it doesn't read as a shrink.
 //
-// Raised from 42 once the larger ~75-80vw size made a faint edge/frame
-// visible near the outer boundary — a longer, more gradual fade out to
-// true transparency reads as dissolving into the clouds rather than a
-// contained rectangle. Only the outer fringe is affected; the shape and
-// the fully-opaque center are unchanged.
-export const DREAM_CLIP_FEATHER_STD_DEVIATION = 60;
+// Went 19 (this project's original calibration, at the old ~950px box) ->
+// 42 -> 60 (progressively wider, chasing a visible edge/frame that turned
+// out to need a size fix elsewhere, not more feather) -> 20 (back down,
+// once 60 was confirmed to read as "a large dark translucent haze" rather
+// than a soft edge). 20 is empirically measured — via SVG rasterization,
+// sampling alpha along the shape's own edge — to produce a ~25-35px
+// visible feather band (10%->90% alpha) at this element's normal ~1120px
+// display width (a 1440px-wide viewport); re-measure the same way if the
+// box's size changes meaningfully. Only the outer fringe is affected —
+// the shape and the fully-opaque center are unchanged.
+export const DREAM_CLIP_FEATHER_STD_DEVIATION = 20;
