@@ -6,7 +6,7 @@ import { deriveVisualCues } from './reconstructionVisualCues';
 import { deriveDreamWorldEffects } from './dreamWorldEffects';
 import { usePointerParallax } from './usePointerParallax';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
-import { loadDreamImageAssets, renderDreamImageFrame, type DreamImageAssets } from './dreamImageMask';
+import { DREAM_CLIP_PATH, DREAM_CLIP_VIEWBOX, DREAM_CLIP_FEATHER_STD_DEVIATION } from './dreamClipShape';
 import DreamPortalTransition from './DreamPortalTransition';
 import DreamStageBackground from './DreamStageBackground';
 import DreamWorld from './DreamWorld';
@@ -144,63 +144,19 @@ export default function DreamReconstruction({
     bgVideoRef.current?.play().catch(() => {});
   }, [phase]);
 
-  // THIS IS YOUR DREAM's image is painted into this <canvas> every
-  // animation frame (see dreamImageMask.ts) rather than drawn once: the
-  // canvas's own base layer is the CURRENT frame of the cloud background
-  // video, so the canvas that reaches the screen is fully opaque
-  // everywhere — no transparent pixel is ever left for the browser to
-  // alpha-blend against the video underneath at display time. That
-  // cross-element blend is exactly what kept failing in the field even
-  // after the mask's own pixel data was repeatedly verified correct (see
-  // the long comment at the top of dreamImageMask.ts).
-  //
-  // Assets (the photo + the cloud-overlap texture) load once per settled
-  // image, well before phase 'inside' can ever need them (the portal
-  // crossing alone takes ~5s). The paint loop itself only runs while
-  // isArrival is true, computed below before this component's early
-  // return so the hook always runs in the same order.
-  const maskCanvasRef = useRef<HTMLCanvasElement>(null);
-  const dreamAssetsRef = useRef<DreamImageAssets | null>(null);
+  // THIS IS YOUR DREAM's image is cut to the exact organic shape via a
+  // real SVG clipPath/mask (see dreamClipShape.ts) — not CSS mask-image,
+  // not <canvas>. Both of those were built, independently verified
+  // pixel-correct by every remote check available (computed styles,
+  // getImageData sampled live on the user's own broken screen), and still
+  // painted as a plain hard rectangle in the field regardless. SVG
+  // clip-path/mask is a categorically different rendering primitive from
+  // either — confirmed working directly on the user's own machine (Brave)
+  // via an isolated sandbox before this was wired in here. Because it's a
+  // real SVG element (not a canvas needing to be redrawn), there is no
+  // per-frame render loop at all: the <image>'s href is just the settled
+  // photo URL, same as the plain <img> fallback below.
   const isArrival = phase === 'inside' && DREAM_IMAGE_STEPS.has(insideStep);
-
-  useEffect(() => {
-    dreamAssetsRef.current = null;
-    if (!displayedImageUrl) return;
-    let cancelled = false;
-    loadDreamImageAssets(displayedImageUrl)
-      .then((assets) => {
-        if (!cancelled) dreamAssetsRef.current = assets;
-      })
-      .catch(() => {
-        // The photo itself failed to load here (shouldn't happen — it's
-        // already settled and showing elsewhere) — the plain <img>
-        // fallback below still shows it correctly either way.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [displayedImageUrl]);
-
-  useEffect(() => {
-    if (!isArrival) return;
-    const tick = () => {
-      const canvas = maskCanvasRef.current;
-      const assets = dreamAssetsRef.current;
-      if (canvas && assets) {
-        renderDreamImageFrame(canvas, assets, bgVideoRef.current);
-      }
-    };
-    tick();
-    // setInterval, not requestAnimationFrame: rAF is fully suspended by
-    // browsers on a hidden/backgrounded page (confirmed directly — it
-    // never fires at all in that state), and this needs to keep the
-    // canvas's baked-in cloud frame from visibly drifting out of step
-    // with the real background video even if the tab is briefly
-    // backgrounded. A slow, deliberately un-smooth cadence is enough —
-    // the clouds drift slowly and nothing here needs 60fps.
-    const id = window.setInterval(tick, 150);
-    return () => window.clearInterval(id);
-  }, [isArrival]);
 
   if (phase === 'none') return null;
 
@@ -264,28 +220,46 @@ export default function DreamReconstruction({
           aria-hidden="true"
           style={{ '--accent-rgb': `${(accentColor ?? FALLBACK_ACCENT).r}, ${(accentColor ?? FALLBACK_ACCENT).g}, ${(accentColor ?? FALLBACK_ACCENT).b}` } as CSSProperties}
         >
-          {/* On THIS IS YOUR DREAM the mask is drawn directly into a live
-              <canvas> (maskCanvasRef, via dreamImageMask.ts) — never a CSS
-              mask-image (see the CSS comment on
-              .dr-image-layer[data-arrival='true']) and never a PNG data URL
-              round-tripped back through a fresh <img> either. Both of those
-              were tried and independently confirmed broken in the field —
-              each time the underlying data checked out 100% correct
-              (computed styles, getImageData sampled live in the user's own
-              browser) while the screen kept showing a plain unmasked
-              rectangle regardless. A canvas that stays mounted and is
-              drawn into directly, then displayed as-is, is a categorically
-              different rendering path from either. The canvas is always
-              present once there's an image (the draw effect starts the
-              moment displayedImageUrl settles, well before phase 'inside'
-              can need it), CSS just switches which of it / the plain photo
-              is visible via data-arrival — see the CSS rule below. */}
-          {displayedImageUrl && (
-            <>
-              <canvas ref={maskCanvasRef} className="dr-image dr-image-current dr-image-canvas" />
+          {/* On THIS IS YOUR DREAM the image is cut to the exact organic
+              shape with a real SVG clipPath/mask (dreamClipShape.ts) —
+              never CSS mask-image, never a <canvas> composite. Both of
+              those were tried and each independently confirmed broken in
+              the field: the underlying data checked out 100% correct
+              every time (computed styles, getImageData sampled live in
+              the user's own browser) while the screen kept showing a
+              plain unmasked rectangle regardless. This SVG approach was
+              confirmed working directly on the user's own machine (an
+              isolated sandbox, not this component) before being wired in
+              here. Every other step keeps the plain <img> it always had. */}
+          {displayedImageUrl &&
+            (isArrival ? (
+              <svg
+                className="dr-image dr-image-current dr-image-svg"
+                viewBox={DREAM_CLIP_VIEWBOX}
+                preserveAspectRatio="xMidYMid slice"
+                aria-hidden="true"
+              >
+                <defs>
+                  <filter id="dr-dream-clip-feather" x="-30%" y="-30%" width="160%" height="160%">
+                    <feGaussianBlur stdDeviation={DREAM_CLIP_FEATHER_STD_DEVIATION} />
+                  </filter>
+                  <mask id="dr-dream-clip-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="2048" height="1152">
+                    <path d={DREAM_CLIP_PATH} fill="white" filter="url(#dr-dream-clip-feather)" />
+                  </mask>
+                </defs>
+                <image
+                  href={displayedImageUrl}
+                  x="0"
+                  y="0"
+                  width="2048"
+                  height="1152"
+                  preserveAspectRatio="xMidYMid slice"
+                  mask="url(#dr-dream-clip-mask)"
+                />
+              </svg>
+            ) : (
               <img className="dr-image dr-image-current dr-image-plain" src={displayedImageUrl} alt="" />
-            </>
-          )}
+            ))}
           {incomingImageUrl && (
             <>
               <img className="dr-image dr-image-incoming" src={incomingImageUrl} alt="" />

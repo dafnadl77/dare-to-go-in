@@ -224,64 +224,57 @@
   transition: width 1.8s var(--ease-memory), height 1.8s var(--ease-memory), top 1.8s var(--ease-memory);
 }
 
-/* THIS IS YOUR DREAM / WHAT STANDS OUT TO YOU? — the image sits directly
-   on the cloud environment with a soft radial-gradient feather (opaque
-   through the middle, fading fully transparent toward the edges) instead
-   of a hard rectangle, an organic cutout shape, or a second cloud-video
-   "frame" layered in front of it — see dreamImageMask.ts. Drawn straight
-   into a live <canvas> (.dr-image-canvas) that stays mounted and IS the
-   displayed element; the plain <img> (.dr-image-plain) is what every
-   other image-bearing step already used, kept mounted here purely as the
-   draw source and hidden the instant this rule's selector matches.
+/* THIS IS YOUR DREAM / WHAT STANDS OUT TO YOU? — the image is cut to the
+   exact organic shape (traced from KETEM.jpg — see dreamClipShape.ts)
+   with a real SVG clipPath/mask (.dr-image-svg), rendered inline by
+   DreamReconstruction.tsx. Every other image-bearing step keeps the
+   plain <img> (.dr-image-plain) it always used; only one of the two is
+   ever mounted at a time (a JSX condition, not a CSS display toggle), so
+   there's nothing to hide/show here at the CSS level.
 
-   Deliberately NO mask-image/-webkit-mask-image/mask-size/etc. anywhere
-   in this path — do not reintroduce one. An exact traced organic mask
-   asset (hand-traced silhouette, feathered PNG) applied via CSS
-   mask-image, then via <canvas> compositing to a PNG data URL handed to
-   a fresh <img>, were each independently confirmed broken in the field
-   more than once: the underlying data checked out 100% correct every
-   time (computed mask-image, getImageData sampled live in the user's own
+   Deliberately NOT CSS mask-image and NOT a <canvas> composite — do not
+   reintroduce either. Both were tried here, independently, more than
+   once, and both were independently confirmed broken in the field
+   despite checking out 100% correct on every remote inspection available
+   (computed mask-image, getImageData sampled live in the user's own
    browser console — corner alpha 0, center alpha 255) while the screen
    kept showing a plain unmasked rectangle regardless. mask-image forces
    the browser to rasterize the element into an intermediate compositing
    layer that never repainted when the image content underneath changed;
-   a round-tripped PNG data URL handed to an <img> hit the same wall one
-   layer down, for reasons that never surfaced in any DOM/CSS/pixel check
-   available remotely. Drawing directly into a <canvas> that IS the
-   displayed element sidesteps both, and a plain radial-gradient feather
-   (generated in JS, no external mask asset, no custom shape) is the
-   simplest possible thing to draw with it. If a live CSS mask or an
-   <img>-based approach is ever reintroduced here, verify with a real
-   screenshot on the actual target device — computed styles and
-   getImageData both kept reporting correct while the visible output
-   stayed wrong. */
+   a <canvas> repainted every frame (even baking the live background
+   video into its own pixels to remove any cross-element transparency
+   compositing) hit the same wall, for reasons that never surfaced in any
+   DOM/CSS/pixel check available remotely. SVG clip-path/mask is a
+   categorically different rendering primitive from either, confirmed
+   working directly on the user's own machine (Brave) via an isolated
+   sandbox test before this was wired in. If mask-image or a canvas
+   composite is ever reintroduced here, verify with a real screenshot on
+   the actual target device — computed styles and getImageData both kept
+   reporting correct while the visible output stayed wrong, every time. */
 .dr-image-layer[data-arrival='true'] {
   /* A wide, cinematic ~16:9 crop of the source image (not its native 3:2)
      — deliberate: at the image's native 3:2 ratio, even this size would
      force more height than a 1280x720 window can spare above the
      choices. Each width/height pair below keeps the SAME ~16:9 ratio
-     (matching the canvas's own 1600x900 draw size) across all three
-     min() branches so whichever one binds never distorts the box.
+     (matching the KETEM.jpg-derived clip shape's own 2048x1152 viewBox in
+     dreamClipShape.ts) across all three min() branches so whichever one
+     binds never distorts the box.
 
      Deliberately smaller than earlier passes (was 74vw/1400px) — at that
      size there wasn't enough surrounding cloud video left on any side for
-     the cloud-overlap ring (dreamImageMask.ts) to read as the photo
-     sitting under real clouds; it just read as decoration on a giant
-     rectangle. */
+     the shape to read as the photo sitting under real clouds; it just
+     read as decoration on a giant rectangle. */
   width: min(50vw, 89vh, 950px);
   height: min(28.1vw, 50vh, 534px);
 }
 
-.dr-image-canvas {
-  display: none;
-}
-
-.dr-image-layer[data-arrival='true'] .dr-image-canvas {
+/* .dr-image already sets position/inset/width/height/transform-origin,
+   but object-fit has no effect on an inline <svg> (it's not a "replaced
+   element" the way <img>/<video>/<canvas> are) — the SVG's own viewBox +
+   preserveAspectRatio="xMidYMid slice" on both the <svg> and the inner
+   <image> is what makes it behave like object-fit:cover here. */
+.dr-image-svg {
   display: block;
-}
-
-.dr-image-layer[data-arrival='true'] .dr-image-plain {
-  display: none;
 }
 
 /* THE REFLECTION / INSIGHTS screen removes the dream image entirely — the
