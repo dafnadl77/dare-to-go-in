@@ -286,13 +286,29 @@
   height: min(43.9vw, 70vh, 843.8px);
 }
 
-/* .dr-image already sets position/inset/width/height/transform-origin,
-   but object-fit has no effect on an inline <svg> (it's not a "replaced
-   element" the way <img>/<video>/<canvas> are) — the SVG's own viewBox +
+/* .dr-image-svg-wrap gets .dr-image's position/inset/width/height (and is
+   the node every dr-image-current animation/filter/transform rule below
+   targets) — but object-fit has no effect on a plain <div>, so the inner
+   <svg> needs its own explicit full-size box. The SVG's own viewBox +
    preserveAspectRatio="xMidYMid slice" on both the <svg> and the inner
-   <image> is what makes it behave like object-fit:cover here. */
+   <image> is what makes IT behave like object-fit:cover within that box.
+
+   Deliberately two separate elements: the <svg> carrying the mask stays
+   completely inert (no CSS filter/transform of its own — see the long
+   comment in DreamReconstruction.tsx above where this is rendered) while
+   this wrapping <div> carries every animated effect instead. Putting an
+   animated CSS filter directly on the masked <svg> was reproduced,
+   live, as the mask silently failing to apply (a plain hard rectangle) —
+   do not merge these two elements back into one without re-verifying
+   with a real screenshot on the actual target device. */
+.dr-image-svg-wrap {
+  overflow: hidden;
+}
+
 .dr-image-svg {
   display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* THE REFLECTION / INSIGHTS screen removes the dream image entirely — the

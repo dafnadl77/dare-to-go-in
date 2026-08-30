@@ -236,39 +236,50 @@ export default function DreamReconstruction({
               shape with a real SVG clipPath/mask (dreamClipShape.ts) —
               never CSS mask-image, never a <canvas> composite. Both of
               those were tried and each independently confirmed broken in
-              the field: the underlying data checked out 100% correct
-              every time (computed styles, getImageData sampled live in
-              the user's own browser) while the screen kept showing a
-              plain unmasked rectangle regardless. This SVG approach was
-              confirmed working directly on the user's own machine (an
-              isolated sandbox, not this component) before being wired in
-              here. Every other step keeps the plain <img> it always had. */}
+              the field. The SVG approach was confirmed working in an
+              isolated sandbox, then broke the SAME way once wired into
+              this component — reproduced live: a hard rectangle, no
+              organic edge. Root cause: this element (.dr-image-current)
+              also carries CSS `filter`/`transform` animations (ambient
+              drift, the hero-in reveal, entering/dissolving/saving) —
+              putting an animated CSS filter directly on the SAME node
+              that resolves an internal SVG mask (itself built from an
+              SVG filter, feGaussianBlur) is a known class of compositor
+              bug: the browser can end up painting the unmasked source
+              instead of the masked result. The isolated sandbox never
+              hit this because it had no such animations. Fix: the mask
+              now lives on an inert <svg> with NO CSS filter/transform of
+              its own — every animated effect moves to a plain wrapping
+              <div> (still `.dr-image-current`, so every existing rule
+              keeps targeting it unchanged) that merely contains the
+              masked SVG rather than being the masked node itself. Do not
+              put a CSS filter or transform back onto the <svg> tag
+              itself without re-verifying with a real screenshot on the
+              actual target device. Every other step keeps the plain
+              <img> it always had. */}
           {displayedImageUrl &&
             (isArrival ? (
-              <svg
-                className="dr-image dr-image-current dr-image-svg"
-                viewBox={DREAM_CLIP_VIEWBOX}
-                preserveAspectRatio="xMidYMid slice"
-                aria-hidden="true"
-              >
-                <defs>
-                  <filter id="dr-dream-clip-feather" x="-30%" y="-30%" width="160%" height="160%">
-                    <feGaussianBlur stdDeviation={dreamClipFeather} />
-                  </filter>
-                  <mask id="dr-dream-clip-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="2048" height="1152">
-                    <path d={DREAM_CLIP_PATH} fill="white" filter="url(#dr-dream-clip-feather)" />
-                  </mask>
-                </defs>
-                <image
-                  href={displayedImageUrl}
-                  x="0"
-                  y="0"
-                  width="2048"
-                  height="1152"
-                  preserveAspectRatio="xMidYMid slice"
-                  mask="url(#dr-dream-clip-mask)"
-                />
-              </svg>
+              <div className="dr-image dr-image-current dr-image-svg-wrap" aria-hidden="true">
+                <svg className="dr-image-svg" viewBox={DREAM_CLIP_VIEWBOX} preserveAspectRatio="xMidYMid slice">
+                  <defs>
+                    <filter id="dr-dream-clip-feather" x="-30%" y="-30%" width="160%" height="160%">
+                      <feGaussianBlur stdDeviation={dreamClipFeather} />
+                    </filter>
+                    <mask id="dr-dream-clip-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="2048" height="1152">
+                      <path d={DREAM_CLIP_PATH} fill="white" filter="url(#dr-dream-clip-feather)" />
+                    </mask>
+                  </defs>
+                  <image
+                    href={displayedImageUrl}
+                    x="0"
+                    y="0"
+                    width="2048"
+                    height="1152"
+                    preserveAspectRatio="xMidYMid slice"
+                    mask="url(#dr-dream-clip-mask)"
+                  />
+                </svg>
+              </div>
             ) : (
               <img className="dr-image dr-image-current dr-image-plain" src={displayedImageUrl} alt="" />
             ))}
