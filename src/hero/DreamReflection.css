@@ -84,7 +84,9 @@
    bare luminous typography with an organic energy trace, tinted by this
    dream's own extracted palette. Positioned to clear the hero image box
    (see .dr-image-layer[data-arrival] in DreamReconstruction.css — top:6vh,
-   height up to min(28.1vw, 50vh, 534px); kept in sync by hand). ===================================================================== */
+   height up to min(43.9vw, 70vh, 843.8px); kept in sync by hand — this is
+   the SAME size for the whole arrival duration now, prompt through
+   choices/selected, so there is only the one height to clear here). ===================================================================== */
 .dream-arrival {
   position: absolute;
   inset: 0;
@@ -95,13 +97,19 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(6vh + min(28.1vw, 50vh, 534px) + 2.8vh);
-  bottom: 2vh;
+  /* The now much taller arrival image (see the note above) leaves very
+     little room below it on a real 1280x720 viewport — tightened the gap
+     above, the gap below (`bottom`), and the gap between title/subtitle/
+     choice-row (below) accordingly, verified to clear the image with a
+     real gap (not touching) and keep the choice row fully on-screen at
+     1280x720. */
+  top: calc(6vh + min(43.9vw, 70vh, 843.8px) + 1vh);
+  bottom: 0.8vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.7rem;
+  gap: 1rem;
   padding: 0 4vw;
 }
 

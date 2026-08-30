@@ -252,36 +252,19 @@
    the actual target device — computed styles and getImageData both kept
    reporting correct while the visible output stayed wrong, every time. */
 .dr-image-layer[data-arrival='true'] {
-  /* A wide, cinematic ~16:9 crop of the source image (not its native 3:2)
-     — deliberate: at the image's native 3:2 ratio, even this size would
-     force more height than a 1280x720 window can spare above the
-     choices. Each width/height pair below keeps the SAME ~16:9 ratio
-     (matching the KETEM.jpg-derived clip shape's own 2048x1152 viewBox in
+  /* A wide, cinematic ~16:9 crop of the source image (not its native 3:2),
+     kept the SAME size for the entire arrival duration — THIS IS YOUR
+     DREAM (insideStep 'prompt') through WHAT STANDS OUT TO YOU? and its
+     choices ('choices'/'selected'). An earlier pass sized 'prompt' alone
+     larger and had this rule take back over once choices appeared —
+     the image visibly SHRANK at that transition, which read as wrong;
+     do not reintroduce a size drop partway through arrival. Each
+     width/height pair below keeps the SAME ~16:9 ratio (matching the
+     KETEM.jpg-derived clip shape's own 2048x1152 viewBox in
      dreamClipShape.ts) across all three min() branches so whichever one
-     binds never distorts the box.
-
-     Deliberately smaller than earlier passes (was 74vw/1400px) — at that
-     size there wasn't enough surrounding cloud video left on any side for
-     the shape to read as the photo sitting under real clouds; it just
-     read as decoration on a giant rectangle. */
-  width: min(50vw, 89vh, 950px);
-  height: min(28.1vw, 50vh, 534px);
-}
-
-/* THIS IS YOUR DREAM alone (insideStep 'prompt', before WHAT STANDS OUT TO
-   YOU?'s choices appear beneath it) — a dramatically larger reveal, ~75-80%
-   of viewport width on desktop, so the dream reads as filling most of the
-   opening in the clouds rather than a small photo floating inside it. Its
-   feather is also much wider/softer (DREAM_CLIP_FEATHER_STD_DEVIATION_ARRIVAL
-   in dreamClipShape.ts, applied via the inline <feGaussianBlur> in
-   DreamReconstruction.tsx). The instant insideStep moves to
-   'choices'/'selected' (the question screen), the plain
-   [data-arrival='true'] rule above takes back over unchanged — this
-   override is scoped to [data-step='prompt'] only, per spec. Same ~16:9
-   ratio as the base rule (2048x1152) across every min() branch. Higher
-   selector specificity than the base rule above (one extra attribute
-   selector) is what makes this win without needing !important. */
-.dr-image-layer[data-arrival='true'][data-step='prompt'] {
+     binds never distorts the box. ~75-80% of viewport width on desktop —
+     see .da-content in DreamReflection.css, which clears this exact
+     height. */
   width: min(78vw, 124.4vh, 1500px);
   height: min(43.9vw, 70vh, 843.8px);
 }
