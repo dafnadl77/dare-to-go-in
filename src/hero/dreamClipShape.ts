@@ -32,4 +32,20 @@ export const DREAM_CLIP_PATH =
 // displayed size (measured empirically at a ~950px-wide box, this
 // project's normal size for this element — re-measure if the box size
 // changes meaningfully).
+//
+// Used on the WHAT STANDS OUT TO YOU? question screen (insideStep
+// 'choices'/'selected') — deliberately left at its original size/feather
+// pairing, unchanged, per the request that only the THIS IS YOUR DREAM
+// arrival moment (insideStep 'prompt') get the larger, softer treatment
+// below.
 export const DREAM_CLIP_FEATHER_STD_DEVIATION = 19;
+
+// THIS IS YOUR DREAM alone (insideStep 'prompt', before the choices
+// appear) — a much wider, softer feather for the larger ~75-80vw reveal
+// (see .dr-image-layer[data-arrival='true'][data-step='prompt'] in
+// DreamReconstruction.css): the same feather fraction as above would
+// still scale up somewhat with the bigger box, but this is deliberately
+// well beyond that so the center reads fully opaque and the falloff
+// toward the mask's edge is gradual, never a visible line. Same
+// coordinate space and mask/path as above — only the blur radius differs.
+export const DREAM_CLIP_FEATHER_STD_DEVIATION_ARRIVAL = 42;

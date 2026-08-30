@@ -268,6 +268,24 @@
   height: min(28.1vw, 50vh, 534px);
 }
 
+/* THIS IS YOUR DREAM alone (insideStep 'prompt', before WHAT STANDS OUT TO
+   YOU?'s choices appear beneath it) — a dramatically larger reveal, ~75-80%
+   of viewport width on desktop, so the dream reads as filling most of the
+   opening in the clouds rather than a small photo floating inside it. Its
+   feather is also much wider/softer (DREAM_CLIP_FEATHER_STD_DEVIATION_ARRIVAL
+   in dreamClipShape.ts, applied via the inline <feGaussianBlur> in
+   DreamReconstruction.tsx). The instant insideStep moves to
+   'choices'/'selected' (the question screen), the plain
+   [data-arrival='true'] rule above takes back over unchanged — this
+   override is scoped to [data-step='prompt'] only, per spec. Same ~16:9
+   ratio as the base rule (2048x1152) across every min() branch. Higher
+   selector specificity than the base rule above (one extra attribute
+   selector) is what makes this win without needing !important. */
+.dr-image-layer[data-arrival='true'][data-step='prompt'] {
+  width: min(78vw, 124.4vh, 1500px);
+  height: min(43.9vw, 70vh, 843.8px);
+}
+
 /* .dr-image already sets position/inset/width/height/transform-origin,
    but object-fit has no effect on an inline <svg> (it's not a "replaced
    element" the way <img>/<video>/<canvas> are) — the SVG's own viewBox +

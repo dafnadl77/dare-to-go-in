@@ -6,7 +6,12 @@ import { deriveVisualCues } from './reconstructionVisualCues';
 import { deriveDreamWorldEffects } from './dreamWorldEffects';
 import { usePointerParallax } from './usePointerParallax';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
-import { DREAM_CLIP_PATH, DREAM_CLIP_VIEWBOX, DREAM_CLIP_FEATHER_STD_DEVIATION } from './dreamClipShape';
+import {
+  DREAM_CLIP_PATH,
+  DREAM_CLIP_VIEWBOX,
+  DREAM_CLIP_FEATHER_STD_DEVIATION,
+  DREAM_CLIP_FEATHER_STD_DEVIATION_ARRIVAL,
+} from './dreamClipShape';
 import DreamPortalTransition from './DreamPortalTransition';
 import DreamStageBackground from './DreamStageBackground';
 import DreamWorld from './DreamWorld';
@@ -157,6 +162,13 @@ export default function DreamReconstruction({
   // per-frame render loop at all: the <image>'s href is just the settled
   // photo URL, same as the plain <img> fallback below.
   const isArrival = phase === 'inside' && DREAM_IMAGE_STEPS.has(insideStep);
+  // THIS IS YOUR DREAM alone — before WHAT STANDS OUT TO YOU? and its
+  // choices appear — gets a dramatically larger reveal with a much
+  // wider/softer feather (see dreamClipShape.ts). The moment insideStep
+  // moves to 'choices'/'selected' (the question screen), both revert to
+  // their original, unchanged size/feather — this is scoped to 'prompt'
+  // only, per spec.
+  const dreamClipFeather = insideStep === 'prompt' ? DREAM_CLIP_FEATHER_STD_DEVIATION_ARRIVAL : DREAM_CLIP_FEATHER_STD_DEVIATION;
 
   if (phase === 'none') return null;
 
@@ -241,7 +253,7 @@ export default function DreamReconstruction({
               >
                 <defs>
                   <filter id="dr-dream-clip-feather" x="-30%" y="-30%" width="160%" height="160%">
-                    <feGaussianBlur stdDeviation={DREAM_CLIP_FEATHER_STD_DEVIATION} />
+                    <feGaussianBlur stdDeviation={dreamClipFeather} />
                   </filter>
                   <mask id="dr-dream-clip-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="2048" height="1152">
                     <path d={DREAM_CLIP_PATH} fill="white" filter="url(#dr-dream-clip-feather)" />
