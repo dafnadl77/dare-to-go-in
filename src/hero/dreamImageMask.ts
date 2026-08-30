@@ -1,18 +1,29 @@
-// Draws the settled dream image directly into a live <canvas> that
-// DreamReconstruction keeps mounted and displays in place of an <img>:
-// the photo itself is cut to a soft, irregular "gap between clouds" shape
-// (not a smooth oval, not a hard rectangle), and a band of real cloud
-// footage is drawn on top straddling that edge, so clouds visibly drape
-// over the photo rather than the photo just fading to reveal whatever is
-// behind it. Approved via a side-by-side reference mockup before this was
-// built — see the mockup's own notes for the earlier candidates it beat
-// (a plain radial vignette, and a hand-traced exact silhouette applied via
-// CSS mask-image / a PNG data URL round-tripped through an <img>, both of
-// which independently proved unreliable in the field despite checking out
-// pixel-correct on every remote inspection). Everything here draws
-// straight into the live <canvas> that's the displayed element — no CSS
-// mask-image, no PNG re-encode — which is the part that's actually been
-// verified to paint correctly.
+// Renders the settled dream image into a live <canvas> that
+// DreamReconstruction keeps mounted and repaints every animation frame:
+// the photo is cut to a soft, irregular "gap between clouds" shape, with
+// real cloud footage draped over its edge — but unlike every earlier
+// version of this, the canvas is filled with the CURRENT frame of the
+// same cloud background video as its base layer FIRST, then the masked
+// photo is composited on top of that, all inside this one canvas's own
+// 2D context. The canvas that reaches the screen is therefore fully
+// opaque everywhere — there is no transparent pixel left for the browser
+// to alpha-blend against the video underneath at display time.
+//
+// Why this exists: every previous version (CSS mask-image, a canvas-baked
+// PNG handed to a fresh <img>, a live <canvas> left genuinely
+// transparent outside the mask) was independently verified pixel-correct
+// — including getImageData sampled live, on the user's own machine, on
+// the exact broken screen, reporting fully transparent corners and a
+// fully opaque center exactly as intended — and the screen still showed
+// a plain hard rectangle every time regardless. Correct pixel data with
+// wrong screen output, repeated across categorically different
+// mechanisms, points at the one layer common to all of them: the browser
+// compositing a transparent element against the moving <video>
+// background underneath. Baking that same video's current frame directly
+// into the canvas removes the need for that compositing step entirely —
+// what's "outside" the photo's shape is real cloud video content painted
+// directly into the canvas's own pixels, not transparency revealing a
+// separate element below.
 //
 // Two defensive rules learned the hard way and worth keeping:
 // 1. Never draw a canvas onto its own context (even via a helper that
@@ -20,13 +31,10 @@
 //    self-referential draw is exactly the kind of thing that has behaved
 //    inconsistently across browsers all through this feature's history.
 //    Every blur here writes into a SEPARATE destination canvas.
-// 2. The photo is drawn to the canvas (full, unmasked) before the mask is
-//    built. If mask-building ever throws, an un-caught error there would
-//    leave that raw unmasked draw as the final visible state — a plain
-//    rectangle, indistinguishable from every previous version of this bug.
-//    The primary mask step is therefore wrapped so any failure falls back
-//    to a trivial, hard-to-break radial vignette instead of leaving the
-//    canvas unmasked.
+// 2. Any masked layer is built on its OWN temporary canvas and composited
+//    onto the main canvas via a plain drawImage — never destination-in
+//    applied directly to the main canvas — so a failure while building
+//    one layer can never leave the main canvas's video base half-erased.
 
 const CLOUD_TEXTURE_URL = '/dream-cloud-overlap.jpg';
 
@@ -34,7 +42,13 @@ const CLOUD_TEXTURE_URL = '/dream-cloud-overlap.jpg';
 // a handful the user reviewed in the approval mockup.
 const SHAPE_SEED = 7;
 
-let cloudTexturePromise: Promise<HTMLImageElement> | null = null;
+const CANVAS_W = 1600;
+const CANVAS_H = 900;
+
+export interface DreamImageAssets {
+  photo: HTMLImageElement;
+  cloudTexture: HTMLImageElement | null;
+}
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -45,9 +59,17 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+let cloudTexturePromise: Promise<HTMLImageElement> | null = null;
 function getCloudTexture(): Promise<HTMLImageElement> {
   if (!cloudTexturePromise) cloudTexturePromise = loadImage(CLOUD_TEXTURE_URL);
   return cloudTexturePromise;
+}
+
+/** Preloads everything renderDreamImageFrame needs. Call once per settled image. */
+export async function loadDreamImageAssets(imageUrl: string): Promise<DreamImageAssets> {
+  const photo = await loadImage(imageUrl);
+  const cloudTexture = await getCloudTexture().catch(() => null);
+  return { photo, cloudTexture };
 }
 
 // Deterministic PRNG (mulberry32) so the same seed always reproduces the
@@ -94,7 +116,7 @@ function blurToNewCanvas(source: HTMLCanvasElement, radiusPx: number): HTMLCanva
  * overlapping soft circles around a base ellipse, unioned additively and
  * blurred so the union reads as an irregular cloud silhouette rather than
  * a smooth curve or a scalloped polygon. Same seed at different scales
- * stays concentric with itself, which is what lets drawCloudOverlayRing
+ * stays concentric with itself, which is what lets buildCloudRingLayer
  * carve a ring out of two of these.
  */
 function buildLobeMask(cw: number, ch: number, seed: number, scale: number): HTMLCanvasElement {
@@ -165,88 +187,90 @@ function buildSimpleVignetteMask(cw: number, ch: number): HTMLCanvasElement {
   return m;
 }
 
-function applyMask(ctx: CanvasRenderingContext2D, mask: HTMLCanvasElement): void {
-  ctx.globalCompositeOperation = 'destination-in';
-  ctx.drawImage(mask, 0, 0);
-  ctx.globalCompositeOperation = 'source-over';
+/** Draws `photo` masked to the lobe shape (falling back to a plain vignette on any failure) onto its own canvas. */
+function buildMaskedPhotoLayer(photo: HTMLImageElement, cw: number, ch: number): HTMLCanvasElement {
+  const layer = makeCanvas(cw, ch);
+  const lctx = layer.getContext('2d');
+  if (!lctx) return layer;
+
+  const r = coverRect(photo.naturalWidth, photo.naturalHeight, cw, ch);
+  lctx.drawImage(photo, r.dx, r.dy, r.dw, r.dh);
+
+  let mask: HTMLCanvasElement;
+  try {
+    mask = buildLobeMask(cw, ch, SHAPE_SEED, 1.0);
+  } catch {
+    mask = buildSimpleVignetteMask(cw, ch);
+  }
+  lctx.globalCompositeOperation = 'destination-in';
+  lctx.drawImage(mask, 0, 0);
+  lctx.globalCompositeOperation = 'source-over';
+  return layer;
 }
 
 /**
- * Draws real cloud footage (a still frame from the same approved cloud
- * video used as the Dream Stage background) into a ring that straddles
- * the photo's edge — built from the outer lobe shape minus a slightly
- * shrunk inner one, so part of the ring overlaps onto the photo itself
- * (occluding it, not just revealing background through it) and part
- * spills past the photo's edge into the surrounding environment.
+ * Builds a ring of real cloud footage that straddles the photo's edge —
+ * the outer lobe shape minus a slightly shrunk inner one, so part of it
+ * overlaps onto the photo itself and part spills past it. Returns null
+ * (skip silently) if the cloud texture never loaded.
  */
-async function drawCloudOverlayRing(
-  ctx: CanvasRenderingContext2D,
-  cw: number,
-  ch: number,
-  seed: number,
-): Promise<void> {
-  const cloudTexture = await getCloudTexture();
+function buildCloudRingLayer(cloudTexture: HTMLImageElement | null, cw: number, ch: number): HTMLCanvasElement | null {
+  if (!cloudTexture) return null;
 
-  const outer = buildLobeMask(cw, ch, seed, 1.16);
-  const innerShrunk = buildLobeMask(cw, ch, seed, 0.9);
+  const outer = buildLobeMask(cw, ch, SHAPE_SEED, 1.16);
+  const innerShrunk = buildLobeMask(cw, ch, SHAPE_SEED, 0.9);
   const ring = makeCanvas(cw, ch);
   const rctx = ring.getContext('2d');
-  if (!rctx) return;
+  if (!rctx) return null;
   rctx.drawImage(outer, 0, 0);
   rctx.globalCompositeOperation = 'destination-out';
   rctx.drawImage(innerShrunk, 0, 0);
   rctx.globalCompositeOperation = 'source-over';
 
-  const cloudLayer = makeCanvas(cw, ch);
-  const cctx = cloudLayer.getContext('2d');
-  if (!cctx) return;
+  const layer = makeCanvas(cw, ch);
+  const cctx = layer.getContext('2d');
+  if (!cctx) return null;
   const cr = coverRect(cloudTexture.naturalWidth, cloudTexture.naturalHeight, cw, ch);
   cctx.drawImage(cloudTexture, cr.dx, cr.dy, cr.dw, cr.dh);
   cctx.globalCompositeOperation = 'destination-in';
   cctx.drawImage(ring, 0, 0);
   cctx.globalCompositeOperation = 'source-over';
-
-  ctx.drawImage(cloudLayer, 0, 0);
+  return layer;
 }
 
 /**
- * Draws `imageUrl` into `canvas`, cut to the irregular cloud-gap shape and
- * overlaid with a ring of real cloud footage along its edge. Sized to a
- * fixed ~16:9 canvas so the result matches the arrival box's own aspect
- * ratio; CSS sizing (width/height:100% on .dr-image) scales that to the
- * real rendered box (kept meaningfully smaller than earlier passes so
- * there's always real cloud around every side, not just at the edges of
- * an already-huge box). The primary mask can never fail silently into an
- * unmasked photo — if the organic lobe shape throws for any reason, a
- * trivial ellipse vignette is applied instead. The cloud overlay ring is
- * separately best-effort: if the texture fails to load, the already-cut
- * photo is still a complete, correct result on its own.
+ * Paints one frame: the cloud video's CURRENT frame as an opaque base
+ * (falling back to a plain dark fill if the video isn't ready yet),
+ * then the masked photo, then the cloud-overlap ring, all composited
+ * within this canvas's own context. The result is fully opaque — meant
+ * to be called every animation frame while THIS IS YOUR DREAM is showing,
+ * so the baked-in cloud base stays visually in step with the real
+ * background video playing beyond this canvas's own box.
  */
-export async function drawDreamImageMask(canvas: HTMLCanvasElement, imageUrl: string): Promise<void> {
-  const photo = await loadImage(imageUrl);
-
-  const cw = 1600;
-  const ch = 900;
-  canvas.width = cw;
-  canvas.height = ch;
+export function renderDreamImageFrame(
+  canvas: HTMLCanvasElement,
+  assets: DreamImageAssets,
+  videoEl: HTMLVideoElement | null,
+): void {
+  if (canvas.width !== CANVAS_W) canvas.width = CANVAS_W;
+  if (canvas.height !== CANVAS_H) canvas.height = CANVAS_H;
   const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('2d canvas context unavailable');
+  if (!ctx) return;
+  const cw = CANVAS_W;
+  const ch = CANVAS_H;
 
-  const r = coverRect(photo.naturalWidth, photo.naturalHeight, cw, ch);
-  ctx.clearRect(0, 0, cw, ch);
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.drawImage(photo, r.dx, r.dy, r.dw, r.dh);
-
-  try {
-    applyMask(ctx, buildLobeMask(cw, ch, SHAPE_SEED, 1.0));
-  } catch {
-    applyMask(ctx, buildSimpleVignetteMask(cw, ch));
+  if (videoEl && videoEl.readyState >= 2 && videoEl.videoWidth > 0) {
+    const vr = coverRect(videoEl.videoWidth, videoEl.videoHeight, cw, ch);
+    ctx.drawImage(videoEl, vr.dx, vr.dy, vr.dw, vr.dh);
+  } else {
+    // Video not ready yet — an opaque placeholder close to the stage's
+    // own night palette, never a transparent/blank frame.
+    ctx.fillStyle = '#0f1a2c';
+    ctx.fillRect(0, 0, cw, ch);
   }
 
-  try {
-    await drawCloudOverlayRing(ctx, cw, ch, SHAPE_SEED);
-  } catch {
-    // Cloud texture failed to load — the cut-edge photo above is already
-    // a complete, correct result on its own.
-  }
+  ctx.drawImage(buildMaskedPhotoLayer(assets.photo, cw, ch), 0, 0);
+
+  const ring = buildCloudRingLayer(assets.cloudTexture, cw, ch);
+  if (ring) ctx.drawImage(ring, 0, 0);
 }

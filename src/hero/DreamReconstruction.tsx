@@ -6,7 +6,7 @@ import { deriveVisualCues } from './reconstructionVisualCues';
 import { deriveDreamWorldEffects } from './dreamWorldEffects';
 import { usePointerParallax } from './usePointerParallax';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
-import { drawDreamImageMask } from './dreamImageMask';
+import { loadDreamImageAssets, renderDreamImageFrame, type DreamImageAssets } from './dreamImageMask';
 import DreamPortalTransition from './DreamPortalTransition';
 import DreamStageBackground from './DreamStageBackground';
 import DreamWorld from './DreamWorld';
@@ -144,29 +144,68 @@ export default function DreamReconstruction({
     bgVideoRef.current?.play().catch(() => {});
   }, [phase]);
 
-  // THIS IS YOUR DREAM's image gets its soft radial-gradient feather by
-  // drawing directly into this <canvas> (see dreamImageMask.ts) — it stays
-  // mounted for the whole lifetime of the image layer (not just while
-  // isArrival) so the draw can start the moment displayedImageUrl settles,
-  // well before phase 'inside' can ever need it (the portal crossing alone
-  // takes ~5s). CSS toggles which of the canvas/plain <img> below is
-  // actually visible via data-arrival.
+  // THIS IS YOUR DREAM's image is painted into this <canvas> every
+  // animation frame (see dreamImageMask.ts) rather than drawn once: the
+  // canvas's own base layer is the CURRENT frame of the cloud background
+  // video, so the canvas that reaches the screen is fully opaque
+  // everywhere — no transparent pixel is ever left for the browser to
+  // alpha-blend against the video underneath at display time. That
+  // cross-element blend is exactly what kept failing in the field even
+  // after the mask's own pixel data was repeatedly verified correct (see
+  // the long comment at the top of dreamImageMask.ts).
+  //
+  // Assets (the photo + the cloud-overlap texture) load once per settled
+  // image, well before phase 'inside' can ever need them (the portal
+  // crossing alone takes ~5s). The paint loop itself only runs while
+  // isArrival is true, computed below before this component's early
+  // return so the hook always runs in the same order.
   const maskCanvasRef = useRef<HTMLCanvasElement>(null);
+  const dreamAssetsRef = useRef<DreamImageAssets | null>(null);
+  const isArrival = phase === 'inside' && DREAM_IMAGE_STEPS.has(insideStep);
+
   useEffect(() => {
+    dreamAssetsRef.current = null;
     if (!displayedImageUrl) return;
-    const canvas = maskCanvasRef.current;
-    if (!canvas) return;
-    drawDreamImageMask(canvas, displayedImageUrl).catch(() => {
-      // Drawing failed (e.g. the mask asset didn't load) — the canvas stays
-      // blank; the plain <img> fallback below still shows the photo.
-    });
+    let cancelled = false;
+    loadDreamImageAssets(displayedImageUrl)
+      .then((assets) => {
+        if (!cancelled) dreamAssetsRef.current = assets;
+      })
+      .catch(() => {
+        // The photo itself failed to load here (shouldn't happen — it's
+        // already settled and showing elsewhere) — the plain <img>
+        // fallback below still shows it correctly either way.
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [displayedImageUrl]);
+
+  useEffect(() => {
+    if (!isArrival) return;
+    const tick = () => {
+      const canvas = maskCanvasRef.current;
+      const assets = dreamAssetsRef.current;
+      if (canvas && assets) {
+        renderDreamImageFrame(canvas, assets, bgVideoRef.current);
+      }
+    };
+    tick();
+    // setInterval, not requestAnimationFrame: rAF is fully suspended by
+    // browsers on a hidden/backgrounded page (confirmed directly — it
+    // never fires at all in that state), and this needs to keep the
+    // canvas's baked-in cloud frame from visibly drifting out of step
+    // with the real background video even if the tab is briefly
+    // backgrounded. A slow, deliberately un-smooth cadence is enough —
+    // the clouds drift slowly and nothing here needs 60fps.
+    const id = window.setInterval(tick, 150);
+    return () => window.clearInterval(id);
+  }, [isArrival]);
 
   if (phase === 'none') return null;
 
   const cues = analysis && brief ? deriveVisualCues(analysis, brief) : null;
   const worldEffects = analysis ? deriveDreamWorldEffects(analysis) : null;
-  const isArrival = phase === 'inside' && DREAM_IMAGE_STEPS.has(insideStep);
 
   const handleTryAgain = () => {
     const text = correctionText.trim();
