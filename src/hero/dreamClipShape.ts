@@ -50,11 +50,37 @@ export const DREAM_CLIP_PATH =
 // Tried tightening this to 20 (a ~25-35px feather instead of this wide
 // haze) — reproduced live: with the feather narrow, a separate faint
 // rectangular boundary became visible again around the organic shape,
-// no longer hidden inside the wide soft halo. That rectangle is coming
-// from somewhere else entirely (most likely the ambient light-drift/
-// grain/motes overlays in DreamReconstruction.css, which sit over the
-// masked image but are NOT themselves clipped to the organic shape) —
-// investigate and fix that separately before ever narrowing this value
-// again; until then, this wide feather is the one thing keeping that
-// rectangle covered.
+// no longer hidden inside the wide soft halo. That rectangle turned out
+// to be a real, separate bug (the ambient-drift scale transform on
+// .dr-image-svg-wrap getting clipped by .dr-image-layer's overflow:hidden
+// at the UNSCALED box size, cropping a few px into this mask's own
+// not-yet-zero tail) — now fixed at the source in DreamReconstruction.css
+// ([data-arrival='true']{overflow:visible} + the dedicated
+// .dr-image-ambient-clip wrapper for the grain/light-drift layers that
+// still need a hard clip). This value can be narrowed again if wanted;
+// it was never the actual cause.
 export const DREAM_CLIP_FEATHER_STD_DEVIATION = 60;
+
+// The raw Gaussian blur above is symmetric around the shape's true edge,
+// so a wide feather like 60 (needed for the wide, soft outer reach into
+// the clouds) also softens a good chunk of the INTERIOR, reading as a
+// translucent/washed-out center rather than a vivid image with just a
+// soft edge. This reshapes the ALREADY-BLURRED alpha curve via an SVG
+// feComponentTransfer (feFuncA, chained after the feGaussianBlur, same
+// filter) — it does NOT touch the blur, the path, or the outer reach (0
+// stays 0, 1 stays 1, pinned exactly by the table's own endpoints); it
+// only steepens the S-curve in between, pushing already-high alpha up
+// toward fully opaque and already-low alpha down toward fully
+// transparent. Curve: x^3 / (x^3 + (1-x)^3), sampled at 11 points (0,
+// 0.1, ..., 1.0) for feFuncA type="table".
+//
+// Verified NOT to be a no-op via a clean, isolated, same-run A/B
+// rasterization test (a plain test rectangle, sigma-60 blur, with vs
+// without this exact table): center-side values pushed up (e.g. input
+// 0.796 -> output 0.98), edge-side values pushed down and reaching true
+// zero sooner than the untransformed blur (an earlier attempt to verify
+// this on a mislabeled baseline wrongly concluded feComponentTransfer
+// wasn't working here — it was always working correctly; the comparison
+// dataset was wrong, not the mechanism. Re-verify the same way — a
+// same-run A/B rasterization — before ever doubting this again.
+export const DREAM_CLIP_OPACITY_CURVE = '0 0.00137 0.01538 0.07297 0.22857 0.5 0.77143 0.92703 0.98462 0.99863 1';

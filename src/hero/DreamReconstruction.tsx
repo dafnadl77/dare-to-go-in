@@ -6,7 +6,7 @@ import { deriveVisualCues } from './reconstructionVisualCues';
 import { deriveDreamWorldEffects } from './dreamWorldEffects';
 import { usePointerParallax } from './usePointerParallax';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
-import { DREAM_CLIP_PATH, DREAM_CLIP_VIEWBOX, DREAM_CLIP_FEATHER_STD_DEVIATION } from './dreamClipShape';
+import { DREAM_CLIP_PATH, DREAM_CLIP_VIEWBOX, DREAM_CLIP_FEATHER_STD_DEVIATION, DREAM_CLIP_OPACITY_CURVE } from './dreamClipShape';
 import DreamPortalTransition from './DreamPortalTransition';
 import DreamStageBackground from './DreamStageBackground';
 import DreamWorld from './DreamWorld';
@@ -252,6 +252,18 @@ export default function DreamReconstruction({
                   <defs>
                     <filter id="dr-dream-clip-feather" x="-30%" y="-30%" width="160%" height="160%">
                       <feGaussianBlur stdDeviation={DREAM_CLIP_FEATHER_STD_DEVIATION} />
+                      {/* Steepens the already-blurred alpha curve (see
+                          DREAM_CLIP_OPACITY_CURVE in dreamClipShape.ts) so
+                          the interior reads fully opaque well before the
+                          true edge, with the soft feather compressed into
+                          the outer band — 0 and 1 stay pinned, so neither
+                          the outer reach nor the fully-opaque center move,
+                          only the steepness of the transition between them.
+                          Verified via a clean, isolated same-run A/B
+                          rasterization test before relying on it here. */}
+                      <feComponentTransfer>
+                        <feFuncA type="table" tableValues={DREAM_CLIP_OPACITY_CURVE} />
+                      </feComponentTransfer>
                     </filter>
                     <mask id="dr-dream-clip-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="2048" height="1152">
                       <path d={DREAM_CLIP_PATH} fill="white" filter="url(#dr-dream-clip-feather)" />
