@@ -46,4 +46,15 @@ export const DREAM_CLIP_PATH =
 // true transparency reads as dissolving into the clouds rather than a
 // contained rectangle. Only the outer fringe is affected; the shape and
 // the fully-opaque center are unchanged.
+//
+// Tried tightening this to 20 (a ~25-35px feather instead of this wide
+// haze) — reproduced live: with the feather narrow, a separate faint
+// rectangular boundary became visible again around the organic shape,
+// no longer hidden inside the wide soft halo. That rectangle is coming
+// from somewhere else entirely (most likely the ambient light-drift/
+// grain/motes overlays in DreamReconstruction.css, which sit over the
+// masked image but are NOT themselves clipped to the organic shape) —
+// investigate and fix that separately before ever narrowing this value
+// again; until then, this wide feather is the one thing keeping that
+// rectangle covered.
 export const DREAM_CLIP_FEATHER_STD_DEVIATION = 60;
