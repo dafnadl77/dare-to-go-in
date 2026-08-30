@@ -280,11 +280,16 @@ export default function DreamReconstruction({
           )}
           {/* Purely procedural "alive" layers over the settled image — no new
               image content, just drifting light and grain so a static frame
-              doesn't read as static. */}
+              doesn't read as static. Wrapped in their own clipped container
+              (rather than relying on .dr-image-layer's own overflow:hidden)
+              because on THIS IS YOUR DREAM that outer clip has to be
+              disabled — see .dr-image-ambient-clip in DreamReconstruction.css. */}
           {(phase === 'entering' || phase === 'inside') && displayedImageUrl && (
             <>
-              <div className="dr-image-light-drift" />
-              <div className="dr-image-grain" />
+              <div className="dr-image-ambient-clip">
+                <div className="dr-image-light-drift" />
+                <div className="dr-image-grain" />
+              </div>
               <div className="dr-image-motes">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <span key={i} className="dr-mote" style={{ '--mi': i } as CSSProperties} />

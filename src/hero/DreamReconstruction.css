@@ -269,6 +269,23 @@
   height: min(43.9vw, 70vh, 843.8px);
 }
 
+/* THIS IS YOUR DREAM's permanent "breathing" animation (dr-ambient-drift,
+   below) scales .dr-image-svg-wrap up to 1.07x. .dr-image-layer's own
+   overflow:hidden (base rule above) clips at the UNSCALED box — which
+   crops a few px INTO the mask's own already-fading-to-transparent edge
+   (reproduced live: alpha ~4-9/255 at that exact clipped boundary,
+   instead of the true 0 it reaches with a little more room), and reads
+   as a faint rectangular tint around the organic shape. The mask's own
+   fade already reaches true alpha 0 with margin to spare at its NATURAL
+   (unclipped) size — the fix is to stop clipping this specific layer at
+   all, not to touch the mask/feather/size themselves. The grain/light-
+   drift ambient overlays (which have no such natural fade and DO need a
+   hard clip) get their own dedicated .dr-image-ambient-clip wrapper
+   instead, just below, so removing this clip doesn't let THEM spill out. */
+.dr-image-layer[data-arrival='true'] {
+  overflow: visible;
+}
+
 /* .dr-image-svg-wrap gets .dr-image's position/inset/width/height (and is
    the node every dr-image-current animation/filter/transform rule below
    targets) — but object-fit has no effect on a plain <div>, so the inner
@@ -432,6 +449,24 @@
    one settled image (no new image content, no extra API calls): a slow
    drifting light, gentle film grain, and a handful of soft motes. Every
    effect is restrained and slow enough to feel almost subconscious. ---- */
+
+/* Dedicated clip for light-drift/grain only — see the long comment on
+   .dr-image-layer[data-arrival='true']{overflow:visible} above: that
+   outer clip had to be turned off for THIS IS YOUR DREAM so it stops
+   cropping into the mask's own fade, but light-drift/grain have no fade
+   of their own (a plain gradient/texture) and DO need a hard edge at
+   exactly the frame's boundary, or they'd spill into the surrounding
+   clouds unclipped. inset:0 matches .dr-image-layer's own content box
+   exactly (no padding/border on it), so this reproduces the same visible
+   boundary the old outer clip gave them — just decoupled from the
+   photo's clip. Motes already carry their own overflow:hidden and don't
+   need this. */
+.dr-image-ambient-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
 .dr-image-light-drift {
   position: absolute;
   inset: -20%;
