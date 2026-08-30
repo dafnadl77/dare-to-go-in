@@ -40,4 +40,10 @@ export const DREAM_CLIP_PATH =
 // read as the dream visibly shrinking rather than holding its arrival
 // size. Never reintroduce a size/feather drop partway through the
 // arrival steps without confirming it doesn't read as a shrink.
-export const DREAM_CLIP_FEATHER_STD_DEVIATION = 42;
+//
+// Raised from 42 once the larger ~75-80vw size made a faint edge/frame
+// visible near the outer boundary — a longer, more gradual fade out to
+// true transparency reads as dissolving into the clouds rather than a
+// contained rectangle. Only the outer fringe is affected; the shape and
+// the fully-opaque center are unchanged.
+export const DREAM_CLIP_FEATHER_STD_DEVIATION = 60;
