@@ -25,6 +25,23 @@
 // directly into the canvas's own pixels, not transparency revealing a
 // separate element below.
 //
+// Baking the video frame in didn't fix it either — confirmed the exact
+// same fully-opaque, fully-correct-pixel-data canvas (verified again via
+// getImageData: alpha 255 everywhere, real cloud color at the corners,
+// real photo color at the center) still painted as a plain hard
+// rectangle for the user, in both Chrome AND Brave — two different
+// browsers sharing the same underlying engine (Chromium) AND, since
+// Brave ships its own independent ad/privacy blocking, not an
+// extension-specific quirk either. That points at the GPU/graphics
+// driver layer common to every Chromium-based browser on that one
+// machine, not at any particular browser or extension. Every
+// getContext('2d') call here passes { willReadFrequently: true } — a
+// standard hint that pushes the browser to render that canvas in
+// software instead of on the GPU, since software readback is cheaper
+// than GPU readback. If the real problem has been GPU-accelerated
+// canvas/video compositing misbehaving on that specific machine all
+// along, moving this canvas off the GPU path entirely sidesteps it.
+//
 // Two defensive rules learned the hard way and worth keeping:
 // 1. Never draw a canvas onto its own context (even via a helper that
 //    "returns" it) while a filter/composite op is active — that
@@ -102,7 +119,7 @@ function makeCanvas(cw: number, ch: number): HTMLCanvasElement {
 /** Blurs `source` into a new canvas of the same size — never writes back into `source` itself. */
 function blurToNewCanvas(source: HTMLCanvasElement, radiusPx: number): HTMLCanvasElement {
   const out = makeCanvas(source.width, source.height);
-  const octx = out.getContext('2d');
+  const octx = out.getContext('2d', { willReadFrequently: true });
   if (!octx) return source;
   octx.filter = `blur(${radiusPx}px)`;
   octx.drawImage(source, 0, 0);
@@ -122,7 +139,7 @@ function blurToNewCanvas(source: HTMLCanvasElement, radiusPx: number): HTMLCanva
 function buildLobeMask(cw: number, ch: number, seed: number, scale: number): HTMLCanvasElement {
   const rand = mulberry32(seed);
   const m = makeCanvas(cw, ch);
-  const mctx = m.getContext('2d');
+  const mctx = m.getContext('2d', { willReadFrequently: true });
   if (!mctx) return m;
 
   const cx = cw / 2;
@@ -167,7 +184,7 @@ function buildLobeMask(cw: number, ch: number, seed: number, scale: number): HTM
 /** A trivial, hard-to-break fallback: a single soft ellipse, no lobes, no blur filter. */
 function buildSimpleVignetteMask(cw: number, ch: number): HTMLCanvasElement {
   const m = makeCanvas(cw, ch);
-  const mctx = m.getContext('2d');
+  const mctx = m.getContext('2d', { willReadFrequently: true });
   if (!mctx) return m;
   const cx = cw / 2;
   const cy = ch * 0.48;
@@ -190,7 +207,7 @@ function buildSimpleVignetteMask(cw: number, ch: number): HTMLCanvasElement {
 /** Draws `photo` masked to the lobe shape (falling back to a plain vignette on any failure) onto its own canvas. */
 function buildMaskedPhotoLayer(photo: HTMLImageElement, cw: number, ch: number): HTMLCanvasElement {
   const layer = makeCanvas(cw, ch);
-  const lctx = layer.getContext('2d');
+  const lctx = layer.getContext('2d', { willReadFrequently: true });
   if (!lctx) return layer;
 
   const r = coverRect(photo.naturalWidth, photo.naturalHeight, cw, ch);
@@ -220,7 +237,7 @@ function buildCloudRingLayer(cloudTexture: HTMLImageElement | null, cw: number, 
   const outer = buildLobeMask(cw, ch, SHAPE_SEED, 1.16);
   const innerShrunk = buildLobeMask(cw, ch, SHAPE_SEED, 0.9);
   const ring = makeCanvas(cw, ch);
-  const rctx = ring.getContext('2d');
+  const rctx = ring.getContext('2d', { willReadFrequently: true });
   if (!rctx) return null;
   rctx.drawImage(outer, 0, 0);
   rctx.globalCompositeOperation = 'destination-out';
@@ -228,7 +245,7 @@ function buildCloudRingLayer(cloudTexture: HTMLImageElement | null, cw: number, 
   rctx.globalCompositeOperation = 'source-over';
 
   const layer = makeCanvas(cw, ch);
-  const cctx = layer.getContext('2d');
+  const cctx = layer.getContext('2d', { willReadFrequently: true });
   if (!cctx) return null;
   const cr = coverRect(cloudTexture.naturalWidth, cloudTexture.naturalHeight, cw, ch);
   cctx.drawImage(cloudTexture, cr.dx, cr.dy, cr.dw, cr.dh);
@@ -254,7 +271,7 @@ export function renderDreamImageFrame(
 ): void {
   if (canvas.width !== CANVAS_W) canvas.width = CANVAS_W;
   if (canvas.height !== CANVAS_H) canvas.height = CANVAS_H;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) return;
   const cw = CANVAS_W;
   const ch = CANVAS_H;
