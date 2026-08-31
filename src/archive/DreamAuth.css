@@ -6,17 +6,28 @@
    DARE, the way the reflection/writing screens already float text and a
    soft input field over the moving clouds — see DreamReflection.css's
    dr-writing-surface, which this borrows its visual language from.
-   ===================================================================== */
+
+   Every class here is prefixed `auth-`, deliberately NOT `da-` — this
+   project has no CSS scoping (plain global classes, bundled together
+   across every component), and DreamReflection.css already owns `da-*`
+   for its own "dream arrival" screen (.da-content, .da-title, etc.).
+   Reusing `da-` here once genuinely broke THIS IS YOUR DREAM's title/
+   choices layout in production (this file's .da-content{position:
+   relative} silently overrode DreamReflection.css's .da-content{
+   position:absolute} through nothing but shared global class names,
+   with neither file ever importing the other) — never reintroduce a
+   `da-` prefixed class in this file, or anywhere new in this project,
+   without first grepping every existing CSS file for that exact name. ===================================================================== */
 .dream-auth {
   position: fixed;
   inset: 0;
   z-index: 40;
   overflow: hidden;
   opacity: 0;
-  animation: da-screen-in 1.4s var(--ease-memory) forwards;
+  animation: auth-screen-in 1.4s var(--ease-memory) forwards;
 }
 
-@keyframes da-screen-in {
+@keyframes auth-screen-in {
   from {
     opacity: 0;
     filter: blur(10px);
@@ -27,7 +38,7 @@
   }
 }
 
-.da-back {
+.auth-back {
   position: fixed;
   top: max(20px, env(safe-area-inset-top));
   left: max(20px, env(safe-area-inset-left));
@@ -48,13 +59,13 @@
   transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
 }
 
-.da-back:hover,
-.da-back:focus-visible {
+.auth-back:hover,
+.auth-back:focus-visible {
   opacity: 0.95;
   letter-spacing: 0.3em;
 }
 
-.da-content {
+.auth-content {
   position: relative;
   z-index: 1;
   min-height: 100%;
@@ -67,7 +78,7 @@
   text-align: center;
 }
 
-.da-eyebrow-title {
+.auth-eyebrow-title {
   margin: 0;
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 400;
@@ -77,7 +88,7 @@
   text-shadow: 0 0.05em 0.9em rgba(0, 0, 0, 0.6);
 }
 
-.da-tagline {
+.auth-tagline {
   margin: -0.9rem 0 0.4rem;
   font-family: 'Inter', system-ui, sans-serif;
   font-size: clamp(0.85rem, 1.6vw, 1rem);
@@ -86,7 +97,7 @@
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
 }
 
-.da-form {
+.auth-form {
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -98,7 +109,7 @@
    branded button a generic SaaS product would use. A thin monogram
    stands in for the logo (deliberately monochrome, matching DARE's own
    restrained line-icon language elsewhere — see .dc-portal-icon). ---- */
-.da-google {
+.auth-google {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -118,35 +129,35 @@
   transition: background 0.4s var(--ease-soft), border-color 0.4s var(--ease-soft), transform 0.4s var(--ease-soft);
 }
 
-.da-google:hover,
-.da-google:focus-visible {
+.auth-google:hover,
+.auth-google:focus-visible {
   background: rgba(244, 240, 232, 0.09);
   border-color: rgba(244, 240, 232, 0.5);
   transform: translateY(-1px);
 }
 
-.da-google-mark {
+.auth-google-mark {
   width: 16px;
   height: 16px;
   flex: none;
 }
 
-.da-divider {
+.auth-divider {
   display: flex;
   align-items: center;
   gap: 0.9em;
   margin: 0.1rem 0;
 }
 
-.da-divider::before,
-.da-divider::after {
+.auth-divider::before,
+.auth-divider::after {
   content: '';
   flex: 1;
   height: 1px;
   background: rgba(244, 240, 232, 0.18);
 }
 
-.da-divider span {
+.auth-divider span {
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 0.64rem;
   font-weight: 600;
@@ -157,7 +168,7 @@
 /* ---- Email / password — the same bare, glowing field language as the
    reflection's own writing surface: no boxy input chrome, a soft dark
    wash and a thin warm edge instead of a hard border. ---- */
-.da-field {
+.auth-field {
   position: relative;
   border-radius: 16px;
   background: linear-gradient(180deg, rgba(18, 14, 9, 0.34), rgba(18, 14, 9, 0.22));
@@ -167,12 +178,12 @@
   transition: border-color 0.5s var(--ease-soft), box-shadow 0.5s var(--ease-soft);
 }
 
-.da-field:focus-within {
+.auth-field:focus-within {
   border-color: rgba(244, 240, 232, 0.4);
   box-shadow: 0 0 1.8rem rgba(244, 240, 232, 0.1);
 }
 
-.da-input {
+.auth-input {
   width: 100%;
   background: transparent;
   border: none;
@@ -184,7 +195,7 @@
   text-align: center;
 }
 
-.da-input::placeholder {
+.auth-input::placeholder {
   color: var(--dream-warm-neutral-dim);
   opacity: 0.7;
 }
@@ -192,7 +203,7 @@
 /* ---- CREATE MY ARCHIVE / ENTER MY ARCHIVE — the same restrained
    text-link language as every other primary action in DARE (see
    .dr-choice) rather than a filled rectangular submit button. ---- */
-.da-submit {
+.auth-submit {
   position: relative;
   align-self: center;
   margin-top: 0.3rem;
@@ -210,7 +221,7 @@
   transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
 }
 
-.da-submit::after {
+.auth-submit::after {
   content: '';
   position: absolute;
   left: 0;
@@ -223,24 +234,24 @@
   transition: transform 0.5s var(--ease-memory);
 }
 
-.da-submit:hover,
-.da-submit:focus-visible {
+.auth-submit:hover,
+.auth-submit:focus-visible {
   letter-spacing: 0.26em;
 }
 
-.da-submit:hover::after,
-.da-submit:focus-visible::after {
+.auth-submit:hover::after,
+.auth-submit:focus-visible::after {
   transform: scaleX(1);
 }
 
-.da-switch {
+.auth-switch {
   margin: 0;
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 0.78rem;
   color: var(--dream-warm-neutral-dim);
 }
 
-.da-switch-link {
+.auth-switch-link {
   background: none;
   border: none;
   padding: 0;
@@ -254,13 +265,13 @@
   transition: color 0.4s var(--ease-soft);
 }
 
-.da-switch-link:hover,
-.da-switch-link:focus-visible {
+.auth-switch-link:hover,
+.auth-switch-link:focus-visible {
   color: var(--dream-white);
 }
 
 @media (max-width: 480px) {
-  .da-content {
+  .auth-content {
     padding: 10vh 7vw 7vh;
     gap: 1.5rem;
   }

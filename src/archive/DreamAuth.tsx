@@ -20,7 +20,7 @@ interface DreamAuthProps {
     SaaS asset. */
 function GoogleMark() {
   return (
-    <svg className="da-google-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg className="auth-google-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path
         d="M21 12.2c0-.7-.06-1.4-.18-2H12v3.8h5.05c-.22 1.18-.9 2.18-1.9 2.85v2.36h3.07C20.1 17.4 21 15 21 12.2Z"
         stroke="currentColor"
@@ -71,36 +71,36 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated 
   return (
     <div className="dream-auth">
       <DreamStageBackground ref={bgVideoRef} active />
-      <button type="button" className="da-back" data-cursor-hover onClick={onBack} aria-label="Back to DARE">
+      <button type="button" className="auth-back" data-cursor-hover onClick={onBack} aria-label="Back to DARE">
         DARE
       </button>
 
-      <div className="da-content">
+      <div className="auth-content">
         {isSignUp ? (
           <>
-            <h1 className="da-eyebrow-title">KEEP YOUR DREAMS</h1>
-            <p className="da-tagline">Create your private dream archive.</p>
+            <h1 className="auth-eyebrow-title">KEEP YOUR DREAMS</h1>
+            <p className="auth-tagline">Create your private dream archive.</p>
           </>
         ) : (
           <>
-            <h1 className="da-eyebrow-title">WELCOME BACK, DREAMER.</h1>
-            <p className="da-tagline">&nbsp;</p>
+            <h1 className="auth-eyebrow-title">WELCOME BACK, DREAMER.</h1>
+            <p className="auth-tagline">&nbsp;</p>
           </>
         )}
 
-        <form className="da-form" onSubmit={handleSubmit}>
-          <button type="button" className="da-google" data-cursor-hover onClick={onAuthenticated}>
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <button type="button" className="auth-google" data-cursor-hover onClick={onAuthenticated}>
             <GoogleMark />
             Continue with Google
           </button>
 
-          <div className="da-divider" aria-hidden="true">
+          <div className="auth-divider" aria-hidden="true">
             <span>OR</span>
           </div>
 
-          <label className="da-field">
+          <label className="auth-field">
             <input
-              className="da-input"
+              className="auth-input"
               type="email"
               inputMode="email"
               autoComplete="email"
@@ -110,9 +110,9 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated 
             />
           </label>
 
-          <label className="da-field">
+          <label className="auth-field">
             <input
-              className="da-input"
+              className="auth-input"
               type="password"
               autoComplete={isSignUp ? 'new-password' : 'current-password'}
               placeholder="Password"
@@ -121,23 +121,23 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated 
             />
           </label>
 
-          <button type="submit" className="da-submit" data-cursor-hover>
+          <button type="submit" className="auth-submit" data-cursor-hover>
             {isSignUp ? 'CREATE MY ARCHIVE' : 'ENTER MY ARCHIVE'}
           </button>
         </form>
 
-        <p className="da-switch">
+        <p className="auth-switch">
           {isSignUp ? (
             <>
               Already have an archive?
-              <button type="button" className="da-switch-link" data-cursor-hover onClick={() => onSwitchMode('signin')}>
+              <button type="button" className="auth-switch-link" data-cursor-hover onClick={() => onSwitchMode('signin')}>
                 Sign in
               </button>
             </>
           ) : (
             <>
               New here?
-              <button type="button" className="da-switch-link" data-cursor-hover onClick={() => onSwitchMode('signup')}>
+              <button type="button" className="auth-switch-link" data-cursor-hover onClick={() => onSwitchMode('signup')}>
                 Create your archive
               </button>
             </>
