@@ -1,0 +1,211 @@
+/* =====================================================================
+   Dream Detail — opened from a MY DREAM ARCHIVE timeline row. Same cloud
+   world, same restrained typography, no card/modal chrome (matches the
+   rest of DARE's own visual language, see DreamClosing.css/DreamAuth.css
+   for the reference the same variables/patterns come from). ===================================================================== */
+.dream-detail {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  overflow-y: auto;
+  overflow-x: hidden;
+  opacity: 0;
+  animation: dd-screen-in 1.2s var(--ease-memory) forwards;
+}
+
+/* Ends on `filter: none`, not `blur(0)` — see the equivalent comment in
+   DreamArchive.css: any non-none filter value here would trap the fixed
+   cloud background against this element's own scrolling box instead of
+   the true viewport. */
+@keyframes dd-screen-in {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+.dream-detail .dream-stage-bg-layer {
+  position: fixed;
+}
+
+.dream-detail .dream-stage-bg-video {
+  filter: brightness(0.8) saturate(0.92) contrast(1.02);
+}
+
+.dd-night-tint {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(ellipse 80% 60% at 50% 20%, transparent 0%, rgba(6, 10, 20, 0.2) 70%, rgba(4, 8, 16, 0.34) 100%);
+  pointer-events: none;
+}
+
+.dd-back {
+  position: fixed;
+  top: max(20px, env(safe-area-inset-top));
+  left: max(20px, env(safe-area-inset-left));
+  z-index: 10;
+  margin: 0;
+  padding: 0.4em 0.3em;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--dream-white);
+  opacity: 0.6;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+  transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
+}
+
+.dd-back:hover,
+.dd-back:focus-visible {
+  opacity: 0.95;
+  letter-spacing: 0.24em;
+}
+
+.dd-content {
+  position: relative;
+  z-index: 2;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 14vh 6vw 12vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.dd-image-wrap {
+  position: relative;
+  display: block;
+  width: min(100%, 620px);
+  aspect-ratio: 16 / 10;
+  margin-bottom: 2rem;
+}
+
+.dd-image-glow {
+  position: absolute;
+  inset: -22%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(70px) saturate(1.15) brightness(0.5);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.dd-image {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  mask-image: radial-gradient(ellipse 78% 74% at 50% 50%, #000 36%, transparent 92%);
+  -webkit-mask-image: radial-gradient(ellipse 78% 74% at 50% 50%, #000 36%, transparent 92%);
+  filter: brightness(0.96) saturate(0.97);
+}
+
+.dd-date {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--dream-warm-neutral-dim);
+}
+
+.dd-title {
+  margin: 0.5rem 0 0.3rem;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.9em rgba(0, 0, 0, 0.6);
+}
+
+.dd-keywords {
+  margin: 0 0 3rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral-dim);
+}
+
+.dd-reflection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.2rem;
+  width: 100%;
+}
+
+.dd-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.dd-eyebrow {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral-dim);
+  opacity: 0.8;
+}
+
+.dd-body {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1rem, 1.8vw, 1.15rem);
+  line-height: 1.55;
+  color: var(--dream-warm-neutral);
+  max-width: 60ch;
+}
+
+.dd-body--source {
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.dd-body--emphasis {
+  color: var(--dream-white);
+  font-style: italic;
+}
+
+.dd-grounding {
+  margin: 1rem 0 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.72rem;
+  color: var(--dream-warm-neutral-dim);
+  opacity: 0.65;
+  max-width: 46ch;
+}
+
+.dd-mock-note {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--dream-warm-neutral);
+  opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dream-detail {
+    animation-duration: 0.01s !important;
+  }
+}
