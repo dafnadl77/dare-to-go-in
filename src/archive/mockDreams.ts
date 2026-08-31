@@ -1,13 +1,12 @@
 /**
  * Mock content ONLY, for designing the Dream Archive's visual language
- * before real authentication/storage exists. Never generated via the real
- * image API (per spec) — each dream gets a soft, hand-tuned gradient
- * "memory window" tinted to its own mood instead of a mismatched stock
- * photo. Swap this module out entirely once real saved dreams (see
- * ../hero/dreamStorage.ts) are wired into the archive; nothing else
- * should need to change shape-wise, since MockDream deliberately mirrors
- * the fields a real SavedDream can actually supply (title, date, a
- * handful of keywords, an image).
+ * before real authentication/storage exists. `image` points at existing
+ * real photos already shipped in public/dream-assets/ (never a newly
+ * generated API image, per spec) — a temporary stand-in for what will be
+ * this dream's own actual generated image once real saved dreams (see
+ * ../hero/dreamStorage.ts) are wired into the archive. The three photos
+ * cycle across the six mocks; nothing about their content is meant to
+ * literally match each dream's title.
  */
 export interface MockDream {
   id: string;
@@ -15,8 +14,8 @@ export interface MockDream {
   /** ISO date string — formatted for display where it's shown. */
   date: string;
   keywords: string[];
-  /** A two-stop gradient standing in for the dream's own generated image. */
-  gradient: [string, string];
+  /** Placeholder image standing in for this dream's own generated image. */
+  image: string;
 }
 
 export const MOCK_DREAMS: MockDream[] = [
@@ -25,42 +24,42 @@ export const MOCK_DREAMS: MockDream[] = [
     title: 'The Open Door',
     date: '2026-08-30',
     keywords: ['door', 'light', 'curiosity'],
-    gradient: ['#4a3a1e', '#e8c77e'],
+    image: '/dream-assets/dream-art-alt.jpg',
   },
   {
     id: 'the-ocean',
     title: 'The Ocean',
     date: '2026-08-22',
     keywords: ['water', 'freedom', 'distance'],
-    gradient: ['#0f2a3a', '#3f8a9c'],
+    image: '/dream-assets/dream-bed-alt.jpg',
   },
   {
     id: 'grandmother',
     title: 'Grandmother',
     date: '2026-08-14',
     keywords: ['memory', 'love', 'home'],
-    gradient: ['#3a1f22', '#c98a6b'],
+    image: '/dream-assets/dream-mirror-alt.jpg',
   },
   {
     id: 'the-empty-city',
     title: 'The Empty City',
     date: '2026-08-02',
     keywords: ['city', 'silence', 'searching'],
-    gradient: ['#1c1e2a', '#5b6a8c'],
+    image: '/dream-assets/dream-art-alt.jpg',
   },
   {
     id: 'flying',
     title: 'Flying',
     date: '2026-07-21',
     keywords: ['sky', 'freedom', 'fear'],
-    gradient: ['#152238', '#7fa8d9'],
+    image: '/dream-assets/dream-bed-alt.jpg',
   },
   {
     id: 'the-forest',
     title: 'The Forest',
     date: '2026-07-08',
     keywords: ['trees', 'path', 'unknown'],
-    gradient: ['#131f18', '#4f7a52'],
+    image: '/dream-assets/dream-mirror-alt.jpg',
   },
 ];
 
