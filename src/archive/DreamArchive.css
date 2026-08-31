@@ -1,0 +1,420 @@
+/* =====================================================================
+   MY DREAM ARCHIVE — a private collection floating inside the same cloud
+   universe as the rest of DARE, never a SaaS dashboard/admin panel/card
+   grid. Each dream is an organic "memory window" (an irregular blob, via
+   border-radius — never CSS mask-image; see DreamReconstruction.css's
+   own history with mask-image compositing bugs before reaching for that
+   again here) rather than a rectangular card. ===================================================================== */
+.dream-archive {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow-y: auto;
+  overflow-x: hidden;
+  opacity: 0;
+  animation: ar-screen-in 1.4s var(--ease-memory) forwards;
+}
+
+@keyframes ar-screen-in {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* The cloud video is normally position:absolute/inset:0 sized to its own
+   fixed ancestor — this screen scrolls, so the background is pinned to
+   the viewport independently of the scrolling content below. */
+.dream-archive .dream-stage-bg-layer {
+  position: fixed;
+}
+
+.ar-top {
+  position: fixed;
+  top: max(20px, env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 max(20px, env(safe-area-inset-left)) 0 max(20px, env(safe-area-inset-right));
+  pointer-events: none;
+}
+
+.ar-top > * {
+  pointer-events: auto;
+}
+
+.ar-back {
+  margin: 0;
+  padding: 0.4em 0.3em;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  color: var(--dream-white);
+  opacity: 0.55;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+  transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
+}
+
+.ar-back:hover,
+.ar-back:focus-visible {
+  opacity: 0.95;
+  letter-spacing: 0.3em;
+}
+
+.ar-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 2.4vw, 1.8rem);
+}
+
+.ar-nav-item {
+  margin: 0;
+  padding: 0.4em 0.2em;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral-dim);
+  cursor: default;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+  transition: color 0.4s var(--ease-soft), opacity 0.4s var(--ease-soft);
+}
+
+.ar-nav-item[data-active='true'] {
+  color: var(--dream-white);
+  cursor: pointer;
+}
+
+.ar-nav-item[data-placeholder='true'] {
+  opacity: 0.4;
+}
+
+.ar-profile {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(244, 240, 232, 0.08);
+  border: 1px solid rgba(244, 240, 232, 0.3);
+  color: var(--dream-white);
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 0.8rem;
+  cursor: default;
+}
+
+.ar-header {
+  position: relative;
+  z-index: 1;
+  padding: 16vh 6vw 2vh;
+  text-align: center;
+}
+
+.ar-title {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(2rem, 4.6vw, 3.2rem);
+  letter-spacing: 0.01em;
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.9em rgba(0, 0, 0, 0.6);
+}
+
+.ar-subtitle {
+  margin: 0.6rem 0 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+  color: var(--dream-warm-neutral);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
+}
+
+.ar-collection {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: clamp(2.4rem, 4vw, 4rem) clamp(1.6rem, 3vw, 3rem);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3vh 6vw 14vh;
+}
+
+/* A gentle, hand-placed vertical stagger (not a strict grid) so the
+   collection reads as memories drifting at different depths rather than
+   rows of cards. */
+.ar-window-wrap:nth-child(3n + 2) {
+  transform: translateY(clamp(1rem, 3vw, 2.2rem));
+}
+
+.ar-window-wrap:nth-child(3n) {
+  transform: translateY(clamp(-0.6rem, -1.4vw, -0.4rem));
+}
+
+.ar-window-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: clamp(200px, 24vw, 280px);
+}
+
+.ar-window {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 1.1s var(--ease-memory);
+}
+
+.ar-window:hover,
+.ar-window:focus-visible {
+  transform: scale(1.035) translateY(-4px);
+  outline: none;
+}
+
+/* Soft atmospheric glow behind the blob — brightens on hover rather than
+   the blob itself gaining a hard highlight. */
+.ar-window-glow {
+  position: absolute;
+  inset: -18%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--ar-tint-b, rgba(244, 240, 232, 0.3)) 0%, transparent 68%);
+  opacity: 0.35;
+  filter: blur(18px);
+  transition: opacity 1s var(--ease-soft);
+}
+
+.ar-window:hover .ar-window-glow,
+.ar-window:focus-visible .ar-window-glow {
+  opacity: 0.75;
+}
+
+/* The memory window itself — an irregular blob (never a rectangle),
+   each one's own silhouette varied slightly via nth-child so the
+   collection doesn't read as one repeated die-cut shape. */
+.ar-window-blob {
+  position: absolute;
+  inset: 0;
+  border-radius: 58% 42% 51% 49% / 45% 55% 45% 55%;
+  background: radial-gradient(circle at 32% 28%, var(--ar-tint-b, #cabfa9), var(--ar-tint-a, #060706) 78%);
+  box-shadow: 0 1.4rem 3rem rgba(0, 0, 0, 0.45), inset 0 0 3rem rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  transition: box-shadow 1s var(--ease-soft);
+}
+
+.ar-window-wrap:nth-child(2n) .ar-window-blob {
+  border-radius: 46% 54% 62% 38% / 55% 42% 58% 45%;
+}
+
+.ar-window-wrap:nth-child(3n) .ar-window-blob {
+  border-radius: 62% 38% 44% 56% / 40% 58% 42% 60%;
+}
+
+.ar-window:hover .ar-window-blob,
+.ar-window:focus-visible .ar-window-blob {
+  box-shadow: 0 1.8rem 3.6rem rgba(0, 0, 0, 0.5), inset 0 0 3rem rgba(0, 0, 0, 0.18);
+}
+
+.ar-window-sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.14) 0%, transparent 40%);
+  mix-blend-mode: soft-light;
+  opacity: 0.6;
+  transition: opacity 1s var(--ease-soft);
+}
+
+.ar-window:hover .ar-window-sheen,
+.ar-window:focus-visible .ar-window-sheen {
+  opacity: 1;
+}
+
+.ar-window-title {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(0.92rem, 1.4vw, 1.05rem);
+  letter-spacing: 0.01em;
+  color: var(--dream-warm-neutral);
+  text-align: center;
+  opacity: 0.72;
+  transition: opacity 0.7s var(--ease-soft), color 0.7s var(--ease-soft);
+}
+
+.ar-window:hover ~ .ar-window-title,
+.ar-window-wrap:has(.ar-window:hover) .ar-window-title,
+.ar-window-wrap:focus-within .ar-window-title {
+  opacity: 1;
+  color: var(--dream-white);
+}
+
+.ar-window-date {
+  margin: -0.6rem 0 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral-dim);
+  opacity: 0.65;
+}
+
+.ar-window-keywords {
+  margin: -0.4rem 0 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--dream-warm-neutral-dim);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.8s var(--ease-soft), transform 0.8s var(--ease-soft);
+}
+
+.ar-window-wrap:has(.ar-window:hover) .ar-window-keywords,
+.ar-window-wrap:focus-within .ar-window-keywords {
+  opacity: 0.85;
+  transform: translateY(0);
+}
+
+/* ---- Dream detail placeholder — a quiet full-screen overlay, never a
+   modal box. Closing returns exactly to the scroll position left behind. ---- */
+.ar-detail {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.6rem;
+  padding: 8vh 6vw;
+  text-align: center;
+  background: rgba(6, 7, 6, 0.55);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  opacity: 0;
+  animation: ar-detail-in 0.6s var(--ease-memory) forwards;
+}
+
+@keyframes ar-detail-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.ar-detail-close {
+  position: fixed;
+  top: max(20px, env(safe-area-inset-top));
+  right: max(20px, env(safe-area-inset-right));
+  background: none;
+  border: none;
+  padding: 0.4em 0.5em;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--dream-warm-neutral);
+  cursor: pointer;
+  transition: color 0.4s var(--ease-soft);
+}
+
+.ar-detail-close:hover,
+.ar-detail-close:focus-visible {
+  color: var(--dream-white);
+}
+
+.ar-detail-blob {
+  width: min(52vw, 340px);
+  aspect-ratio: 1 / 1;
+  border-radius: 54% 46% 58% 42% / 48% 52% 48% 52%;
+  background: radial-gradient(circle at 32% 28%, var(--ar-tint-b, #cabfa9), var(--ar-tint-a, #060706) 78%);
+  box-shadow: 0 2rem 4.5rem rgba(0, 0, 0, 0.55);
+}
+
+.ar-detail-title {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1.5rem, 3.2vw, 2.1rem);
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.9em rgba(0, 0, 0, 0.6);
+}
+
+.ar-detail-meta {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral-dim);
+}
+
+.ar-detail-note {
+  margin: 0.4rem 0 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-size: clamp(0.9rem, 1.6vw, 1.02rem);
+  color: var(--dream-warm-neutral);
+}
+
+@media (max-width: 640px) {
+  .ar-header {
+    padding-top: 18vh;
+  }
+
+  .ar-window-wrap {
+    width: min(72vw, 260px);
+  }
+
+  .ar-window-wrap:nth-child(3n + 2),
+  .ar-window-wrap:nth-child(3n) {
+    transform: none;
+  }
+
+  .ar-nav {
+    gap: 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dream-archive,
+  .ar-detail {
+    animation-duration: 0.01s !important;
+  }
+  .ar-window,
+  .ar-window-glow,
+  .ar-window-blob,
+  .ar-window-sheen,
+  .ar-window-title,
+  .ar-window-keywords {
+    transition-duration: 0.01s !important;
+  }
+}

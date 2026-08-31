@@ -90,6 +90,8 @@ interface DreamReconstructionProps {
   onSaveDream: () => void;
   onLetGo: () => void;
   onReturnToRoom: () => void;
+  /** DREAM SAVED.'s quiet second invitation — passthrough only, see DreamClosing.tsx. */
+  onGoToArchive: () => void;
 }
 
 /**
@@ -125,6 +127,7 @@ export default function DreamReconstruction({
   onSaveDream,
   onLetGo,
   onReturnToRoom,
+  onGoToArchive,
 }: DreamReconstructionProps) {
   const [correctionText, setCorrectionText] = useState('');
   const imageLayerRef = useRef<HTMLDivElement>(null);
@@ -399,6 +402,7 @@ export default function DreamReconstruction({
           onSave={onSaveDream}
           onLetGo={onLetGo}
           onReturnToRoom={onReturnToRoom}
+          onGoToArchive={onGoToArchive}
         />
       )}
     </div>

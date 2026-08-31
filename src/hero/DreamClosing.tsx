@@ -12,6 +12,10 @@ interface DreamClosingProps {
   onSave: () => void;
   onLetGo: () => void;
   onReturnToRoom: () => void;
+  /** DREAM SAVED.'s quiet second invitation — deeper into the new Dream
+      Archive area, not part of the reconstruction/reflection journey
+      itself. */
+  onGoToArchive: () => void;
 }
 
 /** Renders text as individually-spanned letters so LET IT GO can disperse
@@ -43,7 +47,7 @@ const SPARK_COUNT = 10;
  * photographic-memory flash before 'saved'; 'letting-go'/'gone' are the
  * dissolve outcome of LET IT GO.
  */
-export default function DreamClosing({ step, reflectionResult, accentColor, onSave, onLetGo, onReturnToRoom }: DreamClosingProps) {
+export default function DreamClosing({ step, reflectionResult, accentColor, onSave, onLetGo, onReturnToRoom, onGoToArchive }: DreamClosingProps) {
   const accent = accentColor ?? FALLBACK_ACCENT;
   const accentVars = { '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties;
 
@@ -131,6 +135,9 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
           <p className="dc-title dc-title--small dc-title--materialize">DREAM SAVED.</p>
           <button type="button" className="dr-choice dr-choice--yes" data-cursor-hover onClick={onReturnToRoom}>
             RETURN TO THE ROOM
+          </button>
+          <button type="button" className="dc-archive-invite" data-cursor-hover onClick={onGoToArchive}>
+            go to my dream archive
           </button>
         </div>
       )}

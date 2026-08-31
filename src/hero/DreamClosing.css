@@ -623,13 +623,65 @@
   }
 }
 
+/* ---- GO TO MY DREAM ARCHIVE — a quiet second invitation under RETURN TO
+   THE ROOM, deliberately NOT styled like that button (no uppercase, no
+   heavy letter-spacing, no rectangle/border of any kind — it's bare
+   italic serif text, the same visual family as the reflection's own
+   quoted lines). It settles in only after RETURN TO THE ROOM has fully
+   materialized, so it reads as a second, deeper option rather than
+   competing with the primary one. ---- */
+.dc-archive-invite {
+  position: relative;
+  margin-top: -0.6rem;
+  background: none;
+  border: none;
+  padding: 0.3em 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(0.82rem, 1.5vw, 0.98rem);
+  letter-spacing: 0.01em;
+  color: var(--dream-warm-neutral-dim);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  opacity: 0;
+  animation: dc-fade-in 1.8s var(--ease-memory) 2.4s forwards;
+  transition: color 0.6s var(--ease-soft), text-shadow 0.6s var(--ease-soft);
+}
+
+.dc-archive-invite::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 0.1em;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.7s var(--ease-memory);
+}
+
+.dc-archive-invite:hover,
+.dc-archive-invite:focus-visible {
+  color: var(--dream-white);
+  text-shadow: 0 0 1.1rem rgba(var(--accent-rgb, 244, 240, 232), 0.45), 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
+}
+
+.dc-archive-invite:hover::after,
+.dc-archive-invite:focus-visible::after {
+  transform: scaleX(1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dc-fading-reflection,
   .dc-block--closing,
   .dc-block--enter,
   .dc-choices,
   .dc-flash,
-  .dc-title--materialize {
+  .dc-title--materialize,
+  .dc-archive-invite {
     animation-duration: 0.01s !important;
   }
   .dc-portal-particle,

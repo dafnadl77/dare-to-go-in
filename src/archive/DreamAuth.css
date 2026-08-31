@@ -1,0 +1,273 @@
+/* =====================================================================
+   KEEP YOUR DREAMS / WELCOME BACK, DREAMER — the Dream Archive's
+   authentication screen. Deliberately NOT a SaaS login page: no white
+   card, no modal, no drop shadow floating over the clouds. The content
+   sits directly in the same cinematic cloud environment as the rest of
+   DARE, the way the reflection/writing screens already float text and a
+   soft input field over the moving clouds — see DreamReflection.css's
+   dr-writing-surface, which this borrows its visual language from.
+   ===================================================================== */
+.dream-auth {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow: hidden;
+  opacity: 0;
+  animation: da-screen-in 1.4s var(--ease-memory) forwards;
+}
+
+@keyframes da-screen-in {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.da-back {
+  position: fixed;
+  top: max(20px, env(safe-area-inset-top));
+  left: max(20px, env(safe-area-inset-left));
+  z-index: 50;
+  margin: 0;
+  padding: 0.4em 0.3em;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  color: var(--dream-white);
+  opacity: 0.55;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+  transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
+}
+
+.da-back:hover,
+.da-back:focus-visible {
+  opacity: 0.95;
+  letter-spacing: 0.3em;
+}
+
+.da-content {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.8rem;
+  padding: 8vh 6vw 6vh;
+  text-align: center;
+}
+
+.da-eyebrow-title {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  letter-spacing: 0.01em;
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.9em rgba(0, 0, 0, 0.6);
+}
+
+.da-tagline {
+  margin: -0.9rem 0 0.4rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: clamp(0.85rem, 1.6vw, 1rem);
+  font-weight: 400;
+  color: var(--dream-warm-neutral);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
+}
+
+.da-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.3rem;
+  width: min(88vw, 360px);
+}
+
+/* ---- Continue with Google — a quiet outlined pill, never the boxy
+   branded button a generic SaaS product would use. A thin monogram
+   stands in for the logo (deliberately monochrome, matching DARE's own
+   restrained line-icon language elsewhere — see .dc-portal-icon). ---- */
+.da-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7em;
+  padding: 0.85em 1.2em;
+  border-radius: 999px;
+  background: rgba(244, 240, 232, 0.04);
+  border: 1px solid rgba(244, 240, 232, 0.28);
+  color: var(--dream-white);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: background 0.4s var(--ease-soft), border-color 0.4s var(--ease-soft), transform 0.4s var(--ease-soft);
+}
+
+.da-google:hover,
+.da-google:focus-visible {
+  background: rgba(244, 240, 232, 0.09);
+  border-color: rgba(244, 240, 232, 0.5);
+  transform: translateY(-1px);
+}
+
+.da-google-mark {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.da-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+  margin: 0.1rem 0;
+}
+
+.da-divider::before,
+.da-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(244, 240, 232, 0.18);
+}
+
+.da-divider span {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--dream-warm-neutral-dim);
+}
+
+/* ---- Email / password — the same bare, glowing field language as the
+   reflection's own writing surface: no boxy input chrome, a soft dark
+   wash and a thin warm edge instead of a hard border. ---- */
+.da-field {
+  position: relative;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(18, 14, 9, 0.34), rgba(18, 14, 9, 0.22));
+  border: 1px solid rgba(244, 240, 232, 0.16);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: border-color 0.5s var(--ease-soft), box-shadow 0.5s var(--ease-soft);
+}
+
+.da-field:focus-within {
+  border-color: rgba(244, 240, 232, 0.4);
+  box-shadow: 0 0 1.8rem rgba(244, 240, 232, 0.1);
+}
+
+.da-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0.85em 1.1em;
+  color: var(--dream-white);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.da-input::placeholder {
+  color: var(--dream-warm-neutral-dim);
+  opacity: 0.7;
+}
+
+/* ---- CREATE MY ARCHIVE / ENTER MY ARCHIVE — the same restrained
+   text-link language as every other primary action in DARE (see
+   .dr-choice) rather than a filled rectangular submit button. ---- */
+.da-submit {
+  position: relative;
+  align-self: center;
+  margin-top: 0.3rem;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0.9em 0.6em;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--dream-white);
+  cursor: pointer;
+  transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
+}
+
+.da-submit::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.5em;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--ease-memory);
+}
+
+.da-submit:hover,
+.da-submit:focus-visible {
+  letter-spacing: 0.26em;
+}
+
+.da-submit:hover::after,
+.da-submit:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.da-switch {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.78rem;
+  color: var(--dream-warm-neutral-dim);
+}
+
+.da-switch-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-inline-start: 0.35em;
+  font: inherit;
+  color: var(--dream-warm-neutral);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-color: rgba(202, 191, 169, 0.45);
+  cursor: pointer;
+  transition: color 0.4s var(--ease-soft);
+}
+
+.da-switch-link:hover,
+.da-switch-link:focus-visible {
+  color: var(--dream-white);
+}
+
+@media (max-width: 480px) {
+  .da-content {
+    padding: 10vh 7vw 7vh;
+    gap: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dream-auth {
+    animation-duration: 0.01s !important;
+  }
+}

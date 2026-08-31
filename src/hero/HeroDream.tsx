@@ -71,7 +71,14 @@ const TITLE_PHASES = new Set(['title', 'prompt', 'interaction', 'idle']);
 const PROMPT_PHASES = new Set(['prompt', 'interaction', 'idle']);
 const INTERACTION_PHASES = new Set(['interaction', 'idle']);
 
-export default function HeroDream() {
+interface HeroDreamProps {
+  /** DREAM SAVED.'s quiet second invitation — passthrough into the new,
+      separately-mounted Dream Archive area (see App.tsx). Nothing about
+      the reconstruction/reflection/closing journey itself changes. */
+  onGoToArchive: () => void;
+}
+
+export default function HeroDream({ onGoToArchive }: HeroDreamProps) {
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
   const uiLayerRef = useRef<HTMLDivElement>(null);
@@ -648,6 +655,7 @@ export default function HeroDream() {
         onSaveDream={handleSaveDream}
         onLetGo={handleLetGo}
         onReturnToRoom={handleReturnToRoom}
+        onGoToArchive={onGoToArchive}
       />
 
       {/* Development aid only — never part of the normal user journey.
