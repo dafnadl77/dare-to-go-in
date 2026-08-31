@@ -9,18 +9,20 @@ interface DreamArchiveProps {
   onBack: () => void;
 }
 
-/** Hand-placed constellation positions (percent of the stage) — deliberately
-    asymmetric: one large near dream, two mid-distance ones either side, three
-    smaller/further ones scattered behind, never a grid. Reused directly by
-    both the portals themselves and the connection lines between them, so the
-    two always agree on where things actually are. */
+/** Hand-placed constellation positions (percent of the tall .ar-stage, NOT
+    the viewport) — a cinematic composition, not evenly-spaced icons: one
+    large near dream close to the top, two mid-distance ones nearby (so the
+    first screenful reads as roughly 3 major portals), then progressively
+    smaller/further ones the deeper you travel down. Reused directly by
+    both the portals themselves and the connection lines between them, so
+    the two always agree on where things actually are. */
 const LAYOUT: { left: number; top: number; size: number; z: number }[] = [
-  { left: 45, top: 30, size: 320, z: 5 }, // The Open Door — centered, largest, nearest
-  { left: 15, top: 48, size: 220, z: 3 }, // The Ocean
-  { left: 76, top: 22, size: 260, z: 4 }, // Grandmother
-  { left: 87, top: 60, size: 160, z: 2 }, // The Empty City
-  { left: 22, top: 78, size: 185, z: 2 }, // Flying
-  { left: 58, top: 82, size: 150, z: 1 }, // The Forest
+  { left: 38, top: 4, size: 560, z: 6 }, // The Open Door — primary, large, near
+  { left: 12, top: 27, size: 300, z: 3 }, // The Ocean — smaller, deeper into the first view
+  { left: 78, top: 1, size: 420, z: 5 }, // Grandmother — secondary, upper right
+  { left: 68, top: 42, size: 400, z: 4 }, // The Empty City — secondary, further down
+  { left: 20, top: 60, size: 340, z: 3 }, // Flying — smaller, further still
+  { left: 52, top: 78, size: 300, z: 2 }, // The Forest — smallest, deepest
 ];
 
 /** Which pairs of dreams occasionally show a faint connecting thread —
@@ -31,7 +33,7 @@ const CONNECTIONS: [number, number][] = [
   [0, 1],
   [0, 2],
   [1, 4],
-  [2, 3],
+  [3, 4],
   [4, 5],
 ];
 
@@ -60,16 +62,16 @@ function DreamPortal({
   dream,
   layout,
   index,
-  focused,
+  open,
   dimmed,
-  onOpen,
+  onToggle,
 }: {
   dream: MockDream;
   layout: { left: number; top: number; size: number; z: number };
   index: number;
-  focused: boolean;
+  open: boolean;
   dimmed: boolean;
-  onOpen: () => void;
+  onToggle: () => void;
 }) {
   const maskId = `ar-mask-${dream.id}`;
   const featherId = `ar-feather-${dream.id}`;
@@ -78,10 +80,10 @@ function DreamPortal({
       type="button"
       className="ar-portal"
       data-cursor-hover
-      data-focused={focused ? 'true' : 'false'}
+      data-open={open ? 'true' : 'false'}
       data-dimmed={dimmed ? 'true' : 'false'}
-      onClick={onOpen}
-      aria-label={`Open ${dream.title}`}
+      onClick={onToggle}
+      aria-label={open ? `Close ${dream.title}` : `Open ${dream.title}`}
       style={
         {
           '--px': `${layout.left}%`,
@@ -90,40 +92,52 @@ function DreamPortal({
           '--pz': layout.z,
           '--float-delay': `${index * -4.3}s`,
           '--float-dur': `${22 + index * 3.1}s`,
-          zIndex: layout.z,
+          zIndex: open ? 200 : layout.z,
         } as CSSProperties
       }
     >
-      <span className="ar-portal-inner">
-        <span className="ar-portal-glow" aria-hidden="true" />
-        <svg className="ar-portal-svg" viewBox={DREAM_CLIP_VIEWBOX} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <defs>
-            <filter id={featherId} x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur stdDeviation={DREAM_CLIP_FEATHER_STD_DEVIATION} />
-            </filter>
-            <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="2048" height="1152">
-              <path d={DREAM_CLIP_PATH} fill="white" filter={`url(#${featherId})`} />
-            </mask>
-          </defs>
-          <image
-            href={dream.image}
-            x="0"
-            y="0"
-            width="2048"
-            height="1152"
-            preserveAspectRatio="xMidYMid slice"
-            mask={`url(#${maskId})`}
-          />
-        </svg>
-        <span className="ar-portal-particles" aria-hidden="true">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <span key={i} className="ar-portal-particle" style={{ '--pi': i } as CSSProperties} />
-          ))}
+      <span className="ar-portal-parallax">
+        <span className="ar-portal-inner">
+          <span className="ar-portal-glow" aria-hidden="true" />
+          <svg className="ar-portal-svg" viewBox={DREAM_CLIP_VIEWBOX} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <defs>
+              <filter id={featherId} x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation={DREAM_CLIP_FEATHER_STD_DEVIATION} />
+              </filter>
+              <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="2048" height="1152">
+                <path d={DREAM_CLIP_PATH} fill="white" filter={`url(#${featherId})`} />
+              </mask>
+            </defs>
+            <image
+              href={dream.image}
+              x="0"
+              y="0"
+              width="2048"
+              height="1152"
+              preserveAspectRatio="xMidYMid slice"
+              mask={`url(#${maskId})`}
+            />
+          </svg>
+          <span className="ar-portal-particles" aria-hidden="true">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <span key={i} className="ar-portal-particle" style={{ '--pi': i } as CSSProperties} />
+            ))}
+          </span>
         </span>
       </span>
       <span className="ar-portal-caption">
         <span className="ar-portal-title">{dream.title}</span>
         <span className="ar-portal-date">{formatMockDate(dream.date)}</span>
+      </span>
+      {/* Only revealed once this exact portal has finished growing into
+          place (data-open, delayed fade — see DreamArchive.css) — the
+          dream's own image never swaps or re-mounts, it simply keeps
+          growing and this detail settles in after, so opening one reads
+          as entering that memory rather than a page navigating away. */}
+      <span className="ar-portal-detail" aria-hidden={!open}>
+        <span className="ar-portal-keywords">{dream.keywords.join(' · ')}</span>
+        <span className="ar-portal-note">The full dream memory is coming soon.</span>
+        <span className="ar-portal-close">CLOSE</span>
       </span>
     </button>
   );
@@ -135,8 +149,8 @@ function DreamPortal({
  * Each dream is a real SVG <mask>+feGaussianBlur portal — the exact same
  * organic KETEM.jpg-derived shape/feather already proven working for THIS
  * IS YOUR DREAM (see dreamClipShape.ts) — reused here rather than any new
- * clipping technique, since it's the one already confirmed to render
- * correctly. Never a circle, rectangle, card, or colored placeholder blob.
+ * clipping technique. Never a circle, rectangle, card, or colored
+ * placeholder blob.
  */
 export default function DreamArchive({ onBack }: DreamArchiveProps) {
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -147,43 +161,25 @@ export default function DreamArchive({ onBack }: DreamArchiveProps) {
   const stageRef = useRef<HTMLDivElement>(null);
   usePointerParallax(stageRef, 8, true);
 
-  const [focusedId, setFocusedId] = useState<string | null>(null);
-  const [detailDream, setDetailDream] = useState<MockDream | null>(null);
-  const closeTimerRef = useRef<number | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const layoutByDream = useMemo(() => MOCK_DREAMS.map((dream, i) => ({ dream, layout: LAYOUT[i] })), []);
 
-  useEffect(() => {
-    return () => {
-      if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
-    };
-  }, []);
-
-  const openDream = (dream: MockDream) => {
-    if (focusedId) return;
-    setFocusedId(dream.id);
-    // The chosen dream draws close while the rest recede — the detail view
-    // only appears once that approach has actually had time to play out,
-    // so it reads as "arriving back inside the memory," not a modal popping up.
-    closeTimerRef.current = window.setTimeout(() => setDetailDream(dream), 850);
-  };
-
-  const closeDetail = () => {
-    setDetailDream(null);
-    setFocusedId(null);
+  const toggleDream = (id: string) => {
+    setOpenId((current) => (current === id ? null : current === null ? id : current));
   };
 
   useEffect(() => {
-    if (!detailDream) return;
+    if (!openId) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeDetail();
+      if (e.key === 'Escape') setOpenId(null);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [detailDream]);
+  }, [openId]);
 
   return (
-    <div className="dream-archive">
+    <div className="dream-archive" data-immersed={openId ? 'true' : 'false'}>
       <DreamStageBackground ref={bgVideoRef} active />
       <div className="ar-night-tint" aria-hidden="true" />
       <div className="ar-stars" aria-hidden="true">
@@ -227,7 +223,7 @@ export default function DreamArchive({ onBack }: DreamArchiveProps) {
         <p className="ar-subtitle">Every dream leaves a trace.</p>
       </header>
 
-      <div className="ar-stage" ref={stageRef} data-dimmed={focusedId ? 'true' : 'false'}>
+      <div className="ar-stage" ref={stageRef}>
         <ConnectionThreads />
         {layoutByDream.map(({ dream, layout }, i) => (
           <DreamPortal
@@ -235,44 +231,12 @@ export default function DreamArchive({ onBack }: DreamArchiveProps) {
             dream={dream}
             layout={layout}
             index={i}
-            focused={focusedId === dream.id}
-            dimmed={focusedId !== null && focusedId !== dream.id}
-            onOpen={() => openDream(dream)}
+            open={openId === dream.id}
+            dimmed={openId !== null && openId !== dream.id}
+            onToggle={() => toggleDream(dream.id)}
           />
         ))}
       </div>
-
-      {detailDream && (
-        <div className="ar-detail" role="dialog" aria-modal="true" aria-label={detailDream.title}>
-          <button type="button" className="ar-detail-close" data-cursor-hover onClick={closeDetail}>
-            CLOSE
-          </button>
-          <svg className="ar-detail-svg" viewBox={DREAM_CLIP_VIEWBOX} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-            <defs>
-              <filter id="ar-detail-feather" x="-30%" y="-30%" width="160%" height="160%">
-                <feGaussianBlur stdDeviation={DREAM_CLIP_FEATHER_STD_DEVIATION} />
-              </filter>
-              <mask id="ar-detail-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="2048" height="1152">
-                <path d={DREAM_CLIP_PATH} fill="white" filter="url(#ar-detail-feather)" />
-              </mask>
-            </defs>
-            <image
-              href={detailDream.image}
-              x="0"
-              y="0"
-              width="2048"
-              height="1152"
-              preserveAspectRatio="xMidYMid slice"
-              mask="url(#ar-detail-mask)"
-            />
-          </svg>
-          <h2 className="ar-detail-title">{detailDream.title}</h2>
-          <p className="ar-detail-meta">
-            {formatMockDate(detailDream.date)} &middot; {detailDream.keywords.join(' · ')}
-          </p>
-          <p className="ar-detail-note">The full dream memory is coming soon.</p>
-        </div>
-      )}
     </div>
   );
 }
