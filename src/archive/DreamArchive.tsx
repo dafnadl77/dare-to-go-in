@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
 import DreamStageBackground from '../hero/DreamStageBackground';
-import { getArchiveEntries, type ArchiveEntry } from './archiveData';
+import { getArchiveEntries, getLastArchiveScrollTop, setLastArchiveScrollTop, type ArchiveEntry } from './archiveData';
 import DreamTimeline from './DreamTimeline';
 import './DreamArchive.css';
 
@@ -24,8 +24,30 @@ export default function DreamArchive({ onBack, onOpenEntry }: DreamArchiveProps)
 
   const entries = useMemo(() => getArchiveEntries(), []);
 
+  // Restores the scroll position left behind before opening a dream's
+  // detail view (see DreamDetail.tsx's "← BACK TO MY DREAMS") — behavior
+  // only, no change to the timeline's own layout/visuals.
+  const rootRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    el.scrollTop = getLastArchiveScrollTop();
+  }, []);
+
+  // The actual save happens HERE, synchronously in the click handler that
+  // triggers navigation away — not in a scroll listener or an unmount
+  // cleanup. Both were tried and both are unreliable for this: an
+  // unmounting element's scrollTop reads back as 0 the moment it's
+  // detached from the document (confirmed directly — a real, general
+  // browser behavior, not specific to this app), which is exactly when a
+  // cleanup effect fires, so it was capturing nothing useful.
+  const handleOpenEntry = (entry: ArchiveEntry) => {
+    if (rootRef.current) setLastArchiveScrollTop(rootRef.current.scrollTop);
+    onOpenEntry(entry);
+  };
+
   return (
-    <div className="dream-archive">
+    <div className="dream-archive" ref={rootRef}>
       <DreamStageBackground ref={bgVideoRef} active />
       <div className="ar-night-tint" aria-hidden="true" />
       <div className="ar-stars" aria-hidden="true">
@@ -69,7 +91,7 @@ export default function DreamArchive({ onBack, onOpenEntry }: DreamArchiveProps)
         <p className="ar-subtitle">Every dream leaves a trace.</p>
       </header>
 
-      <DreamTimeline entries={entries} onOpenEntry={onOpenEntry} />
+      <DreamTimeline entries={entries} onOpenEntry={handleOpenEntry} />
     </div>
   );
 }
