@@ -995,48 +995,137 @@
   }
 }
 
-/* The desktop layout reserves a right-side column (.dr-node-path's own
-   right:15vw) specifically so the corner SEE OTHER LENSES panel
-   (.dr-lenses-wrap, max-width:22vw) has its own space to expand into
-   without ever touching the thought text. On a narrow phone that
-   reserved column is only ~79px wide — confirmed live at 360px: the
-   expanded lenses panel visibly overlapped "A recurring pull toward the
-   unknown..." and every lens line wrapped to one or two words. Reflowed
-   into two separate non-overlapping bands instead of a side column: the
-   thoughts get the full width in a scrollable upper band, the (optional,
-   collapsed-by-default) lenses panel gets its own scrollable band below
-   with a real backdrop — same information, same interaction, no overlap
-   at any real content length. */
-@media (max-width: 640px) {
+/* =====================================================================
+   MOBILE ONLY — the entire reflection engine range (THIS IS YOUR DREAM
+   through the interpretation/reflection screen) switches from a fixed,
+   one-viewport cinematic panel to normal document flow, so the real
+   page scrolls as ONE region instead of a small internal panel. This
+   replaces an earlier attempt that gave .dr-node-path/.dr-lenses-wrap
+   their own independent max-height+overflow-y:auto scrollboxes —
+   reported back, correctly, as exactly the "nested awkward scroll
+   panel" this was supposed to avoid, and it still left the final
+   question/disclaimer/CONTINUE (outside that inner scrollbox) at risk
+   of sitting off-screen with no way to reach them. Every element below
+   switches from position:absolute (stacked/overlaid, sized for a fixed
+   viewport box) to normal flow (stacked top-to-bottom, sized by its own
+   content) — see the matching .hero-dream (HeroDream.css) and
+   .dream-reconstruction (DreamReconstruction.css) overrides, which are
+   what actually let this be taller than the viewport and scroll; this
+   block alone would still be clipped by those fixed/overflow:hidden
+   ancestors without them. The (max-height: 500px) alternative catches
+   short landscape phones — confirmed live at 667x375: with only the
+   width breakpoint, "A QUESTION WORTH KEEPING" rendered ~115px past the
+   bottom of the viewport with genuinely no way to reach it (the old
+   fixed-band layout doesn't grow with real content length, and this
+   breakpoint never matched a landscape phone's width at all). */
+@media (max-width: 640px), (max-height: 500px) {
+  .dream-reflection {
+    position: relative;
+    inset: auto;
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 3vh 6vw calc(5vh + env(safe-area-inset-bottom, 0px));
+  }
+
+  .dream-arrival {
+    position: relative;
+    inset: auto;
+    height: auto;
+  }
+
+  .da-content,
+  .dream-arrival[data-step='reflecting'] .da-content {
+    position: static;
+    padding: 0;
+  }
+
+  .dream-thought-sequence {
+    position: relative;
+    inset: auto;
+    height: auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 2.6rem;
+    padding-top: 2vh;
+  }
+
+  /* The desktop layout reserves a right-side column (.dr-node-path's
+     own right:15vw) specifically so the corner SEE OTHER LENSES panel
+     (.dr-lenses-wrap, max-width:22vw) has its own space to expand into
+     without ever touching the thought text — on a narrow phone that
+     reserved column left only ~79px for it. In normal flow that whole
+     problem disappears: both are simply full-width blocks, one after
+     the other, each free to be as tall as its own content needs. */
   .dr-node-path {
-    left: 6vw;
-    right: 6vw;
-    top: 8vh;
+    position: relative;
+    top: auto;
     bottom: auto;
-    max-height: 54vh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    /* !important: DreamReflection.tsx sets `left: 11vw` as an INLINE
+       style for the desktop absolute-positioned layout (NODE_LEFT_VW) —
+       inline styles beat any stylesheet rule regardless of specificity
+       or media query, so a plain override here would be silently
+       ignored. Confirmed live: without !important this element kept an
+       extra ~41px left offset even after switching to position:relative,
+       pushing its content (and the text inside it) off the right edge
+       of the viewport — the exact "text cut off mid-word" bug found
+       while verifying this fix. */
+    left: auto !important;
+    right: auto;
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.8rem;
+  }
+
+  .dr-thought-text {
+    max-width: none;
   }
 
   .dr-lenses-wrap {
-    left: 6vw;
-    right: 6vw;
-    bottom: 11vh;
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
     max-width: none;
-    max-height: 20vh;
-    overflow-y: auto;
     align-items: flex-start;
     text-align: left;
-    background: rgba(6, 7, 6, 0.55);
+    background: rgba(6, 7, 6, 0.4);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border-radius: 14px;
-    padding: 0.8rem 1rem;
+    padding: 0.9rem 1.1rem;
   }
 
   .dr-lenses {
     align-items: flex-start;
     text-align: left;
+  }
+
+  .dr-grounding {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    max-width: none;
+    margin: 0 auto;
+  }
+
+  /* The last element on the page — generous room above mobile browser
+     chrome, so CONTINUE is never the thing the dreamer has to fight the
+     UI to reach. */
+  .dr-continue-wrap {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    display: flex;
+    justify-content: center;
+    padding-bottom: max(2vh, env(safe-area-inset-bottom, 0px));
   }
 }
 

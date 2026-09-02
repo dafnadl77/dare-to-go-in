@@ -11,6 +11,31 @@
   background: var(--dream-black);
 }
 
+/* MOBILE ONLY — whenever <DreamReflection> is mounted (THIS IS YOUR
+   DREAM through the interpretation/reflection screen), this becomes the
+   real scroll container instead of a fixed, clipped 100dvh box, so that
+   content taller than one viewport scrolls as ONE natural page rather
+   than a small internal panel. Stays exactly 100dvh/fixed/hidden for
+   every other phase/step, and on desktop always — :has(.dream-reflection)
+   only matches while that component is mounted, and the whole block is
+   inert outside this one mobile breakpoint. See the matching
+   .dream-reconstruction/.dream-reflection overrides in
+   DreamReconstruction.css/DreamReflection.css, which are what actually
+   let their own content grow taller than the viewport for this to have
+   anything to scroll. The (max-height: 500px) alternative catches short
+   landscape phones, which can be well over 640px wide (confirmed live:
+   at 667x375 landscape, "A QUESTION WORTH KEEPING" rendered ~115px past
+   the bottom of the viewport with no way to reach it under the old
+   fixed-height layout, since a width-only breakpoint never applied
+   there at all). */
+@media (max-width: 640px), (max-height: 500px) {
+  .hero-dream:has(.dream-reflection) {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 .hero-vignette {
   position: fixed;
   inset: 0;

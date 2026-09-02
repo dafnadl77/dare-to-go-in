@@ -250,27 +250,36 @@ export default function DreamReconstruction({
               <img> it always had. */}
           {displayedImageUrl &&
             (isArrival ? (
-              <div className="dr-image dr-image-current dr-image-svg-wrap" aria-hidden="true">
-                <svg className="dr-image-svg" viewBox={DREAM_CLIP_VIEWBOX} preserveAspectRatio="xMidYMid slice">
-                  <defs>
-                    <filter id="dr-dream-clip-feather" x="-30%" y="-30%" width="160%" height="160%">
-                      <feGaussianBlur stdDeviation={DREAM_CLIP_FEATHER_STD_DEVIATION} />
-                    </filter>
-                    <mask id="dr-dream-clip-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="2048" height="1152">
-                      <path d={DREAM_CLIP_PATH} fill="white" filter="url(#dr-dream-clip-feather)" />
-                    </mask>
-                  </defs>
-                  <image
-                    href={displayedImageUrl}
-                    x="0"
-                    y="0"
-                    width="2048"
-                    height="1152"
-                    preserveAspectRatio="xMidYMid slice"
-                    mask="url(#dr-dream-clip-mask)"
-                  />
-                </svg>
-              </div>
+              <>
+                <div className="dr-image dr-image-current dr-image-svg-wrap" aria-hidden="true">
+                  <svg className="dr-image-svg" viewBox={DREAM_CLIP_VIEWBOX} preserveAspectRatio="xMidYMid slice">
+                    <defs>
+                      <filter id="dr-dream-clip-feather" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation={DREAM_CLIP_FEATHER_STD_DEVIATION} />
+                      </filter>
+                      <mask id="dr-dream-clip-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="2048" height="1152">
+                        <path d={DREAM_CLIP_PATH} fill="white" filter="url(#dr-dream-clip-feather)" />
+                      </mask>
+                    </defs>
+                    <image
+                      href={displayedImageUrl}
+                      x="0"
+                      y="0"
+                      width="2048"
+                      height="1152"
+                      preserveAspectRatio="xMidYMid slice"
+                      mask="url(#dr-dream-clip-mask)"
+                    />
+                  </svg>
+                </div>
+                {/* MOBILE ONLY — a completely separate plain rectangular
+                    <img>, shown INSTEAD of the organic SVG mask above only
+                    below a mobile breakpoint (see .dr-image-mobile-rect in
+                    DreamReconstruction.css). The desktop mask element above
+                    is entirely untouched by this — this is purely additive,
+                    never a replacement of it. */}
+                <img className="dr-image-mobile-rect" src={displayedImageUrl} alt="" aria-hidden="true" />
+              </>
             ) : (
               <img className="dr-image dr-image-current dr-image-plain" src={displayedImageUrl} alt="" />
             ))}

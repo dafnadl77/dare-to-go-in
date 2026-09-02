@@ -6,6 +6,44 @@
   overflow: hidden;
 }
 
+/* =====================================================================
+   MOBILE ONLY — whenever <DreamReflection> is mounted (THIS IS YOUR
+   DREAM through the interpretation/reflection screen — every step in
+   DreamReconstruction.tsx's REFLECTION_ENGINE_STEPS), this and its
+   ancestor .hero-dream (see the matching override in HeroDream.css) stop
+   assuming a fixed one-viewport-tall cinematic screen and instead let
+   content flow naturally and grow taller than the viewport, scrolling
+   the whole page as ONE region rather than a small internal panel (see
+   DreamReflection.css for the matching change to .dream-reflection/
+   .dream-arrival/.dream-thought-sequence/.dr-node-path, which is where
+   the actual content lives). Every other phase/step (dissolving,
+   reveal, correcting, entering, closing, saved, etc.) is completely
+   unaffected — :has(.dream-reflection) only matches while that
+   component is actually mounted, and this whole block is desktop-inert
+   (media query). .dream-stage-bg-layer is force-pinned back to the true
+   viewport below, since this element switching away from position:fixed
+   would otherwise let it scroll along with everything else — the exact
+   "black area revealed while scrolling" bug already fixed once this
+   session for MY DREAM ARCHIVE/Dream Detail, for the same underlying
+   reason (a position:fixed descendant needs a position:fixed OR true-
+   viewport ancestor to stay pinned; this element no longer is one). The
+   (max-height: 500px) alternative catches short landscape phones — see
+   the matching comment in HeroDream.css for why a width-only breakpoint
+   isn't enough on its own. ===================================================================== */
+@media (max-width: 640px), (max-height: 500px) {
+  .dream-reconstruction:has(.dream-reflection) {
+    position: relative;
+    inset: auto;
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  .dream-reconstruction:has(.dream-reflection) .dream-stage-bg-layer {
+    position: fixed;
+  }
+}
+
 /* ---- The room dissolving: a real live blur/darken of what's underneath,
    not a flat fade to black. Two staggered bands so the room settles at
    slightly different speeds top vs. bottom. ---- */
@@ -309,6 +347,48 @@
   display: block;
   width: 100%;
   height: 100%;
+}
+
+/* MOBILE ONLY — a plain rectangular image, hidden on every other
+   viewport. See the long comment in DreamReconstruction.tsx and the
+   media query below: on mobile this replaces the organic SVG mask
+   above (which switches to display:none there) with a large, prominent
+   rectangle at the image's own natural aspect ratio — never squeezed
+   into a small portal, never masked/clipped/circular. The desktop mask
+   rule above is untouched by any of this. */
+.dr-image-mobile-rect {
+  display: none;
+}
+
+@media (max-width: 640px), (max-height: 500px) {
+  /* The image's own natural aspect ratio drives the height — no fixed
+     16:9-ish box like the desktop mask uses (that box exists only to
+     match the mask's own viewBox proportions, which no longer applies
+     once the mask itself is hidden below). `bottom: auto` is required:
+     the base .dr-image-layer rule sets it via `inset` and, left in
+     place alongside an explicit `height`, would force this box to
+     stretch to fill rather than size to its own (now in-flow) content. */
+  .dr-image-layer[data-arrival='true'] {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    margin: 3vh 16px 0;
+    width: auto;
+    height: auto;
+  }
+
+  .dr-image-layer[data-arrival='true'] .dr-image-svg-wrap {
+    display: none;
+  }
+
+  .dr-image-layer[data-arrival='true'] .dr-image-mobile-rect {
+    display: block;
+    position: static;
+    width: 100%;
+    height: auto;
+  }
 }
 
 /* THE REFLECTION / INSIGHTS screen removes the dream image entirely — the
