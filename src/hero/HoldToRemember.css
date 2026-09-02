@@ -246,6 +246,7 @@
    the circle, as absolutely-positioned overlays — they never participate in
    the flex sizing above, so switching modes cannot move the title. */
 .central-recording,
+.central-transcribing,
 .central-typing,
 .central-settled {
   position: absolute;
@@ -273,6 +274,7 @@
    centered when it fits, never hides its own actions when it doesn't. */
 @media (max-height: 480px) {
   .central-recording,
+  .central-transcribing,
   .central-typing,
   .central-settled {
     max-height: 92vh;
@@ -284,6 +286,7 @@
 }
 
 .central-recording.is-active,
+.central-transcribing.is-active,
 .central-typing.is-active,
 .central-settled.is-active {
   opacity: 1;
@@ -339,18 +342,28 @@
   will-change: transform, opacity;
 }
 
-.central-transcript {
-  width: 100%;
-  margin: -1.2rem 0 2rem;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-style: normal;
-  font-weight: 400;
-  font-size: clamp(1rem, 2.1vw, 1.22rem);
-  line-height: 1.65;
-  color: var(--dream-white);
-  text-align: start;
-  opacity: 0.92;
-  text-shadow: 0 0.04em 0.5em rgba(0, 0, 0, 0.4);
+/* TRANSCRIBING… — same heading treatment as .central-recording-heading
+   (reused directly), same orb shape as .central-recording-orb, but idly
+   pulsing (there's no live mic level to drive it anymore: the recording
+   already stopped, this is OpenAI turning the finished clip into text). */
+.central-transcribing-orb {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  margin-bottom: 2.4rem;
+  background: radial-gradient(circle, rgba(244, 240, 232, 0.22) 0%, rgba(244, 240, 232, 0.05) 55%, transparent 75%);
+  animation: htr-transcribing-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes htr-transcribing-pulse {
+  0%, 100% {
+    opacity: 0.32;
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: 0.62;
+    transform: scale(1.06);
+  }
 }
 
 .central-finish {
@@ -615,6 +628,7 @@
   .htr-circle,
   .htr-type-link,
   .central-recording,
+  .central-transcribing,
   .central-typing,
   .central-settled,
   .central-settled-text--second,
@@ -623,6 +637,10 @@
   .central-finish,
   .central-typing-textarea {
     transition-duration: 0.01s !important;
+  }
+  .central-transcribing-orb {
+    animation: none;
+    opacity: 0.5;
   }
   .central-settled.is-active .central-settled-text--second {
     transition-delay: 0.2s !important;

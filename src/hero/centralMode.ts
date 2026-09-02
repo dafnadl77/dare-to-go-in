@@ -3,4 +3,4 @@
  * HeroDream since siblings (title dissolve, prompt hush, dream fragments)
  * all need to react to it, not just HoldToRemember itself.
  */
-export type CentralMode = 'hold' | 'recording' | 'typing' | 'settled';
+export type CentralMode = 'hold' | 'recording' | 'transcribing' | 'typing' | 'settled';

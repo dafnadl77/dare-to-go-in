@@ -9,7 +9,6 @@ import DreamEchoes from './DreamEchoes';
 import { usePointerRef } from './usePointerRef';
 import { useOpeningSequence } from './useOpeningSequence';
 import { useDreamRecorder } from './useDreamRecorder';
-import { useSpeechTranscription } from './useSpeechTranscription';
 import { createHoldState } from './HoldState';
 import { createEchoState } from './EchoState';
 import { createDreamEventState } from './dreamEventState';
@@ -18,8 +17,6 @@ import { useUnifiedDreamSequence } from './useUnifiedDreamSequence';
 import type { DreamInput } from './dreamInput';
 import { analyzeDream, type AnalysisResult } from './dreamAnalysis';
 import DreamAnalysisDevView from './DreamAnalysisDevView';
-import { DIAG_LOG_VISIBLE } from './speechDiag';
-import SpeechDiagPanel from './SpeechDiagPanel';
 import DreamReconstruction, { type ReconstructionPhase, type InsideStep } from './DreamReconstruction';
 import { buildReconstructionBrief, type ReconstructionBrief } from './reconstructionBrief';
 import { pickMemoryFragments } from './memoryFragments';
@@ -95,7 +92,6 @@ export default function HeroDream({ onGoToArchive }: HeroDreamProps) {
   const { phase, startTime } = useOpeningSequence();
 
   const recorder = useDreamRecorder();
-  const transcription = useSpeechTranscription();
   const [centralMode, setCentralMode] = useState<CentralMode>('hold');
   const [micUnavailable, setMicUnavailable] = useState(false);
   // Kept wired (though fragments aren't rendered right now) so re-enabling
@@ -607,7 +603,6 @@ export default function HeroDream({ onGoToArchive }: HeroDreamProps) {
             revealed={INTERACTION_PHASES.has(phase)}
             holdRef={holdRef}
             recorder={recorder}
-            transcription={transcription}
             centralMode={centralMode}
             setCentralMode={setCentralMode}
             micUnavailable={micUnavailable}
@@ -672,12 +667,6 @@ export default function HeroDream({ onGoToArchive }: HeroDreamProps) {
           }}
         />
       )}
-
-      {/* Diagnostic aid only — never part of the normal user journey.
-          Visit with ?diaglog=1 to read the HOLD → mic → speech-recognition
-          event log straight off the screen (no attached devtools needed —
-          useful mid real-device test, on a phone). */}
-      {DIAG_LOG_VISIBLE && <SpeechDiagPanel />}
     </div>
   );
 }

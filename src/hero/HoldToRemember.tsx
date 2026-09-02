@@ -11,25 +11,24 @@ import {
 import type { HoldState } from './HoldState';
 import type { CentralMode } from './centralMode';
 import type { useDreamRecorder } from './useDreamRecorder';
-import type { useSpeechTranscription } from './useSpeechTranscription';
-import { createTextDreamInput, createVoiceDreamInput, type DreamInput } from './dreamInput';
-import { logDiag, DIAG_SPEECH_ONLY } from './speechDiag';
+import { createTextDreamInput, type DreamInput } from './dreamInput';
+import { transcribeDreamAudio } from './dreamTranscription';
+import { getAppLanguage } from './appLanguage';
 import './HoldToRemember.css';
 
 type DreamRecorderApi = ReturnType<typeof useDreamRecorder>;
-type SpeechTranscriptionApi = ReturnType<typeof useSpeechTranscription>;
 
 interface HoldToRememberProps {
   revealed: boolean;
   holdRef: RefObject<HoldState>;
   recorder: DreamRecorderApi;
-  transcription: SpeechTranscriptionApi;
   centralMode: CentralMode;
   setCentralMode: (mode: CentralMode) => void;
   micUnavailable: boolean;
   setMicUnavailable: (v: boolean) => void;
   onTypedTranscriptChange: (text: string) => void;
-  /** Fired once, with the normalized capture, the moment TYPE or RECORD
+  /** Fired once, with the normalized capture, the moment TYPE (typed
+      directly, or reviewed after a spoken recording was transcribed)
       genuinely completes (never on cancel). Nothing downstream is built
       yet — this only hands off the real captured dream for later stages. */
   onDreamCapture?: (input: DreamInput) => void;
@@ -52,6 +51,12 @@ const FINISH_SETTLE_MS = 1100;
 // always reaches a real state (recording, or a clear TYPE fallback) within
 // a bounded wait, without changing anything about the 800ms hold itself.
 const MIC_REQUEST_TIMEOUT_MS = 20000;
+// Bounds the OpenAI transcription round-trip the same way — a slow
+// network or a stalled response must not leave the dreamer staring at
+// "TRANSCRIBING…" forever with no way out.
+const TRANSCRIPTION_TIMEOUT_MS = 30000;
+
+const TRANSCRIPTION_FAILED_MESSAGE = "I couldn't transcribe that. Try again or type your dream.";
 
 /** A specific, human-readable reason the mic didn't work — read from
     useDreamRecorder's own `error` (the real MediaDevices/MediaRecorder
@@ -82,7 +87,6 @@ export default function HoldToRemember({
   revealed,
   holdRef,
   recorder,
-  transcription,
   centralMode,
   setCentralMode,
   micUnavailable,
@@ -103,17 +107,25 @@ export default function HoldToRemember({
   // timed out/unsupported) — purely a local display concern, so this
   // doesn't need to be lifted to HeroDream.tsx alongside micUnavailable.
   const [micErrorMessage, setMicErrorMessage] = useState<string | null>(null);
+  // Set only when a recorded clip failed to come back as usable text —
+  // separate from micErrorMessage since it's a different failure (the mic
+  // worked fine; OpenAI transcription itself didn't).
+  const [transcriptionErrorMessage, setTranscriptionErrorMessage] = useState<string | null>(null);
   const rafRef = useRef(0);
   const startRef = useRef(0);
   const listenTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const micTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const transcriptionTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const committedRef = useRef(false);
   const finishingRef = useRef(false);
   // The real audio blob arrives asynchronously (MediaRecorder's onstop
-  // fires after recordingState already flips to 'finished'), so the voice
-  // DreamInput is only built once it genuinely exists — never guessed.
-  const pendingVoiceCaptureRef = useRef(false);
-  const capturedTranscriptRef = useRef<string | null>(null);
+  // fires after recordingState already flips to 'finished'), so
+  // transcription is only kicked off once it genuinely exists.
+  const pendingTranscriptionRef = useRef(false);
+  // Lets a deliberate Close (or the timeout above) cancel an in-flight
+  // transcription request without a late response clobbering state the
+  // dreamer has already moved past.
+  const transcribeAbortRef = useRef<AbortController | null>(null);
 
   const tick = useCallback(() => {
     const elapsed = performance.now() - startRef.current;
@@ -126,24 +138,8 @@ export default function HoldToRemember({
   }, [holdRef]);
 
   const commitToListening = useCallback(async () => {
-    logDiag('hold.committed', { diagSpeechOnly: DIAG_SPEECH_ONLY });
     setMicUnavailable(false);
     setMicErrorMessage(null);
-
-    // DIAGNOSTIC ONLY (?diag=speechonly): isolates SpeechRecognition from
-    // useDreamRecorder/MediaRecorder entirely — the mic is never opened by
-    // the recorder at all — to prove or disprove whether the two are
-    // contending for the microphone/audio session on a real device. Off by
-    // default; the normal path below (both recorder AND transcription) is
-    // completely unchanged when this flag is absent.
-    if (DIAG_SPEECH_ONLY) {
-      logDiag('diag.speechonly-mode-active — recorder.start() skipped entirely');
-      if (holdRef.current) holdRef.current.active = false;
-      transcription.reset();
-      transcription.start();
-      setCentralMode('recording');
-      return;
-    }
 
     // Races the real permission/recording request against a bounded
     // timeout — see MIC_REQUEST_TIMEOUT_MS above for why this exists.
@@ -163,13 +159,9 @@ export default function HoldToRemember({
     const result = await Promise.race([startPromise, timedOutPromise]);
     settled = true;
     clearTimeout(micTimeoutRef.current);
-    logDiag('hold.recorder-race-settled', { result });
 
     if (result === true) {
       if (holdRef.current) holdRef.current.active = false;
-      logDiag('hold.calling-transcription.start()');
-      transcription.reset();
-      transcription.start();
       setCentralMode('recording');
     } else {
       const timedOut = result === 'timeout';
@@ -182,7 +174,7 @@ export default function HoldToRemember({
       setMicErrorMessage(describeMicUnavailable(recorder.errorRef.current, timedOut));
       setCentralMode('typing');
     }
-  }, [recorder, transcription, holdRef, setCentralMode, setMicUnavailable]);
+  }, [recorder, holdRef, setCentralMode, setMicUnavailable]);
 
   const beginHold = useCallback(() => {
     if (centralMode !== 'hold' || committedRef.current) return;
@@ -245,6 +237,8 @@ export default function HoldToRemember({
       cancelAnimationFrame(rafRef.current);
       clearTimeout(listenTimerRef.current);
       clearTimeout(micTimeoutRef.current);
+      clearTimeout(transcriptionTimeoutRef.current);
+      transcribeAbortRef.current?.abort();
     };
   }, []);
 
@@ -295,10 +289,10 @@ export default function HoldToRemember({
     committedRef.current = false;
     setMicUnavailable(false);
     setMicErrorMessage(null);
+    setTranscriptionErrorMessage(null);
     setCentralMode('hold');
     setEntry('');
     onTypedTranscriptChange('');
-    transcription.reset();
   };
 
   const handleDoneTyping = () => {
@@ -306,17 +300,16 @@ export default function HoldToRemember({
     setCentralMode('settled');
   };
 
-  // CANCEL — not FINISH. Discards whatever is in progress (typed text, or
-  // the live recording + its transcript) and returns to the original hero
-  // state. Never advances to 'settled', never triggers reconstruction.
+  // CANCEL — not FINISH. Discards whatever is in progress (typed text, a
+  // live recording, or an in-flight transcription) and returns to the
+  // original hero state. Never advances to 'settled', never triggers
+  // reconstruction.
   const handleClose = useCallback(() => {
     if (centralMode === 'recording') {
       // reset() (not finish()) stops the MediaRecorder, stops every mic
       // MediaStream track, and closes the AudioContext — the browser's mic
       // indicator goes away because the tracks are actually stopped.
       recorder.reset();
-      transcription.stop();
-      transcription.reset();
       if (holdRef.current) {
         holdRef.current.active = false;
         holdRef.current.listening = false;
@@ -328,21 +321,30 @@ export default function HoldToRemember({
       setFinishing(false);
       setIsListening(false);
       setIsHolding(false);
+    } else if (centralMode === 'transcribing') {
+      transcribeAbortRef.current?.abort();
+      transcribeAbortRef.current = null;
+      clearTimeout(transcriptionTimeoutRef.current);
+      pendingTranscriptionRef.current = false;
+      recorder.reset();
+      committedRef.current = false;
+      finishingRef.current = false;
+      setFinishing(false);
     } else if (centralMode === 'typing') {
       committedRef.current = false;
       setEntry('');
       onTypedTranscriptChange('');
-      transcription.reset();
     } else {
       return;
     }
     setMicUnavailable(false);
     setMicErrorMessage(null);
+    setTranscriptionErrorMessage(null);
     setCentralMode('hold');
-  }, [centralMode, recorder, transcription, holdRef, onTypedTranscriptChange, setCentralMode, setMicUnavailable]);
+  }, [centralMode, recorder, holdRef, onTypedTranscriptChange, setCentralMode, setMicUnavailable]);
 
   useEffect(() => {
-    if (centralMode !== 'recording' && centralMode !== 'typing') return;
+    if (centralMode !== 'recording' && centralMode !== 'transcribing' && centralMode !== 'typing') return;
     const onKeyDown = (e: globalThis.KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -357,11 +359,21 @@ export default function HoldToRemember({
     if (finishingRef.current) return;
     finishingRef.current = true;
     setFinishing(true);
-    capturedTranscriptRef.current = transcription.fullTranscript || null;
-    pendingVoiceCaptureRef.current = true;
+    pendingTranscriptionRef.current = true;
     recorder.finish();
-    transcription.stop();
+    // Set immediately, synchronously — not gated behind the audioLevel
+    // decay below. Real transcription (a network round trip) can in
+    // principle resolve faster than that decay's own rAF loop completes;
+    // if the mode switch waited for the decay's *last* frame to fire
+    // setCentralMode('transcribing'), it could race the transcription
+    // effect's later setCentralMode('typing') and land AFTER it — wrongly
+    // reverting the UI back to a stale "transcribing" state once the real
+    // work was already done. There is exactly one writer of this
+    // transition now, so no ordering to get wrong.
+    setCentralMode('transcribing');
 
+    // Purely the ambient audioLevel/orb settling — no longer decides
+    // anything about which panel is showing.
     const startLevel = holdRef.current?.audioLevel ?? 0;
     const t0 = performance.now();
     function decay(now: number) {
@@ -369,32 +381,62 @@ export default function HoldToRemember({
       if (holdRef.current) holdRef.current.audioLevel = startLevel * (1 - t);
       if (t < 1) {
         requestAnimationFrame(decay);
-      } else {
-        if (holdRef.current) {
-          holdRef.current.listening = false;
-          holdRef.current.active = false;
-        }
-        setCentralMode('settled');
+      } else if (holdRef.current) {
+        holdRef.current.listening = false;
+        holdRef.current.active = false;
       }
     }
     requestAnimationFrame(decay);
-  }, [recorder, transcription, holdRef, setCentralMode]);
+  }, [recorder, holdRef, setCentralMode]);
 
   // The real audio blob shows up asynchronously via MediaRecorder's onstop,
-  // after handleFinishDream already returns — hand off the voice DreamInput
-  // only once it's genuinely ready, never before.
+  // after handleFinishDream already returns. Once it exists, send it to
+  // the OpenAI-backed /api/dream-transcription route and write whatever
+  // comes back into `entry` — the exact same state TYPE mode's own
+  // textarea/submit uses — so review/edit/submit is one unified path
+  // regardless of how the words got there.
   useEffect(() => {
-    if (!pendingVoiceCaptureRef.current || recorder.audioBlob === null) return;
-    pendingVoiceCaptureRef.current = false;
-    onDreamCapture?.(
-      createVoiceDreamInput({
-        transcript: capturedTranscriptRef.current,
-        audioBlob: recorder.audioBlob,
-        language: null,
-        transcriptionSupported: transcription.supported,
-      }),
-    );
-  }, [recorder.audioBlob, onDreamCapture, transcription.supported]);
+    if (!pendingTranscriptionRef.current || recorder.audioBlob === null) return;
+    pendingTranscriptionRef.current = false;
+    const blob = recorder.audioBlob;
+
+    if (blob.size === 0) {
+      setTranscriptionErrorMessage(TRANSCRIPTION_FAILED_MESSAGE);
+      setCentralMode('typing');
+      return;
+    }
+
+    const controller = new AbortController();
+    transcribeAbortRef.current = controller;
+    transcriptionTimeoutRef.current = setTimeout(() => controller.abort(), TRANSCRIPTION_TIMEOUT_MS);
+
+    transcribeDreamAudio(blob, getAppLanguage(), controller.signal).then((result) => {
+      clearTimeout(transcriptionTimeoutRef.current);
+      // A deliberate Close (or a fresh recording started since) already
+      // cleared the ref — this response is stale, do nothing with it.
+      if (transcribeAbortRef.current !== controller) return;
+      transcribeAbortRef.current = null;
+
+      if (result.status === 'ok') {
+        setEntry(result.transcript);
+        onTypedTranscriptChange(result.transcript);
+        setTranscriptionErrorMessage(null);
+      } else {
+        setTranscriptionErrorMessage(TRANSCRIPTION_FAILED_MESSAGE);
+      }
+      setCentralMode('typing');
+    }, () => {
+      // transcribeDreamAudio() always resolves (it catches its own
+      // network/parsing errors) rather than rejecting — this only guards
+      // against a genuinely unexpected exception, so the dreamer still
+      // reaches a real, usable state instead of being stranded on
+      // TRANSCRIBING… forever.
+      if (transcribeAbortRef.current !== controller) return;
+      transcribeAbortRef.current = null;
+      setTranscriptionErrorMessage(TRANSCRIPTION_FAILED_MESSAGE);
+      setCentralMode('typing');
+    });
+  }, [recorder.audioBlob, onTypedTranscriptChange, setCentralMode]);
 
   const isHoldFaded = centralMode !== 'hold';
   const requestingMic = recorder.recordingState === 'requesting-permission';
@@ -480,19 +522,6 @@ export default function HoldToRemember({
         <p className="central-recording-heading">I&rsquo;M LISTENING.</p>
         <p className="central-recording-subheading">TELL ME EVERYTHING YOU REMEMBER.</p>
         <div ref={orbRef} className="central-recording-orb" aria-hidden="true" />
-        {transcription.fullTranscript && (
-          <p className="central-transcript" dir="auto">
-            {transcription.fullTranscript}
-          </p>
-        )}
-        {!transcription.supported && centralMode === 'recording' && (
-          <p className="central-mic-note">LIVE TRANSCRIPT UNAVAILABLE IN THIS BROWSER</p>
-        )}
-        {transcription.supported && centralMode === 'recording' && transcription.error && (
-          <p className="central-mic-note" role="status">
-            I couldn&rsquo;t hear that. Try again, or close and type your dream instead.
-          </p>
-        )}
         <button
           type="button"
           className="central-finish"
@@ -502,6 +531,24 @@ export default function HoldToRemember({
         >
           FINISH DREAM
         </button>
+      </div>
+
+      <div
+        className={`central-transcribing${centralMode === 'transcribing' ? ' is-active' : ''}`}
+        aria-hidden={centralMode !== 'transcribing'}
+      >
+        <button
+          type="button"
+          className="htr-close"
+          data-cursor-hover
+          tabIndex={centralMode === 'transcribing' ? 0 : -1}
+          onClick={handleClose}
+          aria-label="Cancel transcription"
+        >
+          ×
+        </button>
+        <p className="central-recording-heading">TRANSCRIBING…</p>
+        <div className="central-transcribing-orb" aria-hidden="true" />
       </div>
 
       <div
@@ -523,6 +570,11 @@ export default function HoldToRemember({
             {micErrorMessage ?? 'The microphone is unavailable right now.'}
             <br />
             Type what you remember instead.
+          </p>
+        )}
+        {!micUnavailable && transcriptionErrorMessage && (
+          <p className="central-mic-note" role="status">
+            {transcriptionErrorMessage}
           </p>
         )}
         <p className="central-typing-heading">TELL ME WHAT HAPPENED.</p>

@@ -5,9 +5,14 @@ import { handleDreamImage } from './routes/dreamImage.js';
 import { handleDreamReflection } from './routes/dreamReflection.js';
 import { handleDreamElementLabels } from './routes/dreamElementLabels.js';
 import { handleDreamTranslation } from './routes/dreamTranslation.js';
+import { handleDreamTranscription } from './routes/dreamTranscription.js';
 
 const app = express();
-app.use(express.json({ limit: '2mb' }));
+// Raised from the original 2mb to comfortably fit a base64-encoded audio
+// recording (see dreamTranscription.ts's own MAX_AUDIO_BASE64_CHARS for
+// the real, tighter limit enforced on that route specifically) — every
+// other route's payloads are tiny JSON and are unaffected by a larger cap.
+app.use(express.json({ limit: '10mb' }));
 
 app.post('/api/dream-analysis', async (req, res) => {
   const result = await handleDreamAnalysis(req.body);
@@ -31,6 +36,11 @@ app.post('/api/dream-element-labels', async (req, res) => {
 
 app.post('/api/dream-translation', async (req, res) => {
   const result = await handleDreamTranslation(req.body);
+  res.status(result.status).json(result.body);
+});
+
+app.post('/api/dream-transcription', async (req, res) => {
+  const result = await handleDreamTranscription(req.body);
   res.status(result.status).json(result.body);
 });
 

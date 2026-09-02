@@ -98,7 +98,9 @@
   .hero-ui-stack:has(.hold-to-remember.is-mode-typing) .memory-title,
   .hero-ui-stack:has(.hold-to-remember.is-mode-typing) .dream-prompt,
   .hero-ui-stack:has(.hold-to-remember.is-mode-recording) .memory-title,
-  .hero-ui-stack:has(.hold-to-remember.is-mode-recording) .dream-prompt {
+  .hero-ui-stack:has(.hold-to-remember.is-mode-recording) .dream-prompt,
+  .hero-ui-stack:has(.hold-to-remember.is-mode-transcribing) .memory-title,
+  .hero-ui-stack:has(.hold-to-remember.is-mode-transcribing) .dream-prompt {
     display: none;
   }
 }
