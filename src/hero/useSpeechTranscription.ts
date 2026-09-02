@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getAppLanguage } from './appLanguage';
+import { logDiag } from './speechDiag';
 
 /**
  * Minimal local typing for the Web Speech API — it isn't reliably present
@@ -25,6 +26,7 @@ interface SpeechRecognitionEventLike extends Event {
 }
 interface SpeechRecognitionErrorEventLike extends Event {
   error: string;
+  message?: string;
 }
 interface SpeechRecognitionLike extends EventTarget {
   lang: string;
@@ -37,6 +39,18 @@ interface SpeechRecognitionLike extends EventTarget {
   onresult: ((event: SpeechRecognitionEventLike) => void) | null;
   onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
   onend: (() => void) | null;
+  // Diagnostic-only lifecycle hooks (not used for app logic) — the Web
+  // Speech API's fuller event set, useful for pinpointing exactly which
+  // stage a real device reaches: did audio capture even start, did the
+  // browser detect sound, did it detect actual speech, before any
+  // result/error/end ever fires.
+  onstart: (() => void) | null;
+  onaudiostart: (() => void) | null;
+  onsoundstart: (() => void) | null;
+  onspeechstart: (() => void) | null;
+  onspeechend: (() => void) | null;
+  onsoundend: (() => void) | null;
+  onaudioend: (() => void) | null;
 }
 type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
 
@@ -104,6 +118,7 @@ export function useSpeechTranscription(): SpeechTranscriptionApi {
   const attachAndStart = useCallback(() => {
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
+      logDiag('speech.unsupported', { hadCtor: false });
       setError('unsupported');
       return;
     }
@@ -113,6 +128,29 @@ export function useSpeechTranscription(): SpeechTranscriptionApi {
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
+    logDiag('speech.instance-created', { lang: recognition.lang, continuous: true, interimResults: true });
+
+    recognition.onstart = () => {
+      logDiag('speech.onstart');
+    };
+    recognition.onaudiostart = () => {
+      logDiag('speech.onaudiostart');
+    };
+    recognition.onsoundstart = () => {
+      logDiag('speech.onsoundstart');
+    };
+    recognition.onspeechstart = () => {
+      logDiag('speech.onspeechstart');
+    };
+    recognition.onspeechend = () => {
+      logDiag('speech.onspeechend');
+    };
+    recognition.onsoundend = () => {
+      logDiag('speech.onsoundend');
+    };
+    recognition.onaudioend = () => {
+      logDiag('speech.onaudioend');
+    };
 
     recognition.onresult = (event) => {
       hasResultRef.current = true;
@@ -121,15 +159,18 @@ export function useSpeechTranscription(): SpeechTranscriptionApi {
 
       let interim = '';
       let finalChunk = '';
+      const seen: Array<{ i: number; transcript: string; isFinal: boolean; confidence: number }> = [];
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
         const text = result[0]?.transcript ?? '';
+        seen.push({ i, transcript: text, isFinal: result.isFinal, confidence: result[0]?.confidence ?? -1 });
         if (result.isFinal) {
           finalChunk += text;
         } else {
           interim += text;
         }
       }
+      logDiag('speech.onresult', { resultIndex: event.resultIndex, resultsLength: event.results.length, results: seen });
       if (finalChunk) {
         setFinalTranscript((prev) => (prev ? `${prev} ${finalChunk.trim()}` : finalChunk.trim()));
       }
@@ -144,6 +185,7 @@ export function useSpeechTranscription(): SpeechTranscriptionApi {
         reason === 'service-not-allowed' ||
         reason === 'language-not-supported' ||
         reason === 'bad-grammar';
+      logDiag('speech.onerror', { error: reason, message: event.message ?? null, fatal });
       if (fatal) {
         shouldListenRef.current = false;
         setIsListening(false);
@@ -161,6 +203,7 @@ export function useSpeechTranscription(): SpeechTranscriptionApi {
     };
 
     recognition.onend = () => {
+      logDiag('speech.onend', { willRestart: shouldListenRef.current, hadAnyResult: hasResultRef.current });
       if (shouldListenRef.current) {
         // Chrome in particular ends the session after a pause; keep listening
         // for the rest of the dream by starting a fresh instance.
@@ -172,15 +215,19 @@ export function useSpeechTranscription(): SpeechTranscriptionApi {
 
     recognitionRef.current = recognition;
     try {
+      logDiag('speech.calling-start', { lang: recognition.lang });
       recognition.start();
+      logDiag('speech.start-call-returned');
       setIsListening(true);
       clearTimeout(watchdogRef.current);
       watchdogRef.current = setTimeout(() => {
         if (shouldListenRef.current && !hasResultRef.current) {
+          logDiag('speech.silence-watchdog-fired', { ms: SILENCE_WATCHDOG_MS });
           setError('no-audio-detected');
         }
       }, SILENCE_WATCHDOG_MS);
     } catch (err) {
+      logDiag('speech.start-threw', { name: err instanceof Error ? err.name : String(err), message: err instanceof Error ? err.message : null });
       shouldListenRef.current = false;
       setIsListening(false);
       setError(err instanceof Error ? err.name : 'start-failed');
@@ -189,6 +236,11 @@ export function useSpeechTranscription(): SpeechTranscriptionApi {
 
   const start = useCallback(
     (lang?: string) => {
+      logDiag('speech.start() called', {
+        supported: supportedRef.current,
+        appLanguage: getAppLanguage(),
+        resolvedLang: lang || detectDefaultLang(),
+      });
       if (!supportedRef.current) {
         setError('unsupported');
         return;
@@ -213,6 +265,23 @@ export function useSpeechTranscription(): SpeechTranscriptionApi {
     setInterimTranscript('');
     setError(null);
     hasResultRef.current = false;
+  }, []);
+
+  // One-time report of capability detection itself — desktop's report of
+  // "no sound, no error, no transcript at all" could mean this came back
+  // false (no SpeechRecognition/webkitSpeechRecognition constructor on
+  // that browser) rather than a failure further down the pipeline.
+  useEffect(() => {
+    const w = window as typeof window & {
+      SpeechRecognition?: unknown;
+      webkitSpeechRecognition?: unknown;
+    };
+    logDiag('speech.capability-check', {
+      hasSpeechRecognition: typeof w.SpeechRecognition !== 'undefined',
+      hasWebkitSpeechRecognition: typeof w.webkitSpeechRecognition !== 'undefined',
+      supported: supportedRef.current,
+      userAgent: navigator.userAgent,
+    });
   }, []);
 
   // Recognition (and its watchdog timer) must not keep running past the

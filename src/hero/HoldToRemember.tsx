@@ -13,6 +13,7 @@ import type { CentralMode } from './centralMode';
 import type { useDreamRecorder } from './useDreamRecorder';
 import type { useSpeechTranscription } from './useSpeechTranscription';
 import { createTextDreamInput, createVoiceDreamInput, type DreamInput } from './dreamInput';
+import { logDiag, DIAG_SPEECH_ONLY } from './speechDiag';
 import './HoldToRemember.css';
 
 type DreamRecorderApi = ReturnType<typeof useDreamRecorder>;
@@ -125,8 +126,24 @@ export default function HoldToRemember({
   }, [holdRef]);
 
   const commitToListening = useCallback(async () => {
+    logDiag('hold.committed', { diagSpeechOnly: DIAG_SPEECH_ONLY });
     setMicUnavailable(false);
     setMicErrorMessage(null);
+
+    // DIAGNOSTIC ONLY (?diag=speechonly): isolates SpeechRecognition from
+    // useDreamRecorder/MediaRecorder entirely — the mic is never opened by
+    // the recorder at all — to prove or disprove whether the two are
+    // contending for the microphone/audio session on a real device. Off by
+    // default; the normal path below (both recorder AND transcription) is
+    // completely unchanged when this flag is absent.
+    if (DIAG_SPEECH_ONLY) {
+      logDiag('diag.speechonly-mode-active — recorder.start() skipped entirely');
+      if (holdRef.current) holdRef.current.active = false;
+      transcription.reset();
+      transcription.start();
+      setCentralMode('recording');
+      return;
+    }
 
     // Races the real permission/recording request against a bounded
     // timeout — see MIC_REQUEST_TIMEOUT_MS above for why this exists.
@@ -146,9 +163,11 @@ export default function HoldToRemember({
     const result = await Promise.race([startPromise, timedOutPromise]);
     settled = true;
     clearTimeout(micTimeoutRef.current);
+    logDiag('hold.recorder-race-settled', { result });
 
     if (result === true) {
       if (holdRef.current) holdRef.current.active = false;
+      logDiag('hold.calling-transcription.start()');
       transcription.reset();
       transcription.start();
       setCentralMode('recording');

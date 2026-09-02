@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState, type RefObject } from 'react';
+import { logDiag } from './speechDiag';
 
 export type RecordingState = 'idle' | 'requesting-permission' | 'recording' | 'paused' | 'finished' | 'error';
 
@@ -108,18 +109,26 @@ export function useDreamRecorder(): DreamRecorderApi {
   }, []);
 
   const start = useCallback(async (): Promise<boolean> => {
+    logDiag('recorder.start() called');
     setErrorBoth(null);
     setRecordingState('requesting-permission');
 
     const AudioCtxCtor = getAudioContextCtor();
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined' || !AudioCtxCtor) {
+      logDiag('recorder.unsupported', {
+        hasGetUserMedia: !!navigator.mediaDevices?.getUserMedia,
+        hasMediaRecorder: typeof MediaRecorder !== 'undefined',
+        hasAudioContext: !!AudioCtxCtor,
+      });
       setErrorBoth('unsupported');
       setRecordingState('error');
       return false;
     }
 
     try {
+      logDiag('recorder.calling-getUserMedia');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      logDiag('recorder.getUserMedia-resolved', { audioTracks: stream.getAudioTracks().length });
       streamRef.current = stream;
 
       if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
@@ -151,13 +160,16 @@ export function useDreamRecorder(): DreamRecorderApi {
         setAudioBlob(new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' }));
       };
       recorderRef.current = recorder;
+      logDiag('recorder.MediaRecorder.start()', { mimeType: mimeType || '(default)' });
       recorder.start();
 
       startTimeRef.current = performance.now();
       runAnalyserLoop();
       setRecordingState('recording');
+      logDiag('recorder.granted');
       return true;
     } catch (err) {
+      logDiag('recorder.start-threw', { name: err instanceof Error ? err.name : String(err), message: err instanceof Error ? err.message : null });
       teardown();
       setErrorBoth(err instanceof Error ? err.name : 'unknown');
       setRecordingState('error');

@@ -18,6 +18,8 @@ import { useUnifiedDreamSequence } from './useUnifiedDreamSequence';
 import type { DreamInput } from './dreamInput';
 import { analyzeDream, type AnalysisResult } from './dreamAnalysis';
 import DreamAnalysisDevView from './DreamAnalysisDevView';
+import { DIAG_LOG_VISIBLE } from './speechDiag';
+import SpeechDiagPanel from './SpeechDiagPanel';
 import DreamReconstruction, { type ReconstructionPhase, type InsideStep } from './DreamReconstruction';
 import { buildReconstructionBrief, type ReconstructionBrief } from './reconstructionBrief';
 import { pickMemoryFragments } from './memoryFragments';
@@ -670,6 +672,12 @@ export default function HeroDream({ onGoToArchive }: HeroDreamProps) {
           }}
         />
       )}
+
+      {/* Diagnostic aid only — never part of the normal user journey.
+          Visit with ?diaglog=1 to read the HOLD → mic → speech-recognition
+          event log straight off the screen (no attached devtools needed —
+          useful mid real-device test, on a phone). */}
+      {DIAG_LOG_VISIBLE && <SpeechDiagPanel />}
     </div>
   );
 }
