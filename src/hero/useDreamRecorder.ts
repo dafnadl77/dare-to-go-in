@@ -10,6 +10,16 @@ export interface AudioLevelState {
 interface DreamRecorderApi {
   recordingState: RecordingState;
   error: string | null;
+  /** The same value as `error`, but readable synchronously right after
+      `start()` resolves — a caller awaiting `start()` inside its own
+      closure (see HoldToRemember.tsx's commitToListening) captured
+      whatever `recorder` object existed BEFORE `start()` ran; reading
+      `error` (React state) off that same stale closure afterwards still
+      reflects its old value (null), since the state update that actually
+      sets it happens on a later render this closure never re-runs to
+      pick up. A ref mutates in place, so `.current` is always the true
+      latest value regardless of which render's closure reads it. */
+  errorRef: RefObject<string | null>;
   /** Updated every frame while recording; read directly by rAF loops to avoid re-renders. */
   audioLevelRef: RefObject<AudioLevelState>;
   durationMs: number;
@@ -35,6 +45,11 @@ function getAudioContextCtor(): typeof AudioContext | null {
 export function useDreamRecorder(): DreamRecorderApi {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [error, setError] = useState<string | null>(null);
+  const errorRef = useRef<string | null>(null);
+  const setErrorBoth = useCallback((value: string | null) => {
+    errorRef.current = value;
+    setError(value);
+  }, []);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [durationMs, setDurationMs] = useState(0);
 
@@ -93,12 +108,12 @@ export function useDreamRecorder(): DreamRecorderApi {
   }, []);
 
   const start = useCallback(async (): Promise<boolean> => {
-    setError(null);
+    setErrorBoth(null);
     setRecordingState('requesting-permission');
 
     const AudioCtxCtor = getAudioContextCtor();
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined' || !AudioCtxCtor) {
-      setError('unsupported');
+      setErrorBoth('unsupported');
       setRecordingState('error');
       return false;
     }
@@ -144,11 +159,11 @@ export function useDreamRecorder(): DreamRecorderApi {
       return true;
     } catch (err) {
       teardown();
-      setError(err instanceof Error ? err.name : 'unknown');
+      setErrorBoth(err instanceof Error ? err.name : 'unknown');
       setRecordingState('error');
       return false;
     }
-  }, [runAnalyserLoop, teardown]);
+  }, [runAnalyserLoop, teardown, setErrorBoth]);
 
   const finish = useCallback(() => {
     if (recorderRef.current && recorderRef.current.state !== 'inactive') {
@@ -165,9 +180,9 @@ export function useDreamRecorder(): DreamRecorderApi {
     audioLevelRef.current.level = 0;
     setAudioBlob(null);
     setDurationMs(0);
-    setError(null);
+    setErrorBoth(null);
     setRecordingState('idle');
-  }, [teardown]);
+  }, [teardown, setErrorBoth]);
 
-  return { recordingState, error, audioLevelRef, durationMs, audioBlob, primeAudio, start, finish, reset };
+  return { recordingState, error, errorRef, audioLevelRef, durationMs, audioBlob, primeAudio, start, finish, reset };
 }

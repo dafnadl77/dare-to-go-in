@@ -40,6 +40,42 @@ const FILL_MS = 800;
 const RADIUS = 42;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 const FINISH_SETTLE_MS = 1100;
+// Once the hold completes, the mic permission request (getUserMedia) can in
+// principle sit unresolved indefinitely on a real device — a slow/obscured
+// permission prompt, a browser that never surfaces one, etc. Before this,
+// nothing bounded that wait: committedRef.current being true already blocks
+// releasing the hold from cancelling anything (see endHold), and the
+// TYPE/RECORD panels (with their own Close button) don't mount until the
+// request actually settles — so a real hang left the dreamer stuck on
+// "LISTENING…" with no visible way out. This timeout guarantees the UI
+// always reaches a real state (recording, or a clear TYPE fallback) within
+// a bounded wait, without changing anything about the 800ms hold itself.
+const MIC_REQUEST_TIMEOUT_MS = 20000;
+
+/** A specific, human-readable reason the mic didn't work — read from
+    useDreamRecorder's own `error` (the real MediaDevices/MediaRecorder
+    error name) rather than one generic "unavailable" message for every
+    case, per the explicit ask to distinguish denied vs missing vs busy vs
+    a request that never resolved at all. */
+function describeMicUnavailable(errorName: string | null, timedOut: boolean): string {
+  if (timedOut) return 'The microphone request took too long to respond.';
+  switch (errorName) {
+    case 'NotAllowedError':
+    case 'PermissionDeniedError':
+    case 'SecurityError':
+      return 'Microphone access was not allowed.';
+    case 'NotFoundError':
+    case 'DevicesNotFoundError':
+      return 'No microphone was found on this device.';
+    case 'NotReadableError':
+    case 'TrackStartError':
+      return 'Your microphone is being used by another app.';
+    case 'unsupported':
+      return "Voice recording isn't supported in this browser.";
+    default:
+      return 'The microphone is unavailable right now.';
+  }
+}
 
 export default function HoldToRemember({
   revealed,
@@ -62,9 +98,14 @@ export default function HoldToRemember({
   const [isListening, setIsListening] = useState(false);
   const [entry, setEntry] = useState('');
   const [finishing, setFinishing] = useState(false);
+  // The specific reason the mic fell back to TYPE (denied/missing/busy/
+  // timed out/unsupported) — purely a local display concern, so this
+  // doesn't need to be lifted to HeroDream.tsx alongside micUnavailable.
+  const [micErrorMessage, setMicErrorMessage] = useState<string | null>(null);
   const rafRef = useRef(0);
   const startRef = useRef(0);
   const listenTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const micTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const committedRef = useRef(false);
   const finishingRef = useRef(false);
   // The real audio blob arrives asynchronously (MediaRecorder's onstop
@@ -85,19 +126,41 @@ export default function HoldToRemember({
 
   const commitToListening = useCallback(async () => {
     setMicUnavailable(false);
-    const granted = await recorder.start();
-    if (granted) {
+    setMicErrorMessage(null);
+
+    // Races the real permission/recording request against a bounded
+    // timeout — see MIC_REQUEST_TIMEOUT_MS above for why this exists.
+    // `settled` is read inside startPromise's own .then, after the race
+    // has already resolved one way or the other, to decide whether a
+    // request that finishes granted AFTER the timeout already gave up
+    // should still be torn down (never leave a live mic stream running
+    // unseen in the background once the UI has already moved on).
+    let settled = false;
+    const startPromise = recorder.start().then((granted) => {
+      if (settled && granted) recorder.reset();
+      return granted;
+    });
+    const timedOutPromise = new Promise<'timeout'>((resolve) => {
+      micTimeoutRef.current = setTimeout(() => resolve('timeout'), MIC_REQUEST_TIMEOUT_MS);
+    });
+    const result = await Promise.race([startPromise, timedOutPromise]);
+    settled = true;
+    clearTimeout(micTimeoutRef.current);
+
+    if (result === true) {
       if (holdRef.current) holdRef.current.active = false;
       transcription.reset();
       transcription.start();
       setCentralMode('recording');
     } else {
+      const timedOut = result === 'timeout';
       if (holdRef.current) {
         holdRef.current.active = false;
         holdRef.current.progress = 0;
       }
       setIsListening(false);
       setMicUnavailable(true);
+      setMicErrorMessage(describeMicUnavailable(recorder.errorRef.current, timedOut));
       setCentralMode('typing');
     }
   }, [recorder, transcription, holdRef, setCentralMode, setMicUnavailable]);
@@ -162,6 +225,7 @@ export default function HoldToRemember({
     return () => {
       cancelAnimationFrame(rafRef.current);
       clearTimeout(listenTimerRef.current);
+      clearTimeout(micTimeoutRef.current);
     };
   }, []);
 
@@ -211,6 +275,7 @@ export default function HoldToRemember({
   const handleBack = () => {
     committedRef.current = false;
     setMicUnavailable(false);
+    setMicErrorMessage(null);
     setCentralMode('hold');
     setEntry('');
     onTypedTranscriptChange('');
@@ -253,6 +318,7 @@ export default function HoldToRemember({
       return;
     }
     setMicUnavailable(false);
+    setMicErrorMessage(null);
     setCentralMode('hold');
   }, [centralMode, recorder, transcription, holdRef, onTypedTranscriptChange, setCentralMode, setMicUnavailable]);
 
@@ -430,9 +496,9 @@ export default function HoldToRemember({
         </button>
         {micUnavailable && (
           <p className="central-mic-note">
-            MICROPHONE UNAVAILABLE
+            {micErrorMessage ?? 'The microphone is unavailable right now.'}
             <br />
-            TYPE WHAT YOU REMEMBER INSTEAD
+            Type what you remember instead.
           </p>
         )}
         <p className="central-typing-heading">TELL ME WHAT HAPPENED.</p>
