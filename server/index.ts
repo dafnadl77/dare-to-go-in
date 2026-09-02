@@ -4,6 +4,7 @@ import { handleDreamAnalysis } from './routes/dreamAnalysis.js';
 import { handleDreamImage } from './routes/dreamImage.js';
 import { handleDreamReflection } from './routes/dreamReflection.js';
 import { handleDreamElementLabels } from './routes/dreamElementLabels.js';
+import { handleDreamTranslation } from './routes/dreamTranslation.js';
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
@@ -25,6 +26,11 @@ app.post('/api/dream-reflection', async (req, res) => {
 
 app.post('/api/dream-element-labels', async (req, res) => {
   const result = await handleDreamElementLabels(req.body);
+  res.status(result.status).json(result.body);
+});
+
+app.post('/api/dream-translation', async (req, res) => {
+  const result = await handleDreamTranslation(req.body);
   res.status(result.status).json(result.body);
 });
 

@@ -1,29 +1,26 @@
 /* =====================================================================
-   Dream Detail — opened from a MY DREAM ARCHIVE timeline row. Same cloud
-   world, same restrained typography, no card/modal chrome. Redesigned as
-   an editorial narrative: a centered hero, a controlled reading column,
-   the main insight widening slightly, the closing question centered
-   again — see the per-block widths below, not a single repeated
-   container. ===================================================================== */
+   Dream Detail — opened from a MY DREAM ARCHIVE timeline row. One single
+   centered editorial column: image/date/title, then THE DREAM / WHAT
+   STOOD OUT / YOUR ASSOCIATION / A POSSIBLE THREAD / A QUESTION WORTH
+   SITTING WITH, all sharing the same width and center axis — never a
+   card, never a mix of left- and center-aligned sections. ===================================================================== */
 .dream-detail {
   position: fixed;
   inset: 0;
   z-index: 45;
   overflow-y: auto;
   overflow-x: hidden;
-  /* Deliberately NO opacity/filter/animation here — see the long comment
-     in DreamDetail.tsx on .dd-scene for why. This element is the ancestor
-     of the fixed cloud background AND the fixed back button; either one
-     needs to escape all the way to the true viewport regardless of how
-     far this element has scrolled. */
+  /* Deliberately NO opacity/filter/animation here — see the comment on
+     .dd-scene below for why. This element is the ancestor of the fixed
+     cloud background AND the fixed back button; either needs to escape
+     all the way to the true viewport regardless of scroll depth. */
 }
 
-/* No custom cursor is used on this screen (per spec) — but the base
-   stylesheet hides the real cursor everywhere (body { cursor: none }) to
-   make room for the custom one that HeroDream mounts elsewhere. This
-   screen never mounts that replacement, so without this override the
-   cursor is genuinely invisible here. Scoped to .dream-detail only —
-   the base rule stays untouched for every screen that still needs it. */
+/* No custom cursor is used on this screen — but the base stylesheet
+   hides the real cursor everywhere (body { cursor: none }) to make room
+   for the one HeroDream mounts elsewhere. This screen never mounts that
+   replacement, so without this override the cursor is genuinely
+   invisible here. Scoped to .dream-detail only. */
 .dream-detail,
 .dream-detail * {
   cursor: default;
@@ -42,26 +39,22 @@
   filter: brightness(0.8) saturate(0.92) contrast(1.02);
 }
 
-/* A gentle darkening gradient down the page — the environment quietly
-   deepens as the dreamer reads further, but the cloud video itself (see
-   above) always covers the full fixed viewport underneath it, at every
-   scroll depth, so this never bottoms out into a flat black rectangle. */
+/* A gentle darkening gradient down the page — the cloud video itself
+   (see above) always covers the full fixed viewport underneath it at
+   every scroll depth, so this never bottoms out into a flat black
+   rectangle no matter how long the document is. */
 .dd-night-tint {
   position: fixed;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(
-    to bottom,
-    rgba(6, 10, 20, 0.16) 0%,
-    rgba(5, 9, 17, 0.3) 45%,
-    rgba(4, 7, 14, 0.46) 100%
-  );
+  background: linear-gradient(to bottom, rgba(6, 10, 20, 0.16) 0%, rgba(5, 9, 17, 0.3) 45%, rgba(4, 7, 14, 0.46) 100%);
   pointer-events: none;
 }
 
-/* ---- BACK TO MY DREAMS — bare text, no rectangle/pill, stays put while
-   scrolling (fixed, sibling of the scrolling content, so it's never
-   affected by the containing-block issue explained above). ---- */
+/* ---- BACK TO MY DREAM ARCHIVE — larger and clearer than a caption,
+   still bare text (no pill/rectangle), pinned so it survives scrolling
+   (fixed, sibling of the scrolling content, never affected by the
+   containing-block issue explained on .dd-scene below). ---- */
 .dd-back {
   position: fixed;
   top: max(24px, env(safe-area-inset-top));
@@ -69,25 +62,26 @@
   z-index: 20;
   display: inline-flex;
   align-items: center;
-  gap: 0.5em;
+  gap: 0.55em;
   margin: 0;
-  padding: 0.4em 0.3em;
+  padding: 0.5em 0.4em;
   background: none;
   border: none;
   outline: none;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.66rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--dream-white);
-  opacity: 0.62;
-  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+  opacity: 0.78;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.65);
   transition: opacity 0.4s var(--ease-soft);
 }
 
 .dd-back-arrow {
   display: inline-block;
+  font-size: 1.05em;
   transition: transform 0.4s var(--ease-soft);
 }
 
@@ -98,22 +92,29 @@
 
 .dd-back:hover .dd-back-arrow,
 .dd-back:focus-visible .dd-back-arrow {
-  transform: translateX(-3px);
+  transform: translateX(-4px);
 }
 
 /* ---- The scene — everything below the fixed chrome. Carries the
-   entrance animation (see the comment in DreamDetail.tsx). ---- */
+   entrance animation. Ends on `filter: none`, deliberately never
+   `blur(0)` — but even ending on the literal keyword `none`, a CSS
+   animation interpolating a filter FROM a real blur value resolves, at
+   rest, to the interpolated equivalent (blur(0px)), not the keyword
+   itself — confirmed live. Per spec that still creates a new containing
+   block for position:fixed descendants, which is exactly what this
+   wrapper existing (instead of animating .dream-detail directly) avoids:
+   nothing fixed is ever a descendant of it. ---- */
 .dd-scene {
   position: relative;
   z-index: 2;
   opacity: 0;
-  animation: dd-scene-in 1.2s var(--ease-memory) forwards;
+  animation: dd-scene-in 1s var(--ease-memory) forwards;
 }
 
 @keyframes dd-scene-in {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -121,32 +122,40 @@
   }
 }
 
-/* ---- HERO — centered: image, date, title, keywords. Larger and more
-   cinematic than the timeline's own rows; same edge-dissolve technique
-   (plain CSS mask-image radial gradient + a blurred glow behind), no
-   visible rectangle/border/card. ---- */
-.dd-hero {
+/* ---- ONE column. Every section below shares this exact width and
+   center axis — image, date, title, and every labeled block. ---- */
+.dd-column {
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 12vh 6vw 8vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 16vh 6vw 4vh;
+}
+
+.dd-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 .dd-image-wrap {
   position: relative;
   display: block;
-  width: min(100%, 760px);
+  width: 100%;
   aspect-ratio: 16 / 9;
-  margin-bottom: 2.2rem;
+  margin-bottom: 1.8rem;
 }
 
 .dd-image-glow {
   position: absolute;
-  inset: -24%;
+  inset: -22%;
   background-size: cover;
   background-position: center;
-  filter: blur(80px) saturate(1.15) brightness(0.5);
+  filter: blur(76px) saturate(1.15) brightness(0.5);
   opacity: 0.55;
   pointer-events: none;
 }
@@ -157,22 +166,24 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  mask-image: radial-gradient(ellipse 80% 76% at 50% 50%, #000 32%, transparent 92%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 76% at 50% 50%, #000 32%, transparent 92%);
-  filter: brightness(0.96) saturate(0.97);
+  /* Wide, soft radial mask — a cinematic frame that dissolves into the
+     surrounding night rather than a photo with a visible edge. */
+  mask-image: radial-gradient(ellipse 82% 78% at 50% 50%, #000 34%, transparent 92%);
+  -webkit-mask-image: radial-gradient(ellipse 82% 78% at 50% 50%, #000 34%, transparent 92%);
+  filter: brightness(0.97) saturate(0.98);
 }
 
 .dd-date {
   margin: 0;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.2em;
-  color: var(--dream-warm-neutral-dim);
+  color: var(--dream-warm-neutral);
 }
 
 .dd-title {
-  margin: 0.5rem 0 0.3rem;
+  margin: 0.5rem 0 0;
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 400;
   font-size: clamp(1.9rem, 4vw, 2.7rem);
@@ -180,199 +191,164 @@
   text-shadow: 0 0.05em 0.9em rgba(0, 0, 0, 0.6);
 }
 
-.dd-keywords {
-  margin: 0;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--dream-warm-neutral-dim);
-}
-
-/* ---- The narrative — generous vertical rhythm between blocks, each
-   block choosing its own width rather than one repeated container. ---- */
+/* ---- The narrative — one continuous document, not a series of
+   separated cards. Consistent spacing (48-72px), same width/alignment
+   throughout. ---- */
 .dd-narrative {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 4vh 6vw 16vh;
+  width: 100%;
+  margin-top: clamp(3rem, 7vw, 4.5rem);
 }
 
 .dd-block {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  align-items: center;
+  gap: 0.6rem;
   width: 100%;
-  max-width: 680px;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.9s var(--ease-memory), transform 0.9s var(--ease-memory);
-}
-
-.dd-block[data-revealed='true'] {
-  opacity: 1;
-  transform: translateY(0);
 }
 
 .dd-block + .dd-block {
-  margin-top: clamp(3.5rem, 8vw, 6rem);
-}
-
-.dd-block--dream {
-  text-align: left;
-}
-
-.dd-block--stood-out {
-  text-align: left;
-  max-width: 620px;
-  padding-top: 1.6rem;
-  border-top: 1px solid rgba(244, 240, 232, 0.14);
-}
-
-.dd-block--association {
-  align-items: center;
-  text-align: center;
-  max-width: 600px;
-}
-
-/* The main insight — widens slightly and centers, giving it more visual
-   weight than the blocks around it (per the requested rhythm: not every
-   section centered with identical spacing). */
-.dd-block--thread {
-  align-items: center;
-  text-align: center;
-  max-width: 760px;
-}
-
-.dd-block--question {
-  align-items: center;
-  text-align: center;
-  max-width: 640px;
+  margin-top: clamp(48px, 6vw, 72px);
 }
 
 .dd-eyebrow {
   margin: 0;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.24em;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--dream-warm-neutral-dim);
-  opacity: 0.8;
+  /* Warm muted gold, not the dim neutral used elsewhere — this is a
+     label that should read clearly, not recede. */
+  color: #c9a768;
 }
 
 .dd-body {
   margin: 0;
+  max-width: 100%;
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 400;
+  font-style: normal;
   line-height: 1.6;
-  color: var(--dream-warm-neutral);
-}
-
-/* THE DREAM — literary, intimate, readable at an editorial measure. */
-.dd-body--source {
-  font-size: clamp(1.05rem, 1.9vw, 1.2rem);
-  line-height: 1.7;
-  white-space: pre-wrap;
-}
-
-/* YOUR ASSOCIATION — larger italic serif, visually distinct from the
-   system's own interpretation. */
-.dd-body--personal {
-  font-style: italic;
-  font-size: clamp(1.15rem, 2.2vw, 1.4rem);
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  /* High-contrast warm ivory, not the dimmer --dream-warm-neutral this
+     screen used before — the brief calls this out explicitly. */
   color: var(--dream-white);
-  opacity: 0.92;
 }
 
-/* A POSSIBLE THREAD — the main insight, given the most visual weight. */
+.dd-body--stood-out {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: clamp(1rem, 1.8vw, 1.1rem);
+}
+
 .dd-body--thread {
-  font-style: italic;
-  font-size: clamp(1.3rem, 2.8vw, 1.7rem);
-  color: var(--dream-white);
-  line-height: 1.5;
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
 }
 
-/* A QUESTION WORTH SITTING WITH — the page's emotional ending. */
+/* Only the closing question is italic — every other interpretive line
+   stays upright serif, per spec. */
 .dd-body--question {
   font-style: italic;
-  font-size: clamp(1.25rem, 2.6vw, 1.55rem);
-  color: var(--dream-white);
-  line-height: 1.5;
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+}
+
+.dd-body--loading {
+  color: var(--dream-warm-neutral-dim);
+  font-style: italic;
+  opacity: 0.75;
 }
 
 .dd-disclaimer {
-  margin-top: clamp(4rem, 9vw, 6.5rem);
+  margin-top: clamp(3rem, 6vw, 4rem);
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 0.68rem;
   color: var(--dream-warm-neutral-dim);
-  opacity: 0.55;
-  text-align: center;
+  opacity: 0.6;
   max-width: 46ch;
 }
 
 .dd-mock-note {
-  padding: 4vh 6vw 16vh;
-  text-align: center;
+  margin-top: clamp(3rem, 7vw, 4.5rem);
   font-family: 'Fraunces', Georgia, serif;
   font-style: italic;
   font-size: 1rem;
   color: var(--dream-warm-neutral);
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
-/* ---- Optional progress marker — desktop only, very subtle, no labels
-   unless hovered. Omit entirely on any viewport narrow enough that it
-   would crowd the reading column (see the media query below). ---- */
-.dd-progress {
-  position: fixed;
-  top: 50%;
-  right: 28px;
-  transform: translateY(-50%);
-  z-index: 15;
+/* ---- End-of-document navigation — a clear beginning and end, per
+   spec. Two elegant text controls, never rectangular buttons; same
+   underline-reveal language as .auth-submit elsewhere in this app. ---- */
+.dd-end-nav {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 14px;
-  pointer-events: none;
+  justify-content: center;
+  gap: 1.4rem;
+  margin-top: clamp(4rem, 8vw, 6rem);
+  flex-wrap: wrap;
 }
 
-.dd-progress-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
+.dd-end-link {
+  position: relative;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0.4em 0.1em;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dream-white);
+  opacity: 0.85;
+  transition: opacity 0.4s var(--ease-soft);
+}
+
+.dd-end-link::after {
+  content: '';
+  position: absolute;
+  left: 0.1em;
+  right: 0.1em;
+  bottom: 0.28em;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--ease-memory);
+}
+
+.dd-end-link:hover,
+.dd-end-link:focus-visible {
+  opacity: 1;
+}
+
+.dd-end-link:hover::after,
+.dd-end-link:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.dd-end-divider {
+  width: 1px;
+  height: 0.9em;
   background: rgba(244, 240, 232, 0.3);
-  transition: background 0.6s var(--ease-soft), transform 0.6s var(--ease-soft);
-}
-
-.dd-progress-dot[data-active='true'] {
-  background: rgba(244, 240, 232, 0.9);
-  transform: scale(1.6);
-}
-
-@media (max-width: 1100px) {
-  .dd-progress {
-    display: none;
-  }
 }
 
 @media (max-width: 640px) {
-  .dd-hero {
-    padding: 14vh 7vw 3vh;
+  .dd-column {
+    padding: 14vh 7vw 8vh;
   }
 
-  .dd-narrative {
-    padding: 3vh 7vw 12vh;
+  .dd-end-nav {
+    flex-direction: column;
+    gap: 1rem;
   }
 
-  .dd-block--stood-out,
-  .dd-block--dream {
-    text-align: center;
-  }
-
-  .dd-block + .dd-block {
-    margin-top: clamp(2.75rem, 12vw, 3.5rem);
+  .dd-end-divider {
+    display: none;
   }
 }
 
@@ -380,9 +356,8 @@
   .dd-scene {
     animation-duration: 0.01s !important;
   }
-  .dd-block,
   .dd-back-arrow,
-  .dd-progress-dot {
+  .dd-end-link::after {
     transition-duration: 0.01s !important;
   }
 }

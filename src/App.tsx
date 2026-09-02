@@ -32,7 +32,7 @@ function App() {
   }
 
   if (view === 'detail' && openEntry) {
-    return <DreamDetail entry={openEntry} onBack={() => setView('archive')} />;
+    return <DreamDetail entry={openEntry} onBack={() => setView('archive')} onGoHome={() => setView('dream')} />;
   }
 
   if (view === 'archive') {
