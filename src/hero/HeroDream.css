@@ -51,6 +51,33 @@
   padding: 6vh 5vw;
 }
 
+/* The recording/typing/settled panels (see HoldToRemember.css) are
+   centered independently, as absolutely-positioned overlays over the
+   whole stack, so switching modes never shifts the title. At most
+   heights that centered panel sits comfortably below the title/prompt
+   above it, but on a short viewport (a real phone in landscape, or a
+   short browser window) there isn't room for both — the panel's own
+   center lands on top of the title, and text visibly overlaps
+   (confirmed live at 568x320). The title/prompt are pure decoration once
+   a mode is active (TYPE or RECORD), so they simply step aside rather
+   than fight the panel for the same space. */
+@media (max-height: 480px) {
+  /* display:none, not just opacity:0 — this flex column still reserves
+     the title/prompt's own height even while invisible, which pushes
+     .hold-to-remember (and the centered panel inside it — see the
+     max-height/overflow fallback in HoldToRemember.css) down from the
+     viewport's true vertical center, defeating that fix and leaving
+     DONE/BACK clipped below the viewport again (confirmed live at
+     568x320). Removing them from the flex flow entirely lets
+     .hold-to-remember reclaim the freed space and actually recenter. */
+  .hero-ui-stack:has(.hold-to-remember.is-mode-typing) .memory-title,
+  .hero-ui-stack:has(.hold-to-remember.is-mode-typing) .dream-prompt,
+  .hero-ui-stack:has(.hold-to-remember.is-mode-recording) .memory-title,
+  .hero-ui-stack:has(.hold-to-remember.is-mode-recording) .dream-prompt {
+    display: none;
+  }
+}
+
 /* Minimal, persistent way back once inside the immersive experience — a
    brand mark, never a navbar. Readable over both the original room and any
    generated dream image. */

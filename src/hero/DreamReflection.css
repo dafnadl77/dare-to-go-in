@@ -341,6 +341,29 @@
   transition: text-shadow 0.5s var(--ease-soft);
 }
 
+/* On mobile, the "always one line, never wraps" row above can genuinely
+   run out of room with several real dream elements (confirmed live at
+   360px: two whole choices clipped off-screen on either side, completely
+   untappable). The choices themselves are still bare floating words with
+   their own aura/particles regardless of row position, so wrapping to
+   several lines composes fine — this is the "may stack or wrap elegantly"
+   mobile allowance, not a desktop change. */
+@media (max-width: 640px) {
+  .da-choice-row {
+    flex-wrap: wrap;
+    row-gap: 0.9rem;
+  }
+
+  .da-choice-text {
+    font-size: clamp(0.92rem, 4.2vw, 1.15rem);
+    white-space: normal;
+  }
+
+  .da-choice {
+    max-width: 80vw;
+  }
+}
+
 .da-choice:hover:not(:disabled),
 .da-choice:focus-visible {
   --choice-lift: -5px;
@@ -969,6 +992,51 @@
   }
   50% {
     text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5), 0 0 1.6rem rgba(244, 240, 232, 0.5);
+  }
+}
+
+/* The desktop layout reserves a right-side column (.dr-node-path's own
+   right:15vw) specifically so the corner SEE OTHER LENSES panel
+   (.dr-lenses-wrap, max-width:22vw) has its own space to expand into
+   without ever touching the thought text. On a narrow phone that
+   reserved column is only ~79px wide — confirmed live at 360px: the
+   expanded lenses panel visibly overlapped "A recurring pull toward the
+   unknown..." and every lens line wrapped to one or two words. Reflowed
+   into two separate non-overlapping bands instead of a side column: the
+   thoughts get the full width in a scrollable upper band, the (optional,
+   collapsed-by-default) lenses panel gets its own scrollable band below
+   with a real backdrop — same information, same interaction, no overlap
+   at any real content length. */
+@media (max-width: 640px) {
+  .dr-node-path {
+    left: 6vw;
+    right: 6vw;
+    top: 8vh;
+    bottom: auto;
+    max-height: 54vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dr-lenses-wrap {
+    left: 6vw;
+    right: 6vw;
+    bottom: 11vh;
+    max-width: none;
+    max-height: 20vh;
+    overflow-y: auto;
+    align-items: flex-start;
+    text-align: left;
+    background: rgba(6, 7, 6, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 14px;
+    padding: 0.8rem 1rem;
+  }
+
+  .dr-lenses {
+    align-items: flex-start;
+    text-align: left;
   }
 }
 

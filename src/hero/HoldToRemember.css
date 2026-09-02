@@ -264,6 +264,25 @@
     filter 0.8s var(--ease-memory);
 }
 
+/* On a short viewport this panel's natural height (heading + textarea +
+   actions, or the recording heading/orb/transcript/FINISH) can exceed
+   what's actually visible above/below its own centered midpoint — DONE/
+   BACK/FINISH DREAM confirmed clipped below the viewport at 568x320.
+   Rather than trying to hand-shrink every element to fit an arbitrary
+   short height, cap the panel itself and let it scroll internally: still
+   centered when it fits, never hides its own actions when it doesn't. */
+@media (max-height: 480px) {
+  .central-recording,
+  .central-typing,
+  .central-settled {
+    max-height: 92vh;
+    max-height: 92dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.4rem 0;
+  }
+}
+
 .central-recording.is-active,
 .central-typing.is-active,
 .central-settled.is-active {

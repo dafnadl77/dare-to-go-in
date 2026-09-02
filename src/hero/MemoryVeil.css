@@ -4,4 +4,7 @@
   z-index: 1;
   width: 100vw;
   height: 100vh;
+  /* Dynamic viewport height — same mobile-chrome-gap fix as .hero-dream
+     in HeroDream.css and .dream-video in DreamVideo.css. */
+  height: 100dvh;
 }

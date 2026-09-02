@@ -4,6 +4,11 @@
   z-index: 0;
   width: 100vw;
   height: 100vh;
+  /* Dynamic viewport height — keeps this fixed background covering the
+     whole screen when mobile browser chrome shows/hides (100vh alone can
+     leave a gap at the bottom on some mobile browsers). Same fix already
+     applied to .hero-dream in HeroDream.css. */
+  height: 100dvh;
   object-fit: cover;
   object-position: center;
   background: var(--dream-black);

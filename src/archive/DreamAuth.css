@@ -191,7 +191,10 @@
   padding: 0.85em 1.1em;
   color: var(--dream-white);
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.92rem;
+  /* 16px minimum — below that, iOS Safari zooms the whole page in on
+     focus (an actual input, unlike the labels/buttons around it, which
+     don't trigger that behavior regardless of their own size). */
+  font-size: 1rem;
   text-align: center;
 }
 
