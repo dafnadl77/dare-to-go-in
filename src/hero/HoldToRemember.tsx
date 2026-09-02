@@ -469,6 +469,11 @@ export default function HoldToRemember({
         {!transcription.supported && centralMode === 'recording' && (
           <p className="central-mic-note">LIVE TRANSCRIPT UNAVAILABLE IN THIS BROWSER</p>
         )}
+        {transcription.supported && centralMode === 'recording' && transcription.error && (
+          <p className="central-mic-note" role="status">
+            I couldn&rsquo;t hear that. Try again, or close and type your dream instead.
+          </p>
+        )}
         <button
           type="button"
           className="central-finish"

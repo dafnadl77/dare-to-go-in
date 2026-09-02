@@ -1,4 +1,5 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { getAppLanguage } from './appLanguage';
 
 /**
  * Minimal local typing for the Web Speech API — it isn't reliably present
@@ -48,10 +49,26 @@ function getSpeechRecognitionCtor(): SpeechRecognitionCtor | null {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
+/**
+ * The app's own language abstraction (appLanguage.ts) is the single source
+ * of truth for what language is currently in play — not the browser's
+ * locale. Wiring recognition to it (rather than `navigator.language`) means
+ * a future language switcher makes speech recognition follow along for
+ * free, with zero further changes here.
+ */
 function detectDefaultLang(): string {
-  const nav = typeof navigator !== 'undefined' ? navigator.language || '' : '';
-  return nav.toLowerCase().startsWith('he') ? 'he-IL' : 'en-US';
+  return getAppLanguage() === 'he' ? 'he-IL' : 'en-US';
 }
+
+// If recognition has been genuinely listening this long with not one result
+// (interim or final), something in the pipeline is silently not working —
+// a mic conflict, a network hiccup the browser never surfaced as onerror,
+// etc. Rather than leave the dreamer staring at "LISTENING…" forever with
+// no feedback, this treats prolonged total silence as a soft failure the UI
+// can act on, the same way a real onerror does. Recognition itself keeps
+// running (it may still catch up), and the moment a real result arrives,
+// this clears itself automatically.
+const SILENCE_WATCHDOG_MS = 6000;
 
 interface SpeechTranscriptionApi {
   /** False means: no fake transcript will ever appear — this browser has no real STT available. */
@@ -60,6 +77,10 @@ interface SpeechTranscriptionApi {
   finalTranscript: string;
   interimTranscript: string;
   fullTranscript: string;
+  /** Non-null means recognition is running but not producing results (or
+      failed outright) — a reason to show the caller's own inline fallback
+      message. Cleared automatically the moment a real result comes in. */
+  error: string | null;
   start: (lang?: string) => void;
   stop: () => void;
   reset: () => void;
@@ -69,15 +90,23 @@ export function useSpeechTranscription(): SpeechTranscriptionApi {
   const [isListening, setIsListening] = useState(false);
   const [finalTranscript, setFinalTranscript] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const shouldListenRef = useRef(false);
   const langRef = useRef(detectDefaultLang());
   const supportedRef = useRef(!!getSpeechRecognitionCtor());
+  // Whether ANY result (interim or final) has arrived since the current
+  // start() call — read by the silence watchdog below.
+  const hasResultRef = useRef(false);
+  const watchdogRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const attachAndStart = useCallback(() => {
     const Ctor = getSpeechRecognitionCtor();
-    if (!Ctor) return;
+    if (!Ctor) {
+      setError('unsupported');
+      return;
+    }
 
     const recognition = new Ctor();
     recognition.lang = langRef.current;
@@ -86,6 +115,10 @@ export function useSpeechTranscription(): SpeechTranscriptionApi {
     recognition.maxAlternatives = 1;
 
     recognition.onresult = (event) => {
+      hasResultRef.current = true;
+      clearTimeout(watchdogRef.current);
+      setError(null);
+
       let interim = '';
       let finalChunk = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -104,11 +137,27 @@ export function useSpeechTranscription(): SpeechTranscriptionApi {
     };
 
     recognition.onerror = (event) => {
-      if (event.error === 'not-allowed' || event.error === 'audio-capture' || event.error === 'service-not-allowed') {
+      const reason = event.error;
+      const fatal =
+        reason === 'not-allowed' ||
+        reason === 'audio-capture' ||
+        reason === 'service-not-allowed' ||
+        reason === 'language-not-supported' ||
+        reason === 'bad-grammar';
+      if (fatal) {
         shouldListenRef.current = false;
         setIsListening(false);
+        clearTimeout(watchdogRef.current);
       }
-      // 'no-speech' and similar are transient — onend will fire and may restart below.
+      // 'no-speech' and 'aborted' are routine transient noise (a pause, a
+      // deliberate stop) — onend already handles those. Everything else
+      // (network errors in particular — common on mobile, since Chrome's
+      // recognizer is cloud-backed — plus any reason not enumerated above)
+      // is surfaced so the caller can show its inline fallback message,
+      // without necessarily giving up on listening.
+      if (reason !== 'no-speech' && reason !== 'aborted') {
+        setError(reason);
+      }
     };
 
     recognition.onend = () => {
@@ -125,17 +174,29 @@ export function useSpeechTranscription(): SpeechTranscriptionApi {
     try {
       recognition.start();
       setIsListening(true);
-    } catch {
+      clearTimeout(watchdogRef.current);
+      watchdogRef.current = setTimeout(() => {
+        if (shouldListenRef.current && !hasResultRef.current) {
+          setError('no-audio-detected');
+        }
+      }, SILENCE_WATCHDOG_MS);
+    } catch (err) {
       shouldListenRef.current = false;
       setIsListening(false);
+      setError(err instanceof Error ? err.name : 'start-failed');
     }
   }, []);
 
   const start = useCallback(
     (lang?: string) => {
-      if (!supportedRef.current) return;
+      if (!supportedRef.current) {
+        setError('unsupported');
+        return;
+      }
       langRef.current = lang || detectDefaultLang();
       shouldListenRef.current = true;
+      hasResultRef.current = false;
+      setError(null);
       attachAndStart();
     },
     [attachAndStart],
@@ -143,12 +204,26 @@ export function useSpeechTranscription(): SpeechTranscriptionApi {
 
   const stop = useCallback(() => {
     shouldListenRef.current = false;
+    clearTimeout(watchdogRef.current);
     recognitionRef.current?.stop();
   }, []);
 
   const reset = useCallback(() => {
     setFinalTranscript('');
     setInterimTranscript('');
+    setError(null);
+    hasResultRef.current = false;
+  }, []);
+
+  // Recognition (and its watchdog timer) must not keep running past the
+  // component that owns this hook — otherwise a stray onend could restart
+  // it into the void after the UI has moved on.
+  useEffect(() => {
+    return () => {
+      clearTimeout(watchdogRef.current);
+      shouldListenRef.current = false;
+      recognitionRef.current?.abort();
+    };
   }, []);
 
   const fullTranscript = interimTranscript
@@ -163,6 +238,7 @@ export function useSpeechTranscription(): SpeechTranscriptionApi {
     finalTranscript,
     interimTranscript,
     fullTranscript,
+    error,
     start,
     stop,
     reset,
