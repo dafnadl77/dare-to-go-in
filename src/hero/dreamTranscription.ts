@@ -47,15 +47,18 @@ function blobToBase64(blob: Blob): Promise<string> {
 
 /**
  * @param audioBlob the finished MediaRecorder clip.
- * @param language the app's current 2-letter language ('en' | 'he') — a
- *   hint to the transcription model for accuracy, never a translation
- *   instruction. The spoken language is what comes back, always.
+ * @param language the app's current language ('en' | 'he', from
+ *   appLanguage.ts's getAppLanguage()) — a hint to the transcription
+ *   model for accuracy, never a translation instruction. The spoken
+ *   language is what comes back, always. Always sent as one of exactly
+ *   these two values — the server re-validates against the same
+ *   allowlist regardless, but the client never leaves this to guesswork.
  * @param signal lets the caller cancel an in-flight request (a deliberate
  *   Close, or the caller's own timeout).
  */
 export async function transcribeDreamAudio(
   audioBlob: Blob,
-  language: string | null,
+  language: 'en' | 'he',
   signal?: AbortSignal,
 ): Promise<TranscriptionResult> {
   if (audioBlob.size === 0) {

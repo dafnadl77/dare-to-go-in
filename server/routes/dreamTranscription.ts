@@ -4,6 +4,18 @@ import { okResult, errorResult, type HandlerResult } from '../httpResult.js';
 
 const DEFAULT_TRANSCRIPTION_MODEL = 'gpt-4o-mini-transcribe';
 
+// The only languages DARE's interface currently supports. A hint outside
+// this set (or missing/malformed) falls back to English rather than
+// being passed through — never let the transcription model fall back to
+// unrestricted free-form language auto-detection, which is exactly what
+// let a real, plain English recording come back transcribed in Russian.
+const ALLOWED_LANGUAGES = new Set(['en', 'he']);
+const DEFAULT_LANGUAGE = 'en';
+
+function resolveLanguage(value: unknown): string {
+  return typeof value === 'string' && ALLOWED_LANGUAGES.has(value) ? value : DEFAULT_LANGUAGE;
+}
+
 // Comfortably under Vercel's ~4.5MB serverless request body ceiling once
 // base64's ~33% overhead is accounted for (real dream recordings — a
 // spoken minute or two of opus/webm voice audio — are a small fraction
@@ -32,8 +44,11 @@ export async function handleDreamTranscription(rawBody: unknown): Promise<Handle
   const mimeType = typeof body.mimeType === 'string' && body.mimeType.startsWith('audio/') ? body.mimeType : 'audio/webm';
   // A hint for the model's accuracy, never a translation instruction —
   // the transcriptions endpoint always returns text in the language
-  // actually spoken, regardless of this value.
-  const language = typeof body.language === 'string' && /^[a-z]{2}$/.test(body.language) ? body.language : undefined;
+  // actually spoken, regardless of this value. Always a concrete,
+  // allowlisted value (see resolveLanguage) — never omitted, so the
+  // request is never left to freely auto-detect between unrelated
+  // languages just because the client sent something unexpected.
+  const language = resolveLanguage(body.language);
 
   let buffer: Buffer;
   try {
@@ -56,7 +71,7 @@ export async function handleDreamTranscription(rawBody: unknown): Promise<Handle
     const response = await client.audio.transcriptions.create({
       file,
       model: process.env.OPENAI_TRANSCRIPTION_MODEL || DEFAULT_TRANSCRIPTION_MODEL,
-      ...(language ? { language } : {}),
+      language,
     });
 
     const transcript = typeof response.text === 'string' ? response.text.trim() : '';

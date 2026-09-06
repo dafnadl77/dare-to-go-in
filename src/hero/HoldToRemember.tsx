@@ -14,6 +14,7 @@ import type { useDreamRecorder } from './useDreamRecorder';
 import { createTextDreamInput, type DreamInput } from './dreamInput';
 import { transcribeDreamAudio } from './dreamTranscription';
 import { getAppLanguage } from './appLanguage';
+import { useLivePreviewTranscript } from './useLivePreviewTranscript';
 import './HoldToRemember.css';
 
 type DreamRecorderApi = ReturnType<typeof useDreamRecorder>;
@@ -118,6 +119,10 @@ export default function HoldToRemember({
   // transcription request without a late response clobbering state the
   // dreamer has already moved past.
   const transcribeAbortRef = useRef<AbortController | null>(null);
+  // Purely cosmetic, best-effort — see useLivePreviewTranscript.ts. Never
+  // read by anything that decides what actually gets submitted; the real
+  // transcript always comes from recorder.audioBlob -> OpenAI below.
+  const livePreview = useLivePreviewTranscript();
 
   const tick = useCallback(() => {
     const elapsed = performance.now() - startRef.current;
@@ -160,6 +165,10 @@ export default function HoldToRemember({
     if (result === true) {
       if (holdRef.current) holdRef.current.active = false;
       setCentralMode('recording');
+      // Best-effort only — see useLivePreviewTranscript.ts. Started only
+      // now, after the real recording is genuinely confirmed, so a
+      // preview never implies "listening" on its own.
+      livePreview.start(getAppLanguage());
     } else {
       const timedOut = result === 'timeout';
       if (holdRef.current) {
@@ -171,7 +180,7 @@ export default function HoldToRemember({
       setMicErrorMessage(describeRecordingFailure(recorder.errorRef.current, timedOut));
       setCentralMode('typing');
     }
-  }, [recorder, holdRef, setCentralMode, setMicUnavailable]);
+  }, [recorder, holdRef, setCentralMode, setMicUnavailable, livePreview]);
 
   const beginHold = useCallback(() => {
     if (centralMode !== 'hold' || committedRef.current) return;
@@ -236,6 +245,13 @@ export default function HoldToRemember({
       clearTimeout(micTimeoutRef.current);
       clearTimeout(transcriptionTimeoutRef.current);
       transcribeAbortRef.current?.abort();
+      // livePreview.stop is useCallback-stable (empty deps in
+      // useLivePreviewTranscript.ts) — capturing it here at mount, with
+      // this effect intentionally kept mount/unmount-only ([]), is safe:
+      // this must run only on real unmount, not on every re-render (which
+      // would otherwise abort an in-flight recording/transcription on
+      // every keystroke elsewhere in this component).
+      livePreview.stop();
     };
   }, []);
 
@@ -307,6 +323,8 @@ export default function HoldToRemember({
       // MediaStream track, and closes the AudioContext — the browser's mic
       // indicator goes away because the tracks are actually stopped.
       recorder.reset();
+      livePreview.stop();
+      livePreview.reset();
       if (holdRef.current) {
         holdRef.current.active = false;
         holdRef.current.listening = false;
@@ -338,7 +356,7 @@ export default function HoldToRemember({
     setMicErrorMessage(null);
     setTranscriptionErrorMessage(null);
     setCentralMode('hold');
-  }, [centralMode, recorder, holdRef, onTypedTranscriptChange, setCentralMode, setMicUnavailable]);
+  }, [centralMode, recorder, holdRef, onTypedTranscriptChange, setCentralMode, setMicUnavailable, livePreview]);
 
   useEffect(() => {
     if (centralMode !== 'recording' && centralMode !== 'transcribing' && centralMode !== 'typing') return;
@@ -358,6 +376,12 @@ export default function HoldToRemember({
     setFinishing(true);
     pendingTranscriptionRef.current = true;
     recorder.finish();
+    // The preview's job ends here — the real, authoritative transcript
+    // comes from the effect below once OpenAI responds. Stop (not
+    // reset(), which would blank previewText — it just fades out along
+    // with the rest of the recording panel) rather than leaving it
+    // running uselessly through the transcribing/typing states.
+    livePreview.stop();
     // Set immediately, synchronously — not gated behind the audioLevel
     // decay below. Real transcription (a network round trip) can in
     // principle resolve faster than that decay's own rAF loop completes;
@@ -384,7 +408,7 @@ export default function HoldToRemember({
       }
     }
     requestAnimationFrame(decay);
-  }, [recorder, holdRef, setCentralMode]);
+  }, [recorder, holdRef, setCentralMode, livePreview]);
 
   // The real audio blob shows up asynchronously via MediaRecorder's onstop,
   // after handleFinishDream already returns. Once it exists, send it to
@@ -519,6 +543,15 @@ export default function HoldToRemember({
         <p className="central-recording-heading">I&rsquo;M LISTENING.</p>
         <p className="central-recording-subheading">TELL ME EVERYTHING YOU REMEMBER.</p>
         <div ref={orbRef} className="central-recording-orb" aria-hidden="true" />
+        {/* Purely cosmetic — see useLivePreviewTranscript.ts. Absent
+            entirely (no message, no placeholder) when unsupported or
+            silent; the authoritative transcript always comes from
+            OpenAI after FINISH DREAM, never from this. */}
+        {livePreview.previewText && (
+          <p className="central-live-preview" dir="auto">
+            {livePreview.previewText}
+          </p>
+        )}
         <button
           type="button"
           className="central-finish"
