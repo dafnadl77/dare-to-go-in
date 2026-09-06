@@ -330,14 +330,14 @@
   text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.45);
 }
 
-/* Plain wrapper so the touch-primary-only ripple ring (below) can sit
-   concentrically behind the orb via absolute positioning, centered with
-   plain top/left:50% — which requires this wrap's own box to be exactly
-   the orb's size, nothing more. The old margin-bottom that used to live
-   on the orb itself (spacing before the next element) moved here for
-   that reason: if it stayed on the orb, the wrap's flex box would be
-   taller than the orb by that margin, and top:50% would center the
-   ripple on the wrap's midpoint rather than the orb's own center. */
+/* Plain wrapper so the ripple ring (below) can sit concentrically behind
+   the orb via absolute positioning, centered with plain top/left:50% —
+   which requires this wrap's own box to be exactly the orb's size,
+   nothing more. The old margin-bottom that used to live on the orb
+   itself (spacing before the next element) moved here for that reason:
+   if it stayed on the orb, the wrap's flex box would be taller than the
+   orb by that margin, and top:50% would center the ripple on the wrap's
+   midpoint rather than the orb's own center. */
 .central-recording-orb-wrap {
   position: relative;
   display: flex;
@@ -357,13 +357,14 @@
   will-change: transform, opacity;
 }
 
-/* Touch-primary devices only (see isTouchPrimary in HoldToRemember.tsx) —
-   never mounted on desktop at all. A soft ring, concentric with the orb,
-   that expands and glows with real mic amplitude: the primary "DARE is
-   hearing you" cue on mobile now that browser SpeechRecognition isn't
-   attempted there (see the comment on isTouchPrimary for why). Opacity
-   and scale are driven every frame from the real audioLevelRef, not a
-   fake animation — near-silent at rest, visibly rippling on real speech. */
+/* A soft ring, concentric with the orb, that expands and glows with real
+   mic amplitude — the primary "DARE is hearing you" cue on every
+   platform now that browser SpeechRecognition's live-preview text is
+   never started (see the comment above livePreview.start() in
+   commitToListening, HoldToRemember.tsx, for why — unreliable well
+   beyond just mobile mic-contention). Opacity and scale are driven every
+   frame from the real audioLevelRef, not a fake animation — near-silent
+   at rest, visibly rippling on real speech. */
 .central-recording-ripple {
   position: absolute;
   top: 50%;

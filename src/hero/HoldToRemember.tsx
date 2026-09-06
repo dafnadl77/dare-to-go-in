@@ -93,22 +93,6 @@ export default function HoldToRemember({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const orbRef = useRef<HTMLDivElement>(null);
   const rippleRef = useRef<HTMLDivElement>(null);
-  // Touch-primary devices (phones/tablets) can't reliably run browser
-  // SpeechRecognition alongside the MediaRecorder capture already holding
-  // the microphone — confirmed against Chromium's own long-standing,
-  // still-open issue (Blink>Speech, OS:Android — getUserMedia "hijacks"
-  // the audio stream so SpeechRecognition never receives it) and matches
-  // the exact real-device symptom reported: recording works, no live
-  // words ever appear, no error. Desktop is unaffected — this only ever
-  // reads true on a device with no persistent pointer, matching the same
-  // `(hover: none)` signal already used elsewhere in this codebase (see
-  // MemoryVeil.tsx) to distinguish touch-primary devices from desktop.
-  // Read once at mount: this decides whether to even attempt starting
-  // SpeechRecognition for this recording session, not something that
-  // needs to react to a mid-session hardware change.
-  const [isTouchPrimary] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches,
-  );
   const [isHolding, setIsHolding] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [entry, setEntry] = useState('');
@@ -182,17 +166,20 @@ export default function HoldToRemember({
     if (result === true) {
       if (holdRef.current) holdRef.current.active = false;
       setCentralMode('recording');
-      // Best-effort only — see useLivePreviewTranscript.ts. Started only
-      // now, after the real recording is genuinely confirmed, so a
-      // preview never implies "listening" on its own. Skipped entirely on
-      // touch-primary devices — see isTouchPrimary above: SpeechRecognition
-      // cannot reliably receive audio there while MediaRecorder already
-      // holds the microphone, so starting it would just be a dead
-      // recognizer running for nothing. Mobile gets the audio-reactive
-      // orb/ripple below instead; desktop behavior is unchanged.
-      if (!isTouchPrimary) {
-        livePreview.start(getAppLanguage());
-      }
+      // DISABLED on every platform, deliberately — not just the mobile
+      // mic-contention case. Browser SpeechRecognition also proved
+      // unreliable on desktop: real production Hebrew speech came back as
+      // phonetic English garbage (e.g. "salon salomonishma"), which is a
+      // recognition-quality problem, not a mic-access one, so gating this
+      // by platform doesn't fix it. Per explicit instruction: no further
+      // SpeechRecognition debugging/fixing — this call is intentionally
+      // never made now, on any device. The hook/JSX below are kept
+      // in place (not deleted) so this is a one-line revert if browser
+      // speech recognition is ever revisited; today the audio-reactive
+      // orb/ripple below is the only real-time "I'm hearing you" cue,
+      // universally, and the real, authoritative transcript always comes
+      // from OpenAI after FINISH DREAM regardless.
+      // livePreview.start(getAppLanguage());
     } else {
       const timedOut = result === 'timeout';
       if (holdRef.current) {
@@ -204,7 +191,7 @@ export default function HoldToRemember({
       setMicErrorMessage(describeRecordingFailure(recorder.errorRef.current, timedOut));
       setCentralMode('typing');
     }
-  }, [recorder, holdRef, setCentralMode, setMicUnavailable, livePreview, isTouchPrimary]);
+  }, [recorder, holdRef, setCentralMode, setMicUnavailable]);
 
   const beginHold = useCallback(() => {
     if (centralMode !== 'hold' || committedRef.current) return;
@@ -287,12 +274,12 @@ export default function HoldToRemember({
 
   // Live voice-reactive breathing: mirrors the mic level into the shared
   // holdRef (MemoryVeil reads it) and the ambient listening orb, every
-  // frame. On touch-primary devices this is the ONLY real-time feedback
-  // that DARE is hearing the dreamer (no live-preview text there — see
-  // isTouchPrimary above), so the orb reacts a bit more clearly there,
-  // and a soft rippling ring (mounted only on mobile, see JSX below)
-  // expands and fades with real speech. Desktop's own orb math is
-  // untouched — same scale/opacity formula as before this change.
+  // frame. Now the ONLY real-time feedback that DARE is hearing the
+  // dreamer on every platform — the live-preview text is disabled
+  // everywhere (see the comment above livePreview.start() in
+  // commitToListening), not just on mobile, so the orb's reactive range
+  // and the rippling ring are applied universally rather than being
+  // platform-gated.
   useEffect(() => {
     if (centralMode !== 'recording') return;
     if (holdRef.current) holdRef.current.listening = true;
@@ -301,12 +288,10 @@ export default function HoldToRemember({
       const level = recorder.audioLevelRef.current?.level ?? 0;
       if (holdRef.current) holdRef.current.audioLevel = level;
       if (orbRef.current) {
-        const orbScale = isTouchPrimary ? 1 + level * 0.42 : 1 + level * 0.32;
-        const orbOpacity = isTouchPrimary ? 0.4 + level * 0.6 : 0.45 + level * 0.5;
-        orbRef.current.style.transform = `scale(${orbScale.toFixed(3)})`;
-        orbRef.current.style.opacity = orbOpacity.toFixed(3);
+        orbRef.current.style.transform = `scale(${(1 + level * 0.42).toFixed(3)})`;
+        orbRef.current.style.opacity = (0.4 + level * 0.6).toFixed(3);
       }
-      if (isTouchPrimary && rippleRef.current) {
+      if (rippleRef.current) {
         // A small dead-zone so ambient room noise doesn't keep a faint
         // ring visible at rest — it should read as calm during silence
         // and clearly ripple outward only on real speech.
@@ -318,7 +303,7 @@ export default function HoldToRemember({
     }
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
-  }, [centralMode, recorder.audioLevelRef, holdRef, isTouchPrimary]);
+  }, [centralMode, recorder.audioLevelRef, holdRef]);
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if ((e.key === 'Enter' || e.key === ' ') && !isHolding) {
@@ -583,20 +568,24 @@ export default function HoldToRemember({
         <p className="central-recording-heading">I&rsquo;M LISTENING.</p>
         <p className="central-recording-subheading">TELL ME EVERYTHING YOU REMEMBER.</p>
         <div className="central-recording-orb-wrap">
-          {/* Touch-primary only — a soft ring that ripples outward and
-              fades with real mic amplitude (see the audio-reactive frame
-              loop above). Not mounted on desktop at all, so desktop's
-              orb-only treatment is pixel-for-pixel unchanged. */}
-          {isTouchPrimary && <div ref={rippleRef} className="central-recording-ripple" aria-hidden="true" />}
+          {/* A soft ring that ripples outward and glows with real mic
+              amplitude (see the audio-reactive frame loop above) — now
+              the primary "DARE is hearing you" cue on every platform,
+              since the live-preview text below is disabled everywhere. */}
+          <div ref={rippleRef} className="central-recording-ripple" aria-hidden="true" />
           <div ref={orbRef} className="central-recording-orb" aria-hidden="true" />
         </div>
-        {/* Purely cosmetic — see useLivePreviewTranscript.ts. Absent
-            entirely (no message, no placeholder) when unsupported,
-            silent, or on a touch-primary device (see isTouchPrimary
-            above — SpeechRecognition is never even started there, so
-            previewText simply never populates and this never renders);
-            the authoritative transcript always comes from OpenAI after
-            FINISH DREAM, never from this. */}
+        {/* Purely cosmetic — see useLivePreviewTranscript.ts. Never
+            renders now on any platform: livePreview.start() is
+            intentionally never called (see the comment above that call
+            in commitToListening — browser SpeechRecognition proved
+            unreliable well beyond just mobile mic-contention, e.g. real
+            Hebrew speech coming back as phonetic English garbage), so
+            previewText simply never populates. Left in place rather than
+            deleted, per instruction, as a one-line revert if browser
+            speech recognition is ever revisited. The authoritative
+            transcript always comes from OpenAI after FINISH DREAM,
+            never from this. */}
         {livePreview.previewText && (
           <p className="central-live-preview" dir="auto">
             {livePreview.previewText}
