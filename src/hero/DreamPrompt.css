@@ -42,6 +42,54 @@
     transform 2.2s var(--ease-memory);
 }
 
+/* On narrow viewports the unscaled phrase already wraps close to the
+   full available width (confirmed live: ~337px unscaled at 375px wide) —
+   the desktop `scale(1.9)`/`scale(1.5)` transforms then render it at
+   ~640px/~506px, extending far past both edges of the viewport (a CSS
+   transform scales the rendered box visually without affecting layout,
+   so nothing about overflow/wrapping "sees" this happening). Constrains
+   the box to a narrower pre-scale width (forcing wrap onto more/shorter
+   lines) and tones the scale down enough that box-width × scale stays
+   safely inside the viewport at every required breakpoint — confirmed
+   live at 360/375/390/412/667×375. Desktop is completely untouched:
+   this is scoped to the same mobile breakpoint used throughout this
+   flow, and only overrides scale/max-width, nothing else about the
+   existing typography, tracking, color, or opacity. */
+@media (max-width: 640px) {
+  .dream-prompt {
+    max-width: 58vw;
+  }
+
+  .dream-prompt.is-revealed {
+    transform: translateY(-4px) scale(1.3);
+  }
+
+  .dream-prompt.is-revealed.is-quiet {
+    transform: translateY(-4px) scale(1.1);
+  }
+}
+
+/* A landscape phone (short height, sometimes wide enough to miss the
+   width breakpoint above) still has the same narrow-viewport wrapping
+   problem — confirmed live at 667×375. Plain (max-height:...), no
+   orientation clause — matches the same established breakpoint pattern
+   already used throughout this flow (HeroDream.css, DreamReflection.css
+   etc.), which this codebase's own comments note is needed because a
+   width-only query never catches a landscape phone. */
+@media (max-height: 420px) {
+  .dream-prompt {
+    max-width: 48vw;
+  }
+
+  .dream-prompt.is-revealed {
+    transform: translateY(-4px) scale(1.2);
+  }
+
+  .dream-prompt.is-revealed.is-quiet {
+    transform: translateY(-4px) scale(1.05);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dream-prompt {
     transition: none;

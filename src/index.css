@@ -42,6 +42,30 @@ body {
   cursor: none;
 }
 
+/* MOBILE ONLY, and only while the dream-reflection screen is mounted:
+   lets the real document (html/body) become the scroll container instead
+   of staying a clipped, fixed-height box — the counterpart to
+   .hero-dream's own un-fixing in HeroDream.css. Un-scoped `body{overflow:
+   hidden}` above stays untouched for every other screen. See the comment
+   on .hero-dream:has(.dream-reflection) in HeroDream.css for why a
+   nested fixed/overflow:auto box (the previous approach) doesn't
+   reliably receive real scroll input, and this must be genuine page
+   scroll instead.
+
+   Deliberately plain `overflow: visible` here, NOT `overflow-y: auto` —
+   confirmed live that giving body its own explicit auto/scroll axis
+   turns it into the same kind of bounded scroll box that silently
+   fails to receive real scroll/touch input (exactly the .hero-dream
+   problem this is meant to fix). `visible` removes body from clipping
+   entirely so the actual viewport becomes the scroller, which is what
+   reliably receives scroll input in every test. */
+@media (max-width: 640px), (max-height: 500px) {
+  body:has(.dream-reflection) {
+    overflow: visible;
+    height: auto;
+  }
+}
+
 img,
 video,
 canvas {

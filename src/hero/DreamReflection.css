@@ -1042,6 +1042,21 @@
     padding: 0;
   }
 
+  /* WHEN YOU THINK ABOUT… on mobile: once .da-content joins normal flow
+     (above) its only top spacing comes from .dream-reflection's own 3vh
+     padding — nowhere near enough to clear .dare-home, which sits
+     fixed at `top: max(20px, safe-area-inset-top)` regardless of this
+     screen's own layout (confirmed live: the heading's first line
+     rendered directly under/behind the DARE mark). Pushes the WHOLE
+     group (question, element label, textarea, CONTINUE) down together
+     as one block via a single margin-top on their shared container,
+     rather than nudging the heading alone — matches DARE's own
+     fixed-px + safe-area formula (not vh-based) since that's what it
+     actually needs to clear, plus a comfortable fixed gap on top. */
+  .dream-arrival[data-step='reflecting'] .da-content {
+    margin-top: calc(max(20px, env(safe-area-inset-top, 0px)) + 40px);
+  }
+
   .dream-thought-sequence {
     position: relative;
     inset: auto;

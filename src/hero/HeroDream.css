@@ -12,27 +12,39 @@
 }
 
 /* MOBILE ONLY — whenever <DreamReflection> is mounted (THIS IS YOUR
-   DREAM through the interpretation/reflection screen), this becomes the
-   real scroll container instead of a fixed, clipped 100dvh box, so that
-   content taller than one viewport scrolls as ONE natural page rather
-   than a small internal panel. Stays exactly 100dvh/fixed/hidden for
-   every other phase/step, and on desktop always — :has(.dream-reflection)
-   only matches while that component is mounted, and the whole block is
-   inert outside this one mobile breakpoint. See the matching
-   .dream-reconstruction/.dream-reflection overrides in
-   DreamReconstruction.css/DreamReflection.css, which are what actually
-   let their own content grow taller than the viewport for this to have
-   anything to scroll. The (max-height: 500px) alternative catches short
-   landscape phones, which can be well over 640px wide (confirmed live:
-   at 667x375 landscape, "A QUESTION WORTH KEEPING" rendered ~115px past
-   the bottom of the viewport with no way to reach it under the old
-   fixed-height layout, since a width-only breakpoint never applied
-   there at all). */
+   DREAM through the interpretation/reflection screen), this stops being
+   a fixed, clipped 100dvh box and joins normal document flow instead, so
+   content taller than one viewport scrolls as ONE real page scroll
+   (the actual html/body scrollport — see the matching body override
+   below) rather than a small internal panel. Stays exactly
+   100dvh/fixed/hidden for every other phase/step, and on desktop
+   always — :has(.dream-reflection) only matches while that component is
+   mounted, and the whole block is inert outside this one mobile
+   breakpoint. See the matching .dream-reconstruction/.dream-reflection
+   overrides in DreamReconstruction.css/DreamReflection.css, which are
+   what actually let their own content grow taller than the viewport for
+   this to have anything to scroll. The (max-height: 500px) alternative
+   catches short landscape phones, which can be well over 640px wide
+   (confirmed live: at 667x375 landscape, "A QUESTION WORTH KEEPING"
+   rendered ~115px past the bottom of the viewport with no way to reach
+   it under the old fixed-height layout, since a width-only breakpoint
+   never applied there at all).
+
+   IMPORTANT — this used to only add `overflow-y: auto` while leaving
+   `position: fixed` in place, which made .hero-dream its own nested
+   scroll box rather than real page scroll. Confirmed live (isolated
+   repro, unrelated to this app's own JS) that a `position: fixed;
+   overflow-y: auto` box does NOT reliably receive wheel/touch scroll
+   input at all — scrolling it programmatically works, but the actual
+   scroll gesture never reaches it. That is the real cause of "OTHER
+   LENSES cannot scroll on mobile": not a height/overflow miscalculation,
+   but the nested-fixed-scrollbox architecture itself never receiving
+   the gesture. Un-fixing it here so the real document scrolls instead. */
 @media (max-width: 640px), (max-height: 500px) {
   .hero-dream:has(.dream-reflection) {
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+    position: relative;
+    height: auto;
+    overflow: visible;
   }
 }
 
