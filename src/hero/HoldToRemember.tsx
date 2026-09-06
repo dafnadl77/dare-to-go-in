@@ -14,6 +14,8 @@ import type { useDreamRecorder } from './useDreamRecorder';
 import { createTextDreamInput, type DreamInput } from './dreamInput';
 import { transcribeDreamAudio } from './dreamTranscription';
 import { getAppLanguage } from './appLanguage';
+import { AUDIO_DIAG_VISIBLE } from './audioRecordingDiag';
+import AudioDiagPanel, { type UploadDiag } from './AudioDiagPanel';
 import './HoldToRemember.css';
 
 type DreamRecorderApi = ReturnType<typeof useDreamRecorder>;
@@ -111,6 +113,10 @@ export default function HoldToRemember({
   // separate from micErrorMessage since it's a different failure (the mic
   // worked fine; OpenAI transcription itself didn't).
   const [transcriptionErrorMessage, setTranscriptionErrorMessage] = useState<string | null>(null);
+  // Diagnostic-only (?audioDiag=1) — tracks the upload/transcription
+  // request itself, alongside recorder.lastRecordingDiag which tracks the
+  // recording that produced the blob being uploaded.
+  const [audioUploadDiag, setAudioUploadDiag] = useState<UploadDiag>({ stage: 'idle' });
   const rafRef = useRef(0);
   const startRef = useRef(0);
   const listenTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -402,8 +408,15 @@ export default function HoldToRemember({
 
     if (blob.size === 0) {
       setTranscriptionErrorMessage(TRANSCRIPTION_FAILED_MESSAGE);
+      if (AUDIO_DIAG_VISIBLE) {
+        setAudioUploadDiag({ stage: 'done', payloadBytes: 0, payloadType: blob.type, errorMessage: 'blob.size === 0 — never sent to the server.' });
+      }
       setCentralMode('typing');
       return;
+    }
+
+    if (AUDIO_DIAG_VISIBLE) {
+      setAudioUploadDiag({ stage: 'uploading', payloadBytes: blob.size, payloadType: blob.type });
     }
 
     const controller = new AbortController();
@@ -421,8 +434,21 @@ export default function HoldToRemember({
         setEntry(result.transcript);
         onTypedTranscriptChange(result.transcript);
         setTranscriptionErrorMessage(null);
+        if (AUDIO_DIAG_VISIBLE) {
+          setAudioUploadDiag({ stage: 'done', payloadBytes: blob.size, payloadType: blob.type, httpStatus: result.httpStatus, transcript: result.transcript });
+        }
       } else {
         setTranscriptionErrorMessage(TRANSCRIPTION_FAILED_MESSAGE);
+        if (AUDIO_DIAG_VISIBLE) {
+          setAudioUploadDiag({
+            stage: 'done',
+            payloadBytes: blob.size,
+            payloadType: blob.type,
+            httpStatus: result.httpStatus,
+            errorMessage: `${result.reason}: ${result.message}`,
+            rawBody: result.rawBody,
+          });
+        }
       }
       setCentralMode('typing');
     }, () => {
@@ -617,6 +643,14 @@ export default function HoldToRemember({
         <p className="central-settled-text">I THINK I HAVE IT.</p>
         <p className="central-settled-text central-settled-text--second">LET ME PUT IT BACK TOGETHER.</p>
       </div>
+
+      {/* Diagnostic aid only — never part of the normal user journey.
+          Visit with ?audioDiag=1 to verify whether the real recorded clip
+          actually contains audible speech (local playback), independent
+          of anything about uploading it or OpenAI transcribing it. */}
+      {AUDIO_DIAG_VISIBLE && (
+        <AudioDiagPanel diag={recorder.lastRecordingDiag} audioBlob={recorder.audioBlob} upload={audioUploadDiag} />
+      )}
     </div>
   );
 }

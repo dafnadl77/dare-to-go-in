@@ -14,8 +14,8 @@ export type TranscriptionErrorReason =
   | 'billing_issue';
 
 export type TranscriptionResult =
-  | { status: 'ok'; transcript: string }
-  | { status: 'error'; reason: TranscriptionErrorReason; message: string };
+  | { status: 'ok'; transcript: string; httpStatus: number }
+  | { status: 'error'; reason: TranscriptionErrorReason; message: string; httpStatus: number | null; rawBody?: unknown };
 
 const KNOWN_REASONS: TranscriptionErrorReason[] = [
   'not_configured',
@@ -59,7 +59,7 @@ export async function transcribeDreamAudio(
   signal?: AbortSignal,
 ): Promise<TranscriptionResult> {
   if (audioBlob.size === 0) {
-    return { status: 'error', reason: 'empty_input', message: 'The recording was empty.' };
+    return { status: 'error', reason: 'empty_input', message: 'The recording was empty.', httpStatus: null };
   }
 
   let audioBase64: string;
@@ -70,6 +70,7 @@ export async function transcribeDreamAudio(
       status: 'error',
       reason: 'request_failed',
       message: err instanceof Error ? err.message : 'Could not read the recorded audio.',
+      httpStatus: null,
     };
   }
 
@@ -94,9 +95,17 @@ export async function transcribeDreamAudio(
           status: 'error',
           reason,
           message: typeof errData.message === 'string' ? errData.message : `Transcription backend responded with HTTP ${res.status}.`,
+          httpStatus: res.status,
+          rawBody: data,
         };
       }
-      return { status: 'error', reason: 'request_failed', message: `Transcription backend responded with HTTP ${res.status}.` };
+      return {
+        status: 'error',
+        reason: 'request_failed',
+        message: `Transcription backend responded with HTTP ${res.status}.`,
+        httpStatus: res.status,
+        rawBody: data,
+      };
     }
 
     const transcript =
@@ -104,14 +113,21 @@ export async function transcribeDreamAudio(
         ? (data as { transcript: string }).transcript.trim()
         : '';
     if (!transcript) {
-      return { status: 'error', reason: 'invalid_response', message: 'Transcription backend returned no text.' };
+      return {
+        status: 'error',
+        reason: 'invalid_response',
+        message: 'Transcription backend returned no text.',
+        httpStatus: res.status,
+        rawBody: data,
+      };
     }
-    return { status: 'ok', transcript };
+    return { status: 'ok', transcript, httpStatus: res.status };
   } catch (err) {
     return {
       status: 'error',
       reason: 'request_failed',
       message: err instanceof Error ? err.message : 'Unknown network error while transcribing the recording.',
+      httpStatus: null,
     };
   }
 }
