@@ -1,5 +1,4 @@
 import { useCallback, useRef, useState, type RefObject } from 'react';
-import type { AudioTrackSnapshot, RecordingDiag } from './audioRecordingDiag';
 
 export type RecordingState = 'idle' | 'requesting-permission' | 'recording' | 'paused' | 'finished' | 'error';
 
@@ -25,12 +24,6 @@ interface DreamRecorderApi {
   audioLevelRef: RefObject<AudioLevelState>;
   durationMs: number;
   audioBlob: Blob | null;
-  /** Diagnostic-only snapshot of the just-finished recording — populated
-      every time regardless of ?audioDiag=1 (cheap: a handful of numbers
-      and short strings, no behavioral effect), so the diagnostic panel
-      simply reads whatever's here rather than needing its own parallel
-      instrumentation. Null until a recording has actually completed once. */
-  lastRecordingDiag: RecordingDiag | null;
   /**
    * Creates/resumes the AudioContext synchronously. Call this directly from
    * the real user gesture (pointerdown) — some mobile browsers (notably iOS
@@ -38,25 +31,25 @@ interface DreamRecorderApi {
    * even one that started inside a gesture.
    */
   primeAudio: () => void;
-  /** Requests the mic and starts recording. Resolves false on denial/unavailability. */
+  /** Requests the mic and starts recording. Only resolves true once
+      MediaRecorder's own `onstart` event confirms capture has genuinely
+      begun — never on the strength of calling `.start()` alone. Resolves
+      false on denial/unavailability, or if that confirmation never
+      arrives within a bounded wait. */
   start: () => Promise<boolean>;
   finish: () => void;
   reset: () => void;
 }
 
+// onstart fires essentially immediately after MediaRecorder.start() on a
+// genuinely working recorder — this only bounds the pathological case
+// where it never fires at all, so that case fails the same way any other
+// real failure does (reject the promise) rather than hanging forever.
+const RECORDER_ONSTART_TIMEOUT_MS = 4000;
+
 function getAudioContextCtor(): typeof AudioContext | null {
   const w = window as typeof window & { webkitAudioContext?: typeof AudioContext };
   return w.AudioContext ?? w.webkitAudioContext ?? null;
-}
-
-function snapshotTrack(track: MediaStreamTrack | undefined): AudioTrackSnapshot | null {
-  if (!track) return null;
-  return {
-    readyState: track.readyState,
-    enabled: track.enabled,
-    muted: track.muted,
-    live: track.readyState === 'live',
-  };
 }
 
 export function useDreamRecorder(): DreamRecorderApi {
@@ -69,7 +62,6 @@ export function useDreamRecorder(): DreamRecorderApi {
   }, []);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [durationMs, setDurationMs] = useState(0);
-  const [lastRecordingDiag, setLastRecordingDiag] = useState<RecordingDiag | null>(null);
 
   const audioLevelRef = useRef<AudioLevelState>({ level: 0 });
   const streamRef = useRef<MediaStream | null>(null);
@@ -162,67 +154,40 @@ export function useDreamRecorder(): DreamRecorderApi {
           : '';
       const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
       chunksRef.current = [];
-
-      // Diagnostic-only bookkeeping (see audioRecordingDiag.ts) — never
-      // read by the actual recording/transcription logic below, just
-      // assembled into lastRecordingDiag once the clip finishes so a
-      // real-device test can report exactly what MediaRecorder produced.
-      const diagChunkSizes: number[] = [];
-      const diagChunkTypes: string[] = [];
-      const diagEvents: string[] = [];
-      const t0 = performance.now();
-      const logEvent = (label: string) => diagEvents.push(`+${Math.round(performance.now() - t0)}ms ${label}`);
-      const audioTrack = stream.getAudioTracks()[0];
-      const trackAtStart = snapshotTrack(audioTrack);
-
-      recorder.onstart = () => {
-        logEvent('onstart');
-      };
       recorder.ondataavailable = (e) => {
-        const size = e.data ? e.data.size : 0;
-        const type = e.data ? e.data.type : '';
-        diagChunkSizes.push(size);
-        diagChunkTypes.push(type);
-        logEvent(`ondataavailable size=${size} type=${type || '(none)'}`);
         if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
       };
-      recorder.onerror = (e) => {
-        const err = (e as unknown as { error?: DOMException }).error;
-        logEvent(`onerror: ${err ? err.name : 'unknown'}`);
-      };
       recorder.onstop = () => {
-        logEvent('onstop');
-        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
-        setAudioBlob(blob);
-        // Note: finish() calls recorder.stop() then teardown() SYNCHRONOUSLY,
-        // while this onstop handler only fires asynchronously afterward —
-        // so by now teardown() has already stopped every track. trackAtStop
-        // / streamActiveAtStop below is genuinely "state after our own
-        // teardown ran", not a live mid-recording snapshot; that's honest
-        // and still useful (confirms teardown behaved), just not what
-        // "at stop" might suggest at a glance — hence trackAtStart above
-        // is the one that reflects the track's actual condition while
-        // audio was really being captured.
-        setLastRecordingDiag({
-          requestedMimeType: mimeType || '(browser default)',
-          actualMimeType: recorder.mimeType || '(unknown)',
-          startedWithTimeslice: false,
-          chunkSizes: diagChunkSizes,
-          chunkTypes: diagChunkTypes,
-          totalBytesFromChunks: diagChunkSizes.reduce((a, b) => a + b, 0),
-          blobSize: blob.size,
-          blobType: blob.type,
-          durationMs: performance.now() - startTimeRef.current,
-          trackAtStart,
-          trackAtStop: snapshotTrack(audioTrack),
-          streamActiveAtStop: stream.active,
-          events: diagEvents,
-        });
+        setAudioBlob(new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' }));
       };
       recorderRef.current = recorder;
-      // No timeslice argument — see RecordingDiag.startedWithTimeslice's
-      // doc comment for what that implies about ondataavailable timing.
-      recorder.start();
+
+      // The UI only shows "I'M LISTENING." once this resolves true (see
+      // HoldToRemember.tsx's commitToListening) — so this must not resolve
+      // on the strength of calling recorder.start() alone. onstart is the
+      // browser's own confirmation that capture genuinely began; a real
+      // recorder confirms it almost immediately, so a bounded wait treats
+      // "it never fires" the same as any other real failure to start,
+      // rather than the UI trusting an assumption that turned out false.
+      const reallyStarted = await new Promise<boolean>((resolve) => {
+        let settled = false;
+        const settle = (ok: boolean) => {
+          if (settled) return;
+          settled = true;
+          resolve(ok);
+        };
+        recorder.onstart = () => settle(true);
+        recorder.onerror = () => settle(false);
+        setTimeout(() => settle(false), RECORDER_ONSTART_TIMEOUT_MS);
+        recorder.start();
+      });
+
+      if (!reallyStarted) {
+        teardown();
+        setErrorBoth('start-not-confirmed');
+        setRecordingState('error');
+        return false;
+      }
 
       startTimeRef.current = performance.now();
       runAnalyserLoop();
@@ -250,23 +215,10 @@ export function useDreamRecorder(): DreamRecorderApi {
     chunksRef.current = [];
     audioLevelRef.current.level = 0;
     setAudioBlob(null);
-    setLastRecordingDiag(null);
     setDurationMs(0);
     setErrorBoth(null);
     setRecordingState('idle');
   }, [teardown, setErrorBoth]);
 
-  return {
-    recordingState,
-    error,
-    errorRef,
-    audioLevelRef,
-    durationMs,
-    audioBlob,
-    lastRecordingDiag,
-    primeAudio,
-    start,
-    finish,
-    reset,
-  };
+  return { recordingState, error, errorRef, audioLevelRef, durationMs, audioBlob, primeAudio, start, finish, reset };
 }

@@ -14,8 +14,6 @@ import type { useDreamRecorder } from './useDreamRecorder';
 import { createTextDreamInput, type DreamInput } from './dreamInput';
 import { transcribeDreamAudio } from './dreamTranscription';
 import { getAppLanguage } from './appLanguage';
-import { AUDIO_DIAG_VISIBLE } from './audioRecordingDiag';
-import AudioDiagPanel, { type UploadDiag } from './AudioDiagPanel';
 import './HoldToRemember.css';
 
 type DreamRecorderApi = ReturnType<typeof useDreamRecorder>;
@@ -42,16 +40,18 @@ const FILL_MS = 800;
 const RADIUS = 42;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 const FINISH_SETTLE_MS = 1100;
-// Once the hold completes, the mic permission request (getUserMedia) can in
-// principle sit unresolved indefinitely on a real device — a slow/obscured
-// permission prompt, a browser that never surfaces one, etc. Before this,
-// nothing bounded that wait: committedRef.current being true already blocks
-// releasing the hold from cancelling anything (see endHold), and the
-// TYPE/RECORD panels (with their own Close button) don't mount until the
-// request actually settles — so a real hang left the dreamer stuck on
-// "LISTENING…" with no visible way out. This timeout guarantees the UI
-// always reaches a real state (recording, or a clear TYPE fallback) within
-// a bounded wait, without changing anything about the 800ms hold itself.
+// Once the hold completes, the mic permission request (getUserMedia, plus
+// MediaRecorder actually confirming it started — see useDreamRecorder's
+// own onstart-gated start()) can in principle sit unresolved indefinitely
+// on a real device — a slow/obscured permission prompt, a browser that
+// never surfaces one, etc. Before this, nothing bounded that wait:
+// committedRef.current being true already blocks releasing the hold from
+// cancelling anything (see endHold), and the TYPE/RECORD panels (with
+// their own Close button) don't mount until the request actually settles
+// — so a real hang left the dreamer stuck on "LISTENING…" with no visible
+// way out. This timeout guarantees the UI always reaches a real state
+// (recording, or a clear TYPE fallback) within a bounded wait, without
+// changing anything about the 800ms hold itself.
 const MIC_REQUEST_TIMEOUT_MS = 20000;
 // Bounds the OpenAI transcription round-trip the same way — a slow
 // network or a stalled response must not leave the dreamer staring at
@@ -60,29 +60,19 @@ const TRANSCRIPTION_TIMEOUT_MS = 30000;
 
 const TRANSCRIPTION_FAILED_MESSAGE = "I couldn't transcribe that. Try again or type your dream.";
 
-/** A specific, human-readable reason the mic didn't work — read from
-    useDreamRecorder's own `error` (the real MediaDevices/MediaRecorder
-    error name) rather than one generic "unavailable" message for every
-    case, per the explicit ask to distinguish denied vs missing vs busy vs
-    a request that never resolved at all. */
-function describeMicUnavailable(errorName: string | null, timedOut: boolean): string {
-  if (timedOut) return 'The microphone request took too long to respond.';
-  switch (errorName) {
-    case 'NotAllowedError':
-    case 'PermissionDeniedError':
-    case 'SecurityError':
-      return 'Microphone access was not allowed.';
-    case 'NotFoundError':
-    case 'DevicesNotFoundError':
-      return 'No microphone was found on this device.';
-    case 'NotReadableError':
-    case 'TrackStartError':
-      return 'Your microphone is being used by another app.';
-    case 'unsupported':
-      return "Voice recording isn't supported in this browser.";
-    default:
-      return 'The microphone is unavailable right now.';
+/** One of exactly two messages: the mic itself couldn't be reached (any
+    getUserMedia-stage failure — denied, no device, busy, unsupported —
+    or the request timing out), or it was reached but MediaRecorder never
+    confirmed it actually started recording ('start-not-confirmed', from
+    useDreamRecorder). Never show "I'm listening" without a real,
+    confirmed recording, and be honest about which stage actually failed.
+    Both land the dreamer in TYPE with an immediately usable, focused,
+    empty textarea — never a silent dead end. */
+function describeRecordingFailure(errorName: string | null, timedOut: boolean): string {
+  if (!timedOut && errorName === 'start-not-confirmed') {
+    return "I couldn't start listening.";
   }
+  return "I couldn't access your microphone.";
 }
 
 export default function HoldToRemember({
@@ -105,18 +95,14 @@ export default function HoldToRemember({
   const [isListening, setIsListening] = useState(false);
   const [entry, setEntry] = useState('');
   const [finishing, setFinishing] = useState(false);
-  // The specific reason the mic fell back to TYPE (denied/missing/busy/
-  // timed out/unsupported) — purely a local display concern, so this
-  // doesn't need to be lifted to HeroDream.tsx alongside micUnavailable.
+  // The specific reason the mic fell back to TYPE — purely a local
+  // display concern, so this doesn't need to be lifted to HeroDream.tsx
+  // alongside micUnavailable.
   const [micErrorMessage, setMicErrorMessage] = useState<string | null>(null);
   // Set only when a recorded clip failed to come back as usable text —
   // separate from micErrorMessage since it's a different failure (the mic
   // worked fine; OpenAI transcription itself didn't).
   const [transcriptionErrorMessage, setTranscriptionErrorMessage] = useState<string | null>(null);
-  // Diagnostic-only (?audioDiag=1) — tracks the upload/transcription
-  // request itself, alongside recorder.lastRecordingDiag which tracks the
-  // recording that produced the blob being uploaded.
-  const [audioUploadDiag, setAudioUploadDiag] = useState<UploadDiag>({ stage: 'idle' });
   const rafRef = useRef(0);
   const startRef = useRef(0);
   const listenTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -149,6 +135,11 @@ export default function HoldToRemember({
 
     // Races the real permission/recording request against a bounded
     // timeout — see MIC_REQUEST_TIMEOUT_MS above for why this exists.
+    // recorder.start() itself only resolves true once MediaRecorder's own
+    // onstart confirms capture genuinely began (see useDreamRecorder) —
+    // so centralMode only ever becomes 'recording' (showing "I'M
+    // LISTENING.") on the strength of that real confirmation, never
+    // merely because getUserMedia succeeded or a timeout elapsed.
     // `settled` is read inside startPromise's own .then, after the race
     // has already resolved one way or the other, to decide whether a
     // request that finishes granted AFTER the timeout already gave up
@@ -177,7 +168,7 @@ export default function HoldToRemember({
       }
       setIsListening(false);
       setMicUnavailable(true);
-      setMicErrorMessage(describeMicUnavailable(recorder.errorRef.current, timedOut));
+      setMicErrorMessage(describeRecordingFailure(recorder.errorRef.current, timedOut));
       setCentralMode('typing');
     }
   }, [recorder, holdRef, setCentralMode, setMicUnavailable]);
@@ -408,15 +399,8 @@ export default function HoldToRemember({
 
     if (blob.size === 0) {
       setTranscriptionErrorMessage(TRANSCRIPTION_FAILED_MESSAGE);
-      if (AUDIO_DIAG_VISIBLE) {
-        setAudioUploadDiag({ stage: 'done', payloadBytes: 0, payloadType: blob.type, errorMessage: 'blob.size === 0 — never sent to the server.' });
-      }
       setCentralMode('typing');
       return;
-    }
-
-    if (AUDIO_DIAG_VISIBLE) {
-      setAudioUploadDiag({ stage: 'uploading', payloadBytes: blob.size, payloadType: blob.type });
     }
 
     const controller = new AbortController();
@@ -434,21 +418,8 @@ export default function HoldToRemember({
         setEntry(result.transcript);
         onTypedTranscriptChange(result.transcript);
         setTranscriptionErrorMessage(null);
-        if (AUDIO_DIAG_VISIBLE) {
-          setAudioUploadDiag({ stage: 'done', payloadBytes: blob.size, payloadType: blob.type, httpStatus: result.httpStatus, transcript: result.transcript });
-        }
       } else {
         setTranscriptionErrorMessage(TRANSCRIPTION_FAILED_MESSAGE);
-        if (AUDIO_DIAG_VISIBLE) {
-          setAudioUploadDiag({
-            stage: 'done',
-            payloadBytes: blob.size,
-            payloadType: blob.type,
-            httpStatus: result.httpStatus,
-            errorMessage: `${result.reason}: ${result.message}`,
-            rawBody: result.rawBody,
-          });
-        }
       }
       setCentralMode('typing');
     }, () => {
@@ -593,9 +564,9 @@ export default function HoldToRemember({
         </button>
         {micUnavailable && (
           <p className="central-mic-note">
-            {micErrorMessage ?? 'The microphone is unavailable right now.'}
+            {micErrorMessage ?? "I couldn't access your microphone."}
             <br />
-            Type what you remember instead.
+            Type your dream instead.
           </p>
         )}
         {!micUnavailable && transcriptionErrorMessage && (
@@ -643,14 +614,6 @@ export default function HoldToRemember({
         <p className="central-settled-text">I THINK I HAVE IT.</p>
         <p className="central-settled-text central-settled-text--second">LET ME PUT IT BACK TOGETHER.</p>
       </div>
-
-      {/* Diagnostic aid only — never part of the normal user journey.
-          Visit with ?audioDiag=1 to verify whether the real recorded clip
-          actually contains audible speech (local playback), independent
-          of anything about uploading it or OpenAI transcribing it. */}
-      {AUDIO_DIAG_VISIBLE && (
-        <AudioDiagPanel diag={recorder.lastRecordingDiag} audioBlob={recorder.audioBlob} upload={audioUploadDiag} />
-      )}
     </div>
   );
 }
