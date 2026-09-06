@@ -330,16 +330,58 @@
   text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.45);
 }
 
+/* Plain wrapper so the touch-primary-only ripple ring (below) can sit
+   concentrically behind the orb via absolute positioning, centered with
+   plain top/left:50% — which requires this wrap's own box to be exactly
+   the orb's size, nothing more. The old margin-bottom that used to live
+   on the orb itself (spacing before the next element) moved here for
+   that reason: if it stayed on the orb, the wrap's flex box would be
+   taller than the orb by that margin, and top:50% would center the
+   ripple on the wrap's midpoint rather than the orb's own center. */
+.central-recording-orb-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2.4rem;
+}
+
 .central-recording-orb {
   width: 74px;
   height: 74px;
   border-radius: 50%;
-  margin-bottom: 2.4rem;
   background: radial-gradient(circle, rgba(244, 240, 232, 0.22) 0%, rgba(244, 240, 232, 0.05) 55%, transparent 75%);
   opacity: 0.45;
   transform: scale(1);
   transition: none;
   will-change: transform, opacity;
+}
+
+/* Touch-primary devices only (see isTouchPrimary in HoldToRemember.tsx) —
+   never mounted on desktop at all. A soft ring, concentric with the orb,
+   that expands and glows with real mic amplitude: the primary "DARE is
+   hearing you" cue on mobile now that browser SpeechRecognition isn't
+   attempted there (see the comment on isTouchPrimary for why). Opacity
+   and scale are driven every frame from the real audioLevelRef, not a
+   fake animation — near-silent at rest, visibly rippling on real speech. */
+.central-recording-ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 240, 232, 0.4);
+  box-shadow: 0 0 20px rgba(244, 240, 232, 0.2);
+  opacity: 0;
+  /* Centering (translate) lives here so the JS frame loop only ever has
+     to append a scale() — see the ripple update in the audio-reactive
+     effect in HoldToRemember.tsx, which sets style.transform to the
+     whole `translate(-50%, -50%) scale(...)` string every frame. */
+  transform: translate(-50%, -50%) scale(1);
+  transition: none;
+  will-change: transform, opacity;
+  pointer-events: none;
 }
 
 /* Purely cosmetic live preview shown while recording — never the source
