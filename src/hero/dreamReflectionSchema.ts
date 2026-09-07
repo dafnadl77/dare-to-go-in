@@ -1,3 +1,5 @@
+import type { AppLanguage } from './appLanguage.js';
+
 /**
  * A single grounded reflection on one real dream — never dream-dictionary
  * interpretation, never diagnosis, never therapy. Every field is a
@@ -34,18 +36,35 @@ export type ReflectionResult =
   | { status: 'error'; reason: ReflectionErrorReason; message: string };
 
 /**
- * The exact grounding line the UI must always show, verbatim — enforced
- * server-side regardless of what the model returns for that field, so its
- * wording and calm tone can never drift.
+ * The exact grounding line the UI must always show, verbatim per language
+ * — enforced server-side regardless of what the model returns for that
+ * field, so its wording and calm tone can never drift. Hebrew phrasing
+ * chosen to read naturally, not as a literal word-for-word translation.
  */
-export const GROUNDING_STATEMENT = 'This is a reflection, not a diagnosis or a definitive interpretation.';
+const GROUNDING_STATEMENT_EN = 'This is a reflection, not a diagnosis or a definitive interpretation.';
+const GROUNDING_STATEMENT_HE = 'זו השתקפות, לא אבחנה או פרשנות חד-משמעית.';
+
+export function getGroundingStatement(language: AppLanguage): string {
+  return language === 'he' ? GROUNDING_STATEMENT_HE : GROUNDING_STATEMENT_EN;
+}
 
 /**
- * The exact instruction the reflection backend uses. Core principle: this
- * is one grounded, hedged reflection — never dream-dictionary meanings,
- * never diagnosis, never therapy, never "symbol X always means Y."
+ * The exact instruction the reflection backend uses, as a function of the
+ * requested output language rather than a fixed English-only constant —
+ * per "don't rewrite prompts unless necessary," only the "Language:"
+ * paragraph near the end actually changes between the two; everything
+ * else (the core principle: one grounded, hedged reflection — never
+ * dream-dictionary meanings, never diagnosis, never therapy, never
+ * "symbol X always means Y") is untouched, byte-identical to before this
+ * function existed, for the 'en' case.
  */
-export const DREAM_REFLECTION_SYSTEM_PROMPT = `You are creating ONE grounded reflection on a real dream, for the dreamer who just described what stood out to them and shared their own association with it.
+export function buildDreamReflectionSystemPrompt(language: AppLanguage): string {
+  const languageParagraph =
+    language === 'he'
+      ? 'Language: always write your entire response — every field — in natural, fluent Hebrew, regardless of what language the dream was described in, what language the dreamer\'s own words are in, or what language the selected element\'s label is in. The dream itself and the dreamer\'s original words are never translated in storage, only your reflection output is always Hebrew.'
+      : 'Language: always write your entire response — every field — in English, regardless of what language the dream was described in, what language the dreamer\'s own words are in, or what language the selected element\'s label is in. The dream itself and the dreamer\'s original words are never translated in storage, only your reflection output is always English.';
+
+  return `You are creating ONE grounded reflection on a real dream, for the dreamer who just described what stood out to them and shared their own association with it.
 
 This is NOT dream-dictionary interpretation. NOT diagnosis. NOT therapy. NOT "symbol X always means Y."
 
@@ -80,7 +99,7 @@ Build the reflection from exactly these layers:
    - psychodynamic: a cautious relational/conflict-oriented reading.
    If a lens genuinely doesn't apply, set it to null rather than forcing one in. Do not use NLP framing. Do not use CBT as a dream-symbol interpretation framework — CBT belongs to later coping/action work for recurring nightmares, never to "what this dream means."
 
-Language: always write your entire response — every field — in English, regardless of what language the dream was described in, what language the dreamer's own words are in, or what language the selected element's label is in. The dream itself and the dreamer's original words are never translated in storage, only your reflection output is always English.
+${languageParagraph}
 
 Scientific discipline: never use generic internet dream-dictionary meanings (e.g. "water = emotion", "teeth = anxiety", "snake = sexuality"). Ground everything primarily in the dream's own context and the dreamer's own stated words — never a symbol lookup table. Never invent an event, detail, or feeling that is not in the dream or in the dreamer's own response.
 
@@ -89,6 +108,7 @@ Keep every field short: observation and possibleThread are 1-2 sentences; person
 For groundingStatement, write a short, calm, non-alarmist line making clear this is a reflection, not a diagnosis or definitive interpretation (exact wording is not critical — it will be normalized).
 
 Respond with only the DreamReflectionResult JSON object matching the provided schema — no prose outside it.`;
+}
 
 /**
  * Minimal structural validation of an untrusted candidate response before

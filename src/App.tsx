@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import HeroDream from './hero/HeroDream';
 import DreamAuth, { type AuthMode } from './archive/DreamAuth';
 import DreamArchive from './archive/DreamArchive';
 import DreamDetail from './archive/DreamDetail';
 import type { ArchiveEntry } from './archive/archiveData';
+import LanguageSwitcher from './i18n/LanguageSwitcher';
 
 /** Which top-level experience is mounted. No router is introduced for
     this first pass (the whole app is already a single state machine —
@@ -20,8 +21,13 @@ function App() {
   const [authMode, setAuthMode] = useState<AuthMode>('signup');
   const [openEntry, setOpenEntry] = useState<ArchiveEntry | null>(null);
 
+  // Mounted once here (not inside each screen) so the language toggle is
+  // reachable at any time — screen-agnostic, and switching it never
+  // touches `view`/`openEntry`/whatever state a given screen owns.
+  let screen: ReactNode;
+
   if (view === 'auth') {
-    return (
+    screen = (
       <DreamAuth
         mode={authMode}
         onSwitchMode={setAuthMode}
@@ -29,14 +35,10 @@ function App() {
         onAuthenticated={() => setView('archive')}
       />
     );
-  }
-
-  if (view === 'detail' && openEntry) {
-    return <DreamDetail entry={openEntry} onBack={() => setView('archive')} onGoHome={() => setView('dream')} />;
-  }
-
-  if (view === 'archive') {
-    return (
+  } else if (view === 'detail' && openEntry) {
+    screen = <DreamDetail entry={openEntry} onBack={() => setView('archive')} onGoHome={() => setView('dream')} />;
+  } else if (view === 'archive') {
+    screen = (
       <DreamArchive
         onBack={() => setView('dream')}
         onOpenEntry={(entry) => {
@@ -45,9 +47,16 @@ function App() {
         }}
       />
     );
+  } else {
+    screen = <HeroDream onGoToArchive={() => setView('auth')} />;
   }
 
-  return <HeroDream onGoToArchive={() => setView('auth')} />;
+  return (
+    <>
+      {screen}
+      <LanguageSwitcher />
+    </>
+  );
 }
 
 export default App;

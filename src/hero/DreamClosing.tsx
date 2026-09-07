@@ -3,6 +3,7 @@ import { sanitizeAiTextForDisplay } from './appLanguage';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
 import type { InsideStep } from './DreamReconstruction';
+import { useLanguage } from '../i18n/LanguageContext';
 import './DreamClosing.css';
 
 interface DreamClosingProps {
@@ -48,6 +49,7 @@ const SPARK_COUNT = 10;
  * dissolve outcome of LET IT GO.
  */
 export default function DreamClosing({ step, reflectionResult, accentColor, onSave, onLetGo, onReturnToRoom, onGoToArchive }: DreamClosingProps) {
+  const { t } = useLanguage();
   const accent = accentColor ?? FALLBACK_ACCENT;
   const accentVars = { '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties;
 
@@ -61,7 +63,7 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
           </div>
 
           <div className="dc-block dc-block--closing" style={accentVars}>
-            <p className="dc-title">DON&rsquo;T LET IT DISAPPEAR.</p>
+            <p className="dc-title">{t('closing.dontLetItDisappear')}</p>
             <div className="dc-choices">
               <button type="button" className="dc-portal dc-portal--keep" data-cursor-hover onClick={onSave}>
                 <span className="dc-portal-glow" aria-hidden="true" />
@@ -81,9 +83,12 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
                   <path d="M16 9v17.6" stroke="currentColor" strokeWidth="1.3" />
                 </svg>
                 <span className="dc-portal-label">
-                  KEEP THIS
-                  <br />
-                  DREAM
+                  {t('closing.keepThisDream').split('\n').map((line, i) => (
+                    <span key={i}>
+                      {i > 0 && <br />}
+                      {line}
+                    </span>
+                  ))}
                 </span>
               </button>
 
@@ -109,11 +114,11 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
                   <path d="M9.5 22.5 22 10" stroke="currentColor" strokeWidth="1.1" />
                 </svg>
                 <span className="dc-portal-label">
-                  <DispersingLetters text="LET IT GO" />
+                  <DispersingLetters text={t('closing.letItGo')} />
                 </span>
               </button>
             </div>
-            <p className="dc-choice-hint">THE CHOICE IS YOURS.</p>
+            <p className="dc-choice-hint">{t('closing.theChoiceIsYours')}</p>
           </div>
         </>
       )}
@@ -132,12 +137,12 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
 
       {step === 'saved' && (
         <div className="dc-block dc-block--enter" style={accentVars}>
-          <p className="dc-title dc-title--small dc-title--materialize">DREAM SAVED.</p>
+          <p className="dc-title dc-title--small dc-title--materialize">{t('closing.dreamSaved')}</p>
           <button type="button" className="dr-choice dr-choice--yes" data-cursor-hover onClick={onReturnToRoom}>
-            RETURN TO THE ROOM
+            {t('closing.returnToTheRoom')}
           </button>
           <button type="button" className="dc-archive-invite" data-cursor-hover onClick={onGoToArchive}>
-            go to my dream archive
+            {t('closing.goToMyDreamArchive')}
           </button>
         </div>
       )}
@@ -162,7 +167,7 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
 
       {step === 'gone' && (
         <div className="dc-block dc-block--enter">
-          <p className="dc-title dc-title--small">GONE.</p>
+          <p className="dc-title dc-title--small">{t('closing.gone')}</p>
         </div>
       )}
     </div>

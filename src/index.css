@@ -85,3 +85,40 @@ button {
   background: var(--dream-warm-neutral);
   color: var(--dream-black);
 }
+
+/* ===================================================================
+   HEBREW (RTL) TYPOGRAPHY — global, deliberate, broad-brush overrides.
+   English typography throughout this app relies heavily on wide
+   uppercase letter-spacing (0.15–0.3em) as a stylistic device; applied
+   to Hebrew glyphs the same tracking breaks word cohesion and reads as
+   broken, since Hebrew has no equivalent convention — so it's reset to
+   normal everywhere, not audited component-by-component. `!important`
+   is deliberate and unusually broad here: there are many separate
+   component stylesheets with their own explicit letter-spacing/
+   font-family values (uppercase labels, headings, buttons), and one
+   global correction is safer and more maintainable than auditing each
+   one individually — nothing in this codebase depends on either
+   surviving into RTL mode.
+   =================================================================== */
+:root[dir='rtl'] * {
+  letter-spacing: normal !important;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif !important;
+}
+
+/* The handful of large editorial/display headings that use Fraunces in
+   English get Frank Ruhl Libre instead — preserving the serif/sans
+   contrast that gives DARE its editorial character, rather than every
+   heading collapsing to the same body sans under RTL. (.memory-title —
+   the DARE TO GO IN brand mark — is deliberately NOT in this list: it
+   stays Fraunces and LTR in every language, see MemoryTitle.tsx.) */
+:root[dir='rtl'] .central-recording-heading,
+:root[dir='rtl'] .central-settled-text,
+:root[dir='rtl'] .da-title,
+:root[dir='rtl'] .dr-line,
+:root[dir='rtl'] .dc-title,
+:root[dir='rtl'] .auth-eyebrow-title,
+:root[dir='rtl'] .ar-title,
+:root[dir='rtl'] .dd-title,
+:root[dir='rtl'] .dt-title {
+  font-family: 'Frank Ruhl Libre', Georgia, serif !important;
+}

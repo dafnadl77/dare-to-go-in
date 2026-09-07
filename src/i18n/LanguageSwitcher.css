@@ -1,0 +1,79 @@
+/* Mirrors .dare-home's own restrained visual language (HeroDream.css) —
+   same fixed corner treatment, same type scale/weight/opacity — so the
+   two read as a deliberate pair rather than two unrelated UI systems. */
+.language-switcher {
+  position: fixed;
+  top: max(20px, env(safe-area-inset-top));
+  right: max(20px, env(safe-area-inset-right));
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.ls-item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.ls-divider {
+  color: var(--dream-white);
+  opacity: 0.3;
+  font-size: 0.68rem;
+  margin: 0 0.1em;
+}
+
+.ls-option {
+  background: none;
+  border: none;
+  outline: none;
+  margin: 0;
+  padding: 0.4em 0.3em;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--dream-white);
+  opacity: 0.4;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+  transition:
+    opacity 0.4s var(--ease-soft),
+    letter-spacing 0.4s var(--ease-soft);
+}
+
+/* The Hebrew label ("עברית") never takes the wide English uppercase
+   tracking — Hebrew has no case, and the same letter-spacing that reads
+   as considered/editorial on Latin caps just breaks Hebrew word cohesion. */
+.ls-option--he {
+  letter-spacing: normal;
+  text-transform: none;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+}
+
+.ls-option.is-active {
+  opacity: 0.9;
+}
+
+.ls-option:hover,
+.ls-option:focus-visible {
+  opacity: 1;
+}
+
+.ls-option:not(.ls-option--he):hover,
+.ls-option:not(.ls-option--he):focus-visible {
+  letter-spacing: 0.3em;
+}
+
+@media (max-width: 640px), (max-height: 500px) {
+  .language-switcher {
+    top: max(14px, env(safe-area-inset-top));
+    right: max(14px, env(safe-area-inset-right));
+  }
+
+  .ls-option {
+    font-size: 0.62rem;
+    padding: 0.35em 0.25em;
+  }
+}

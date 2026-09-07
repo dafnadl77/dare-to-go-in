@@ -82,6 +82,13 @@ export default function MemoryTitle({ revealed, dissolving = false, reconstructi
       ref={rootRef}
       className={`memory-title${revealed ? ' is-revealed' : ''}${settled ? ' is-settled' : ''}${dissolving ? ' is-dissolving' : ''}${reconstructing ? ' is-reconstructing' : ''}`}
       aria-label={TITLE}
+      // DARE TO GO IN is the brand mark — never translated, and its
+      // visual order must never be affected by a Hebrew (RTL) document
+      // direction. Each letter renders as its own <span> for the
+      // per-letter animation above; without an explicit LTR direction
+      // here, the Unicode bidi algorithm could reorder those spans
+      // visually under dir="rtl" and garble the word order.
+      dir="ltr"
     >
       {words.map((word, wi) => (
         <span className="mt-word" key={wi}>

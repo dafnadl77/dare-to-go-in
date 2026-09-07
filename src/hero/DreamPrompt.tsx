@@ -1,3 +1,4 @@
+import { useLanguage } from '../i18n/LanguageContext';
 import './DreamPrompt.css';
 
 interface DreamPromptProps {
@@ -9,9 +10,10 @@ interface DreamPromptProps {
 }
 
 export default function DreamPrompt({ revealed, quiet = false, reconstructing = false }: DreamPromptProps) {
+  const { t } = useLanguage();
   return (
     <p className={`dream-prompt${revealed ? ' is-revealed' : ''}${quiet ? ' is-quiet' : ''}${reconstructing ? ' is-reconstructing' : ''}`}>
-      WHAT DO YOU REMEMBER FROM YOUR DREAM?
+      {t('hero.dreamPrompt')}
     </p>
   );
 }

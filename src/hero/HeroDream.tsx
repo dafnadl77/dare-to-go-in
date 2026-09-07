@@ -28,6 +28,7 @@ import type { ReflectionResult } from './dreamReflectionSchema';
 import { saveDream, buildSavedDream } from './dreamStorage';
 import { extractAccentColor, extractDreamPalette, isImageCenterLight, type AccentColor } from './dreamAccentColor';
 import type { CentralMode } from './centralMode';
+import { useLanguage } from '../i18n/LanguageContext';
 import './HeroDream.css';
 
 const DISSOLVE_MS = 4200;
@@ -78,6 +79,7 @@ interface HeroDreamProps {
 }
 
 export default function HeroDream({ onGoToArchive }: HeroDreamProps) {
+  const { t } = useLanguage();
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
   const uiLayerRef = useRef<HTMLDivElement>(null);
@@ -620,7 +622,7 @@ export default function HeroDream({ onGoToArchive }: HeroDreamProps) {
           never a navbar. Only shown once there's actually somewhere to
           return from. */}
       {isReconstructing && (
-        <button type="button" className="dare-home" data-cursor-hover onClick={handleGoHome} aria-label="Return to DARE">
+        <button type="button" className="dare-home" dir="ltr" data-cursor-hover onClick={handleGoHome} aria-label={t('archive.backToDare')}>
           DARE
         </button>
       )}

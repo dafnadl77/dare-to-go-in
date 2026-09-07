@@ -1,5 +1,6 @@
 import type { DreamAnalysis } from './dreamAnalysisSchema';
 import { validateDreamReflectionResult, type ReflectionResult, type ReflectionErrorReason } from './dreamReflectionSchema';
+import { getAppLanguage } from './appLanguage';
 
 const KNOWN_REASONS: ReflectionErrorReason[] = ['not_configured', 'invalid_response', 'request_failed', 'rate_limited', 'billing_issue'];
 
@@ -21,7 +22,7 @@ export async function getDreamReflection(request: DreamReflectionRequest): Promi
     const res = await fetch('/api/dream-reflection', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
+      body: JSON.stringify({ ...request, language: getAppLanguage() }),
     });
 
     const data: unknown = await res.json().catch(() => null);

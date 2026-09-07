@@ -1,5 +1,6 @@
 import type { ArchiveEntry } from './archiveData';
 import { formatEntryDayMonth, formatEntryMonth, formatEntryYear } from './archiveData';
+import { useLanguage } from '../i18n/LanguageContext';
 import './DreamTimeline.css';
 
 interface DreamTimelineProps {
@@ -57,8 +58,9 @@ function TimelineImage({ src, title }: { src: string; title: string }) {
 }
 
 function TimelineRow({ entry, onOpen }: { entry: ArchiveEntry; onOpen: () => void }) {
+  const { t } = useLanguage();
   return (
-    <button type="button" className="dt-row" data-cursor-hover onClick={onOpen} aria-label={`Open ${entry.title}`}>
+    <button type="button" className="dt-row" data-cursor-hover onClick={onOpen} aria-label={`${t('archive.openEntry')} ${entry.title}`}>
       <TimelineImage src={entry.image} title={entry.title} />
       <span className="dt-node" aria-hidden="true" />
       <span className="dt-meta">
@@ -80,6 +82,7 @@ function TimelineRow({ entry, onOpen }: { entry: ArchiveEntry; onOpen: () => voi
  * items.
  */
 export default function DreamTimeline({ entries, onOpenEntry }: DreamTimelineProps) {
+  const { t } = useLanguage();
   const groups = groupByMonth(entries);
   const closingMonth = monthBeforeOldest(entries);
 
@@ -98,7 +101,7 @@ export default function DreamTimeline({ entries, onOpenEntry }: DreamTimelinePro
       {closingMonth && (
         <div className="dt-closing" aria-hidden="true">
           <p className="dt-month dt-month--closing">{closingMonth}</p>
-          <p className="dt-closing-note">More dreams from the past</p>
+          <p className="dt-closing-note">{t('archive.moreDreamsFromThePast')}</p>
           <span className="dt-closing-chevron">⌄</span>
         </div>
       )}

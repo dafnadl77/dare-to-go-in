@@ -12,6 +12,7 @@ import DreamStageBackground from './DreamStageBackground';
 import DreamWorld from './DreamWorld';
 import DreamReflection from './DreamReflection';
 import DreamClosing from './DreamClosing';
+import { useLanguage } from '../i18n/LanguageContext';
 import './DreamReconstruction.css';
 
 export type ReconstructionPhase =
@@ -130,6 +131,7 @@ export default function DreamReconstruction({
   onGoToArchive,
 }: DreamReconstructionProps) {
   const [correctionText, setCorrectionText] = useState('');
+  const { t } = useLanguage();
   const imageLayerRef = useRef<HTMLDivElement>(null);
   // The generated image itself never changes without a new API call — this
   // only adds subtle procedural motion on top of it (parallax, drifting
@@ -331,16 +333,16 @@ export default function DreamReconstruction({
         </div>
       )}
 
-      {(phase === 'reconstructing' || phase === 'regenerating') && <p className="dr-remembering">REMEMBERING&hellip;</p>}
+      {(phase === 'reconstructing' || phase === 'regenerating') && <p className="dr-remembering">{t('reconstruction.remembering')}</p>}
 
       {phase === 'image-error' && (
         <div className="dr-image-error">
-          <p className="dr-line">I COULDN&rsquo;T SEE ALL OF IT.</p>
+          <p className="dr-line">{t('reconstruction.couldntSeeAllOfIt')}</p>
           {/* A failed generation has nothing to retry from within this same
               session — send the dreamer back to the very start rather than
               re-firing the same request against the same brief. */}
           <button type="button" className="dr-choice" data-cursor-hover onClick={onReturnToRoom}>
-            RESTART
+            {t('reconstruction.restart')}
           </button>
         </div>
       )}
@@ -350,14 +352,14 @@ export default function DreamReconstruction({
           exactly on the phase change would just make it vanish instantly. */}
       {(phase === 'reveal' || phase === 'entering') && (
         <div className="dr-reveal" data-light-bg={revealTextOnLight ? 'true' : 'false'}>
-          <p className="dr-line dr-line--found">THIS IS WHAT I FOUND.</p>
-          <p className="dr-line dr-line--felt">IS THIS HOW IT FELT?</p>
+          <p className="dr-line dr-line--found">{t('reconstruction.thisIsWhatIFound')}</p>
+          <p className="dr-line dr-line--felt">{t('reconstruction.isThisHowItFelt')}</p>
           <div className="dr-choices">
             <button type="button" className="dr-choice dr-choice--yes" data-cursor-hover onClick={onYes}>
-              YES &mdash; TAKE ME IN
+              {t('reconstruction.yesTakeMeIn')}
             </button>
             <button type="button" className="dr-choice dr-choice--no" data-cursor-hover onClick={onNotQuite}>
-              NOT QUITE
+              {t('reconstruction.notQuite')}
             </button>
           </div>
         </div>
@@ -365,17 +367,17 @@ export default function DreamReconstruction({
 
       {phase === 'correcting' && (
         <div className="dr-correct">
-          <p className="dr-line">WHAT DID I GET WRONG?</p>
+          <p className="dr-line">{t('reconstruction.whatDidIGetWrong')}</p>
           <textarea
             className="dr-correct-textarea"
             value={correctionText}
             onChange={(e) => setCorrectionText(e.target.value)}
-            placeholder="Tell me what to change..."
+            placeholder={t('reconstruction.correctionPlaceholder')}
             dir="auto"
             rows={3}
           />
           <button type="button" className="dr-choice" data-cursor-hover onClick={handleTryAgain}>
-            TRY AGAIN
+            {t('reconstruction.tryAgain')}
           </button>
         </div>
       )}

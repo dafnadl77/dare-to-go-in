@@ -3,6 +3,7 @@ import DreamStageBackground from '../hero/DreamStageBackground';
 import { sanitizeAiTextForDisplay, containsHebrew } from '../hero/appLanguage';
 import { formatEntryDayMonth, formatEntryYear, type ArchiveEntry } from './archiveData';
 import { translateTexts } from './dreamTranslationEngine';
+import { useLanguage } from '../i18n/LanguageContext';
 import './DreamDetail.css';
 
 interface DreamDetailProps {
@@ -13,16 +14,21 @@ interface DreamDetailProps {
   onGoHome: () => void;
 }
 
-/** THE DREAM / WHAT STOOD OUT / YOUR ASSOCIATION need a REAL translation
-    when the underlying saved value is Hebrew — there is no guaranteed-
-    English field anywhere else to fall back to for the dreamer's own
-    original words (unlike title/keywords, which archiveData.ts already
-    keeps safely English via a synchronous fallback). See
-    dreamTranslationEngine.ts. `raw` is what gets sent for translation and
-    is NEVER rendered directly when it contains Hebrew — only `display`
-    is, which is either the original (already English), the resolved
-    translation, or a plain loading/error placeholder — so raw Hebrew
-    never reaches the page, even for a moment. */
+/** THE DREAM / WHAT STOOD OUT / YOUR ASSOCIATION needed a REAL translation
+    when the underlying saved value was Hebrew AND the interface itself was
+    English-only — there was no guaranteed-English field anywhere else to
+    fall back to for the dreamer's own original words (unlike title/
+    keywords, which archiveData.ts already keeps safely English via a
+    synchronous fallback). Now that the interface itself can be Hebrew,
+    this whole mechanism only runs while the ACTIVE UI language is English
+    (see the `language !== 'en'` guards below) — per this task's own
+    instruction not to auto-translate the dreamer's own words, a Hebrew UI
+    simply shows the original text as saved, no translation attempted in
+    either direction. `raw` is what gets sent for translation and is NEVER
+    rendered directly when it contains Hebrew while the UI is English —
+    only `display` is, which is either the original (already English), the
+    resolved translation, or a plain loading/error placeholder — so raw
+    Hebrew never reaches an English page, even for a moment. */
 type FieldKey = 'dream' | 'stoodOut' | 'association';
 type TranslationState = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -35,15 +41,22 @@ type TranslationState = 'idle' | 'loading' | 'ready' | 'error';
  * this is a small, deliberately separate read-only view: same cloud world
  * and typography, its own single centered editorial column. For a real
  * saved dream it renders that dream's own actual stored content — never
- * invented. This screen is English-only end to end: DreamReflectionResult
- * is already guaranteed English by its own system prompt; the dreamer's
- * own original words (sourceText, reflectionResponse, selectedElement)
- * are translated on demand via dreamTranslationEngine.ts when needed —
- * storage itself is never touched, only what's displayed here. A mock
- * dream has no such saved reflection, so it falls back to a placeholder
- * note.
+ * invented.
+ *
+ * DYNAMIC-CONTENT NOTE (bilingual UI): DreamReflectionResult (observation,
+ * possibleThread, continuityQuestion, groundingStatement, lenses) is
+ * generated once, at save time, in whichever language was active THEN
+ * (see dreamStorage.ts's `appLanguage` stamp on every SavedDream) — it is
+ * never regenerated just because the dreamer is now browsing in a
+ * different UI language, since that would mean a second paid AI call and
+ * would make the saved record disagree with what was actually kept. Only
+ * this screen's own CHROME (headings, buttons, disclaimer) follows the
+ * CURRENT UI language; the reflection's own interpretive text stays in
+ * whatever language it was actually generated in. A mock dream has no
+ * such saved reflection, so it falls back to a placeholder note.
  */
 export default function DreamDetail({ entry, onBack, onGoHome }: DreamDetailProps) {
+  const { t, language } = useLanguage();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     bgVideoRef.current?.play().catch(() => {});
@@ -68,7 +81,9 @@ export default function DreamDetail({ entry, onBack, onGoHome }: DreamDetailProp
   useEffect(() => {
     setTranslationState('idle');
     setTranslated({});
-    if (entry.kind !== 'real') return;
+    // Only the English UI ever force-translates the dreamer's own words —
+    // see the module comment above.
+    if (entry.kind !== 'real' || language !== 'en') return;
 
     const items: { key: FieldKey; text: string }[] = [];
     if (sourceTextRaw && containsHebrew(sourceTextRaw)) items.push({ key: 'dream', text: sourceTextRaw });
@@ -95,16 +110,22 @@ export default function DreamDetail({ entry, onBack, onGoHome }: DreamDetailProp
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entry.id]);
+  }, [entry.id, language]);
 
-  /** Resolves one field to safe, displayable English text — the ONLY
-      function in this file allowed to decide what actually reaches the
-      page for a field that might be Hebrew in storage. */
+  /** Resolves one field to safe, displayable text. On the English UI this
+      is the only function allowed to decide what actually reaches the
+      page for a field that might be Hebrew in storage (translate it, or
+      show a loading/error placeholder while that's pending) — matching
+      the original English-only behavior exactly. On the Hebrew UI (or any
+      non-English UI) this never translates in either direction: the
+      dreamer's own words are shown exactly as saved, per this task's
+      explicit instruction not to auto-translate user content. */
   function resolve(key: FieldKey, raw: string | null): string | null {
     if (!raw) return null;
+    if (language !== 'en') return raw;
     if (!containsHebrew(raw)) return sanitizeAiTextForDisplay(raw);
     if (translationState === 'ready' && translated[key]) return translated[key]!;
-    if (translationState === 'error') return 'Original entry recorded in another language — translation unavailable right now.';
+    if (translationState === 'error') return t('dreamDetail.translationUnavailable');
     return null; // loading — see the *-loading placeholder rendered below
   }
 
@@ -121,11 +142,11 @@ export default function DreamDetail({ entry, onBack, onGoHome }: DreamDetailProp
       <DreamStageBackground ref={bgVideoRef} active />
       <div className="dd-night-tint" aria-hidden="true" />
 
-      <button type="button" className="dd-back" onClick={onBack} aria-label="Back to MY DREAM ARCHIVE">
+      <button type="button" className="dd-back" onClick={onBack} aria-label={t('dreamDetail.backToArchive')}>
         <span className="dd-back-arrow" aria-hidden="true">
           ←
         </span>
-        BACK TO MY DREAM ARCHIVE
+        {t('dreamDetail.backToArchive')}
       </button>
 
       {/* The entrance animation lives here, deliberately NOT on
@@ -152,57 +173,57 @@ export default function DreamDetail({ entry, onBack, onGoHome }: DreamDetailProp
           {reflection ? (
             <div className="dd-narrative">
               <section className="dd-block">
-                <p className="dd-eyebrow">The Dream</p>
+                <p className="dd-eyebrow">{t('dreamDetail.theDream')}</p>
                 {dreamText ? (
                   <p className="dd-body">{dreamText}</p>
                 ) : (
-                  <p className="dd-body dd-body--loading">Translating…</p>
+                  <p className="dd-body dd-body--loading">{t('dreamDetail.translating')}</p>
                 )}
               </section>
 
-              {(stoodOutText || (selectedElementRaw && containsHebrew(selectedElementRaw))) && (
+              {(stoodOutText || (selectedElementRaw && language === 'en' && containsHebrew(selectedElementRaw))) && (
                 <section className="dd-block">
-                  <p className="dd-eyebrow">What Stood Out</p>
+                  <p className="dd-eyebrow">{t('dreamDetail.whatStoodOut')}</p>
                   {stoodOutText ? (
                     <p className="dd-body dd-body--stood-out">{stoodOutText}</p>
                   ) : (
-                    <p className="dd-body dd-body--loading">Translating…</p>
+                    <p className="dd-body dd-body--loading">{t('dreamDetail.translating')}</p>
                   )}
                 </section>
               )}
 
               <section className="dd-block">
-                <p className="dd-eyebrow">Your Association</p>
+                <p className="dd-eyebrow">{t('dreamDetail.yourAssociation')}</p>
                 {associationText ? (
                   <p className="dd-body">{associationText}</p>
                 ) : (
-                  <p className="dd-body dd-body--loading">Translating…</p>
+                  <p className="dd-body dd-body--loading">{t('dreamDetail.translating')}</p>
                 )}
               </section>
 
               <section className="dd-block">
-                <p className="dd-eyebrow">A Possible Thread</p>
+                <p className="dd-eyebrow">{t('dreamDetail.aPossibleThread')}</p>
                 <p className="dd-body dd-body--thread">{sanitizeAiTextForDisplay(reflection.possibleThread)}</p>
               </section>
 
               <section className="dd-block">
-                <p className="dd-eyebrow">A Question Worth Sitting With</p>
+                <p className="dd-eyebrow">{t('dreamDetail.aQuestionWorthSittingWith')}</p>
                 <p className="dd-body dd-body--question">{sanitizeAiTextForDisplay(reflection.continuityQuestion)}</p>
               </section>
 
-              <p className="dd-disclaimer">This is a reflection, not a diagnosis or a definitive interpretation.</p>
+              <p className="dd-disclaimer">{t('dreamDetail.disclaimer')}</p>
             </div>
           ) : (
-            <p className="dd-mock-note">The full dream memory is coming soon.</p>
+            <p className="dd-mock-note">{t('dreamDetail.comingSoon')}</p>
           )}
 
-          <nav className="dd-end-nav" aria-label="Dream detail navigation">
+          <nav className="dd-end-nav" aria-label={t('dreamDetail.detailNav')}>
             <button type="button" className="dd-end-link" onClick={onBack}>
-              BACK TO MY DREAM ARCHIVE
+              {t('dreamDetail.backToArchive')}
             </button>
             <span className="dd-end-divider" aria-hidden="true" />
             <button type="button" className="dd-end-link" onClick={onGoHome}>
-              RETURN TO THE ROOM
+              {t('dreamDetail.returnToTheRoom')}
             </button>
           </nav>
         </div>

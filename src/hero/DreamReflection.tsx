@@ -5,6 +5,7 @@ import { sanitizeAiTextForDisplay } from './appLanguage';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
 import type { InsideStep } from './DreamReconstruction';
+import { useLanguage } from '../i18n/LanguageContext';
 import './DreamReflection.css';
 
 interface DreamReflectionProps {
@@ -57,10 +58,13 @@ const CHOICE_STEPS = new Set<InsideStep>(['choices', 'selected']);
 const QUESTION_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting']);
 const ARRIVAL_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting']);
 
-const LENS_LABELS: Record<'cognitive' | 'jungian' | 'psychodynamic', string> = {
-  cognitive: 'COGNITIVE',
-  jungian: 'JUNGIAN',
-  psychodynamic: 'PSYCHODYNAMIC',
+// Translation-key lookup (not the literal label itself — see t() calls at
+// render time) for each lens name to the i18n key that holds its display
+// label in the current language.
+const LENS_LABEL_KEYS: Record<'cognitive' | 'jungian' | 'psychodynamic', string> = {
+  cognitive: 'reflection.cognitive',
+  jungian: 'reflection.jungian',
+  psychodynamic: 'reflection.psychodynamic',
 };
 
 /** The node path sits in the frame's left third, clear of the upper-center
@@ -69,15 +73,17 @@ const LENS_LABELS: Record<'cognitive' | 'jungian' | 'psychodynamic', string> = {
     coordinates, per the approved reflection-path reference. */
 const NODE_LEFT_VW = 11;
 
+// `labelKey` is an i18n path (see LENS_LABEL_KEYS above for the same
+// pattern), resolved via t() at render time — not the literal text.
 const REFLECTION_FRAGMENTS: {
   key: keyof Pick<DreamReflectionResult, 'observation' | 'personalAssociation' | 'possibleThread' | 'continuityQuestion'>;
-  label: string;
+  labelKey: string;
   tier: 'body' | 'thread' | 'question';
 }[] = [
-  { key: 'observation', label: 'WHAT I NOTICE', tier: 'body' },
-  { key: 'personalAssociation', label: 'YOUR ASSOCIATION', tier: 'body' },
-  { key: 'possibleThread', label: 'ONE POSSIBLE THREAD', tier: 'thread' },
-  { key: 'continuityQuestion', label: 'A QUESTION WORTH KEEPING', tier: 'question' },
+  { key: 'observation', labelKey: 'reflection.whatINotice', tier: 'body' },
+  { key: 'personalAssociation', labelKey: 'reflection.yourAssociation', tier: 'body' },
+  { key: 'possibleThread', labelKey: 'reflection.onePossibleThread', tier: 'thread' },
+  { key: 'continuityQuestion', labelKey: 'reflection.aQuestionWorthKeeping', tier: 'question' },
 ];
 
 // How long each thought stays the active/focused one before the next
@@ -108,6 +114,7 @@ export default function DreamReflection({
   onRetryReflection,
   onContinue,
 }: DreamReflectionProps) {
+  const { t } = useLanguage();
   const [responseText, setResponseText] = useState('');
   const [lensesVisible, setLensesVisible] = useState(false);
   const fieldRef = useRef<HTMLDivElement>(null);
@@ -136,7 +143,7 @@ export default function DreamReflection({
     return () => clearTimeout(t);
   }, [stage]);
 
-  const questionText = QUESTION_STEPS.has(step) && selectedElement ? buildReflectionQuestion(selectedElement) : null;
+  const questionText = QUESTION_STEPS.has(step) && selectedElement ? buildReflectionQuestion(selectedElement, t) : null;
   const showAnchor = selectedElement && (step === 'interpreting' || step === 'reflection');
 
   const handleContinue = () => {
@@ -146,7 +153,7 @@ export default function DreamReflection({
   };
 
   const activeLenses = reflectionResult
-    ? (Object.entries(reflectionResult.lenses) as [keyof typeof LENS_LABELS, string | null][]).filter(([, text]) => !!text)
+    ? (Object.entries(reflectionResult.lenses) as [keyof typeof LENS_LABEL_KEYS, string | null][]).filter(([, text]) => !!text)
     : [];
 
   return (
@@ -156,8 +163,8 @@ export default function DreamReflection({
           <div className="da-content">
             {(step === 'prompt' || step === 'choices' || step === 'selected') && (
               <>
-                <h2 className="da-title">THIS IS YOUR DREAM</h2>
-                <p className="da-subtitle">Choose the moment that stands out to you</p>
+                <h2 className="da-title">{t('reflection.thisIsYourDream')}</h2>
+                <p className="da-subtitle">{t('reflection.chooseTheMoment')}</p>
               </>
             )}
 
@@ -211,7 +218,7 @@ export default function DreamReflection({
                       className="dr-response-textarea"
                       value={responseText}
                       onChange={(e) => setResponseText(e.target.value)}
-                      placeholder="TYPE WHAT COMES TO MIND..."
+                      placeholder={t('reflection.writingPlaceholder')}
                       dir="auto"
                       rows={3}
                     />
@@ -225,7 +232,7 @@ export default function DreamReflection({
                     </span>
                   </div>
                   <button type="button" className="dr-choice" data-cursor-hover onClick={handleContinue}>
-                    CONTINUE
+                    {t('reflection.continue')}
                   </button>
                 </div>
               </>
@@ -236,13 +243,13 @@ export default function DreamReflection({
 
       {showAnchor && <p className="dr-anchor">{selectedElement}</p>}
 
-      {step === 'interpreting' && !reflectionErrored && <p className="dr-interpreting">REFLECTING&hellip;</p>}
+      {step === 'interpreting' && !reflectionErrored && <p className="dr-interpreting">{t('reflection.reflecting')}</p>}
 
       {step === 'interpreting' && reflectionErrored && (
         <div className="dr-reflection-error">
-          <p className="dr-line">I COULDN&rsquo;T QUITE GATHER MY THOUGHTS.</p>
+          <p className="dr-line">{t('reflection.couldntGatherThoughts')}</p>
           <button type="button" className="dr-choice" data-cursor-hover onClick={onRetryReflection}>
-            TRY AGAIN
+            {t('reflection.tryAgain')}
           </button>
         </div>
       )}
@@ -278,7 +285,7 @@ export default function DreamReflection({
                     {NODE_ICONS[i]}
                   </span>
                   <div className={`dr-thought dr-thought--${f.tier}`}>
-                    <h3 className="dr-thought-label">{f.label}</h3>
+                    <h3 className="dr-thought-label">{t(f.labelKey)}</h3>
                     <p className="dr-thought-text">{sanitizeAiTextForDisplay(reflectionResult[f.key])}</p>
                   </div>
                 </div>
@@ -289,13 +296,13 @@ export default function DreamReflection({
           {stage >= 4 && activeLenses.length > 0 && (
             <div className="dr-lenses-wrap">
               <button type="button" className="dr-lenses-toggle" data-cursor-hover onClick={() => setLensesVisible((v) => !v)}>
-                {lensesVisible ? 'HIDE OTHER LENSES' : 'SEE OTHER LENSES'}
+                {lensesVisible ? t('reflection.hideOtherLenses') : t('reflection.seeOtherLenses')}
               </button>
               {lensesVisible && (
                 <div className="dr-lenses">
                   {activeLenses.map(([key, text]) => (
                     <p className="dr-lens" key={key}>
-                      <span className="dr-lens-label">{LENS_LABELS[key]}</span> {sanitizeAiTextForDisplay(text as string)}
+                      <span className="dr-lens-label">{t(LENS_LABEL_KEYS[key])}</span> {sanitizeAiTextForDisplay(text as string)}
                     </p>
                   ))}
                 </div>
@@ -308,7 +315,7 @@ export default function DreamReflection({
           {stage >= 4 && (
             <div className={`dr-continue-wrap${continueVisible ? ' is-visible' : ''}`}>
               <button type="button" className="dr-choice dr-choice--yes" data-cursor-hover onClick={onContinue}>
-                CONTINUE
+                {t('reflection.continue')}
               </button>
             </div>
           )}

@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, type FormEvent } from 'react';
 import DreamStageBackground from '../hero/DreamStageBackground';
+import { useLanguage } from '../i18n/LanguageContext';
 import './DreamAuth.css';
 
 export type AuthMode = 'signup' | 'signin';
@@ -53,6 +54,7 @@ function GoogleMark() {
  * archive prototype. No request is ever sent, no library is wired in.
  */
 export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated }: DreamAuthProps) {
+  const { t } = useLanguage();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     bgVideoRef.current?.play().catch(() => {});
@@ -71,19 +73,19 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated 
   return (
     <div className="dream-auth">
       <DreamStageBackground ref={bgVideoRef} active />
-      <button type="button" className="auth-back" data-cursor-hover onClick={onBack} aria-label="Back to DARE">
+      <button type="button" className="auth-back" dir="ltr" data-cursor-hover onClick={onBack} aria-label={t('auth.backToDare')}>
         DARE
       </button>
 
       <div className="auth-content">
         {isSignUp ? (
           <>
-            <h1 className="auth-eyebrow-title">KEEP YOUR DREAMS</h1>
-            <p className="auth-tagline">Create your private dream archive.</p>
+            <h1 className="auth-eyebrow-title">{t('auth.keepYourDreams')}</h1>
+            <p className="auth-tagline">{t('auth.createArchiveTagline')}</p>
           </>
         ) : (
           <>
-            <h1 className="auth-eyebrow-title">WELCOME BACK, DREAMER.</h1>
+            <h1 className="auth-eyebrow-title">{t('auth.welcomeBack')}</h1>
             <p className="auth-tagline">&nbsp;</p>
           </>
         )}
@@ -91,11 +93,11 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated 
         <form className="auth-form" onSubmit={handleSubmit}>
           <button type="button" className="auth-google" data-cursor-hover onClick={onAuthenticated}>
             <GoogleMark />
-            Continue with Google
+            {t('auth.continueWithGoogle')}
           </button>
 
           <div className="auth-divider" aria-hidden="true">
-            <span>OR</span>
+            <span>{t('auth.or')}</span>
           </div>
 
           <label className="auth-field">
@@ -104,7 +106,8 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated 
               type="email"
               inputMode="email"
               autoComplete="email"
-              placeholder="Email"
+              dir="ltr"
+              placeholder={t('auth.emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -115,30 +118,31 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated 
               className="auth-input"
               type="password"
               autoComplete={isSignUp ? 'new-password' : 'current-password'}
-              placeholder="Password"
+              dir="ltr"
+              placeholder={t('auth.passwordPlaceholder')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
           </label>
 
           <button type="submit" className="auth-submit" data-cursor-hover>
-            {isSignUp ? 'CREATE MY ARCHIVE' : 'ENTER MY ARCHIVE'}
+            {isSignUp ? t('auth.createMyArchive') : t('auth.enterMyArchive')}
           </button>
         </form>
 
         <p className="auth-switch">
           {isSignUp ? (
             <>
-              Already have an archive?
+              {t('auth.alreadyHaveArchive')}
               <button type="button" className="auth-switch-link" data-cursor-hover onClick={() => onSwitchMode('signin')}>
-                Sign in
+                {t('auth.signIn')}
               </button>
             </>
           ) : (
             <>
-              New here?
+              {t('auth.newHere')}
               <button type="button" className="auth-switch-link" data-cursor-hover onClick={() => onSwitchMode('signup')}>
-                Create your archive
+                {t('auth.createYourArchive')}
               </button>
             </>
           )}

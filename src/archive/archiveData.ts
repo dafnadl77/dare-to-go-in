@@ -1,6 +1,7 @@
 import type { SavedDream } from '../hero/dreamStorage';
 import { getDreams } from '../hero/dreamStorage';
-import { containsHebrew } from '../hero/appLanguage';
+import { containsHebrew, getAppLanguage, type AppLanguage } from '../hero/appLanguage';
+import { dateLocale } from '../i18n/locale';
 import { MOCK_DREAMS, type MockDream } from './mockDreams';
 
 /**
@@ -159,12 +160,21 @@ export function getArchiveEntries(): ArchiveEntry[] {
   return [...real, ...mock].sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
-export function formatEntryDayMonth(date: Date): string {
-  return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }).toUpperCase();
+/** Both date formatters default to the current app language (read from
+    appLanguage.ts, which the active LanguageProvider keeps in sync — see
+    LanguageContext.tsx) so existing call sites needed no change; an
+    explicit `language` is accepted for the one call site (DreamDetail's
+    header) that already had it in scope and can skip the extra read. */
+export function formatEntryDayMonth(date: Date, language: AppLanguage = getAppLanguage()): string {
+  const formatted = date.toLocaleDateString(dateLocale(language), { day: '2-digit', month: 'short' });
+  // .toUpperCase() only matters for Latin script (English month
+  // abbreviations); it's a harmless no-op on Hebrew, which has no case.
+  return formatted.toUpperCase();
 }
 
-export function formatEntryMonth(date: Date): string {
-  return date.toLocaleDateString('en-US', { month: 'long' }).toUpperCase();
+export function formatEntryMonth(date: Date, language: AppLanguage = getAppLanguage()): string {
+  const formatted = date.toLocaleDateString(dateLocale(language), { month: 'long' });
+  return formatted.toUpperCase();
 }
 
 export function formatEntryYear(date: Date): string {

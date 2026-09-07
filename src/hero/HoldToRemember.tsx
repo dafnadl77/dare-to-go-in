@@ -15,6 +15,7 @@ import { createTextDreamInput, type DreamInput } from './dreamInput';
 import { transcribeDreamAudio } from './dreamTranscription';
 import { getAppLanguage } from './appLanguage';
 import { useLivePreviewTranscript } from './useLivePreviewTranscript';
+import { useLanguage } from '../i18n/LanguageContext';
 import './HoldToRemember.css';
 
 type DreamRecorderApi = ReturnType<typeof useDreamRecorder>;
@@ -59,8 +60,6 @@ const MIC_REQUEST_TIMEOUT_MS = 20000;
 // "TRANSCRIBING…" forever with no way out.
 const TRANSCRIPTION_TIMEOUT_MS = 30000;
 
-const TRANSCRIPTION_FAILED_MESSAGE = "I couldn't transcribe that. Try again or type your dream.";
-
 /** One of exactly two messages: the mic itself couldn't be reached (any
     getUserMedia-stage failure — denied, no device, busy, unsupported —
     or the request timing out), or it was reached but MediaRecorder never
@@ -68,12 +67,14 @@ const TRANSCRIPTION_FAILED_MESSAGE = "I couldn't transcribe that. Try again or t
     useDreamRecorder). Never show "I'm listening" without a real,
     confirmed recording, and be honest about which stage actually failed.
     Both land the dreamer in TYPE with an immediately usable, focused,
-    empty textarea — never a silent dead end. */
-function describeRecordingFailure(errorName: string | null, timedOut: boolean): string {
+    empty textarea — never a silent dead end. Takes `t` as a parameter
+    (rather than calling useLanguage() itself) since it's a plain
+    function, not a component. */
+function describeRecordingFailure(errorName: string | null, timedOut: boolean, t: (path: string) => string): string {
   if (!timedOut && errorName === 'start-not-confirmed') {
-    return "I couldn't start listening.";
+    return t('hold.micErrorStartFailed');
   }
-  return "I couldn't access your microphone.";
+  return t('hold.micErrorGeneric');
 }
 
 export default function HoldToRemember({
@@ -124,6 +125,7 @@ export default function HoldToRemember({
   // read by anything that decides what actually gets submitted; the real
   // transcript always comes from recorder.audioBlob -> OpenAI below.
   const livePreview = useLivePreviewTranscript();
+  const { t } = useLanguage();
 
   const tick = useCallback(() => {
     const elapsed = performance.now() - startRef.current;
@@ -188,10 +190,10 @@ export default function HoldToRemember({
       }
       setIsListening(false);
       setMicUnavailable(true);
-      setMicErrorMessage(describeRecordingFailure(recorder.errorRef.current, timedOut));
+      setMicErrorMessage(describeRecordingFailure(recorder.errorRef.current, timedOut, t));
       setCentralMode('typing');
     }
-  }, [recorder, holdRef, setCentralMode, setMicUnavailable]);
+  }, [recorder, holdRef, setCentralMode, setMicUnavailable, t]);
 
   const beginHold = useCallback(() => {
     if (centralMode !== 'hold' || committedRef.current) return;
@@ -447,7 +449,7 @@ export default function HoldToRemember({
     const blob = recorder.audioBlob;
 
     if (blob.size === 0) {
-      setTranscriptionErrorMessage(TRANSCRIPTION_FAILED_MESSAGE);
+      setTranscriptionErrorMessage(t('hold.transcriptionFailed'));
       setCentralMode('typing');
       return;
     }
@@ -468,7 +470,7 @@ export default function HoldToRemember({
         onTypedTranscriptChange(result.transcript);
         setTranscriptionErrorMessage(null);
       } else {
-        setTranscriptionErrorMessage(TRANSCRIPTION_FAILED_MESSAGE);
+        setTranscriptionErrorMessage(t('hold.transcriptionFailed'));
       }
       setCentralMode('typing');
     }, () => {
@@ -479,10 +481,10 @@ export default function HoldToRemember({
       // TRANSCRIBING… forever.
       if (transcribeAbortRef.current !== controller) return;
       transcribeAbortRef.current = null;
-      setTranscriptionErrorMessage(TRANSCRIPTION_FAILED_MESSAGE);
+      setTranscriptionErrorMessage(t('hold.transcriptionFailed'));
       setCentralMode('typing');
     });
-  }, [recorder.audioBlob, onTypedTranscriptChange, setCentralMode]);
+  }, [recorder.audioBlob, onTypedTranscriptChange, setCentralMode, t]);
 
   const isHoldFaded = centralMode !== 'hold';
   const requestingMic = recorder.recordingState === 'requesting-permission';
@@ -505,7 +507,7 @@ export default function HoldToRemember({
         onPointerCancel={endHold}
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
-        aria-label="Hold to tell me about your dream"
+        aria-label={t('hold.holdAria')}
       >
         <svg className="htr-ring" viewBox="0 0 96 96" aria-hidden="true">
           <circle className="htr-ring-track" cx="48" cy="48" r={RADIUS} />
@@ -529,13 +531,13 @@ export default function HoldToRemember({
         <span className="htr-label">
           {requestingMic ? (
             <>
-              LISTENING…
-              <span className="htr-privacy-note">Your dream stays yours.</span>
+              {t('hold.listening')}
+              <span className="htr-privacy-note">{t('hold.privacyNote')}</span>
             </>
           ) : isListening ? (
-            'LISTENING…'
+            t('hold.listening')
           ) : (
-            'HOLD TO TELL ME'
+            t('hold.holdToTellMe')
           )}
         </span>
       </button>
@@ -548,7 +550,7 @@ export default function HoldToRemember({
         aria-hidden={isHoldFaded}
         onClick={() => setCentralMode('typing')}
       >
-        I&rsquo;D RATHER TYPE
+        {t('hold.idRatherType')}
       </button>
 
       <div
@@ -561,12 +563,12 @@ export default function HoldToRemember({
           data-cursor-hover
           tabIndex={centralMode === 'recording' && !finishing ? 0 : -1}
           onClick={handleClose}
-          aria-label="Cancel recording"
+          aria-label={t('hold.cancelRecording')}
         >
           ×
         </button>
-        <p className="central-recording-heading">I&rsquo;M LISTENING.</p>
-        <p className="central-recording-subheading">TELL ME EVERYTHING YOU REMEMBER.</p>
+        <p className="central-recording-heading">{t('hold.imListening')}</p>
+        <p className="central-recording-subheading">{t('hold.tellMeEverything')}</p>
         <div className="central-recording-orb-wrap">
           {/* A soft ring that ripples outward and glows with real mic
               amplitude (see the audio-reactive frame loop above) — now
@@ -598,7 +600,7 @@ export default function HoldToRemember({
           tabIndex={centralMode === 'recording' && !finishing ? 0 : -1}
           onClick={handleFinishDream}
         >
-          FINISH DREAM
+          {t('hold.finishDream')}
         </button>
       </div>
 
@@ -612,11 +614,11 @@ export default function HoldToRemember({
           data-cursor-hover
           tabIndex={centralMode === 'transcribing' ? 0 : -1}
           onClick={handleClose}
-          aria-label="Cancel transcription"
+          aria-label={t('hold.cancelTranscription')}
         >
           ×
         </button>
-        <p className="central-recording-heading">TRANSCRIBING…</p>
+        <p className="central-recording-heading">{t('hold.transcribing')}</p>
         <div className="central-transcribing-orb" aria-hidden="true" />
       </div>
 
@@ -630,15 +632,15 @@ export default function HoldToRemember({
           data-cursor-hover
           tabIndex={centralMode === 'typing' ? 0 : -1}
           onClick={handleClose}
-          aria-label="Cancel typing"
+          aria-label={t('hold.cancelTyping')}
         >
           ×
         </button>
         {micUnavailable && (
           <p className="central-mic-note">
-            {micErrorMessage ?? "I couldn't access your microphone."}
+            {micErrorMessage ?? t('hold.micErrorGeneric')}
             <br />
-            Type your dream instead.
+            {t('hold.typeInsteadHint')}
           </p>
         )}
         {!micUnavailable && transcriptionErrorMessage && (
@@ -646,11 +648,11 @@ export default function HoldToRemember({
             {transcriptionErrorMessage}
           </p>
         )}
-        <p className="central-typing-heading">TELL ME WHAT HAPPENED.</p>
+        <p className="central-typing-heading">{t('hold.tellMeWhatHappened')}</p>
         <textarea
           ref={textareaRef}
           className="central-typing-textarea"
-          placeholder="Start with anything you remember..."
+          placeholder={t('hold.typingPlaceholder')}
           value={entry}
           onChange={handleEntryChange}
           tabIndex={centralMode === 'typing' ? 0 : -1}
@@ -665,7 +667,7 @@ export default function HoldToRemember({
             tabIndex={centralMode === 'typing' ? 0 : -1}
             onClick={handleBack}
           >
-            ← Back
+            {t('hold.back')}
           </button>
           <button
             type="button"
@@ -674,7 +676,7 @@ export default function HoldToRemember({
             tabIndex={centralMode === 'typing' ? 0 : -1}
             onClick={handleDoneTyping}
           >
-            I&rsquo;M DONE
+            {t('hold.imDone')}
           </button>
         </div>
       </div>
@@ -683,8 +685,8 @@ export default function HoldToRemember({
         className={`central-settled${centralMode === 'settled' ? ' is-active' : ''}`}
         aria-hidden={centralMode !== 'settled'}
       >
-        <p className="central-settled-text">I THINK I HAVE IT.</p>
-        <p className="central-settled-text central-settled-text--second">LET ME PUT IT BACK TOGETHER.</p>
+        <p className="central-settled-text">{t('hold.iThinkIHaveIt')}</p>
+        <p className="central-settled-text central-settled-text--second">{t('hold.letMePutItBackTogether')}</p>
       </div>
     </div>
   );

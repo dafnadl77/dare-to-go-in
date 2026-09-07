@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
 import DreamStageBackground from '../hero/DreamStageBackground';
 import { getArchiveEntries, getLastArchiveScrollTop, setLastArchiveScrollTop, type ArchiveEntry } from './archiveData';
 import DreamTimeline from './DreamTimeline';
+import { useLanguage } from '../i18n/LanguageContext';
 import './DreamArchive.css';
 
 interface DreamArchiveProps {
@@ -17,6 +18,7 @@ interface DreamArchiveProps {
  * behind it, the header, and the top nav are unchanged.
  */
 export default function DreamArchive({ onBack, onOpenEntry }: DreamArchiveProps) {
+  const { t } = useLanguage();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     bgVideoRef.current?.play().catch(() => {});
@@ -67,18 +69,18 @@ export default function DreamArchive({ onBack, onOpenEntry }: DreamArchiveProps)
       </div>
 
       <div className="ar-top">
-        <button type="button" className="ar-back" data-cursor-hover onClick={onBack} aria-label="Back to DARE">
+        <button type="button" className="ar-back" dir="ltr" data-cursor-hover onClick={onBack} aria-label={t('archive.backToDare')}>
           DARE
         </button>
-        <nav className="ar-nav" aria-label="Dream Archive">
+        <nav className="ar-nav" aria-label={t('archive.dreamArchiveNav')}>
           <span className="ar-nav-item" data-active="true">
-            MY DREAMS
+            {t('archive.myDreams')}
           </span>
-          <span className="ar-nav-item" data-placeholder="true" title="Coming soon">
-            CONSTELLATIONS
+          <span className="ar-nav-item" data-placeholder="true" title={t('archive.comingSoon')}>
+            {t('archive.constellations')}
           </span>
-          <span className="ar-nav-item" data-placeholder="true" title="Coming soon">
-            TIMELINE
+          <span className="ar-nav-item" data-placeholder="true" title={t('archive.comingSoon')}>
+            {t('archive.timeline')}
           </span>
         </nav>
         <div className="ar-profile" aria-hidden="true">
@@ -87,8 +89,8 @@ export default function DreamArchive({ onBack, onOpenEntry }: DreamArchiveProps)
       </div>
 
       <header className="ar-header">
-        <h1 className="ar-title">MY DREAM ARCHIVE</h1>
-        <p className="ar-subtitle">Every dream leaves a trace.</p>
+        <h1 className="ar-title">{t('archive.myDreamArchive')}</h1>
+        <p className="ar-subtitle">{t('archive.everyDreamLeavesATrace')}</p>
       </header>
 
       <DreamTimeline entries={entries} onOpenEntry={handleOpenEntry} />

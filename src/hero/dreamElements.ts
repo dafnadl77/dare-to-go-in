@@ -37,8 +37,12 @@ export function deriveDreamElements(analysis: DreamAnalysis, max = 6): string[] 
 
 /**
  * The reflection question, generated purely from the selected real element
- * — never a hardcoded example, never reinterpreted or paraphrased.
+ * — never a hardcoded example, never reinterpreted or paraphrased. The
+ * surrounding phrase comes from the translation resources (via `t`, the
+ * caller's own useLanguage().t) so it reads in whichever language the UI
+ * is currently in; only the element itself is real, dreamer-derived
+ * content. `.toUpperCase()` is a harmless no-op on Hebrew (no case).
  */
-export function buildReflectionQuestion(element: string): string {
-  return `WHEN YOU THINK ABOUT ${element.toUpperCase()} NOW —\nWHAT COMES UP?`;
+export function buildReflectionQuestion(element: string, t: (path: string) => string): string {
+  return `${t('reflection.reflectionQuestionPrefix')} ${element.toUpperCase()} ${t('reflection.reflectionQuestionSuffix')}`;
 }

@@ -3,11 +3,12 @@ import { getOpenAIClient } from '../openaiClient.js';
 import { okResult, errorResult, type HandlerResult } from '../httpResult.js';
 import { validateDreamAnalysis, type DreamAnalysis } from '../../src/hero/dreamAnalysisSchema.js';
 import {
-  DREAM_REFLECTION_SYSTEM_PROMPT,
+  buildDreamReflectionSystemPrompt,
   DREAM_REFLECTION_JSON_SCHEMA,
-  GROUNDING_STATEMENT,
+  getGroundingStatement,
   validateDreamReflectionResult,
 } from '../../src/hero/dreamReflectionSchema.js';
+import type { AppLanguage } from '../../src/hero/appLanguage.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
 
@@ -46,7 +47,11 @@ export async function handleDreamReflection(rawBody: unknown): Promise<HandlerRe
     selectedElement?: unknown;
     reflectionResponse?: unknown;
     reconstructionCorrections?: unknown;
+    language?: unknown;
   };
+  // Defaults to English for any caller that doesn't send it — matches
+  // the pre-bilingual behavior exactly.
+  const language: AppLanguage = body.language === 'he' ? 'he' : 'en';
 
   const dreamAnalysis = validateDreamAnalysis(body.dreamAnalysis);
   if (!dreamAnalysis) {
@@ -74,7 +79,7 @@ export async function handleDreamReflection(rawBody: unknown): Promise<HandlerRe
   try {
     const response = await client.responses.create({
       model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
-      instructions: DREAM_REFLECTION_SYSTEM_PROMPT,
+      instructions: buildDreamReflectionSystemPrompt(language),
       input,
       text: {
         format: {
@@ -100,7 +105,7 @@ export async function handleDreamReflection(rawBody: unknown): Promise<HandlerRe
 
     // The grounding line's exact wording/tone is safety-relevant — always
     // enforced by the server, never left to the model's own phrasing.
-    validated.groundingStatement = GROUNDING_STATEMENT;
+    validated.groundingStatement = getGroundingStatement(language);
 
     return okResult(validated);
   } catch (err) {

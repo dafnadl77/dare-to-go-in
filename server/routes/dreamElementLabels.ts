@@ -2,17 +2,21 @@ import OpenAI from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
 import { okResult, errorResult, type HandlerResult } from '../httpResult.js';
 import {
-  DREAM_ELEMENT_LABEL_SYSTEM_PROMPT,
+  buildDreamElementLabelSystemPrompt,
   DREAM_ELEMENT_LABELS_JSON_SCHEMA,
   validateElementLabels,
 } from '../../src/hero/dreamElementLabelsSchema.js';
+import type { AppLanguage } from '../../src/hero/appLanguage.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
 
 export async function handleDreamElementLabels(rawBody: unknown): Promise<HandlerResult> {
-  const body = (rawBody ?? {}) as { sourceText?: unknown; elements?: unknown };
+  const body = (rawBody ?? {}) as { sourceText?: unknown; elements?: unknown; language?: unknown };
   const sourceText = typeof body.sourceText === 'string' ? body.sourceText : '';
   const elements = Array.isArray(body.elements) ? body.elements.filter((e): e is string => typeof e === 'string' && e.trim().length > 0) : [];
+  // Defaults to English for any caller that doesn't send it (e.g. an
+  // older cached client) — matches the pre-bilingual behavior exactly.
+  const language: AppLanguage = body.language === 'he' ? 'he' : 'en';
 
   if (elements.length === 0) {
     return errorResult(400, 'empty_input', 'elements must be a non-empty array of strings.');
@@ -31,7 +35,7 @@ ${elements.map((e, i) => `${i + 1}. ${e}`).join('\n')}`;
   try {
     const response = await client.responses.create({
       model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
-      instructions: DREAM_ELEMENT_LABEL_SYSTEM_PROMPT,
+      instructions: buildDreamElementLabelSystemPrompt(language),
       input,
       text: {
         format: {
