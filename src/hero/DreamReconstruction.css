@@ -909,17 +909,23 @@
 .dr-choice {
   position: relative;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--dream-warm-neutral);
+  /* Was --dream-warm-neutral at 0.78 opacity — read as too dark/faint
+     against the cloud background, especially the lighter cloud areas.
+     Matches the already-white hover state and .dr-choice--yes below;
+     this just makes that same readable tone the resting state too,
+     with a soft shadow (not weight/size) doing the legibility work. */
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
   background: none;
   border: none;
   outline: none;
   padding: 0.9em 0.6em;
   margin: -0.6em 0;
-  opacity: 0.78;
+  opacity: 0.85;
   cursor: pointer;
   transition:
     opacity 0.4s var(--ease-soft),

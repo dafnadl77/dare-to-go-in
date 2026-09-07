@@ -422,12 +422,16 @@
 .dc-choice-hint {
   margin: 0;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: var(--dream-warm-neutral-dim);
-  opacity: 0.6;
+  /* Was --dream-warm-neutral-dim at 0.6 opacity — too dark/faint against
+     the cloud background. A soft shadow does the legibility work rather
+     than weight, so this stays quiet, not loud. */
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
+  opacity: 0.75;
 }
 
 /* ---- KEEP THIS DREAM's outcome — energy rushes to center, the portal

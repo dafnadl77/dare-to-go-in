@@ -901,17 +901,20 @@
   position: relative;
   pointer-events: auto;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--dream-warm-neutral-dim);
+  /* Was --dream-warm-neutral-dim at 0.7 — too dark/faint to read as a
+     real action label against the cloud background. */
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.5);
   background: none;
   border: none;
   outline: none;
   padding: 0.5em 0.2em;
   cursor: pointer;
-  opacity: 0.7;
+  opacity: 0.8;
   transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
 }
 
@@ -940,10 +943,14 @@
 
 .dr-lens-label {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.2em;
-  color: var(--dream-warm-neutral-dim);
+  /* Was --dream-warm-neutral-dim — matches the .dr-lenses-toggle fix
+     above so the lens tag itself is legible, not just the toggle. */
+  color: var(--dream-white);
+  opacity: 0.8;
+  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.5);
 }
 
 .dr-grounding {
@@ -954,10 +961,15 @@
   margin: 0;
   max-width: 28em;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: clamp(0.82rem, 1.7vw, 0.92rem);
+  font-size: clamp(0.85rem, 1.75vw, 0.95rem);
   font-weight: 400;
   letter-spacing: 0.02em;
-  color: var(--dream-warm-neutral-dim);
+  /* Was --dream-warm-neutral-dim — too dark/faint against the cloud
+     background even at full opacity. A soft shadow (not weight) keeps
+     it legible over both light and dark cloud areas without reading
+     as loud. */
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
   text-align: center;
   opacity: 0;
   animation: dr-quiet-fade-in 2s var(--ease-memory) 0.4s forwards;

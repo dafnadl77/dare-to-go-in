@@ -521,13 +521,16 @@
   margin: 0 0 1.1rem;
   font-family: 'Inter', system-ui, sans-serif;
   font-weight: 500;
-  font-size: clamp(0.62rem, 1.3vw, 0.72rem);
+  font-size: clamp(0.66rem, 1.35vw, 0.76rem);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   line-height: 1.8;
-  color: var(--dream-warm-neutral-dim);
+  /* Was --dream-warm-neutral-dim — this is an actual error message the
+     dreamer needs to read, too dark/faint against the cloud background. */
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
   text-align: center;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .central-typing-heading {
@@ -582,17 +585,20 @@
 
 .central-back {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.62rem;
+  font-size: 0.66rem;
   font-weight: 400;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--dream-warm-neutral-dim);
+  /* Was --dream-warm-neutral-dim at 0.58 — matches .central-done (its
+     paired action) which was already white; this was the odd one out. */
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.5);
   background: none;
   border: none;
   outline: none;
   padding: 0.9em 0.6em;
   margin: -0.6em 0;
-  opacity: 0.58;
+  opacity: 0.75;
   transition:
     opacity 0.4s var(--ease-soft),
     color 0.4s var(--ease-soft),

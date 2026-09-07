@@ -103,7 +103,13 @@
   z-index: 50;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  /* Was space-between with a 3rd item (the now-removed "D" profile
+     button) at the end — that pinned it to the same top-right corner
+     the language switcher (App.tsx, fixed, always on top) occupies,
+     so the two overlapped. flex-start + an explicit gap keeps DARE and
+     the nav together on the left, leaving the right corner free. */
+  justify-content: flex-start;
+  gap: clamp(1.5rem, 4vw, 3rem);
   padding: 0 max(20px, env(safe-area-inset-left)) 0 max(20px, env(safe-area-inset-right));
   pointer-events: none;
   opacity: 1;
@@ -175,21 +181,6 @@
 
 .ar-nav-item[data-placeholder='true'] {
   opacity: 0.4;
-}
-
-.ar-profile {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(244, 240, 232, 0.08);
-  border: 1px solid rgba(244, 240, 232, 0.3);
-  color: var(--dream-white);
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: 0.8rem;
-  cursor: default;
 }
 
 /* Generous room of its own — the header must never compete with the

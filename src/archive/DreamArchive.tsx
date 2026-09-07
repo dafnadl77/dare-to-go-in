@@ -72,20 +72,24 @@ export default function DreamArchive({ onBack, onOpenEntry }: DreamArchiveProps)
         <button type="button" className="ar-back" dir="ltr" data-cursor-hover onClick={onBack} aria-label={t('archive.backToDare')}>
           DARE
         </button>
+        {/* CONSTELLATIONS and a separate TIMELINE item were removed here —
+            inspected first, per instruction: no Constellations view exists
+            anywhere in the codebase, and DreamTimeline.tsx (the "real
+            timeline view") is already exactly what MY DREAMS renders
+            below, not a distinct unconnected screen. Two nav items
+            pointing at byte-identical content isn't real navigation
+            either, so rather than wire up a second label that goes
+            nowhere new, MY DREAMS stays as the one accurate, working
+            item. The (now removed) circular "D" profile button used to
+            sit at the end of this same flex row — see .ar-top's
+            justify-content below, changed from space-between to
+            flex-start so this nav no longer stretches into the
+            language switcher's fixed top-right corner (App.tsx). */}
         <nav className="ar-nav" aria-label={t('archive.dreamArchiveNav')}>
           <span className="ar-nav-item" data-active="true">
             {t('archive.myDreams')}
           </span>
-          <span className="ar-nav-item" data-placeholder="true" title={t('archive.comingSoon')}>
-            {t('archive.constellations')}
-          </span>
-          <span className="ar-nav-item" data-placeholder="true" title={t('archive.comingSoon')}>
-            {t('archive.timeline')}
-          </span>
         </nav>
-        <div className="ar-profile" aria-hidden="true">
-          D
-        </div>
       </div>
 
       <header className="ar-header">
