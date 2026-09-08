@@ -27,15 +27,26 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-export const supabase: SupabaseClient = createClient(supabaseUrl ?? '', supabaseAnonKey ?? '', {
-  auth: {
-    // Real, persisted session — never a fake localStorage boolean. This
-    // is Supabase's own session store (a signed JWT + refresh token),
-    // the actual source of truth AuthContext.tsx reads from.
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
+// createClient() itself throws synchronously on an empty URL ("supabaseUrl
+// is required") — with real env vars missing, `?? ''` above still crashed
+// the entire app (including the dream-recording journey, which needs no
+// auth at all) before anything could render. A harmless placeholder URL
+// keeps construction safe; isSupabaseConfigured (below) is what actually
+// gates every real call in AuthContext.tsx, so this client is simply never
+// used for anything when misconfigured.
+export const supabase: SupabaseClient = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-anon-key',
+  {
+    auth: {
+      // Real, persisted session — never a fake localStorage boolean. This
+      // is Supabase's own session store (a signed JWT + refresh token),
+      // the actual source of truth AuthContext.tsx reads from.
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
   },
-});
+);
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
