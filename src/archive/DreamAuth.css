@@ -136,6 +136,12 @@
   transform: translateY(-1px);
 }
 
+.auth-google:disabled {
+  cursor: default;
+  opacity: 0.6;
+  transform: none;
+}
+
 .auth-google-mark {
   width: 16px;
   height: 16px;
@@ -203,6 +209,26 @@
   opacity: 0.6;
 }
 
+.auth-input:disabled {
+  opacity: 0.55;
+}
+
+/* ---- Error state — a soft warm-red note in the same quiet, unboxed
+   language as the rest of the form (no red alert banner, no icon): just
+   text that reads as concerned rather than alarming, sitting right above
+   the fields it explains. ---- */
+.auth-error {
+  margin: -0.3rem 0 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+  color: #f4d4c8;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.55);
+}
+
 /* ---- CREATE MY ARCHIVE / ENTER MY ARCHIVE — the same restrained
    text-link language as every other primary action in DARE (see
    .dr-choice) rather than a filled rectangular submit button. ---- */
@@ -245,6 +271,16 @@
 .auth-submit:hover::after,
 .auth-submit:focus-visible::after {
   transform: scaleX(1);
+}
+
+.auth-submit:disabled {
+  cursor: default;
+  opacity: 0.6;
+  letter-spacing: 0.22em;
+}
+
+.auth-submit:disabled::after {
+  transform: scaleX(0);
 }
 
 .auth-switch {

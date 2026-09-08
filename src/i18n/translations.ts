@@ -132,6 +132,21 @@ export interface Translations {
     signIn: string;
     newHere: string;
     createYourArchive: string;
+    signingIn: string;
+    creatingAccount: string;
+    checkingSession: string;
+    redirectingToGoogle: string;
+    errorInvalidEmail: string;
+    errorInvalidCredentials: string;
+    errorAccountExists: string;
+    errorWeakPassword: string;
+    errorNetwork: string;
+    errorRateLimited: string;
+    errorGeneric: string;
+    signedInAs: string;
+    signOut: string;
+    checkYourEmailTitle: string;
+    checkYourEmailMessage: string;
   };
   footer: {
     designedDeveloped: string;
@@ -254,6 +269,21 @@ export const en: Translations = {
     signIn: 'Sign in',
     newHere: 'New here?',
     createYourArchive: 'Create your archive',
+    signingIn: 'Signing in…',
+    creatingAccount: 'Creating your archive…',
+    checkingSession: 'One moment…',
+    redirectingToGoogle: 'Connecting to Google…',
+    errorInvalidEmail: 'That doesn’t look like a valid email address.',
+    errorInvalidCredentials: 'That email and password don’t match. Try again, or create a new archive.',
+    errorAccountExists: 'An archive already exists for that email. Try signing in instead.',
+    errorWeakPassword: 'Choose a password with at least 6 characters.',
+    errorNetwork: 'I couldn’t reach the server. Check your connection and try again.',
+    errorRateLimited: 'Too many attempts in a short time. Please wait a few minutes and try again.',
+    errorGeneric: 'Something went wrong. Please try again.',
+    signedInAs: 'Signed in as',
+    signOut: 'Sign out',
+    checkYourEmailTitle: 'CHECK YOUR EMAIL',
+    checkYourEmailMessage: 'I sent a confirmation link to {email}. Open it to finish creating your archive.',
   },
   footer: {
     designedDeveloped: 'DESIGNED & DEVELOPED BY DAFNA DALMEIDA',
@@ -382,6 +412,21 @@ export const he: Translations = {
     signIn: 'התחברות',
     newHere: 'מגיעים לראשונה?',
     createYourArchive: 'יצירת ארכיון',
+    signingIn: 'מתחברים…',
+    creatingAccount: 'יוצרים את הארכיון שלך…',
+    checkingSession: 'רגע…',
+    redirectingToGoogle: 'מתחברים אל Google…',
+    errorInvalidEmail: 'זו לא נראית ככתובת אימייל תקינה.',
+    errorInvalidCredentials: 'האימייל והסיסמה לא תואמים. נסו שוב, או צרו ארכיון חדש.',
+    errorAccountExists: 'כבר קיים ארכיון עבור האימייל הזה. נסו להתחבר במקום זאת.',
+    errorWeakPassword: 'בחרו סיסמה בת 6 תווים לפחות.',
+    errorNetwork: 'לא הצלחתי להגיע לשרת. בדקו את החיבור ונסו שוב.',
+    errorRateLimited: 'יותר מדי ניסיונות בזמן קצר. המתינו כמה דקות ונסו שוב.',
+    errorGeneric: 'משהו השתבש. נסו שוב.',
+    signedInAs: 'מחוברים בתור',
+    signOut: 'התנתקות',
+    checkYourEmailTitle: 'בדקו את תיבת המייל',
+    checkYourEmailMessage: 'נשלח קישור אישור אל {email}. פתחו אותו כדי להשלים את יצירת הארכיון.',
   },
   footer: {
     designedDeveloped: 'עיצוב ופיתוח: דפנה דלמדה',

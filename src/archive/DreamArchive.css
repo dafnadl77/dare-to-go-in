@@ -183,6 +183,59 @@
   opacity: 0.4;
 }
 
+/* ---- Minimal account control — email + sign out. Deliberately flows
+   right after the nav in this same left-grouped row (see .ar-top's own
+   comment on why this row uses flex-start) rather than pushed to the
+   row's far end with an auto margin — pushing it that far would land it
+   right under the language switcher's fixed top-right corner
+   (LanguageSwitcher.css). Sitting inline here keeps real, gap-based
+   separation from that corner at every viewport, in both LTR and RTL,
+   with no fixed positioning of its own to reason about. No dashboard,
+   no avatar. ---- */
+.ar-account {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  min-width: 0;
+}
+
+.ar-account-email {
+  max-width: 16vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  color: var(--dream-warm-neutral-dim);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+}
+
+.ar-account-signout {
+  flex: none;
+  margin: 0;
+  padding: 0.4em 0.2em;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dream-white);
+  opacity: 0.55;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+  transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
+}
+
+.ar-account-signout:hover,
+.ar-account-signout:focus-visible {
+  opacity: 0.95;
+  letter-spacing: 0.24em;
+}
+
 /* Generous room of its own — the header must never compete with the
    constellation below it for attention. */
 .ar-header {
@@ -226,6 +279,17 @@
 
   .ar-nav {
     gap: 0.9rem;
+  }
+
+  /* The row (DARE + nav + account) has no room for the full email on a
+     narrow screen — drop it and keep only Sign out, still reachable and
+     still nowhere near the language switcher's own corner. */
+  .ar-account-email {
+    display: none;
+  }
+
+  .ar-account {
+    gap: 0;
   }
 }
 

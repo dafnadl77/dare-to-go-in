@@ -3,6 +3,7 @@ import DreamStageBackground from '../hero/DreamStageBackground';
 import { getArchiveEntries, getLastArchiveScrollTop, setLastArchiveScrollTop, type ArchiveEntry } from './archiveData';
 import DreamTimeline from './DreamTimeline';
 import { useLanguage } from '../i18n/LanguageContext';
+import { useAuth } from '../auth/AuthContext';
 import './DreamArchive.css';
 
 interface DreamArchiveProps {
@@ -19,6 +20,7 @@ interface DreamArchiveProps {
  */
 export default function DreamArchive({ onBack, onOpenEntry }: DreamArchiveProps) {
   const { t } = useLanguage();
+  const { user, signOut } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     bgVideoRef.current?.play().catch(() => {});
@@ -90,6 +92,19 @@ export default function DreamArchive({ onBack, onOpenEntry }: DreamArchiveProps)
             {t('archive.myDreams')}
           </span>
         </nav>
+        {/* Minimal post-auth account control — email + sign out only, no
+            dashboard, no avatar. Deliberately placed in this same
+            left-grouped flex row (not a new fixed top-right element) so it
+            can never land on the language switcher's fixed corner
+            (LanguageSwitcher.css), in either LTR or RTL. */}
+        {user && (
+          <div className="ar-account">
+            {user.email && <span className="ar-account-email">{user.email}</span>}
+            <button type="button" className="ar-account-signout" data-cursor-hover onClick={() => signOut()}>
+              {t('auth.signOut')}
+            </button>
+          </div>
+        )}
       </div>
 
       <header className="ar-header">

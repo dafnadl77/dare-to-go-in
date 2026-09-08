@@ -1,6 +1,8 @@
 import { useRef, useEffect, useState, type FormEvent } from 'react';
 import DreamStageBackground from '../hero/DreamStageBackground';
 import { useLanguage } from '../i18n/LanguageContext';
+import { useAuth } from '../auth/AuthContext';
+import { describeAuthError } from '../auth/authErrors';
 import './DreamAuth.css';
 
 export type AuthMode = 'signup' | 'signin';
@@ -9,9 +11,11 @@ interface DreamAuthProps {
   mode: AuthMode;
   onSwitchMode: (mode: AuthMode) => void;
   onBack: () => void;
-  /** UI-only for this first pass — no real authentication is wired yet.
-      Firing this just proceeds into the archive prototype so the whole
-      flow can be reviewed end to end. */
+  /** Fired only once a real Supabase session actually exists — either
+      email/password sign-in/sign-up resolved successfully, or (for
+      Google) AuthContext's own onAuthStateChange listener picks up the
+      session after the OAuth redirect returns. Never fired just because
+      a button was clicked. */
   onAuthenticated: () => void;
 }
 
@@ -46,15 +50,22 @@ function GoogleMark() {
   );
 }
 
+/** Loose, deliberately permissive client-side check — just enough to
+    catch an obviously malformed address before spending a network round
+    trip, never a substitute for Supabase's own real validation. */
+function looksLikeEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
 /**
  * The Dream Archive's own authentication screen — the same cloud
- * environment as the rest of DARE, never a floating SaaS login card.
- * UI only for this pass: submitting either form (or the Google button)
- * simply calls onAuthenticated, which the caller uses to move on to the
- * archive prototype. No request is ever sent, no library is wired in.
+ * environment as the rest of DARE, never a floating SaaS login card. Now
+ * wired to real Supabase Auth (see AuthContext.tsx): email/password and
+ * Google both create/resume a genuine session, never a bypass.
  */
 export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated }: DreamAuthProps) {
   const { t } = useLanguage();
+  const { signInWithPassword, signUpWithPassword, signInWithGoogle } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     bgVideoRef.current?.play().catch(() => {});
@@ -62,12 +73,72 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated 
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Distinguishes the three busy states so the submit button's own label
+  // (and the Google button, disabled meanwhile) can say what's actually
+  // happening, rather than one generic "loading" everywhere.
+  const [pending, setPending] = useState<'password' | 'google' | null>(null);
+  // Set only when a sign-up genuinely succeeded but returned no session —
+  // a brand-new Supabase project has "Confirm email" on by default, so
+  // the account exists but stays unusable until the dreamer opens the
+  // link just emailed to them. Replaces the whole form (there is nothing
+  // left to submit) rather than bouncing straight to the archive, which
+  // would just get reversed by the auth guard the instant it discovers
+  // there is still no real session — a confusing, unexplained dead end.
+  const [awaitingConfirmationFor, setAwaitingConfirmationFor] = useState<string | null>(null);
 
   const isSignUp = mode === 'signup';
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    onAuthenticated();
+    if (pending) return;
+    setErrorMessage(null);
+
+    const trimmedEmail = email.trim();
+    if (!looksLikeEmail(trimmedEmail)) {
+      setErrorMessage(t('auth.errorInvalidEmail'));
+      return;
+    }
+    if (isSignUp && password.length < 6) {
+      setErrorMessage(t('auth.errorWeakPassword'));
+      return;
+    }
+
+    setPending('password');
+    const result = isSignUp
+      ? await signUpWithPassword(trimmedEmail, password)
+      : await signInWithPassword(trimmedEmail, password);
+    setPending(null);
+
+    if (!result.ok) {
+      setErrorMessage(describeAuthError(result.error, t));
+    } else if (result.sessionCreated) {
+      onAuthenticated();
+    } else {
+      // Sign-up only — sign-in always either returns a real session or an
+      // error, never this in-between state.
+      setAwaitingConfirmationFor(trimmedEmail);
+    }
+  };
+
+  const handleGoogleClick = async () => {
+    if (pending) return;
+    setErrorMessage(null);
+    setPending('google');
+    const result = await signInWithGoogle();
+    // A successful call already has the browser navigating away to
+    // Google — this only ever runs again if that redirect itself
+    // couldn't start (e.g. Google OAuth not yet configured in Supabase).
+    if (!result.ok) {
+      setPending(null);
+      setErrorMessage(describeAuthError(result.error, t));
+    }
+  };
+
+  const switchModeAndClearError = (next: AuthMode) => {
+    setErrorMessage(null);
+    setAwaitingConfirmationFor(null);
+    onSwitchMode(next);
   };
 
   return (
@@ -78,7 +149,12 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated 
       </button>
 
       <div className="auth-content">
-        {isSignUp ? (
+        {awaitingConfirmationFor ? (
+          <>
+            <h1 className="auth-eyebrow-title">{t('auth.checkYourEmailTitle')}</h1>
+            <p className="auth-tagline">{t('auth.checkYourEmailMessage').replace('{email}', awaitingConfirmationFor)}</p>
+          </>
+        ) : isSignUp ? (
           <>
             <h1 className="auth-eyebrow-title">{t('auth.keepYourDreams')}</h1>
             <p className="auth-tagline">{t('auth.createArchiveTagline')}</p>
@@ -90,15 +166,21 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated 
           </>
         )}
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <button type="button" className="auth-google" data-cursor-hover onClick={onAuthenticated}>
+        {!awaitingConfirmationFor && <form className="auth-form" onSubmit={handleSubmit}>
+          <button type="button" className="auth-google" data-cursor-hover onClick={handleGoogleClick} disabled={pending !== null}>
             <GoogleMark />
-            {t('auth.continueWithGoogle')}
+            {pending === 'google' ? t('auth.redirectingToGoogle') : t('auth.continueWithGoogle')}
           </button>
 
           <div className="auth-divider" aria-hidden="true">
             <span>{t('auth.or')}</span>
           </div>
+
+          {errorMessage && (
+            <p className="auth-error" role="alert">
+              {errorMessage}
+            </p>
+          )}
 
           <label className="auth-field">
             <input
@@ -110,6 +192,7 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated 
               placeholder={t('auth.emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={pending !== null}
             />
           </label>
 
@@ -122,26 +205,33 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated 
               placeholder={t('auth.passwordPlaceholder')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={pending !== null}
             />
           </label>
 
-          <button type="submit" className="auth-submit" data-cursor-hover>
-            {isSignUp ? t('auth.createMyArchive') : t('auth.enterMyArchive')}
+          <button type="submit" className="auth-submit" data-cursor-hover disabled={pending !== null}>
+            {pending === 'password'
+              ? isSignUp
+                ? t('auth.creatingAccount')
+                : t('auth.signingIn')
+              : isSignUp
+                ? t('auth.createMyArchive')
+                : t('auth.enterMyArchive')}
           </button>
-        </form>
+        </form>}
 
         <p className="auth-switch">
-          {isSignUp ? (
+          {awaitingConfirmationFor || isSignUp ? (
             <>
               {t('auth.alreadyHaveArchive')}
-              <button type="button" className="auth-switch-link" data-cursor-hover onClick={() => onSwitchMode('signin')}>
+              <button type="button" className="auth-switch-link" data-cursor-hover onClick={() => switchModeAndClearError('signin')}>
                 {t('auth.signIn')}
               </button>
             </>
           ) : (
             <>
               {t('auth.newHere')}
-              <button type="button" className="auth-switch-link" data-cursor-hover onClick={() => onSwitchMode('signup')}>
+              <button type="button" className="auth-switch-link" data-cursor-hover onClick={() => switchModeAndClearError('signup')}>
                 {t('auth.createYourArchive')}
               </button>
             </>
