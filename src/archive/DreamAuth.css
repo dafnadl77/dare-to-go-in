@@ -91,10 +91,15 @@
 .auth-tagline {
   margin: -0.9rem 0 0.4rem;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: clamp(0.85rem, 1.6vw, 1rem);
+  font-size: clamp(0.92rem, 1.75vw, 1.08rem);
   font-weight: 400;
-  color: var(--dream-warm-neutral);
+  /* Was --dream-warm-neutral — too dark/faint against bright cloud areas,
+     and this text carries real instructions on the CHECK YOUR EMAIL
+     screen (which email, what to do next), not just decorative copy. */
+  color: var(--dream-white);
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
+  opacity: 0.92;
+  line-height: 1.5;
 }
 
 .auth-form {
@@ -137,8 +142,8 @@
 }
 
 .auth-google:disabled {
-  cursor: default;
-  opacity: 0.6;
+  cursor: not-allowed;
+  opacity: 0.55;
   transform: none;
 }
 
@@ -221,7 +226,7 @@
   margin: -0.3rem 0 0;
   padding: 0;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   font-weight: 500;
   line-height: 1.5;
   text-align: center;
@@ -286,27 +291,37 @@
 .auth-switch {
   margin: 0;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.78rem;
-  color: var(--dream-warm-neutral-dim);
+  font-size: 0.86rem;
+  /* Was --dream-warm-neutral-dim — the least readable text on this whole
+     screen against a bright cloud area ("Already have an archive?"). */
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.55);
+  opacity: 0.82;
 }
 
 .auth-switch-link {
   background: none;
   border: none;
   padding: 0;
-  margin-inline-start: 0.35em;
+  margin-inline-start: 0.4em;
   font: inherit;
-  color: var(--dream-warm-neutral);
+  font-weight: 600;
+  /* Brighter and fully opaque, unlike the sentence around it — an actual
+     link needs to read as more prominent than its own static label, not
+     just "readable enough". */
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.55);
   text-decoration: underline;
   text-underline-offset: 0.2em;
-  text-decoration-color: rgba(202, 191, 169, 0.45);
+  text-decoration-color: rgba(244, 240, 232, 0.55);
   cursor: pointer;
-  transition: color 0.4s var(--ease-soft);
+  transition: text-decoration-color 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
 }
 
 .auth-switch-link:hover,
 .auth-switch-link:focus-visible {
-  color: var(--dream-white);
+  text-decoration-color: var(--dream-white);
+  letter-spacing: 0.01em;
 }
 
 @media (max-width: 480px) {

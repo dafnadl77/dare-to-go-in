@@ -123,6 +123,7 @@ export interface Translations {
     createArchiveTagline: string;
     welcomeBack: string;
     continueWithGoogle: string;
+    googleNotConfigured: string;
     or: string;
     emailPlaceholder: string;
     passwordPlaceholder: string;
@@ -260,6 +261,7 @@ export const en: Translations = {
     createArchiveTagline: 'Create your private dream archive.',
     welcomeBack: 'WELCOME BACK, DREAMER.',
     continueWithGoogle: 'Continue with Google',
+    googleNotConfigured: 'Google sign-in — coming soon',
     or: 'OR',
     emailPlaceholder: 'Email',
     passwordPlaceholder: 'Password',
@@ -403,6 +405,7 @@ export const he: Translations = {
     createArchiveTagline: 'צרו את ארכיון החלומות הפרטי שלכם.',
     welcomeBack: 'ברוכים השבים, חולמים.',
     continueWithGoogle: 'המשך עם Google',
+    googleNotConfigured: 'התחברות עם Google — בקרוב',
     or: 'או',
     emailPlaceholder: 'אימייל',
     passwordPlaceholder: 'סיסמה',

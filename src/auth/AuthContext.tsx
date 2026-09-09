@@ -41,6 +41,17 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export const POST_AUTH_REDIRECT_PARAM = 'view';
 export const POST_AUTH_REDIRECT_VALUE = 'archive';
 
+/** Always built from the browser's own current origin — never a
+    hardcoded domain — so this is correct in every environment without
+    edits: localhost:5173 in dev, the real Vercel domain in production,
+    and any future domain with no code change. Used for both the Google
+    OAuth redirect and the sign-up confirmation-email link, so a
+    confirmed/authenticated dreamer always lands back on the archive
+    instead of the bare homepage. */
+function postAuthRedirectUrl(): string {
+  return `${window.location.origin}/?${POST_AUTH_REDIRECT_PARAM}=${POST_AUTH_REDIRECT_VALUE}`;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -77,7 +88,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { ok: true, sessionCreated: true };
       },
       async signUpWithPassword(email, password) {
-        const { data, error } = await supabase.auth.signUp({ email, password });
+        // emailRedirectTo is set explicitly rather than left to Supabase's
+        // dashboard-configured Site URL default — a fresh Supabase project
+        // defaults that to http://localhost:3000, which is exactly what
+        // sent the first real confirmation email to the wrong place before
+        // the dashboard was corrected. Passing it here makes the app
+        // correct on its own, in every environment, regardless of that
+        // dashboard setting.
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: postAuthRedirectUrl() },
+        });
         if (error) return { ok: false, error };
         // A real session comes back immediately only when the project's
         // "Confirm email" setting is off; otherwise data.session is null
@@ -85,8 +107,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { ok: true, sessionCreated: data.session !== null };
       },
       async signInWithGoogle() {
-        const redirectTo = `${window.location.origin}/?${POST_AUTH_REDIRECT_PARAM}=${POST_AUTH_REDIRECT_VALUE}`;
-        const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: postAuthRedirectUrl() },
+        });
         if (error) return { ok: false, error };
         // On success the browser is already navigating to Google — there
         // is nothing further for this promise to resolve to. The eventual

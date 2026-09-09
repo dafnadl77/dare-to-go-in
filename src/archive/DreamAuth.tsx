@@ -7,6 +7,17 @@ import './DreamAuth.css';
 
 export type AuthMode = 'signup' | 'signin';
 
+/** Google is wired for real (see AuthContext.tsx's signInWithGoogle — a
+    genuine signInWithOAuth redirect, never a fake bypass), but the Google
+    Cloud OAuth client + the matching provider setup in the Supabase
+    dashboard haven't been created yet. Until they are, clicking the
+    button would only ever dead-end on Supabase's own raw "provider is
+    not enabled" error page — so the button stays visibly disabled and
+    honestly labeled instead. Flip this to true once both are configured
+    (see the exact Google Cloud + Supabase steps given separately) —
+    nothing else in this file needs to change. */
+const GOOGLE_OAUTH_CONFIGURED = false;
+
 interface DreamAuthProps {
   mode: AuthMode;
   onSwitchMode: (mode: AuthMode) => void;
@@ -122,7 +133,7 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated 
   };
 
   const handleGoogleClick = async () => {
-    if (pending) return;
+    if (!GOOGLE_OAUTH_CONFIGURED || pending) return;
     setErrorMessage(null);
     setPending('google');
     const result = await signInWithGoogle();
@@ -167,9 +178,20 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated 
         )}
 
         {!awaitingConfirmationFor && <form className="auth-form" onSubmit={handleSubmit}>
-          <button type="button" className="auth-google" data-cursor-hover onClick={handleGoogleClick} disabled={pending !== null}>
+          <button
+            type="button"
+            className="auth-google"
+            data-cursor-hover={GOOGLE_OAUTH_CONFIGURED || undefined}
+            onClick={handleGoogleClick}
+            disabled={!GOOGLE_OAUTH_CONFIGURED || pending !== null}
+            aria-disabled={!GOOGLE_OAUTH_CONFIGURED}
+          >
             <GoogleMark />
-            {pending === 'google' ? t('auth.redirectingToGoogle') : t('auth.continueWithGoogle')}
+            {!GOOGLE_OAUTH_CONFIGURED
+              ? t('auth.googleNotConfigured')
+              : pending === 'google'
+                ? t('auth.redirectingToGoogle')
+                : t('auth.continueWithGoogle')}
           </button>
 
           <div className="auth-divider" aria-hidden="true">
