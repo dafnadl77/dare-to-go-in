@@ -16,21 +16,6 @@
      all the way to the true viewport regardless of scroll depth. */
 }
 
-/* No custom cursor is used on this screen — but the base stylesheet
-   hides the real cursor everywhere (body { cursor: none }) to make room
-   for the one HeroDream mounts elsewhere. This screen never mounts that
-   replacement, so without this override the cursor is genuinely
-   invisible here. Scoped to .dream-detail only. */
-.dream-detail,
-.dream-detail * {
-  cursor: default;
-}
-
-.dream-detail button,
-.dream-detail [role='button'] {
-  cursor: pointer;
-}
-
 .dream-detail .dream-stage-bg-layer {
   position: fixed;
 }

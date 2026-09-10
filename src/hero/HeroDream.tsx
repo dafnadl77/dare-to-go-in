@@ -4,7 +4,6 @@ import MemoryVeil from './MemoryVeil';
 import MemoryTitle from './MemoryTitle';
 import DreamPrompt from './DreamPrompt';
 import HoldToRemember from './HoldToRemember';
-import CustomCursor from './CustomCursor';
 import DreamEchoes from './DreamEchoes';
 import { usePointerRef } from './usePointerRef';
 import { useOpeningSequence } from './useOpeningSequence';
@@ -615,8 +614,6 @@ export default function HeroDream({ onGoToArchive }: HeroDreamProps) {
           />
         </div>
       </div>
-
-      <CustomCursor pointerRef={pointerRef} holdRef={holdRef} />
 
       {/* The only way back once inside the immersive experience — minimal,
           never a navbar. Only shown once there's actually somewhere to
