@@ -18,7 +18,7 @@ interface MonthGroup {
 /** Entries arrive already sorted newest-first (see archiveData.ts) — this
     only clusters consecutive entries that share a year/month, and marks
     the first group of a new year so the year heading only appears once
-    per year, exactly like the reference. */
+    per year. */
 function groupByMonth(entries: ArchiveEntry[]): MonthGroup[] {
   const groups: MonthGroup[] = [];
   let lastYear: string | null = null;
@@ -36,75 +36,54 @@ function groupByMonth(entries: ArchiveEntry[]): MonthGroup[] {
   return groups;
 }
 
-/** One month before the oldest entry's month — purely a decorative close
-    to the timeline (matches the reference's "JUNE / More dreams from the
-    past" footer), not a real pagination control: every saved dream is
-    already rendered above, there is nothing further to load. */
-function monthBeforeOldest(entries: ArchiveEntry[]): string {
-  const oldest = entries[entries.length - 1];
-  if (!oldest) return '';
-  const prior = new Date(oldest.date);
-  prior.setMonth(prior.getMonth() - 1);
-  return formatEntryMonth(prior);
-}
-
-function TimelineImage({ src, title }: { src: string; title: string }) {
-  return (
-    <span className="dt-image-wrap">
-      <span className="dt-image-glow" style={{ backgroundImage: `url(${src})` }} aria-hidden="true" />
-      <img className="dt-image" src={src} alt={title} loading="lazy" />
-    </span>
-  );
-}
-
-function TimelineRow({ entry, onOpen }: { entry: ArchiveEntry; onOpen: () => void }) {
+function DreamCard({ entry, onOpen }: { entry: ArchiveEntry; onOpen: () => void }) {
   const { t } = useLanguage();
   return (
-    <button type="button" className="dt-row" data-cursor-hover onClick={onOpen} aria-label={`${t('archive.openEntry')} ${entry.title}`}>
-      <TimelineImage src={entry.image} title={entry.title} />
-      <span className="dt-node" aria-hidden="true" />
-      <span className="dt-meta">
-        <span className="dt-date">{formatEntryDayMonth(entry.date)}</span>
-        <span className="dt-title">{entry.title}</span>
-        <span className="dt-keywords">{entry.keywords.join(' · ')}</span>
+    <button type="button" className="dt-card" data-cursor-hover onClick={onOpen} aria-label={`${t('archive.openEntry')} ${entry.title}`}>
+      <span className="dt-card-thumb">
+        <img className="dt-card-image" src={entry.image} alt="" loading="lazy" />
+      </span>
+      <span className="dt-card-body">
+        <span className="dt-card-top">
+          <span className="dt-card-title">{entry.title}</span>
+          <span className="dt-card-date">{formatEntryDayMonth(entry.date)}</span>
+        </span>
+        <span className="dt-card-excerpt">{entry.excerpt}</span>
+        {entry.keywords.length > 0 && <span className="dt-card-keywords">{entry.keywords.join(' · ')}</span>}
+      </span>
+      <span className="dt-card-chevron" aria-hidden="true">
+        ›
       </span>
     </button>
   );
 }
 
 /**
- * MY DREAM ARCHIVE's vertical chronological timeline — one continuous line
- * running down the page, each dream a large cinematic image on the left
- * and its date/title/keywords in a narrow column on the right, connected
- * to the line by a small warm node. Data-driven and chronological by
- * construction (see archiveData.ts): adding a real saved dream inserts it
- * in the right place automatically, nothing here is sized for exactly 6
- * items.
+ * MY DREAM ARCHIVE's dream list — clean, editorial horizontal cards
+ * grouped by month, replacing the earlier connected-line timeline
+ * layout: each real/mock dream is one row (thumbnail, title, short
+ * excerpt, date, an affordance chevron), never a "floating blob" or a
+ * childish tile. Data-driven and chronological by construction (see
+ * archiveData.ts): adding a real saved dream inserts it in the right
+ * place automatically, nothing here is sized for exactly N items.
  */
 export default function DreamTimeline({ entries, onOpenEntry }: DreamTimelineProps) {
-  const { t } = useLanguage();
   const groups = groupByMonth(entries);
-  const closingMonth = monthBeforeOldest(entries);
 
   return (
     <div className="dt-timeline">
-      <div className="dt-line" aria-hidden="true" />
       {groups.map((group, gi) => (
         <div key={`${group.year}-${group.month}-${gi}`} className="dt-month-group">
-          {group.showYear && <p className="dt-year">{group.year}</p>}
-          <p className="dt-month">{group.month}</p>
-          {group.items.map((entry) => (
-            <TimelineRow key={entry.id} entry={entry} onOpen={() => onOpenEntry(entry)} />
-          ))}
+          <p className="dt-month-heading">
+            {group.showYear ? `${group.month} ${group.year}` : group.month}
+          </p>
+          <div className="dt-card-list">
+            {group.items.map((entry) => (
+              <DreamCard key={entry.id} entry={entry} onOpen={() => onOpenEntry(entry)} />
+            ))}
+          </div>
         </div>
       ))}
-      {closingMonth && (
-        <div className="dt-closing" aria-hidden="true">
-          <p className="dt-month dt-month--closing">{closingMonth}</p>
-          <p className="dt-closing-note">{t('archive.moreDreamsFromThePast')}</p>
-          <span className="dt-closing-chevron">⌄</span>
-        </div>
-      )}
     </div>
   );
 }

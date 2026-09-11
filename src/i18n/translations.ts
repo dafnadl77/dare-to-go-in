@@ -29,6 +29,7 @@ export interface Translations {
   hold: {
     holdToTellMe: string;
     holdAria: string;
+    pressAndHoldHint: string;
     idRatherType: string;
     listening: string;
     privacyNote: string;
@@ -95,13 +96,14 @@ export interface Translations {
   archive: {
     backToDare: string;
     dreamArchiveNav: string;
-    comingSoon: string;
-    myDreams: string;
-    constellations: string;
-    timeline: string;
-    myDreamArchive: string;
-    everyDreamLeavesATrace: string;
-    moreDreamsFromThePast: string;
+    pageHeading: string;
+    pageSubtitle: string;
+    newDream: string;
+    navAllDreams: string;
+    navFavorites: string;
+    navInsights: string;
+    navSettings: string;
+    navComingSoon: string;
     openEntry: string;
   };
   dreamDetail: {
@@ -184,8 +186,9 @@ export const en: Translations = {
   hold: {
     holdToTellMe: 'HOLD TO TELL ME',
     holdAria: 'Hold to tell me about your dream',
+    pressAndHoldHint: 'Press and hold while you speak',
     idRatherType: 'I’D RATHER TYPE',
-    listening: 'LISTENING…',
+    listening: 'Listening…',
     privacyNote: 'Your dream stays yours.',
     imListening: 'I’M LISTENING.',
     tellMeEverything: 'TELL ME EVERYTHING YOU REMEMBER.',
@@ -250,13 +253,14 @@ export const en: Translations = {
   archive: {
     backToDare: 'Back to DARE',
     dreamArchiveNav: 'Dream Archive',
-    comingSoon: 'Coming soon',
-    myDreams: 'MY DREAMS',
-    constellations: 'CONSTELLATIONS',
-    timeline: 'TIMELINE',
-    myDreamArchive: 'MY DREAM ARCHIVE',
-    everyDreamLeavesATrace: 'Every dream leaves a trace.',
-    moreDreamsFromThePast: 'More dreams from the past',
+    pageHeading: 'My Dreams',
+    pageSubtitle: "A space for everything you've dreamed.",
+    newDream: 'New Dream',
+    navAllDreams: 'All Dreams',
+    navFavorites: 'Favorites',
+    navInsights: 'Insights',
+    navSettings: 'Settings',
+    navComingSoon: 'Soon',
     openEntry: 'Open',
   },
   dreamDetail: {
@@ -343,10 +347,11 @@ export const he: Translations = {
     myDreamsNav: 'החלומות שלי',
   },
   hold: {
-    holdToTellMe: 'לחצו והחזיקו כדי לספר',
-    holdAria: 'החזיקו כדי לספר על החלום',
+    holdToTellMe: 'לחצי והחזיקי כדי לספר',
+    holdAria: 'לחצי והחזיקי כדי לספר על החלום',
+    pressAndHoldHint: 'לחצי והחזיקי בזמן שאת מדברת',
     idRatherType: 'אעדיף להקליד',
-    listening: 'הקשבה…',
+    listening: 'מקשיב…',
     privacyNote: 'החלום נשאר שלך בלבד.',
     imListening: 'מקשיבים.',
     tellMeEverything: 'ספרו לי הכל, כל מה שזכור.',
@@ -411,13 +416,14 @@ export const he: Translations = {
   archive: {
     backToDare: 'חזרה ל-DARE',
     dreamArchiveNav: 'ארכיון החלומות',
-    comingSoon: 'בקרוב',
-    myDreams: 'החלומות שלי',
-    constellations: 'מערכות כוכבים',
-    timeline: 'ציר זמן',
-    myDreamArchive: 'ארכיון החלומות שלי',
-    everyDreamLeavesATrace: 'כל חלום משאיר עקבות.',
-    moreDreamsFromThePast: 'עוד חלומות מהעבר',
+    pageHeading: 'החלומות שלי',
+    pageSubtitle: 'מרחב לכל מה שחלמת.',
+    newDream: 'חלום חדש',
+    navAllDreams: 'כל החלומות',
+    navFavorites: 'מועדפים',
+    navInsights: 'תובנות',
+    navSettings: 'הגדרות',
+    navComingSoon: 'בקרוב',
     openEntry: 'פתחו',
   },
   dreamDetail: {

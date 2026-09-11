@@ -34,7 +34,7 @@
   border: none;
   outline: none;
   cursor: pointer;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.24em;
@@ -80,7 +80,7 @@
   align-items: center;
   gap: 0.5em;
   margin: 0 0 2.2rem;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.74rem;
 }
 
@@ -127,7 +127,7 @@ html[lang='he'] .legal-crumb-current {
 
 .legal-title {
   margin: 0;
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 400;
   font-size: clamp(2rem, 5vw, 2.8rem);
   letter-spacing: 0.01em;
@@ -136,7 +136,7 @@ html[lang='he'] .legal-crumb-current {
 
 .legal-updated {
   margin: 0.8rem 0 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.14em;
@@ -151,7 +151,7 @@ html[lang='he'] .legal-updated {
 
 .legal-intro {
   margin: 1.6rem 0 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 1.08rem;
   line-height: 1.85;
   color: var(--dream-warm-neutral);
@@ -163,9 +163,8 @@ html[lang='he'] .legal-updated {
 
 .legal-heading {
   margin: 0 0 0.7rem;
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 400;
-  font-style: italic;
   font-size: clamp(1.15rem, 2.4vw, 1.4rem);
   color: var(--dream-white);
 }
@@ -175,7 +174,7 @@ html[lang='he'] .legal-updated {
    that job; this rule doesn't add a second, narrower one). */
 .legal-body {
   margin: 0 0 1.1rem;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 1.02rem;
   line-height: 1.85;
   color: var(--dream-warm-neutral);
@@ -194,8 +193,7 @@ html[lang='he'] .legal-updated {
   margin: 3.2rem 0 0;
   padding-top: 1.6rem;
   border-top: 1px solid rgba(244, 240, 232, 0.14);
-  font-family: 'Fraunces', Georgia, serif;
-  font-style: italic;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.92rem;
   line-height: 1.75;
   color: var(--dream-warm-neutral-dim);
@@ -209,7 +207,7 @@ html[lang='he'] .legal-updated {
   outline: none;
   padding: 0.6em 0.4em;
   cursor: pointer;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.74rem;
   font-weight: 600;
   letter-spacing: 0.2em;

@@ -41,7 +41,7 @@
   justify-content: center;
   flex-wrap: wrap;
   gap: 0.3em;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
 }
 
 .footer-link {
@@ -97,7 +97,7 @@ html:not([lang='he']) .footer-link:focus-visible {
 
 .footer-credit {
   margin: 0.7rem 0 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0.03em;

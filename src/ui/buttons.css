@@ -1,0 +1,115 @@
+/* =====================================================================
+   ONE SHARED BUTTON SYSTEM — primary / secondary / (text links stay each
+   screen's own existing quiet text-link classes; genuinely secondary
+   actions like "I'd rather type" were never meant to look button-shaped).
+   Applied via plain className alongside each screen's own structural
+   class (e.g. class="auth-submit btn btn-primary") rather than a new
+   React component — this project has no shared component layer for
+   controls, and every button here still needs its own screen-specific
+   positioning/sizing, so a shared CSS vocabulary is the lower-risk fit.
+   Class prefix `btn`, not reused elsewhere. ===================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55em;
+  padding: 0.85em 1.7em;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    background 0.3s var(--ease-soft),
+    border-color 0.3s var(--ease-soft),
+    color 0.3s var(--ease-soft),
+    transform 0.3s var(--ease-soft),
+    opacity 0.3s var(--ease-soft),
+    box-shadow 0.3s var(--ease-soft);
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.45);
+}
+
+.btn:disabled {
+  cursor: default;
+  opacity: 0.5;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ---- Primary — filled cyan/teal, the one unmistakably-clickable action
+   per screen (Continue, Save, New Dream, Sign In, Create Archive). ---- */
+.btn-primary {
+  background: var(--dream-cta);
+  color: var(--dream-cta-ink);
+  box-shadow: 0 0.6rem 1.6rem rgba(45, 212, 191, 0.22);
+}
+
+.btn-primary:hover:not(:disabled),
+.btn-primary:focus-visible:not(:disabled) {
+  background: var(--dream-cta-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 0.9rem 2rem rgba(45, 212, 191, 0.3);
+}
+
+.btn-primary:active:not(:disabled) {
+  background: var(--dream-cta-active);
+  transform: translateY(0);
+}
+
+/* ---- Secondary — outlined, still unmistakably a button (Cancel, Back,
+   Re-record) — never the filled cyan, never plain text. ---- */
+.btn-secondary {
+  background: rgba(244, 240, 232, 0.04);
+  color: var(--dream-white);
+  border-color: rgba(244, 240, 232, 0.3);
+}
+
+.btn-secondary:hover:not(:disabled),
+.btn-secondary:focus-visible:not(:disabled) {
+  background: rgba(244, 240, 232, 0.1);
+  border-color: rgba(244, 240, 232, 0.55);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* ---- Loading — the label stays in place (never replaced by a bare
+   spinner, so screen readers and sighted users alike still know what's
+   happening — see each call site's own loading label text), the spinner
+   is an additional cue, and the button stops accepting new clicks
+   without visually collapsing to a disabled look. ---- */
+.btn.is-loading {
+  pointer-events: none;
+}
+
+.btn-spinner {
+  width: 0.95em;
+  height: 0.95em;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: btn-spin 0.7s linear infinite;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-spinner {
+    animation-duration: 1.6s;
+  }
+}

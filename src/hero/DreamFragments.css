@@ -8,8 +8,7 @@
 .dream-fragment {
   position: absolute;
   transform: translate(-50%, -50%);
-  font-family: 'Fraunces', Georgia, serif;
-  font-style: italic;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 400;
   font-size: clamp(1.05rem, 2.4vw, 1.55rem);
   letter-spacing: 0.03em;

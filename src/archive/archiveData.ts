@@ -14,11 +14,12 @@ import { MOCK_DREAMS, type MockDream } from './mockDreams';
  * placeholder note mock dreams have always shown.
  *
  * `stoodOut` is the real "what stood out" moment for the detail view: the
- * dreamer's own selectedElement when it's safely English, otherwise the
- * saved DreamReflectionResult's `observation` (the one field the reflection
- * engine's own system prompt guarantees is always English, regardless of
- * what language the dream was described in — see keywordsFromSavedDream's
- * comment for why selectedElement itself isn't guaranteed that).
+ * dreamer's own selectedElement when it's safely displayable in the
+ * current language, otherwise the saved DreamReflectionResult's
+ * `observation` (the one field the reflection engine's own system prompt
+ * guarantees is always English, regardless of what language the dream was
+ * described in — see keywordsFromSavedDream's comment for why
+ * selectedElement itself isn't guaranteed that).
  */
 export type ArchiveEntry =
   | {
@@ -26,12 +27,13 @@ export type ArchiveEntry =
       id: string;
       date: Date;
       title: string;
+      excerpt: string;
       keywords: string[];
       image: string;
       stoodOut: string;
       savedDream: SavedDream;
     }
-  | { kind: 'mock'; id: string; date: Date; title: string; keywords: string[]; image: string; mock: MockDream };
+  | { kind: 'mock'; id: string; date: Date; title: string; excerpt: string; keywords: string[]; image: string; mock: MockDream };
 
 /** Local placeholder photos — the same honest 3-photo limitation documented
     in mockDreams.ts, used here only as a fallback for a real saved dream
@@ -46,20 +48,49 @@ function titleCase(text: string): string {
 }
 
 /**
- * The rest of DARE TO GO IN's interface is entirely English, but
- * DreamAnalysis (unlike DreamReflectionResult) is never forced into
- * English by its own extraction prompt — it naturally mirrors whatever
- * language the dreamer described their dream in (see
- * dreamReflectionSchema.ts's own system prompt for the explicit contrast:
- * the reflection is guaranteed English, "the dream itself and the
- * dreamer's original words are never translated"). So a title/keyword
- * candidate straight from DreamAnalysis can legitimately be Hebrew. This
- * project has no translation step and must not invent one silently, so a
- * Hebrew candidate is simply skipped in favor of a real, already-English
- * fallback rather than displayed as-is or machine-translated.
- */
-function isDisplaySafe(text: string): boolean {
-  return text.trim().length > 0 && !containsHebrew(text);
+ * Whether a candidate string derived from the dreamer's own saved data is
+ * safe to display as-is in the CURRENT app language — never a translation
+ * decision, only a "would this look like a mismatched-language mistake"
+ * one. The rest of DARE TO GO IN's interface is otherwise entirely
+ * whatever the current language is, but DreamAnalysis (unlike
+ * DreamReflectionResult) is never forced into English by its own
+ * extraction prompt — it naturally mirrors whatever language the dreamer
+ * described their dream in (see dreamReflectionSchema.ts's own system
+ * prompt for the explicit contrast: the reflection is guaranteed English,
+ * "the dream itself and the dreamer's original words are never
+ * translated"). So a title/excerpt/keyword candidate straight from
+ * DreamAnalysis can legitimately be Hebrew OR English depending on how
+ * the dream was actually described — showing it in whichever language it
+ * already is is exactly right, in either UI language: a Hebrew-described
+ * dream should read as Hebrew inside a Hebrew archive just as much as an
+ * English one should read as English inside an English archive. The one
+ * real mismatch this guards against is the ENGLISH UI specifically:
+ * showing raw, undisplayed-as-such Hebrew there would read as broken (no
+ * translation step exists, and inventing one here would silently
+ * translate the dreamer's own words, which is explicitly out of scope) —
+ * so Hebrew candidates are skipped only when the active language is 'en'.
+ * This project has no translation step and must not invent one silently,
+ * so a Hebrew candidate is simply skipped in favor of a real,
+ * already-English fallback rather than displayed as-is or
+ * machine-translated when the UI itself is English. */
+function isDisplaySafe(text: string, language: AppLanguage): boolean {
+  if (!text.trim()) return false;
+  if (language === 'en' && containsHebrew(text)) return false;
+  return true;
+}
+
+/** Localized, generic fallback — used only when nothing on the saved dream
+    itself was safe to show (see isDisplaySafe) — real saved dreams almost
+    always have a reflection, so this is expected to be rare in practice,
+    but when it happens it must still follow the current UI language
+    rather than silently falling back to English text inside a Hebrew
+    archive (the exact class of bug this whole module was reworked for). */
+function fallbackTitle(language: AppLanguage): string {
+  return language === 'he' ? 'חלום שמור' : 'A Saved Dream';
+}
+
+function fallbackExcerpt(language: AppLanguage): string {
+  return language === 'he' ? 'ההשתקפות של החלום הזה נשמרה.' : "This dream's reflection has been saved.";
 }
 
 /**
@@ -68,21 +99,34 @@ function isDisplaySafe(text: string): boolean {
  * short, editorial-feeling title purely from data that already exists
  * (never a new API call, never invented text, never a translation): the
  * dream's own primary setting or the first clause of its summary, when
- * either is safely English; otherwise the first few words of the saved
- * DreamReflectionResult's `observation`, which the reflection engine's own
- * system prompt guarantees is always English regardless of source
- * language. Only if neither exists does this fall back to a generic
- * label — real saved dreams always have a reflection, so this last case is
- * expected to be unreachable in practice.
+ * either is safely displayable in the current language; otherwise the
+ * first few words of the saved DreamReflectionResult's `observation`,
+ * which the reflection engine's own system prompt guarantees is always
+ * English regardless of source language. Only if none of those apply does
+ * this fall back to a generic, language-appropriate label.
  */
-function titleFromSavedDream(dream: SavedDream): string {
+function titleFromSavedDream(dream: SavedDream, language: AppLanguage): string {
   const setting = dream.dreamAnalysis.reconstruction.primarySetting;
-  if (setting && isDisplaySafe(setting)) return titleCase(setting.trim().slice(0, 34));
+  if (setting && isDisplaySafe(setting, language)) return titleCase(setting.trim().slice(0, 34));
   const firstClause = dream.dreamAnalysis.summary.split(/[.!?]/)[0]?.trim();
-  if (firstClause && isDisplaySafe(firstClause)) return titleCase(firstClause.slice(0, 34));
+  if (firstClause && isDisplaySafe(firstClause, language)) return titleCase(firstClause.slice(0, 34));
   const fromObservation = dream.dreamReflection.observation.split(/[.!?]/)[0]?.trim();
-  if (fromObservation && isDisplaySafe(fromObservation)) return titleCase(fromObservation.slice(0, 34));
-  return 'A Saved Dream';
+  if (fromObservation && isDisplaySafe(fromObservation, language)) return titleCase(fromObservation.slice(0, 34));
+  return fallbackTitle(language);
+}
+
+/** The card's short excerpt line — one real sentence from the dream's own
+    summary when it's safely displayable, otherwise the reflection's own
+    observation (see titleFromSavedDream for the same reasoning), otherwise
+    a generic localized note. Truncated to a card-friendly length; never a
+    second/duplicate of the title itself. */
+function excerptFromSavedDream(dream: SavedDream, language: AppLanguage): string {
+  const truncate = (text: string) => (text.length > 110 ? `${text.slice(0, 109).trimEnd()}…` : text);
+  const summary = dream.dreamAnalysis.summary.trim();
+  if (summary && isDisplaySafe(summary, language)) return truncate(summary);
+  const observation = dream.dreamReflection.observation.trim();
+  if (observation && isDisplaySafe(observation, language)) return truncate(observation);
+  return fallbackExcerpt(language);
 }
 
 /**
@@ -90,12 +134,13 @@ function titleFromSavedDream(dream: SavedDream): string {
  * already populated (emotions first, since they read closest to the
  * reference's single-word evocative labels; the dream's own broader
  * atmosphere/objects fill in when there aren't enough emotions) — any
- * candidate containing Hebrew is skipped rather than shown or translated,
- * same reasoning as titleFromSavedDream. This can honestly leave fewer
- * than 3 keywords (even zero) for a dream described entirely in another
- * language; nothing pads the list back out with invented words.
+ * candidate that isn't safely displayable in the current language (see
+ * isDisplaySafe) is skipped rather than shown or translated. This can
+ * honestly leave fewer than 3 keywords (even zero) for a dream described
+ * entirely in the other language while the UI is English; nothing pads
+ * the list back out with invented words.
  */
-function keywordsFromSavedDream(dream: SavedDream): string[] {
+function keywordsFromSavedDream(dream: SavedDream, language: AppLanguage): string[] {
   const a = dream.dreamAnalysis;
   const pool = [
     ...a.emotions.filter((e) => e.explicit).map((e) => e.emotion),
@@ -107,7 +152,7 @@ function keywordsFromSavedDream(dream: SavedDream): string[] {
   const out: string[] = [];
   for (const word of pool) {
     const w = word.trim().toLowerCase();
-    if (!w || seen.has(w) || !isDisplaySafe(w)) continue;
+    if (!w || seen.has(w) || !isDisplaySafe(w, language)) continue;
     seen.add(w);
     out.push(w);
     if (out.length === 3) break;
@@ -116,31 +161,34 @@ function keywordsFromSavedDream(dream: SavedDream): string[] {
 }
 
 /** See the `stoodOut` doc on ArchiveEntry above. */
-function stoodOutFromSavedDream(dream: SavedDream): string {
-  if (isDisplaySafe(dream.selectedElement)) return dream.selectedElement;
+function stoodOutFromSavedDream(dream: SavedDream, language: AppLanguage): string {
+  if (isDisplaySafe(dream.selectedElement, language)) return dream.selectedElement;
   return dream.dreamReflection.observation;
 }
 
-function toEntry(dream: SavedDream, fallbackIndex: number): ArchiveEntry {
+function toEntry(dream: SavedDream, fallbackIndex: number, language: AppLanguage): ArchiveEntry {
   return {
     kind: 'real',
     id: dream.id,
     date: new Date(dream.createdAt),
-    title: titleFromSavedDream(dream),
-    keywords: keywordsFromSavedDream(dream),
+    title: titleFromSavedDream(dream, language),
+    excerpt: excerptFromSavedDream(dream, language),
+    keywords: keywordsFromSavedDream(dream, language),
     image: dream.dreamImageDataUrl ?? FALLBACK_IMAGES[fallbackIndex % FALLBACK_IMAGES.length],
-    stoodOut: stoodOutFromSavedDream(dream),
+    stoodOut: stoodOutFromSavedDream(dream, language),
     savedDream: dream,
   };
 }
 
-function mockToEntry(mock: MockDream): ArchiveEntry {
+function mockToEntry(mock: MockDream, language: AppLanguage): ArchiveEntry {
+  const copy = mock[language];
   return {
     kind: 'mock',
     id: mock.id,
     date: new Date(`${mock.date}T00:00:00`),
-    title: mock.title,
-    keywords: mock.keywords,
+    title: copy.title,
+    excerpt: copy.excerpt,
+    keywords: copy.keywords,
     image: mock.image,
     mock,
   };
@@ -153,10 +201,16 @@ function mockToEntry(mock: MockDream): ArchiveEntry {
  * Never hardcoded to "6 items": any number of real saved dreams merges in
  * correctly by date, and the mock dreams stop mattering entirely once a
  * dreamer has saved enough of their own.
+ *
+ * Takes `language` explicitly (defaulting to the live appLanguage) so a
+ * caller that re-derives this on every language change (see
+ * DreamArchive.tsx's own useMemo dependency) gets genuinely re-localized
+ * titles/excerpts/keywords for both real and mock entries, rather than
+ * whatever language was active the one time this ran.
  */
-export function getArchiveEntries(): ArchiveEntry[] {
-  const real = getDreams().map(toEntry);
-  const mock = MOCK_DREAMS.map(mockToEntry);
+export function getArchiveEntries(language: AppLanguage = getAppLanguage()): ArchiveEntry[] {
+  const real = getDreams().map((dream, i) => toEntry(dream, i, language));
+  const mock = MOCK_DREAMS.map((m) => mockToEntry(m, language));
   return [...real, ...mock].sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 

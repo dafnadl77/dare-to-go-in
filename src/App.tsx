@@ -74,7 +74,7 @@ function AuthLoadingScreen() {
         justifyContent: 'center',
         background: 'var(--dream-black)',
         color: 'var(--dream-white)',
-        fontFamily: "'Inter', system-ui, sans-serif",
+        fontFamily: "'Heebo', 'Assistant', system-ui, sans-serif",
         fontSize: '0.8rem',
         letterSpacing: '0.14em',
         textTransform: 'uppercase',

@@ -1,11 +1,8 @@
 /* =====================================================================
-   MY DREAM ARCHIVE — shared screen shell (fixed background, night tint,
-   stars, top nav, header). The dream list itself is DreamTimeline.tsx/
-   DreamTimeline.css — a vertical chronological timeline, per the approved
-   visual reference. The earlier floating "constellation" of cloud-masked
-   portals (SVG <mask>+feGaussianBlur, reusing dreamClipShape.ts) has been
-   removed entirely; nothing in this file references that technique
-   anymore. ===================================================================== */
+   MY DREAM ARCHIVE — a real personal area: proper responsive header,
+   left section nav, page heading + primary action, dream cards (see
+   DreamTimeline.css). The cinematic cloud/star background is unchanged;
+   everything on top of it is now structured. ===================================================================== */
 .dream-archive {
   position: fixed;
   inset: 0;
@@ -44,23 +41,24 @@
    the viewport independently of the scrolling content below, at every
    scroll depth (fixed positioning tracks the viewport, not the scrolled
    content, so there is never a point where the real cloud art runs out
-   and a plain page background shows through underneath it). The archive
-   reads as a slightly deeper, quieter night than the Dream Stage itself
-   — NOT a near-black one: only a mild brightness/saturation reduction,
-   scoped to this screen only. */
+   and a plain page background shows through underneath it). */
 .dream-archive .dream-stage-bg-layer {
   position: fixed;
 }
 
 .dream-archive .dream-stage-bg-video {
-  filter: brightness(0.82) saturate(0.92) contrast(1.02);
+  filter: brightness(0.6) saturate(0.85) contrast(1.02);
 }
 
+/* A deeper, more "personal-area" tint than the cinematic screens
+   elsewhere — dark-blue leaning, per the approved dashboard direction —
+   still the same cloud footage underneath, just read through a calmer,
+   more product-like veil so the structured content on top stays legible. */
 .ar-night-tint {
   position: fixed;
   inset: 0;
   z-index: 1;
-  background: radial-gradient(ellipse 85% 65% at 50% 25%, transparent 0%, rgba(6, 10, 20, 0.14) 65%, rgba(4, 8, 16, 0.24) 100%);
+  background: radial-gradient(ellipse 90% 70% at 50% 0%, rgba(8, 14, 28, 0.35) 0%, rgba(4, 8, 18, 0.62) 60%, rgba(3, 6, 14, 0.78) 100%);
   pointer-events: none;
 }
 
@@ -95,201 +93,234 @@
   }
 }
 
-.ar-top {
-  position: fixed;
-  top: max(20px, env(safe-area-inset-top));
-  left: 0;
-  right: 0;
-  z-index: 50;
+/* ---- Header — real document flow, sticky (not fixed): it scrolls with
+   the page like an ordinary product header, staying reachable, but is
+   never absolutely positioned and therefore never fights the global
+   language switcher (App.tsx's .top-right-nav, fixed top-right on every
+   screen) for the same literal pixels. The two coexist the same way
+   Hero's own centered content already does: this header keeps a
+   guaranteed-clear reserved margin on its end side (see padding below)
+   — a deliberate, documented, named reservation for the switcher's own
+   known footprint, not a blind "top:37px" style coordinate, and it holds
+   at every viewport width because it's a real padding value in normal
+   flow, not a manual offset chasing a fixed element's position. ---- */
+/* The reserved gap below is deliberately a PHYSICAL padding-right, never
+   padding-inline-end/a dir-flipped value — the language switcher
+   (LanguageSwitcher.css's .language-switcher) is a persistent utility
+   control that intentionally never mirrors, always sitting at the
+   physical top-right corner in every language (see its own comment on
+   why: "easier to find again when it never moves"). Meanwhile THIS row
+   is a normal flex row that DOES mirror under RTL, so whichever child
+   (brand in LTR, account in RTL — flex-direction: row reverses under
+   dir="rtl") lands on the physical right changes per language. Reserving
+   physical right space unconditionally is what actually keeps either of
+   them clear of the switcher in both directions — an RTL-specific
+   left-side reservation was tried first and produced a real collision
+   between the brand button and the switcher under Hebrew, confirmed
+   live, because it protected the wrong physical corner. */
+.ar-shell-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
   display: flex;
   align-items: center;
-  /* Was space-between with a 3rd item (the now-removed "D" profile
-     button) at the end — that pinned it to the same top-right corner
-     the language switcher (App.tsx, fixed, always on top) occupies,
-     so the two overlapped. flex-start + an explicit gap keeps DARE and
-     the nav together on the left, leaving the right corner free. */
-  justify-content: flex-start;
-  gap: clamp(1.5rem, 4vw, 3rem);
-  padding: 0 max(20px, env(safe-area-inset-left)) 0 max(20px, env(safe-area-inset-right));
-  pointer-events: none;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  padding-top: max(1.1rem, env(safe-area-inset-top));
+  padding-bottom: 1.1rem;
+  padding-left: max(1.5rem, env(safe-area-inset-left));
+  padding-right: max(2rem, 9rem);
+  background: linear-gradient(to bottom, rgba(3, 6, 12, 0.88) 0%, rgba(3, 6, 12, 0.7) 70%, transparent 100%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.ar-brand {
+  margin: 0;
+  padding: 0.3em 0;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  letter-spacing: 0.01em;
+  color: var(--dream-white);
+  opacity: 0.92;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+  transition: opacity 0.4s var(--ease-soft);
+}
+
+.ar-brand:hover,
+.ar-brand:focus-visible {
   opacity: 1;
-  transition: opacity 0.9s var(--ease-memory);
 }
 
-.ar-top > * {
-  pointer-events: auto;
-}
-
-/* The surrounding archive gradually disappears once a dream opens — the
-   header/nav fade with it, so the whole screen reads as receding behind
-   the one memory the dreamer stepped into. */
-.dream-archive[data-immersed='true'] .ar-top {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.ar-back {
-  margin: 0;
-  padding: 0.4em 0.3em;
-  background: none;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.24em;
-  color: var(--dream-white);
-  opacity: 0.55;
-  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
-  transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
-}
-
-.ar-back:hover,
-.ar-back:focus-visible {
-  opacity: 0.95;
-  letter-spacing: 0.3em;
-}
-
-.ar-nav {
-  display: flex;
-  align-items: center;
-  gap: clamp(1rem, 2.4vw, 1.8rem);
-}
-
-.ar-nav-item {
-  margin: 0;
-  padding: 0.4em 0.2em;
-  background: none;
-  border: none;
-  outline: none;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.66rem;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--dream-warm-neutral-dim);
-  cursor: default;
-  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
-  transition: color 0.4s var(--ease-soft), opacity 0.4s var(--ease-soft);
-}
-
-.ar-nav-item[data-active='true'] {
-  color: var(--dream-white);
-  cursor: pointer;
-}
-
-.ar-nav-item[data-placeholder='true'] {
-  opacity: 0.4;
-}
-
-/* ---- Minimal account control — email + sign out. Deliberately flows
-   right after the nav in this same left-grouped row (see .ar-top's own
-   comment on why this row uses flex-start) rather than pushed to the
-   row's far end with an auto margin — pushing it that far would land it
-   right under the language switcher's fixed top-right corner
-   (LanguageSwitcher.css). Sitting inline here keeps real, gap-based
-   separation from that corner at every viewport, in both LTR and RTL,
-   with no fixed positioning of its own to reason about. No dashboard,
-   no avatar. ---- */
 .ar-account {
   display: flex;
   align-items: center;
-  gap: 0.7em;
+  gap: 0.8em;
   min-width: 0;
 }
 
 .ar-account-email {
-  max-width: 16vw;
+  max-width: 34vw;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.66rem;
-  letter-spacing: 0.04em;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.74rem;
   color: var(--dream-warm-neutral-dim);
-  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
 }
 
 .ar-account-signout {
   flex: none;
-  margin: 0;
-  padding: 0.4em 0.2em;
-  background: none;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.66rem;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--dream-white);
-  opacity: 0.55;
-  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
-  transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
+  padding: 0.5em 1.1em;
+  font-size: 0.7rem;
 }
 
-.ar-account-signout:hover,
-.ar-account-signout:focus-visible {
-  opacity: 0.95;
-  letter-spacing: 0.24em;
-}
-
-/* Generous room of its own — the header must never compete with the
-   constellation below it for attention. */
-.ar-header {
+/* ---- Body — sidebar + main, a real responsive two-column layout below
+   the header, stacking to one column on narrow viewports. flex-direction:
+   row already respects `dir`, so this mirrors correctly in Hebrew with
+   no separate rules needed for the column order itself. ---- */
+.ar-shell-body {
   position: relative;
   z-index: 2;
-  padding: 14vh 6vw 8vh;
-  text-align: center;
-  opacity: 1;
-  transition: opacity 0.9s var(--ease-memory);
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(1.5rem, 3vw, 3rem);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem max(1.5rem, 6vw) 6vh;
 }
 
-.dream-archive[data-immersed='true'] .ar-header {
-  opacity: 0;
+.ar-sidenav {
+  flex: none;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  position: sticky;
+  top: 6rem;
+}
+
+.ar-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6em;
+  padding: 0.65em 0.9em;
+  border-radius: 10px;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--dream-warm-neutral);
+}
+
+.ar-nav-item--active {
+  background: rgba(45, 212, 191, 0.12);
+  color: var(--dream-white);
+  font-weight: 600;
+}
+
+/* Honest placeholders — no Favorites/Insights/Settings view exists yet,
+   so these are visibly present (matching the approved nav structure) but
+   inert: dimmed, a small "Soon" badge, never a click that goes nowhere. */
+.ar-nav-item--disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.ar-nav-badge {
+  flex: none;
+  padding: 0.15em 0.55em;
+  border-radius: 999px;
+  background: rgba(244, 240, 232, 0.1);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--dream-warm-neutral-dim);
+}
+
+.ar-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ar-hero-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
 }
 
 .ar-title {
   margin: 0;
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 400;
-  font-size: clamp(1.9rem, 4vw, 2.8rem);
-  letter-spacing: 0.02em;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.9rem, 3.6vw, 2.6rem);
   color: var(--dream-white);
   text-shadow: 0 0.05em 0.9em rgba(0, 0, 0, 0.6);
 }
 
 .ar-subtitle {
-  margin: 0.7rem 0 0;
-  font-family: 'Fraunces', Georgia, serif;
-  font-style: italic;
-  font-weight: 400;
-  font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+  margin: 0.5rem 0 0;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: clamp(0.92rem, 1.6vw, 1.02rem);
   color: var(--dream-warm-neutral);
-  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
-  opacity: 0.85;
+  opacity: 0.9;
+}
+
+.ar-new-dream {
+  flex: none;
+}
+
+.ar-new-dream-plus {
+  font-size: 1.15em;
+  line-height: 1;
+}
+
+@media (max-width: 900px) {
+  .ar-shell-body {
+    flex-direction: column;
+  }
+
+  .ar-sidenav {
+    position: static;
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .ar-nav-item {
+    flex: none;
+  }
 }
 
 @media (max-width: 640px) {
-  .ar-header {
-    padding-top: 16vh;
+  .ar-shell-header {
+    /* Physical, same reasoning as the base rule above — the switcher
+       shrinks its own footprint on mobile too (LanguageSwitcher.css) but
+       stays physically top-right regardless of language. */
+    padding-right: max(1.5rem, 6.5rem);
   }
 
-  .ar-nav {
-    gap: 0.9rem;
-  }
-
-  /* The row (DARE + nav + account) has no room for the full email on a
-     narrow screen — drop it and keep only Sign out, still reachable and
-     still nowhere near the language switcher's own corner. */
   .ar-account-email {
     display: none;
   }
 
-  .ar-account {
-    gap: 0;
+  .ar-hero-row {
+    align-items: flex-start;
+  }
+
+  .ar-new-dream {
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -300,9 +331,5 @@
   .ar-star {
     animation: none !important;
     opacity: 0.3 !important;
-  }
-  .ar-top,
-  .ar-header {
-    transition-duration: 0.01s !important;
   }
 }

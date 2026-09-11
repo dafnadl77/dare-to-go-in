@@ -49,7 +49,7 @@
   border: none;
   outline: none;
   cursor: pointer;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.24em;
@@ -80,7 +80,7 @@
 
 .auth-eyebrow-title {
   margin: 0;
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 400;
   font-size: clamp(1.9rem, 4.4vw, 2.9rem);
   letter-spacing: 0.01em;
@@ -90,7 +90,7 @@
 
 .auth-tagline {
   margin: -0.9rem 0 0.4rem;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: clamp(0.92rem, 1.75vw, 1.08rem);
   font-weight: 400;
   /* Was --dream-warm-neutral — too dark/faint against bright cloud areas,
@@ -124,7 +124,7 @@
   background: rgba(244, 240, 232, 0.04);
   border: 1px solid rgba(244, 240, 232, 0.28);
   color: var(--dream-white);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.82rem;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -172,7 +172,7 @@
 }
 
 .auth-divider span {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.64rem;
   font-weight: 600;
   letter-spacing: 0.22em;
@@ -204,7 +204,7 @@
   outline: none;
   padding: 0.85em 1.1em;
   color: var(--dream-white);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   /* 16px minimum — below that, iOS Safari zooms the whole page in on
      focus (an actual input, unlike the labels/buttons around it, which
      don't trigger that behavior regardless of their own size). */
@@ -228,7 +228,7 @@
 .auth-error {
   margin: -0.3rem 0 0;
   padding: 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.84rem;
   font-weight: 500;
   line-height: 1.5;
@@ -237,63 +237,60 @@
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.55);
 }
 
-/* ---- CREATE MY ARCHIVE / ENTER MY ARCHIVE — the same restrained
-   text-link language as every other primary action in DARE (see
-   .dr-choice) rather than a filled rectangular submit button. ---- */
+/* ---- CREATE MY ARCHIVE / ENTER MY ARCHIVE — a real, unmistakably-
+   clickable primary button now (filled cyan/teal, the one shared
+   --dream-cta treatment — see src/ui/buttons.css), not the bare
+   text-link this used to be. Written directly here (not by relying on
+   the shared .btn-primary CLASS's own cascade position, which loads
+   before this file and would lose any overlapping property to this
+   file's own rules regardless) so the win is guaranteed regardless of
+   import order — same tokens, same states, genuinely one system. ---- */
 .auth-submit {
   position: relative;
   align-self: center;
-  margin-top: 0.3rem;
-  background: none;
-  border: none;
+  margin-top: 0.6rem;
+  min-width: 12rem;
+  background: var(--dream-cta);
+  border: 1px solid transparent;
+  border-radius: 999px;
   outline: none;
-  padding: 0.9em 0.6em;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--dream-white);
+  padding: 0.85em 1.8em;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--dream-cta-ink);
   cursor: pointer;
-  transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
+  box-shadow: 0 0.6rem 1.6rem rgba(45, 212, 191, 0.22);
+  transition: background 0.3s var(--ease-soft), transform 0.3s var(--ease-soft), box-shadow 0.3s var(--ease-soft), opacity 0.3s var(--ease-soft);
 }
 
-.auth-submit::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0.5em;
-  height: 1px;
-  background: currentColor;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.5s var(--ease-memory);
+.auth-submit:hover:not(:disabled),
+.auth-submit:focus-visible:not(:disabled) {
+  background: var(--dream-cta-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 0.9rem 2rem rgba(45, 212, 191, 0.3);
 }
 
-.auth-submit:hover,
+.auth-submit:active:not(:disabled) {
+  background: var(--dream-cta-active);
+  transform: translateY(0);
+}
+
 .auth-submit:focus-visible {
-  letter-spacing: 0.26em;
-}
-
-.auth-submit:hover::after,
-.auth-submit:focus-visible::after {
-  transform: scaleX(1);
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.45);
 }
 
 .auth-submit:disabled {
   cursor: default;
-  opacity: 0.6;
-  letter-spacing: 0.22em;
-}
-
-.auth-submit:disabled::after {
-  transform: scaleX(0);
+  opacity: 0.55;
+  transform: none;
+  box-shadow: none;
 }
 
 .auth-switch {
   margin: 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.86rem;
   /* Was --dream-warm-neutral-dim — the least readable text on this whole
      screen against a bright cloud area ("Already have an archive?"). */

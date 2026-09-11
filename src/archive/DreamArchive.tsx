@@ -15,25 +15,38 @@ interface DreamArchiveProps {
 }
 
 /**
- * MY DREAM ARCHIVE — the DREAM TIMELINE. A calm, editorial, vertical
- * chronology of saved dreams (see archiveData.ts): the earlier floating
- * "constellation" of cloud-masked portals has been fully removed per the
- * approved visual reference, replaced by DreamTimeline. The cloud world
- * behind it, the header, and the top nav are unchanged.
+ * MY DREAM ARCHIVE — a real, structured personal area: a proper
+ * responsive header (brand + account, never fighting the global language
+ * switcher for the same corner — see .ar-shell-header below), a page
+ * heading + subtitle + primary "New Dream" action, a left-hand section
+ * nav, and the dream list itself as clean editorial cards (see
+ * DreamTimeline.tsx). The cinematic cloud/star background stays; the
+ * CONTENT on top of it is now structured and easy to scan, per the
+ * approved personal-archive direction.
+ *
+ * Favorites/Insights/Settings are shown in the nav (matching that
+ * direction) but are honestly disabled — no such views/data exist yet,
+ * and this task is not the one that builds them; see .ar-nav-disabled.
+ * All Dreams is the one real, working section: exactly what already
+ * existed here before this pass.
  */
 export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: DreamArchiveProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user, signOut } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     bgVideoRef.current?.play().catch(() => {});
   }, []);
 
-  const entries = useMemo(() => getArchiveEntries(), []);
+  // Re-derived on every language change (not just on mount) — mock/sample
+  // titles, excerpts and keywords must follow the CURRENT interface
+  // language even if the dreamer switches it mid-visit; see
+  // archiveData.ts's own language-aware entry builders.
+  const entries = useMemo(() => getArchiveEntries(language), [language]);
 
   // Restores the scroll position left behind before opening a dream's
   // detail view (see DreamDetail.tsx's "← BACK TO MY DREAMS") — behavior
-  // only, no change to the timeline's own layout/visuals.
+  // only, no change to the list's own layout/visuals.
   const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = rootRef.current;
@@ -73,49 +86,68 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
         ))}
       </div>
 
-      <div className="ar-top">
-        <button type="button" className="ar-back" dir="ltr" data-cursor-hover onClick={onBack} aria-label={t('archive.backToDare')}>
-          DARE
+      {/* A real, non-fixed page header — brand on one side, account on the
+          other, wrapping/stacking on its own at narrow widths instead of
+          ever fighting App.tsx's own fixed top-right language switcher
+          for the same corner. No magic-number positioning: this is a
+          normal flex row in normal document flow, at the very top of the
+          scrolling page, so there is nothing for it to collide with as
+          the page scrolls (it isn't fixed, it simply isn't there to
+          overlap anything once scrolled past). */}
+      <header className="ar-shell-header">
+        <button type="button" className="ar-brand" dir="ltr" data-cursor-hover onClick={onBack} aria-label={t('archive.backToDare')}>
+          DARE TO GO IN
         </button>
-        {/* CONSTELLATIONS and a separate TIMELINE item were removed here —
-            inspected first, per instruction: no Constellations view exists
-            anywhere in the codebase, and DreamTimeline.tsx (the "real
-            timeline view") is already exactly what MY DREAMS renders
-            below, not a distinct unconnected screen. Two nav items
-            pointing at byte-identical content isn't real navigation
-            either, so rather than wire up a second label that goes
-            nowhere new, MY DREAMS stays as the one accurate, working
-            item. The (now removed) circular "D" profile button used to
-            sit at the end of this same flex row — see .ar-top's
-            justify-content below, changed from space-between to
-            flex-start so this nav no longer stretches into the
-            language switcher's fixed top-right corner (App.tsx). */}
-        <nav className="ar-nav" aria-label={t('archive.dreamArchiveNav')}>
-          <span className="ar-nav-item" data-active="true">
-            {t('archive.myDreams')}
-          </span>
-        </nav>
-        {/* Minimal post-auth account control — email + sign out only, no
-            dashboard, no avatar. Deliberately placed in this same
-            left-grouped flex row (not a new fixed top-right element) so it
-            can never land on the language switcher's fixed corner
-            (LanguageSwitcher.css), in either LTR or RTL. */}
         {user && (
           <div className="ar-account">
             {user.email && <span className="ar-account-email">{user.email}</span>}
-            <button type="button" className="ar-account-signout" data-cursor-hover onClick={() => signOut()}>
+            <button type="button" className="ar-account-signout btn btn-secondary" data-cursor-hover onClick={() => signOut()}>
               {t('auth.signOut')}
             </button>
           </div>
         )}
-      </div>
-
-      <header className="ar-header">
-        <h1 className="ar-title">{t('archive.myDreamArchive')}</h1>
-        <p className="ar-subtitle">{t('archive.everyDreamLeavesATrace')}</p>
       </header>
 
-      <DreamTimeline entries={entries} onOpenEntry={handleOpenEntry} />
+      <div className="ar-shell-body">
+        <nav className="ar-sidenav" aria-label={t('archive.dreamArchiveNav')}>
+          <span className="ar-nav-item ar-nav-item--active" aria-current="page">
+            {t('archive.navAllDreams')}
+          </span>
+          <span className="ar-nav-item ar-nav-item--disabled">
+            {t('archive.navFavorites')}
+            <span className="ar-nav-badge">{t('archive.navComingSoon')}</span>
+          </span>
+          <span className="ar-nav-item ar-nav-item--disabled">
+            {t('archive.navInsights')}
+            <span className="ar-nav-badge">{t('archive.navComingSoon')}</span>
+          </span>
+          <span className="ar-nav-item ar-nav-item--disabled">
+            {t('archive.navSettings')}
+            <span className="ar-nav-badge">{t('archive.navComingSoon')}</span>
+          </span>
+        </nav>
+
+        <main className="ar-main">
+          <div className="ar-hero-row">
+            <div className="ar-hero-copy">
+              <h1 className="ar-title">{t('archive.pageHeading')}</h1>
+              <p className="ar-subtitle">{t('archive.pageSubtitle')}</p>
+            </div>
+            {/* A real action, not a fake one — "a new dream" starts from
+                the same HOLD/TYPE capture the whole app already has, so
+                this returns to the room exactly like the header's own
+                brand button, just with an unmistakably primary look. */}
+            <button type="button" className="ar-new-dream btn btn-primary" data-cursor-hover onClick={onBack}>
+              <span className="ar-new-dream-plus" aria-hidden="true">
+                +
+              </span>
+              {t('archive.newDream')}
+            </button>
+          </div>
+
+          <DreamTimeline entries={entries} onOpenEntry={handleOpenEntry} />
+        </main>
+      </div>
 
       <AppFooter onNavigate={onOpenLegal} />
     </div>

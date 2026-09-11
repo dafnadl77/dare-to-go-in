@@ -53,7 +53,7 @@
   background: none;
   border: none;
   outline: none;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.14em;
@@ -160,7 +160,7 @@
 
 .dd-date {
   margin: 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.2em;
@@ -169,7 +169,7 @@
 
 .dd-title {
   margin: 0.5rem 0 0;
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 400;
   font-size: clamp(1.9rem, 4vw, 2.7rem);
   color: var(--dream-white);
@@ -199,22 +199,34 @@
   margin-top: clamp(48px, 6vw, 72px);
 }
 
+/* Was 0.68rem — a section title this small read as a tiny scattered
+   label rather than real hierarchy above the paragraph it introduces.
+   First bump (0.9rem–1.05rem) still landed BELOW .dd-body's own
+   1.05rem–1.25rem range at every viewport width (checked via
+   getComputedStyle side by side) — the opposite of the spec's "section
+   titles must be clearly larger than body copy." Re-bumped so the
+   eyebrow's minimum (1.35rem) clears the body's maximum (1.25rem) at
+   every width, while staying well under .dd-title's 1.9rem–2.7rem. */
 .dd-eyebrow {
   margin: 0;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.68rem;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: clamp(1.35rem, 2.6vw, 1.7rem);
   font-weight: 700;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   /* Warm muted gold, not the dim neutral used elsewhere — this is a
      label that should read clearly, not recede. */
   color: #c9a768;
 }
 
+html[lang='he'] .dd-eyebrow {
+  letter-spacing: normal;
+}
+
 .dd-body {
   margin: 0;
   max-width: 100%;
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 400;
   font-style: normal;
   line-height: 1.6;
@@ -237,19 +249,17 @@
 /* Only the closing question is italic — every other interpretive line
    stays upright serif, per spec. */
 .dd-body--question {
-  font-style: italic;
   font-size: clamp(1.15rem, 2.4vw, 1.45rem);
 }
 
 .dd-body--loading {
   color: var(--dream-warm-neutral-dim);
-  font-style: italic;
   opacity: 0.75;
 }
 
 .dd-disclaimer {
   margin-top: clamp(3rem, 6vw, 4rem);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.68rem;
   color: var(--dream-warm-neutral-dim);
   opacity: 0.6;
@@ -258,8 +268,7 @@
 
 .dd-mock-note {
   margin-top: clamp(3rem, 7vw, 4.5rem);
-  font-family: 'Fraunces', Georgia, serif;
-  font-style: italic;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 1rem;
   color: var(--dream-warm-neutral);
   opacity: 0.75;
@@ -283,7 +292,7 @@
   border: none;
   outline: none;
   padding: 0.4em 0.1em;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.16em;

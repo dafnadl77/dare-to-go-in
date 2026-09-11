@@ -11,6 +11,17 @@
   --dream-ocean: #21403c;
   --dream-ocean-soft: #3c5c56;
 
+  /* The one shared primary-button accent (src/ui/buttons.css) — a real
+     cyan/teal, distinct from --dream-ocean's own muted, near-desaturated
+     dark teal above (which reads as a background/surface color, not an
+     actionable one). Bright enough to read unmistakably as "click me"
+     against the app's dark backgrounds, in both the cinematic cloud
+     screens and the personal-area's own dark-blue surfaces. */
+  --dream-cta: #2dd4bf;
+  --dream-cta-hover: #5eead4;
+  --dream-cta-active: #14b8a6;
+  --dream-cta-ink: #052e2b;
+
   --ease-memory: cubic-bezier(0.16, 0.72, 0.2, 1);
   --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -33,8 +44,15 @@ html {
   background: var(--dream-black);
 }
 
+/* ONE typography system, EN and HE alike — Heebo (with Assistant as a
+   second-choice Hebrew fallback) for every product-UI surface: headings,
+   body, buttons, labels, nav, archive, forms, auth, legal, footer. The
+   ONE deliberate exception is .memory-title, the "DARE TO GO IN" brand
+   mark — it keeps its own Fraunces treatment and LTR direction in every
+   language (see MemoryTitle.css and the RTL override at the bottom of
+   this file) because it's a logo, not body/heading text. */
 body {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   color: var(--dream-white);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -90,40 +108,31 @@ button:disabled {
 }
 
 /* ===================================================================
-   HEBREW (RTL) TYPOGRAPHY — global, deliberate, broad-brush overrides.
+   HEBREW (RTL) TYPOGRAPHY — global, deliberate, broad-brush override.
    English typography throughout this app relies heavily on wide
    uppercase letter-spacing (0.15–0.3em) as a stylistic device; applied
    to Hebrew glyphs the same tracking breaks word cohesion and reads as
    broken, since Hebrew has no equivalent convention — so it's reset to
    normal everywhere, not audited component-by-component. `!important`
    is deliberate and unusually broad here: there are many separate
-   component stylesheets with their own explicit letter-spacing/
-   font-family values (uppercase labels, headings, buttons), and one
-   global correction is safer and more maintainable than auditing each
-   one individually — nothing in this codebase depends on either
-   surviving into RTL mode.
-   =================================================================== */
+   component stylesheets with their own explicit letter-spacing values
+   (uppercase labels, headings, buttons), and one global correction is
+   safer and more maintainable than auditing each one individually —
+   nothing in this codebase depends on it surviving into RTL mode.
+
+   font-family is included here too, `!important` and all, purely as a
+   defensive backstop now that the whole product UI already uses Heebo
+   by default in every language (see body, above) — it's a no-op in the
+   common case, but guarantees Hebrew never regresses to a mismatched
+   font even if some future component-level rule reintroduces one.
+   There used to be a second exception list here restoring a different
+   serif (Frank Ruhl Libre) for a handful of display headings, back when
+   English headings used a different font (Fraunces) than Hebrew ones —
+   removed now that those same headings are Heebo in English too, so
+   there is no longer a mismatch to correct for RTL specifically. */
 :root[dir='rtl'] * {
   letter-spacing: normal !important;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif !important;
-}
-
-/* The handful of large editorial/display headings that use Fraunces in
-   English get Frank Ruhl Libre instead — preserving the serif/sans
-   contrast that gives DARE its editorial character, rather than every
-   heading collapsing to the same body sans under RTL. (.memory-title —
-   the DARE TO GO IN brand mark — is deliberately NOT in this list: it
-   stays Fraunces and LTR in every language, see MemoryTitle.tsx.) */
-:root[dir='rtl'] .central-recording-heading,
-:root[dir='rtl'] .central-settled-text,
-:root[dir='rtl'] .da-title,
-:root[dir='rtl'] .dr-line,
-:root[dir='rtl'] .dc-title,
-:root[dir='rtl'] .auth-eyebrow-title,
-:root[dir='rtl'] .ar-title,
-:root[dir='rtl'] .dd-title,
-:root[dir='rtl'] .dt-title {
-  font-family: 'Frank Ruhl Libre', Georgia, serif !important;
 }
 
 /* BUG FIX: the blanket `:root[dir='rtl'] *` rule above matches EVERY

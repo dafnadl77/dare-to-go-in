@@ -553,6 +553,15 @@ export default function HoldToRemember({
         {t('hold.idRatherType')}
       </button>
 
+      {/* A short, plain-language clarification that the circle above
+          needs a press-and-hold, not a tap — added because the hold
+          gesture alone wasn't obvious enough on its own. Fades with the
+          circle/type-link (same is-mode-* rule in HoldToRemember.css),
+          never shown once a gesture has actually started. */}
+      <p className="htr-hold-hint" aria-hidden={isHoldFaded}>
+        {t('hold.pressAndHoldHint')}
+      </p>
+
       <div
         className={`central-recording${centralMode === 'recording' ? ' is-active' : ''}${finishing ? ' is-finishing' : ''}`}
         aria-hidden={centralMode !== 'recording'}

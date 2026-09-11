@@ -21,7 +21,10 @@
 .hold-to-remember.is-mode-settled .htr-circle,
 .hold-to-remember.is-mode-recording .htr-type-link,
 .hold-to-remember.is-mode-typing .htr-type-link,
-.hold-to-remember.is-mode-settled .htr-type-link {
+.hold-to-remember.is-mode-settled .htr-type-link,
+.hold-to-remember.is-mode-recording .htr-hold-hint,
+.hold-to-remember.is-mode-typing .htr-hold-hint,
+.hold-to-remember.is-mode-settled .htr-hold-hint {
   opacity: 0;
   filter: blur(8px);
   pointer-events: none;
@@ -127,7 +130,7 @@
 
 .htr-label {
   position: relative;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.22em;
@@ -196,7 +199,7 @@
 
 .htr-type-link {
   position: relative;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.62rem;
   font-weight: 500;
   letter-spacing: 0.2em;
@@ -240,6 +243,29 @@
 .htr-type-link:hover::after,
 .htr-type-link:focus-visible::after {
   transform: scaleX(1);
+}
+
+/* "Press and hold while you speak" — a short, quiet clarification that
+   the circle needs a real press-and-hold, not a tap. Sits below I'D
+   RATHER TYPE, same faded treatment, deliberately smaller/dimmer than
+   both so it reads as a caption, not competing with HOLD TO TELL ME
+   itself for attention. */
+.htr-hold-hint {
+  /* .htr-type-link above this is visually enlarged and pushed down by its
+     own `transform: translateY(20px) scale(1.4)` — a transform never
+     affects sibling layout, so the flex `gap` alone left this hint
+     overlapping the link's real (post-transform) footprint. Confirmed
+     live via getBoundingClientRect(): the link's rendered bottom edge sat
+     ~6px below this element's flow position before this margin. */
+  margin: 12px 0 0;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--dream-warm-neutral-dim);
+  text-align: center;
+  opacity: 0.75;
+  transition: opacity 0.4s var(--ease-soft), filter 0.6s var(--ease-soft);
 }
 
 /* Recording + typing + settled views float centered over the same spot as
@@ -308,7 +334,7 @@
 
 .central-recording-heading {
   margin: 0 0 0.6rem;
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 400;
   font-size: clamp(1.4rem, 3vw, 1.9rem);
   letter-spacing: 0.01em;
@@ -319,7 +345,7 @@
 
 .central-recording-subheading {
   margin: 0 0 2.2rem;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 500;
   font-size: clamp(0.72rem, 1.5vw, 0.88rem);
   letter-spacing: 0.16em;
@@ -391,7 +417,7 @@
 .central-live-preview {
   width: 100%;
   margin: -1.2rem 0 2rem;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-style: normal;
   font-weight: 400;
   font-size: clamp(1rem, 2.1vw, 1.22rem);
@@ -426,49 +452,48 @@
   }
 }
 
+/* The single most important action in the whole capture flow — finishing
+   a recording/typed dream — used to be the same quiet text-link
+   treatment as every other secondary label nearby, easy to miss. Now a
+   real filled primary button (the shared --dream-cta treatment — see
+   src/ui/buttons.css), written directly here rather than relying on
+   that file's own class/cascade position for the same reason as
+   .auth-submit (DreamAuth.css): guarantees the win regardless of import
+   order, while still using the exact same shared tokens/states. */
 .central-finish {
   position: relative;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.66rem;
-  font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--dream-warm-neutral);
-  background: none;
-  border: none;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--dream-cta-ink);
+  background: var(--dream-cta);
+  border: 1px solid transparent;
+  border-radius: 999px;
   outline: none;
-  padding: 0.9em 0.6em;
-  margin: -0.6em 0;
-  opacity: 0.65;
+  padding: 0.75em 1.8em;
+  margin: 0.2em 0;
+  box-shadow: 0 0.6rem 1.6rem rgba(45, 212, 191, 0.22);
   transition:
-    opacity 0.4s var(--ease-soft),
-    color 0.4s var(--ease-soft),
-    letter-spacing 0.4s var(--ease-soft);
-}
-
-.central-finish::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: currentColor;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.5s var(--ease-memory);
+    background 0.3s var(--ease-soft),
+    transform 0.3s var(--ease-soft),
+    box-shadow 0.3s var(--ease-soft);
 }
 
 .central-finish:hover,
 .central-finish:focus-visible {
-  opacity: 1;
-  color: var(--dream-white);
-  letter-spacing: 0.26em;
+  background: var(--dream-cta-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 0.9rem 2rem rgba(45, 212, 191, 0.3);
 }
 
-.central-finish:hover::after,
-.central-finish:focus-visible::after {
-  transform: scaleX(1);
+.central-finish:focus-visible {
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.45);
+}
+
+.central-finish:active {
+  background: var(--dream-cta-active);
+  transform: translateY(0);
 }
 
 /* CANCEL — a bare glyph, no circle/square/pill/card behind it. Sits INSIDE
@@ -491,7 +516,7 @@
   outline: none;
   padding: 0;
   margin: 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 1.7rem;
   font-weight: 300;
   line-height: 1;
@@ -519,7 +544,7 @@
 
 .central-mic-note {
   margin: 0 0 1.1rem;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 500;
   font-size: clamp(0.66rem, 1.35vw, 0.76rem);
   letter-spacing: 0.14em;
@@ -535,7 +560,7 @@
 
 .central-typing-heading {
   margin: 0 0 1.5rem;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 500;
   font-size: clamp(0.82rem, 1.7vw, 1rem);
   letter-spacing: 0.18em;
@@ -552,7 +577,7 @@
   border: none;
   border-bottom: 1px solid rgba(244, 240, 232, 0.26);
   color: var(--dream-white);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-style: normal;
   font-weight: 400;
   font-size: clamp(1.08rem, 2.2vw, 1.32rem);
@@ -584,7 +609,7 @@
 }
 
 .central-back {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.66rem;
   font-weight: 400;
   letter-spacing: 0.16em;
@@ -612,52 +637,48 @@
   letter-spacing: 0.2em;
 }
 
+/* I'M DONE — the typing flow's own completion action, the same real
+   primary-button role as .central-finish above (the recording flow's
+   equivalent) — same shared treatment for both. */
 .central-done {
   position: relative;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--dream-white);
-  background: none;
-  border: none;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--dream-cta-ink);
+  background: var(--dream-cta);
+  border: 1px solid transparent;
+  border-radius: 999px;
   outline: none;
-  padding: 0.9em 0.6em;
-  margin: -0.6em 0;
-  opacity: 0.82;
+  padding: 0.75em 1.8em;
+  margin: 0.2em 0;
+  box-shadow: 0 0.6rem 1.6rem rgba(45, 212, 191, 0.22);
   transition:
-    opacity 0.4s var(--ease-soft),
-    letter-spacing 0.4s var(--ease-soft);
-}
-
-.central-done::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: currentColor;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.5s var(--ease-memory);
+    background 0.3s var(--ease-soft),
+    transform 0.3s var(--ease-soft),
+    box-shadow 0.3s var(--ease-soft);
 }
 
 .central-done:hover,
 .central-done:focus-visible {
-  opacity: 1;
-  letter-spacing: 0.26em;
+  background: var(--dream-cta-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 0.9rem 2rem rgba(45, 212, 191, 0.3);
 }
 
-.central-done:hover::after,
-.central-done:focus-visible::after {
-  transform: scaleX(1);
+.central-done:focus-visible {
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.45);
+}
+
+.central-done:active {
+  background: var(--dream-cta-active);
+  transform: translateY(0);
 }
 
 .central-settled-text {
   margin: 0;
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 400;
   font-size: clamp(1.35rem, 3.2vw, 2rem);
   letter-spacing: 0.01em;

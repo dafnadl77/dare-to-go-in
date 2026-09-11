@@ -12,7 +12,7 @@
   z-index: 50;
   display: flex;
   align-items: center;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
 }
 
 /* The archive/account link ("MY DREAMS") — a plain-text nav item, never a
@@ -82,7 +82,7 @@ html:not([lang='he']) .trn-archive-link:focus-visible {
 .language-switcher {
   display: flex;
   align-items: center;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
 }
 
 .ls-item {
