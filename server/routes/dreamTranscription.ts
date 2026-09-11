@@ -9,11 +9,25 @@ const DEFAULT_TRANSCRIPTION_MODEL = 'gpt-4o-mini-transcribe';
 // being passed through — never let the transcription model fall back to
 // unrestricted free-form language auto-detection, which is exactly what
 // let a real, plain English recording come back transcribed in Russian.
-const ALLOWED_LANGUAGES = new Set(['en', 'he']);
 const DEFAULT_LANGUAGE = 'en';
 
-function resolveLanguage(value: unknown): string {
-  return typeof value === 'string' && ALLOWED_LANGUAGES.has(value) ? value : DEFAULT_LANGUAGE;
+/** Strict normalization, not just an allowlist membership check — the
+    client (src/hero/dreamTranscription.ts) already only ever sends the
+    plain 'en'/'he' codes today, but this route is the actual security/
+    correctness boundary, so it re-derives a safe value from whatever
+    arrives rather than trusting the client's shape. Recognizes the
+    locale-style variants a browser API could plausibly produce (he-IL,
+    en-US, en-GB, underscores, 'iw' — the old ISO 639-1 code for Hebrew)
+    in case any future caller ever passes one of those instead of the
+    plain code, and maps anything else — missing, malformed, or a
+    genuinely different language — to the deterministic 'en' fallback.
+    Never returns anything outside {'en','he'}, and never triggers the
+    transcription model's free-form auto-detect. */
+function resolveLanguage(value: unknown): 'en' | 'he' {
+  const v = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  if (v === 'he' || v === 'iw' || v.startsWith('he-') || v.startsWith('he_')) return 'he';
+  if (v === 'en' || v.startsWith('en-') || v.startsWith('en_')) return 'en';
+  return DEFAULT_LANGUAGE;
 }
 
 // Comfortably under Vercel's ~4.5MB serverless request body ceiling once

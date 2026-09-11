@@ -150,7 +150,8 @@ export interface Translations {
     checkYourEmailMessage: string;
   };
   footer: {
-    designedDeveloped: string;
+    designedDevelopedPrefix: string;
+    dafnaName: string;
     privacyPolicy: string;
     accessibilityStatement: string;
     termsOfUse: string;
@@ -304,7 +305,8 @@ export const en: Translations = {
     checkYourEmailMessage: 'I sent a confirmation link to {email}. Open it to finish creating your archive.',
   },
   footer: {
-    designedDeveloped: 'Design, Development & Build: Dafna Dalmeida',
+    designedDevelopedPrefix: 'Design, Development & Build:',
+    dafnaName: 'Dafna Dalmeida',
     privacyPolicy: 'Privacy Policy',
     accessibilityStatement: 'Accessibility Statement',
     termsOfUse: 'Terms of Use',
@@ -464,7 +466,8 @@ export const he: Translations = {
     checkYourEmailMessage: 'נשלח קישור אישור אל {email}. פתחו אותו כדי להשלים את יצירת הארכיון.',
   },
   footer: {
-    designedDeveloped: 'עיצוב, פיתוח ובנייה: דפנה דלמדה',
+    designedDevelopedPrefix: 'עיצוב, פיתוח ובנייה:',
+    dafnaName: 'דפנה דלמדה',
     privacyPolicy: 'מדיניות פרטיות',
     accessibilityStatement: 'הצהרת נגישות',
     termsOfUse: 'תנאי שימוש',

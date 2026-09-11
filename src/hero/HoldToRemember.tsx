@@ -13,7 +13,7 @@ import type { CentralMode } from './centralMode';
 import type { useDreamRecorder } from './useDreamRecorder';
 import { createTextDreamInput, type DreamInput } from './dreamInput';
 import { transcribeDreamAudio } from './dreamTranscription';
-import { getAppLanguage } from './appLanguage';
+import { getAppLanguage, normalizeTranscriptionLanguage } from './appLanguage';
 import { useLivePreviewTranscript } from './useLivePreviewTranscript';
 import { useLanguage } from '../i18n/LanguageContext';
 import './HoldToRemember.css';
@@ -458,7 +458,7 @@ export default function HoldToRemember({
     transcribeAbortRef.current = controller;
     transcriptionTimeoutRef.current = setTimeout(() => controller.abort(), TRANSCRIPTION_TIMEOUT_MS);
 
-    transcribeDreamAudio(blob, getAppLanguage(), controller.signal).then((result) => {
+    transcribeDreamAudio(blob, normalizeTranscriptionLanguage(getAppLanguage()), controller.signal).then((result) => {
       clearTimeout(transcriptionTimeoutRef.current);
       // A deliberate Close (or a fresh recording started since) already
       // cleared the ref — this response is stale, do nothing with it.

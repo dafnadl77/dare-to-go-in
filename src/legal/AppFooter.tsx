@@ -43,7 +43,18 @@ export default function AppFooter({ onNavigate, pinned }: AppFooterProps) {
           {t('footer.termsOfUse')}
         </button>
       </nav>
-      <p className="footer-credit">{t('footer.designedDeveloped')}</p>
+      <p className="footer-credit">
+        {t('footer.designedDevelopedPrefix')}{' '}
+        <a
+          className="footer-credit-link"
+          href="https://dafnadl.co.il/"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-cursor-hover
+        >
+          {t('footer.dafnaName')}
+        </a>
+      </p>
     </footer>
   );
 }

@@ -56,10 +56,73 @@
   overflow-x: hidden;
 }
 
+/* Was 640px — a very narrow column for real multi-section documents.
+   760-900px is the real target: wide enough that a paragraph doesn't
+   read as a squeezed strip, narrow enough to stay a comfortable line
+   length (see .legal-body's own measure) rather than sprawling edge to
+   edge. Generous side margins still come from the vw padding below. */
 .legal-column {
-  max-width: 640px;
+  max-width: 840px;
   margin: 0 auto;
   padding: 12vh 6vw 10vh;
+}
+
+/* ---- Breadcrumb — "DARE TO GO IN / <current page>". Deliberately
+   dir="ltr" on the row itself, same reasoning as .language-switcher and
+   .trn-archive-link elsewhere: a persistent brand/navigation element
+   keeps one fixed reading order in every language rather than mirroring,
+   so "DARE TO GO IN" is always first — exactly the order specified for
+   Hebrew too. The current-page segment still renders its own Hebrew text
+   completely naturally inside that row; only the ROW's own left-to-right
+   sequencing is fixed, not the glyphs within each segment. ---- */
+.legal-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0 0 2.2rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.74rem;
+}
+
+.legal-crumb-home {
+  background: none;
+  border: none;
+  outline: none;
+  margin: 0;
+  padding: 0.2em;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--dream-warm-neutral);
+  opacity: 0.75;
+  transition: opacity 0.4s var(--ease-soft), color 0.4s var(--ease-soft);
+}
+
+.legal-crumb-home:hover,
+.legal-crumb-home:focus-visible {
+  opacity: 1;
+  color: var(--dream-white);
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+
+.legal-crumb-sep {
+  color: var(--dream-warm-neutral-dim);
+  opacity: 0.6;
+}
+
+.legal-crumb-current {
+  color: var(--dream-warm-neutral-dim);
+  opacity: 0.85;
+  /* The current page's own name renders in its own script's natural
+     direction regardless of the row's fixed dir="ltr" — Hebrew glyphs
+     still read correctly right-to-left within this one segment. */
+  unicode-bidi: isolate;
+}
+
+html[lang='he'] .legal-crumb-current {
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
 }
 
 .legal-title {
@@ -89,8 +152,8 @@ html[lang='he'] .legal-updated {
 .legal-intro {
   margin: 1.6rem 0 0;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 1rem;
-  line-height: 1.75;
+  font-size: 1.08rem;
+  line-height: 1.85;
   color: var(--dream-warm-neutral);
 }
 
@@ -103,15 +166,18 @@ html[lang='he'] .legal-updated {
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 400;
   font-style: italic;
-  font-size: clamp(1.1rem, 2.4vw, 1.3rem);
+  font-size: clamp(1.15rem, 2.4vw, 1.4rem);
   color: var(--dream-white);
 }
 
+/* Running text — slightly larger, more line-height than before, still
+   capped to a comfortable measure (.legal-column's own max-width does
+   that job; this rule doesn't add a second, narrower one). */
 .legal-body {
-  margin: 0 0 1rem;
+  margin: 0 0 1.1rem;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.94rem;
-  line-height: 1.8;
+  font-size: 1.02rem;
+  line-height: 1.85;
   color: var(--dream-warm-neutral);
 }
 
@@ -130,8 +196,8 @@ html[lang='he'] .legal-updated {
   border-top: 1px solid rgba(244, 240, 232, 0.14);
   font-family: 'Fraunces', Georgia, serif;
   font-style: italic;
-  font-size: 0.88rem;
-  line-height: 1.7;
+  font-size: 0.92rem;
+  line-height: 1.75;
   color: var(--dream-warm-neutral-dim);
 }
 
@@ -168,8 +234,15 @@ html[lang='he'] .legal-return {
 }
 
 @media (max-width: 640px) {
+  /* Near-full width with safe padding, not a narrow centered column —
+     the vw padding already does this; only the top offset shrinks to
+     make room for the fixed DARE button above it. */
   .legal-column {
-    padding: 14vh 7vw 8vh;
+    padding: 14vh 6vw 8vh;
+  }
+
+  .legal-breadcrumb {
+    font-size: 0.68rem;
   }
 }
 

@@ -31,6 +31,27 @@ export function getAppLanguage(): AppLanguage {
   return currentAppLanguage;
 }
 
+/** Strict, explicit normalization for the one value that ever reaches the
+    transcription API as a language hint (see dreamTranscription.ts). In
+    practice getAppLanguage() above is the only source this is ever called
+    with, and it's already typed to exactly 'en' | 'he' — this exists as
+    real defense-in-depth, not because a leak has been found: if anything
+    is ever wired in later that passes a raw browser/Intl locale string
+    (he-IL, iw — the old ISO 639-1 code for Hebrew, en-US, en-GB, ...)
+    instead of the plain app-language code, it still resolves correctly
+    rather than reaching OpenAI as unrecognized data. Anything genuinely
+    unexpected falls back to English, deterministically — never to the
+    transcription model's free-form language auto-detection, which is
+    exactly what once let a real, plain English recording come back
+    transcribed in Russian (see server/routes/dreamTranscription.ts's own
+    matching resolveLanguage(), the actual re-validated boundary). */
+export function normalizeTranscriptionLanguage(value: string | null | undefined): AppLanguage {
+  const v = (value ?? '').trim().toLowerCase();
+  if (v === 'he' || v === 'iw' || v.startsWith('he-') || v.startsWith('he_')) return 'he';
+  if (v === 'en' || v.startsWith('en-') || v.startsWith('en_')) return 'en';
+  return 'en';
+}
+
 const HEBREW_CHARS = new RegExp('[\\u0590-\\u05FF]');
 const HEBREW_CHARS_GLOBAL = new RegExp('[\\u0590-\\u05FF]', 'g');
 // A parenthetical aside that contains Hebrew — the observed failure mode is

@@ -125,3 +125,23 @@ button:disabled {
 :root[dir='rtl'] .dt-title {
   font-family: 'Frank Ruhl Libre', Georgia, serif !important;
 }
+
+/* BUG FIX: the blanket `:root[dir='rtl'] *` rule above matches EVERY
+   descendant of the document root once Hebrew is active — completely
+   independent of any element's own `dir` attribute, since it only reads
+   dir on the ROOT. .memory-title (the "DARE TO GO IN" brand mark) sets
+   dir="ltr" on itself for bidi/letter-order reasons (see MemoryTitle.tsx)
+   but that alone never protected its font-family/letter-spacing from
+   this selector — the comment above claiming it was "deliberately NOT in
+   this list" was only ever true of the Frank-Ruhl-Libre exception list,
+   not of the blanket rule itself, so the brand mark was silently
+   rendering in Heebo/Assistant with normal letter-spacing under Hebrew.
+   This restores the exact English values on both the heading and its
+   per-letter animation spans (.mt-word/.mt-char inherit font-family
+   normally, but the blanket rule targets every element directly, so the
+   restore has to as well, not just the parent). */
+:root[dir='rtl'] .memory-title,
+:root[dir='rtl'] .memory-title * {
+  font-family: 'Fraunces', Georgia, serif !important;
+  letter-spacing: 0.01em !important;
+}
