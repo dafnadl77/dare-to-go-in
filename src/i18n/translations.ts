@@ -24,6 +24,7 @@
 export interface Translations {
   hero: {
     dreamPrompt: string;
+    myDreamsNav: string;
   };
   hold: {
     holdToTellMe: string;
@@ -161,6 +162,7 @@ export interface Translations {
 export const en: Translations = {
   hero: {
     dreamPrompt: 'WHAT DO YOU REMEMBER FROM YOUR DREAM?',
+    myDreamsNav: 'MY DREAMS',
   },
   hold: {
     holdToTellMe: 'HOLD TO TELL ME',
@@ -304,6 +306,7 @@ export const en: Translations = {
 export const he: Translations = {
   hero: {
     dreamPrompt: 'מה זכור לך מהחלום?',
+    myDreamsNav: 'החלומות שלי',
   },
   hold: {
     holdToTellMe: 'לחצו והחזיקו כדי לספר',

@@ -1,11 +1,85 @@
-/* Mirrors .dare-home's own restrained visual language (HeroDream.css) —
-   same fixed corner treatment, same type scale/weight/opacity — so the
-   two read as a deliberate pair rather than two unrelated UI systems. */
-.language-switcher {
+/* The fixed top-right corner itself — shared by the language switcher and
+   (on the Hero only) the "MY DREAMS" archive link that sits beside it, so
+   the two are laid out as one flex row and can never overlap. Mirrors
+   .dare-home's own restrained visual language (HeroDream.css) — same
+   fixed corner treatment, same type scale/weight/opacity — so the whole
+   group reads as a deliberate pair rather than unrelated UI systems.
+   Mounted once at the app root (App.tsx), on every screen. */
+.top-right-nav {
   position: fixed;
   top: max(20px, env(safe-area-inset-top));
   right: max(20px, env(safe-area-inset-right));
   z-index: 50;
+  display: flex;
+  align-items: center;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* The archive/account link ("MY DREAMS") — a plain-text nav item, never a
+   button-shaped CTA, in the exact same small-caps/opacity language as the
+   language options right next to it (.ls-option below). Its own file is
+   App.tsx (it needs the real auth/view state that lives there), not
+   LanguageSwitcher.tsx — this stylesheet just already owns the shared
+   top-right corner concept. */
+.trn-archive-link {
+  background: none;
+  border: none;
+  outline: none;
+  margin: 0;
+  padding: 0.4em 0.3em;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--dream-white);
+  opacity: 0.55;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+  transition:
+    opacity 0.4s var(--ease-soft),
+    letter-spacing 0.4s var(--ease-soft);
+}
+
+/* Hebrew never takes the wide uppercase tracking — same reasoning as
+   .ls-option--he below: Hebrew has no case, and that tracking just
+   breaks word cohesion. */
+html[lang='he'] .trn-archive-link {
+  letter-spacing: normal;
+  text-transform: none;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+}
+
+.trn-archive-link:hover,
+.trn-archive-link:focus-visible {
+  opacity: 0.9;
+}
+
+html:not([lang='he']) .trn-archive-link:hover,
+html:not([lang='he']) .trn-archive-link:focus-visible {
+  letter-spacing: 0.3em;
+}
+
+.trn-divider {
+  color: var(--dream-white);
+  opacity: 0.3;
+  font-size: 0.68rem;
+  margin: 0 0.1em;
+}
+
+@media (max-width: 640px), (max-height: 500px) {
+  .top-right-nav {
+    top: max(14px, env(safe-area-inset-top));
+    right: max(14px, env(safe-area-inset-right));
+  }
+
+  .trn-archive-link {
+    font-size: 0.62rem;
+    padding: 0.35em 0.25em;
+  }
+}
+
+.language-switcher {
   display: flex;
   align-items: center;
   font-family: 'Inter', system-ui, sans-serif;
@@ -67,11 +141,6 @@
 }
 
 @media (max-width: 640px), (max-height: 500px) {
-  .language-switcher {
-    top: max(14px, env(safe-area-inset-top));
-    right: max(14px, env(safe-area-inset-right));
-  }
-
   .ls-option {
     font-size: 0.62rem;
     padding: 0.35em 0.25em;

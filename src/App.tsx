@@ -80,6 +80,7 @@ function AuthLoadingScreen() {
 
 function App() {
   const { user, loading } = useAuth();
+  const { t } = useLanguage();
   const [view, setViewState] = useState<AppView>(() => getInitialView());
   const [authMode, setAuthMode] = useState<AuthMode>('signup');
   const [openEntry, setOpenEntry] = useState<ArchiveEntry | null>(null);
@@ -87,6 +88,15 @@ function App() {
   const setView = (next: AppView) => {
     setViewState(next);
     writeViewToUrl(next);
+  };
+
+  // The Hero's own way into the Dream Archive area — previously the only
+  // path in was mid-journey, via DREAM SAVED.'s "go to my dream archive".
+  // Decided from the real Supabase session (`user`), exactly like the
+  // guard effect below: never a fake stored boolean, and never a second
+  // source of truth for "is someone signed in".
+  const handleMyDreamsNav = () => {
+    setView(user ? 'archive' : 'auth');
   };
 
   // The auth guard: Dream Archive and Dream Detail are real protected
@@ -138,7 +148,22 @@ function App() {
   return (
     <>
       {screen}
-      <LanguageSwitcher />
+      <div className="top-right-nav">
+        {/* Hero-only — DreamAuth/DreamArchive/DreamDetail already have
+            their own way back or are the archive itself, so a second
+            "go to my dreams" link there would be redundant at best. */}
+        {view === 'dream' && (
+          <>
+            <button type="button" className="trn-archive-link" data-cursor-hover onClick={handleMyDreamsNav}>
+              {t('hero.myDreamsNav')}
+            </button>
+            <span className="trn-divider" aria-hidden="true">
+              |
+            </span>
+          </>
+        )}
+        <LanguageSwitcher />
+      </div>
     </>
   );
 }
