@@ -4,11 +4,14 @@ import { getArchiveEntries, getLastArchiveScrollTop, setLastArchiveScrollTop, ty
 import DreamTimeline from './DreamTimeline';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
+import AppFooter from '../legal/AppFooter';
+import type { LegalKey } from '../legal/legalContent';
 import './DreamArchive.css';
 
 interface DreamArchiveProps {
   onBack: () => void;
   onOpenEntry: (entry: ArchiveEntry) => void;
+  onOpenLegal: (key: LegalKey) => void;
 }
 
 /**
@@ -18,7 +21,7 @@ interface DreamArchiveProps {
  * approved visual reference, replaced by DreamTimeline. The cloud world
  * behind it, the header, and the top nav are unchanged.
  */
-export default function DreamArchive({ onBack, onOpenEntry }: DreamArchiveProps) {
+export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: DreamArchiveProps) {
   const { t } = useLanguage();
   const { user, signOut } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -113,6 +116,8 @@ export default function DreamArchive({ onBack, onOpenEntry }: DreamArchiveProps)
       </header>
 
       <DreamTimeline entries={entries} onOpenEntry={handleOpenEntry} />
+
+      <AppFooter onNavigate={onOpenLegal} />
     </div>
   );
 }

@@ -3,6 +3,8 @@ import DreamStageBackground from '../hero/DreamStageBackground';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
 import { describeAuthError } from '../auth/authErrors';
+import AppFooter from '../legal/AppFooter';
+import type { LegalKey } from '../legal/legalContent';
 import './DreamAuth.css';
 
 export type AuthMode = 'signup' | 'signin';
@@ -17,6 +19,7 @@ interface DreamAuthProps {
       session after the OAuth redirect returns. Never fired just because
       a button was clicked. */
   onAuthenticated: () => void;
+  onOpenLegal: (key: LegalKey) => void;
 }
 
 /** A restrained monochrome "G" monogram — deliberately not the multi-color
@@ -63,7 +66,7 @@ function looksLikeEmail(value: string): boolean {
  * wired to real Supabase Auth (see AuthContext.tsx): email/password and
  * Google both create/resume a genuine session, never a bypass.
  */
-export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated }: DreamAuthProps) {
+export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated, onOpenLegal }: DreamAuthProps) {
   const { t } = useLanguage();
   const { signInWithPassword, signUpWithPassword, signInWithGoogle } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -245,6 +248,8 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated 
           )}
         </p>
       </div>
+
+      <AppFooter onNavigate={onOpenLegal} pinned />
     </div>
   );
 }

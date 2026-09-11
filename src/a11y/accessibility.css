@@ -1,0 +1,71 @@
+/* =====================================================================
+   GLOBAL ACCESSIBILITY OVERRIDES — every real effect the accessibility
+   panel produces, all keyed off classes AccessibilityContext.tsx toggles
+   on <html>. Deliberately global CSS, never a reach into any individual
+   component file: this is how "increase text size" or "reduce motion"
+   can genuinely apply app-wide without touching MediaRecorder, the
+   recording orb, dream reconstruction, or any other protected system.
+   ===================================================================== */
+
+/* ---- Text size — scales the ROOT font-size; every rem-based size
+   already used throughout the app scales proportionally with it, with no
+   per-component change needed. Two steps only, kept modest so layouts
+   that assume roughly-16px rem don't visibly break. ---- */
+html.a11y-text-1 {
+  font-size: 112%;
+}
+
+html.a11y-text-2 {
+  font-size: 124%;
+}
+
+/* ---- High contrast — brightens the two "quiet" warm-neutral tokens
+   used everywhere for secondary text (see index.css's :root), so every
+   component already reading var(--dream-warm-neutral) / -dim gets more
+   readable automatically, plus a small real contrast/brightness lift on
+   the whole page. Never a literal color inversion (which would break the
+   cloud/video art direction) — just genuinely higher contrast within
+   DARE's own existing palette. ---- */
+html.a11y-high-contrast {
+  --dream-warm-neutral-dim: #c9c2ae;
+  --dream-warm-neutral: #ece6d6;
+}
+
+html.a11y-high-contrast body {
+  filter: contrast(1.08) brightness(1.05);
+}
+
+/* ---- Underline links — every quiet text-link class in the app, listed
+   once here rather than scattered per-file, so this setting reliably
+   reaches all of them. ---- */
+html.a11y-underline-links .footer-link,
+html.a11y-underline-links .trn-archive-link,
+html.a11y-underline-links .auth-switch-link,
+html.a11y-underline-links .legal-return,
+html.a11y-underline-links .ls-option,
+html.a11y-underline-links .ar-account-signout,
+html.a11y-underline-links .dd-end-link {
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+
+/* ---- Reduce motion — a manual equivalent of @media (prefers-reduced-
+   motion: reduce), which several components already implement for the
+   OS-level preference (see DreamAuth.css/DreamArchive.css's own
+   `animation-duration: 0.01s !important` blocks). This reaches every
+   element instead of only the ones with their own explicit block, and
+   is driven by an explicit in-app choice as well as the OS preference.
+   Deliberately scoped to animation/transition timing only — never
+   `display`, `opacity` end-values, or video playback (the cloud/video
+   backgrounds keep running; only CSS-driven motion calms down), so nothing
+   functional (recording state, form values, generated content) is
+   affected, only how long visual changes take to settle. */
+html.a11y-reduce-motion *,
+html.a11y-reduce-motion *::before,
+html.a11y-reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0s !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}

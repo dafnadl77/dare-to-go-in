@@ -4,6 +4,8 @@ import { sanitizeAiTextForDisplay, containsHebrew } from '../hero/appLanguage';
 import { formatEntryDayMonth, formatEntryYear, type ArchiveEntry } from './archiveData';
 import { translateTexts } from './dreamTranslationEngine';
 import { useLanguage } from '../i18n/LanguageContext';
+import AppFooter from '../legal/AppFooter';
+import type { LegalKey } from '../legal/legalContent';
 import './DreamDetail.css';
 
 interface DreamDetailProps {
@@ -12,6 +14,7 @@ interface DreamDetailProps {
   /** "RETURN TO THE ROOM / HOME" — leaves the archive area entirely, back
       to the main DARE room (the same place HeroDream starts). */
   onGoHome: () => void;
+  onOpenLegal: (key: LegalKey) => void;
 }
 
 /** THE DREAM / WHAT STOOD OUT / YOUR ASSOCIATION needed a REAL translation
@@ -55,7 +58,7 @@ type TranslationState = 'idle' | 'loading' | 'ready' | 'error';
  * whatever language it was actually generated in. A mock dream has no
  * such saved reflection, so it falls back to a placeholder note.
  */
-export default function DreamDetail({ entry, onBack, onGoHome }: DreamDetailProps) {
+export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: DreamDetailProps) {
   const { t, language } = useLanguage();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
@@ -226,6 +229,8 @@ export default function DreamDetail({ entry, onBack, onGoHome }: DreamDetailProp
               {t('dreamDetail.returnToTheRoom')}
             </button>
           </nav>
+
+          <AppFooter onNavigate={onOpenLegal} />
         </div>
       </div>
     </div>

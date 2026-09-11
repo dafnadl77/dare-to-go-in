@@ -28,6 +28,8 @@ import { saveDream, buildSavedDream } from './dreamStorage';
 import { extractAccentColor, extractDreamPalette, isImageCenterLight, type AccentColor } from './dreamAccentColor';
 import type { CentralMode } from './centralMode';
 import { useLanguage } from '../i18n/LanguageContext';
+import AppFooter from '../legal/AppFooter';
+import type { LegalKey } from '../legal/legalContent';
 import './HeroDream.css';
 
 const DISSOLVE_MS = 4200;
@@ -75,9 +77,10 @@ interface HeroDreamProps {
       separately-mounted Dream Archive area (see App.tsx). Nothing about
       the reconstruction/reflection/closing journey itself changes. */
   onGoToArchive: () => void;
+  onOpenLegal: (key: LegalKey) => void;
 }
 
-export default function HeroDream({ onGoToArchive }: HeroDreamProps) {
+export default function HeroDream({ onGoToArchive, onOpenLegal }: HeroDreamProps) {
   const { t } = useLanguage();
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
@@ -666,6 +669,14 @@ export default function HeroDream({ onGoToArchive }: HeroDreamProps) {
           }}
         />
       )}
+
+      {/* The legal/credit footer — only on the true idle landing, before
+          any interaction: centralMode leaves 'hold' the moment recording,
+          transcribing, typing, or the settled preview begins (see
+          HoldToRemember.tsx), and isReconstructing covers everything
+          after that. The immersive recording/transcription/reconstruction/
+          reflection/closing journey must never share the screen with it. */}
+      {centralMode === 'hold' && !isReconstructing && <AppFooter onNavigate={onOpenLegal} pinned />}
     </div>
   );
 }

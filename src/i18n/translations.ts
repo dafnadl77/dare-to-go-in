@@ -151,11 +151,27 @@ export interface Translations {
   };
   footer: {
     designedDeveloped: string;
+    privacyPolicy: string;
+    accessibilityStatement: string;
+    termsOfUse: string;
+    legalNavAriaLabel: string;
   };
   languageSwitcher: {
     en: string;
     he: string;
     ariaLabel: string;
+  };
+  a11y: {
+    controlAriaLabel: string;
+    panelTitle: string;
+    textSize: string;
+    increaseText: string;
+    decreaseText: string;
+    highContrast: string;
+    underlineLinks: string;
+    reduceMotion: string;
+    reset: string;
+    close: string;
   };
 }
 
@@ -288,12 +304,28 @@ export const en: Translations = {
     checkYourEmailMessage: 'I sent a confirmation link to {email}. Open it to finish creating your archive.',
   },
   footer: {
-    designedDeveloped: 'DESIGNED & DEVELOPED BY DAFNA DALMEIDA',
+    designedDeveloped: 'Design, Development & Build: Dafna Dalmeida',
+    privacyPolicy: 'Privacy Policy',
+    accessibilityStatement: 'Accessibility Statement',
+    termsOfUse: 'Terms of Use',
+    legalNavAriaLabel: 'Legal',
   },
   languageSwitcher: {
     en: 'EN',
     he: 'עברית',
     ariaLabel: 'Change language',
+  },
+  a11y: {
+    controlAriaLabel: 'Accessibility settings',
+    panelTitle: 'ACCESSIBILITY',
+    textSize: 'Text size',
+    increaseText: 'Increase',
+    decreaseText: 'Decrease',
+    highContrast: 'High contrast',
+    underlineLinks: 'Underline links',
+    reduceMotion: 'Reduce motion',
+    reset: 'Reset',
+    close: 'Close',
   },
 };
 
@@ -432,11 +464,27 @@ export const he: Translations = {
     checkYourEmailMessage: 'נשלח קישור אישור אל {email}. פתחו אותו כדי להשלים את יצירת הארכיון.',
   },
   footer: {
-    designedDeveloped: 'עיצוב ופיתוח: דפנה דלמדה',
+    designedDeveloped: 'עיצוב, פיתוח ובנייה: דפנה דלמדה',
+    privacyPolicy: 'מדיניות פרטיות',
+    accessibilityStatement: 'הצהרת נגישות',
+    termsOfUse: 'תנאי שימוש',
+    legalNavAriaLabel: 'משפטי',
   },
   languageSwitcher: {
     en: 'EN',
     he: 'עברית',
     ariaLabel: 'שינוי שפה',
+  },
+  a11y: {
+    controlAriaLabel: 'הגדרות נגישות',
+    panelTitle: 'נגישות',
+    textSize: 'גודל טקסט',
+    increaseText: 'הגדלה',
+    decreaseText: 'הקטנה',
+    highContrast: 'ניגודיות גבוהה',
+    underlineLinks: 'קו תחתון לקישורים',
+    reduceMotion: 'הפחתת תנועה',
+    reset: 'איפוס',
+    close: 'סגירה',
   },
 };

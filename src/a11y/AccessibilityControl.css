@@ -1,0 +1,261 @@
+/* =====================================================================
+   FLOATING ACCESSIBILITY CONTROL — fixed bottom-left, on every screen
+   (mounted once in App.tsx, opposite the top-right language switcher /
+   MY DREAMS corner so the two groups never compete). Small, quiet,
+   thin-line — no bright "accessibility blue", no bulky widget bar.
+   Class prefix `a11y-`, not reused elsewhere. ===================================================================== */
+.a11y-control {
+  position: fixed;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  left: max(20px, env(safe-area-inset-left));
+  z-index: 55;
+}
+
+.a11y-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  background: rgba(244, 240, 232, 0.05);
+  border: 1px solid rgba(244, 240, 232, 0.26);
+  color: var(--dream-white);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0.68;
+  transition: opacity 0.4s var(--ease-soft), background 0.4s var(--ease-soft), border-color 0.4s var(--ease-soft), transform 0.4s var(--ease-soft);
+}
+
+.a11y-trigger:hover,
+.a11y-trigger:focus-visible,
+.a11y-trigger[aria-expanded='true'] {
+  opacity: 1;
+  background: rgba(244, 240, 232, 0.1);
+  border-color: rgba(244, 240, 232, 0.5);
+  transform: translateY(-1px);
+}
+
+.a11y-trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(244, 240, 232, 0.55);
+}
+
+.a11y-mark {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---- The panel — a small quiet card, same glass/dark-wash language as
+   DreamAuth's own input fields (.auth-field), not a generic white
+   settings sheet. Anchored just above the trigger so it never drifts
+   toward the recording controls or legal footer links. ---- */
+.a11y-panel {
+  position: absolute;
+  bottom: calc(100% + 0.7rem);
+  left: 0;
+  width: min(17rem, calc(100vw - 2.4rem));
+  padding: 1rem 1.1rem 0.9rem;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(10, 11, 9, 0.92), rgba(10, 11, 9, 0.86));
+  border: 1px solid rgba(244, 240, 232, 0.16);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 1.2rem 2.4rem rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: translateY(6px);
+  animation: a11y-panel-in 0.3s var(--ease-memory) forwards;
+}
+
+@keyframes a11y-panel-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.a11y-panel-title {
+  margin: 0 0 0.7rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--dream-warm-neutral-dim);
+}
+
+html[lang='he'] .a11y-panel-title {
+  letter-spacing: normal;
+}
+
+.a11y-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8em;
+  width: 100%;
+  padding: 0.55rem 0;
+  border-top: 1px solid rgba(244, 240, 232, 0.09);
+  background: none;
+  border-inline: none;
+  border-bottom: none;
+  text-align: start;
+  cursor: pointer;
+}
+
+.a11y-text-size-row {
+  cursor: default;
+}
+
+.a11y-row:first-of-type {
+  border-top: none;
+  padding-top: 0.1rem;
+}
+
+.a11y-row-label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--dream-white);
+}
+
+.a11y-text-size-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.a11y-step-button {
+  min-width: 2rem;
+  padding: 0.3em 0.5em;
+  border-radius: 8px;
+  background: rgba(244, 240, 232, 0.06);
+  border: 1px solid rgba(244, 240, 232, 0.2);
+  color: var(--dream-white);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s var(--ease-soft), border-color 0.3s var(--ease-soft), opacity 0.3s var(--ease-soft);
+}
+
+.a11y-step-button:hover:not(:disabled),
+.a11y-step-button:focus-visible {
+  background: rgba(244, 240, 232, 0.14);
+  border-color: rgba(244, 240, 232, 0.4);
+}
+
+.a11y-step-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(244, 240, 232, 0.5);
+}
+
+.a11y-step-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* ---- A small, quiet toggle track — not a bright green/blue iOS-style
+   switch: warm ivory at low opacity off, fuller opacity + the knob
+   shifted when on, keeping the whole panel monochrome with the rest of
+   DARE. ---- */
+.a11y-switch {
+  position: relative;
+  flex: none;
+  width: 2.1rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: rgba(244, 240, 232, 0.14);
+  border: 1px solid rgba(244, 240, 232, 0.24);
+  transition: background 0.3s var(--ease-soft), border-color 0.3s var(--ease-soft);
+}
+
+.a11y-switch[data-on='true'] {
+  background: rgba(244, 240, 232, 0.55);
+  border-color: rgba(244, 240, 232, 0.7);
+}
+
+.a11y-switch-knob {
+  position: absolute;
+  top: 50%;
+  left: 0.15rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--dream-white);
+  transform: translateY(-50%);
+  transition: transform 0.3s var(--ease-memory);
+}
+
+.a11y-switch[data-on='true'] .a11y-switch-knob {
+  transform: translateY(-50%) translateX(0.9rem);
+  background: var(--dream-black);
+}
+
+.a11y-toggle:focus-visible {
+  outline: none;
+}
+
+.a11y-toggle:focus-visible .a11y-switch {
+  box-shadow: 0 0 0 2px rgba(244, 240, 232, 0.5);
+}
+
+.a11y-reset {
+  display: block;
+  width: 100%;
+  margin-top: 0.7rem;
+  padding: 0.5em 0;
+  border-top: 1px solid rgba(244, 240, 232, 0.09);
+  background: none;
+  border-inline: none;
+  border-bottom: none;
+  cursor: pointer;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral);
+  opacity: 0.75;
+  text-align: center;
+  transition: opacity 0.3s var(--ease-soft);
+}
+
+html[lang='he'] .a11y-reset {
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.a11y-reset:hover,
+.a11y-reset:focus-visible {
+  opacity: 1;
+}
+
+.a11y-reset:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(244, 240, 232, 0.4);
+  border-radius: 4px;
+}
+
+@media (max-width: 480px) {
+  .a11y-control {
+    bottom: max(14px, env(safe-area-inset-bottom));
+    left: max(14px, env(safe-area-inset-left));
+  }
+
+  .a11y-trigger {
+    width: 2.3rem;
+    height: 2.3rem;
+  }
+
+  .a11y-mark {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .a11y-panel {
+    animation-duration: 0.01s !important;
+  }
+}

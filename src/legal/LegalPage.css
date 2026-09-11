@@ -1,0 +1,180 @@
+/* =====================================================================
+   PRIVACY POLICY / ACCESSIBILITY STATEMENT / TERMS OF USE — a plain,
+   steady reading surface. Deliberately not the cloud/video background:
+   dense text needs contrast that holds still. Editorial, not corporate —
+   same serif/sans pairing and warm-ivory palette as the rest of DARE.
+   Class prefix `legal-` — never `da-` (see DreamAuth.css's own header
+   comment on that collision) and not reused anywhere else. ===================================================================== */
+.legal-page {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: radial-gradient(ellipse 120% 80% at 50% 0%, var(--dream-near-black) 0%, var(--dream-black) 60%);
+  opacity: 0;
+  animation: legal-page-in 1s var(--ease-memory) forwards;
+}
+
+@keyframes legal-page-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.legal-back {
+  position: fixed;
+  top: max(20px, env(safe-area-inset-top));
+  left: max(20px, env(safe-area-inset-left));
+  z-index: 50;
+  margin: 0;
+  padding: 0.4em 0.3em;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  color: var(--dream-white);
+  opacity: 0.55;
+  transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
+}
+
+.legal-back:hover,
+.legal-back:focus-visible {
+  opacity: 0.95;
+  letter-spacing: 0.3em;
+}
+
+.legal-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.legal-column {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 12vh 6vw 10vh;
+}
+
+.legal-title {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  letter-spacing: 0.01em;
+  color: var(--dream-white);
+}
+
+.legal-updated {
+  margin: 0.8rem 0 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral-dim);
+}
+
+html[lang='he'] .legal-updated {
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.legal-intro {
+  margin: 1.6rem 0 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--dream-warm-neutral);
+}
+
+.legal-section {
+  margin-top: 2.6rem;
+}
+
+.legal-heading {
+  margin: 0 0 0.7rem;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-style: italic;
+  font-size: clamp(1.1rem, 2.4vw, 1.3rem);
+  color: var(--dream-white);
+}
+
+.legal-body {
+  margin: 0 0 1rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.94rem;
+  line-height: 1.8;
+  color: var(--dream-warm-neutral);
+}
+
+.legal-body:last-child {
+  margin-bottom: 0;
+}
+
+/* ---- The "this is a draft, not legal review" note — its own quiet,
+   clearly-separated block, never a loud red banner: a thin top rule and
+   italic serif, the same restrained language DreamDetail.css already
+   uses for its own "this is a reflection, not a diagnosis" disclaimer
+   (.dd-disclaimer). ---- */
+.legal-draft-notice {
+  margin: 3.2rem 0 0;
+  padding-top: 1.6rem;
+  border-top: 1px solid rgba(244, 240, 232, 0.14);
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--dream-warm-neutral-dim);
+}
+
+.legal-return {
+  display: block;
+  margin: 2.4rem auto 0;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0.6em 0.4em;
+  cursor: pointer;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dream-white);
+  opacity: 0.7;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  text-decoration-color: rgba(244, 240, 232, 0.4);
+  transition: opacity 0.4s var(--ease-soft), text-decoration-color 0.4s var(--ease-soft);
+}
+
+html[lang='he'] .legal-return {
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.legal-return:hover,
+.legal-return:focus-visible {
+  opacity: 1;
+  text-decoration-color: var(--dream-white);
+}
+
+@media (max-width: 640px) {
+  .legal-column {
+    padding: 14vh 7vw 8vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .legal-page {
+    animation-duration: 0.01s !important;
+  }
+}

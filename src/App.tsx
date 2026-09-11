@@ -7,6 +7,9 @@ import type { ArchiveEntry } from './archive/archiveData';
 import LanguageSwitcher from './i18n/LanguageSwitcher';
 import { useAuth, POST_AUTH_REDIRECT_PARAM, POST_AUTH_REDIRECT_VALUE } from './auth/AuthContext';
 import { useLanguage } from './i18n/LanguageContext';
+import LegalPage from './legal/LegalPage';
+import type { LegalKey } from './legal/legalContent';
+import AccessibilityControl from './a11y/AccessibilityControl';
 
 /** Which top-level experience is mounted. No router is introduced for
     this first pass (the whole app is already a single state machine —
@@ -16,8 +19,12 @@ import { useLanguage } from './i18n/LanguageContext';
     dream archive" invitation, or directly once real auth is involved
     (see below). 'detail' always returns to 'archive', never anywhere
     else, matching "clicking a dream opens it; leaving it returns to MY
-    DREAM ARCHIVE" from the brief. */
-type AppView = 'dream' | 'auth' | 'archive' | 'detail';
+    DREAM ARCHIVE" from the brief. 'privacy' | 'accessibility' | 'terms'
+    are the legal pages (see src/legal) — public, unguarded, reachable
+    from every screen's own footer. */
+type AppView = 'dream' | 'auth' | 'archive' | 'detail' | LegalKey;
+
+const LEGAL_VIEWS: LegalKey[] = ['privacy', 'accessibility', 'terms'];
 
 /** Reflects `view` in the URL as a plain query param (never a route —
     there is still no router) so two real things work without inventing
@@ -35,6 +42,7 @@ function getInitialView(): AppView {
   const value = new URLSearchParams(window.location.search).get(POST_AUTH_REDIRECT_PARAM);
   if (value === POST_AUTH_REDIRECT_VALUE) return 'archive';
   if (value === 'auth') return 'auth';
+  if (value && (LEGAL_VIEWS as string[]).includes(value)) return value as LegalKey;
   return 'dream';
 }
 
@@ -99,6 +107,13 @@ function App() {
     setView(user ? 'archive' : 'auth');
   };
 
+  // The footer's three legal links, from every screen that shows one —
+  // always allowed, regardless of auth state, so this never needs (or
+  // triggers) the guard below.
+  const handleOpenLegal = (key: LegalKey) => {
+    setView(key);
+  };
+
   // The auth guard: Dream Archive and Dream Detail are real protected
   // screens now (see instructions) — an unauthenticated visitor lands on
   // DreamAuth instead, decided from the real Supabase session (`user`),
@@ -120,6 +135,8 @@ function App() {
     // know whether this visitor is signed in — avoids a flash of
     // protected content before the guard above can react.
     screen = <AuthLoadingScreen />;
+  } else if (LEGAL_VIEWS.includes(view as LegalKey)) {
+    screen = <LegalPage documentKey={view as LegalKey} onBack={() => setView('dream')} />;
   } else if (view === 'auth') {
     screen = (
       <DreamAuth
@@ -127,10 +144,18 @@ function App() {
         onSwitchMode={setAuthMode}
         onBack={() => setView('dream')}
         onAuthenticated={() => setView('archive')}
+        onOpenLegal={handleOpenLegal}
       />
     );
   } else if (view === 'detail' && openEntry && user) {
-    screen = <DreamDetail entry={openEntry} onBack={() => setView('archive')} onGoHome={() => setView('dream')} />;
+    screen = (
+      <DreamDetail
+        entry={openEntry}
+        onBack={() => setView('archive')}
+        onGoHome={() => setView('dream')}
+        onOpenLegal={handleOpenLegal}
+      />
+    );
   } else if (view === 'archive' && user) {
     screen = (
       <DreamArchive
@@ -139,10 +164,11 @@ function App() {
           setOpenEntry(entry);
           setView('detail');
         }}
+        onOpenLegal={handleOpenLegal}
       />
     );
   } else {
-    screen = <HeroDream onGoToArchive={() => setView('auth')} />;
+    screen = <HeroDream onGoToArchive={() => setView('auth')} onOpenLegal={handleOpenLegal} />;
   }
 
   return (
@@ -164,6 +190,7 @@ function App() {
         )}
         <LanguageSwitcher />
       </div>
+      <AccessibilityControl />
     </>
   );
 }

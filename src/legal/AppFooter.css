@@ -1,0 +1,125 @@
+/* =====================================================================
+   The shared legal/credit footer — deliberately small, quiet, one line
+   of links plus one dim line of credit. Never a generic multi-column
+   corporate footer block. Class prefix `footer-`/`app-footer`, not reused
+   elsewhere. ===================================================================== */
+.app-footer {
+  position: static;
+  width: 100%;
+  padding: 2.4rem 6vw calc(1.6rem + env(safe-area-inset-bottom));
+  text-align: center;
+}
+
+/* Hero and DreamAuth are fixed, non-scrolling scenes — pins the footer to
+   the bottom of the viewport instead of leaving it in normal flow, which
+   on those two screens would mean it never appears (nothing scrolls
+   there). Archive/Detail stay position:static (the default above): the
+   footer is simply the last thing on the page, like an ordinary page
+   footer, so it can never float over the last archive entry. */
+.app-footer--pinned {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  padding-top: 0;
+  padding-bottom: max(1.4rem, env(safe-area-inset-bottom));
+  /* Extra side padding, wider than the base 6vw — keeps this centered
+     text row clear of the fixed accessibility icon that shares this
+     same bottom edge (bottom-left, see AccessibilityControl.css). */
+  padding-inline: max(6vw, 4.5rem);
+  pointer-events: none;
+}
+
+.app-footer--pinned > * {
+  pointer-events: auto;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.3em;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.footer-link {
+  background: none;
+  border: none;
+  outline: none;
+  margin: 0;
+  padding: 0.3em 0.2em;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dream-white);
+  opacity: 0.45;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+  transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
+}
+
+html[lang='he'] .footer-link {
+  letter-spacing: normal;
+  text-transform: none;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+}
+
+.footer-link:hover,
+.footer-link:focus-visible {
+  opacity: 0.85;
+}
+
+html:not([lang='he']) .footer-link:hover,
+html:not([lang='he']) .footer-link:focus-visible {
+  letter-spacing: 0.22em;
+}
+
+.footer-dot {
+  color: var(--dream-warm-neutral-dim);
+  opacity: 0.5;
+  font-size: 0.6rem;
+}
+
+.footer-credit {
+  margin: 0.6rem 0 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--dream-warm-neutral-dim);
+  opacity: 0.7;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 640px) {
+  .app-footer {
+    padding: 2rem 8vw calc(1.3rem + env(safe-area-inset-bottom));
+  }
+
+  .app-footer--pinned {
+    padding-bottom: max(1.1rem, env(safe-area-inset-bottom));
+  }
+
+  .footer-link {
+    font-size: 0.58rem;
+  }
+}
+
+/* Short landscape / very short viewports (same breakpoint the language
+   switcher already shrinks at) — the pinned variant only, since it sits
+   over fixed centered content (Hero/DreamAuth) that a cramped viewport
+   has no room to share with it; the in-flow variant on Archive/Detail is
+   unaffected, it just scrolls like the rest of that page's content. */
+@media (max-height: 500px) {
+  .app-footer--pinned {
+    display: none;
+  }
+}
+
+/* The "underline links" accessibility setting targets .footer-link too —
+   see src/a11y/accessibility.css, which owns that whole rule so every
+   affected link class stays listed in one place. */
