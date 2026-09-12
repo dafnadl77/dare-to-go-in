@@ -83,6 +83,19 @@
   z-index: -1;
 }
 
+/* HOLD-TO-RECORD is intentionally not a normal CTA (per the button-system
+   brief, it doesn't need to look identical to one) — but it still needs
+   an unmistakable "this responds to you" cue before the dreamer commits
+   to actually pressing it. A slight grow + a brighter ring on hover does
+   that without touching the orb/ripple/hold-progress mechanics below. */
+.htr-circle:hover {
+  transform: scale(1.46);
+}
+
+.htr-circle:hover .htr-ring-track {
+  stroke: rgba(244, 240, 232, 0.4);
+}
+
 .htr-circle:active,
 .htr-circle.is-holding {
   transform: scale(1.34);
@@ -197,52 +210,50 @@
   }
 }
 
+/* "I'd rather type" — the capture flow's other secondary action (switch
+   from HOLD to typing). Was bare uppercase text, enlarged only via a
+   `transform: translateY(20px) scale(1.4)` trick rather than a real
+   font-size — that transform is exactly why .htr-hold-hint below it
+   needed a compensating margin (see that rule's own comment). Now a real
+   outlined secondary pill, the same dark-translucent treatment as
+   .central-back/.dr-choice, so "this is a clickable alternate action"
+   reads the same everywhere in the journey, not just in the typing
+   panel. No more enlarging transform — normal flex `gap` between this,
+   the circle above, and the hint below is enough on its own now. */
 .htr-type-link {
   position: relative;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.62rem;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--dream-warm-neutral);
-  background: none;
-  border: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--dream-white);
+  background: rgba(6, 7, 6, 0.4);
+  border: 1px solid rgba(244, 240, 232, 0.32);
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   outline: none;
-  padding: 0.3em 0.1em;
-  opacity: 0.72;
-  transform: translateY(20px) scale(1.4);
-  transform-origin: center;
+  padding: 0.65em 1.4em;
   transition:
-    opacity 0.4s var(--ease-soft),
-    color 0.4s var(--ease-soft),
-    letter-spacing 0.4s var(--ease-soft),
-    transform 0.4s var(--ease-soft),
+    background 0.3s var(--ease-soft),
+    border-color 0.3s var(--ease-soft),
+    transform 0.3s var(--ease-soft),
     filter 0.6s var(--ease-soft);
-}
-
-.htr-type-link::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: currentColor;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.5s var(--ease-memory);
 }
 
 .htr-type-link:hover,
 .htr-type-link:focus-visible {
-  opacity: 1;
-  color: var(--dream-white);
-  letter-spacing: 0.28em;
+  background: rgba(6, 7, 6, 0.55);
+  border-color: rgba(244, 240, 232, 0.6);
+  transform: translateY(-1px);
 }
 
-.htr-type-link:hover::after,
-.htr-type-link:focus-visible::after {
-  transform: scaleX(1);
+.htr-type-link:focus-visible {
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.45);
+}
+
+.htr-type-link:active {
+  transform: translateY(0);
 }
 
 /* "Press and hold while you speak" — a short, quiet clarification that
@@ -255,13 +266,10 @@
    legibility work, same pattern as every other fixed caption in this
    file — still visibly secondary to the label above it. */
 .htr-hold-hint {
-  /* .htr-type-link above this is visually enlarged and pushed down by its
-     own `transform: translateY(20px) scale(1.4)` — a transform never
-     affects sibling layout, so the flex `gap` alone left this hint
-     overlapping the link's real (post-transform) footprint. Confirmed
-     live via getBoundingClientRect(): the link's rendered bottom edge sat
-     ~6px below this element's flow position before this margin. */
-  margin: 12px 0 0;
+  /* .htr-type-link is now a real button (padding + own box, no enlarging
+     transform) — the flex `gap` on .hold-to-remember alone provides
+     correct spacing here now; no extra margin needed. */
+  margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.8rem;
   font-weight: 400;
@@ -615,35 +623,48 @@
   margin-top: 1.6rem;
 }
 
+/* BACK — was bare uppercase text next to a filled teal pill (I'M DONE),
+   which is exactly the "which one is clickable" problem the capture-flow
+   button audit called out. Now a real outlined secondary pill: same
+   height/padding/radius/font-size as .central-done and .central-finish
+   next to it (0.82rem, 0.75em/1.6em padding, 999px radius) so the two
+   read as one coherent action pair, just with primary vs. secondary
+   fill — the same dark-translucent secondary treatment already used for
+   .dr-choice elsewhere in the dream journey. */
 .central-back {
+  position: relative;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  /* Was 0.66rem (10.56px computed) — below a practical reading minimum
-     even for a subordinate "back" action. */
-  font-size: 0.78rem;
-  font-weight: 400;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  /* Was --dream-warm-neutral-dim at 0.58 — matches .central-done (its
-     paired action) which was already white; this was the odd one out. */
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--dream-white);
-  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.5);
-  background: none;
-  border: none;
+  background: rgba(6, 7, 6, 0.4);
+  border: 1px solid rgba(244, 240, 232, 0.32);
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   outline: none;
-  padding: 0.9em 0.6em;
-  margin: -0.6em 0;
-  opacity: 0.8;
+  padding: 0.75em 1.6em;
+  margin: 0;
   transition:
-    opacity 0.4s var(--ease-soft),
-    color 0.4s var(--ease-soft),
-    letter-spacing 0.4s var(--ease-soft);
+    background 0.3s var(--ease-soft),
+    border-color 0.3s var(--ease-soft),
+    transform 0.3s var(--ease-soft);
 }
 
 .central-back:hover,
 .central-back:focus-visible {
-  opacity: 1;
-  color: var(--dream-white);
-  letter-spacing: 0.2em;
+  background: rgba(6, 7, 6, 0.55);
+  border-color: rgba(244, 240, 232, 0.6);
+  transform: translateY(-1px);
+}
+
+.central-back:focus-visible {
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.45);
+}
+
+.central-back:active {
+  transform: translateY(0);
 }
 
 /* I'M DONE — the typing flow's own completion action, the same real

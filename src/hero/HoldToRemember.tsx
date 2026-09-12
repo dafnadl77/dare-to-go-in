@@ -325,8 +325,32 @@ export default function HoldToRemember({
     onTypedTranscriptChange(e.target.value);
   };
 
+  // BACK — returns to the initial 'hold' capture state from TYPE, whether
+  // TYPE was reached directly ("I'd rather type"), via a failed/timed-out
+  // mic request, or after reviewing a real transcript post-recording.
+  //
+  // ROOT CAUSE of the "stuck after Back" bug: this used to reset every
+  // piece of HoldToRemember's OWN local state but never called
+  // recorder.reset() — unlike handleClose, which does, for its
+  // 'recording'/'transcribing' branches. HeroDream.tsx derives
+  // `listeningEverStarted` from `recorder.recordingState !== 'idle' &&
+  // !== 'error'` and feeds it straight into MemoryTitle's `dissolving`
+  // prop and DreamPrompt's `quiet` prop — the title/prompt "recede" while
+  // real recording is in progress. But whenever a real recording actually
+  // ran (recordingState left 'idle' and became 'recording' -> 'finished'
+  // on FINISH DREAM) or a mic request timed out without ever resolving
+  // (recordingState stuck at 'requesting-permission' — see
+  // MIC_REQUEST_TIMEOUT_MS above), recordingState never returns to
+  // 'idle' on its own. Clicking Back correctly restored centralMode to
+  // 'hold' (the circle itself was always genuinely visible and
+  // interactive — confirmed live), but `listeningEverStarted` stayed
+  // permanently true, so the DARE TO GO IN title stayed dissolved and the
+  // "what do you remember" prompt stayed in its quiet/receded state
+  // forever after — reading as an incomplete/broken capture screen even
+  // though the HOLD control underneath it was fully functional.
   const handleBack = () => {
     committedRef.current = false;
+    recorder.reset();
     setMicUnavailable(false);
     setMicErrorMessage(null);
     setTranscriptionErrorMessage(null);
