@@ -252,17 +252,28 @@ html[lang='he'] .dd-eyebrow {
   font-size: clamp(1.15rem, 2.4vw, 1.45rem);
 }
 
+/* Was --dream-warm-neutral-dim at 0.75 opacity, no shadow — a loading
+   state ("Translating...") rendered dimmer than the disclaimer below it.
+   Still visibly quieter than settled body text, just not illegible. */
 .dd-body--loading {
-  color: var(--dream-warm-neutral-dim);
-  opacity: 0.75;
+  color: var(--dream-warm-neutral);
+  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.5);
+  opacity: 0.85;
 }
 
+/* Was 0.68rem at 0.6 opacity in the dim brown-grey token with no
+   shadow — a real disclaimer sentence rendered as barely-there text over
+   a moving cloud background. Bumped to a practical reading minimum, the
+   lighter warm-neutral tone, and a shadow doing the legibility work —
+   still visibly the quietest text on the screen, just no longer
+   unreadable. */
 .dd-disclaimer {
   margin-top: clamp(3rem, 6vw, 4rem);
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.68rem;
-  color: var(--dream-warm-neutral-dim);
-  opacity: 0.6;
+  font-size: 0.8rem;
+  color: var(--dream-warm-neutral);
+  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.5);
+  opacity: 0.85;
   max-width: 46ch;
 }
 
@@ -271,6 +282,7 @@ html[lang='he'] .dd-eyebrow {
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 1rem;
   color: var(--dream-warm-neutral);
+  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.5);
   opacity: 0.75;
 }
 

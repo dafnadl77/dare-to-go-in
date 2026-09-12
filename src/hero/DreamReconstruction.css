@@ -761,7 +761,11 @@
 }
 
 /* ---- "REMEMBERING..." — subtle microcopy only, never a spinner or a
-   percentage, shown while a corrected image regenerates in the background. ---- */
+   percentage, shown while a corrected image regenerates in the background.
+   Was 0.66rem (10.5px) pulsing down to 0.4 opacity at its dimmest — small
+   AND briefly near-invisible at once. Kept the breathing feel (still
+   "alive", not static) but raised the floor so it never actually goes
+   unreadable, and sized it up to a real minimum. ---- */
 .dr-remembering {
   position: absolute;
   bottom: 9vh;
@@ -769,23 +773,23 @@
   transform: translateX(-50%);
   margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.66rem;
+  font-size: 0.85rem;
   font-weight: 500;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--dream-warm-neutral);
-  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
-  opacity: 0.45;
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.55);
+  opacity: 0.75;
   animation: dr-remembering-pulse 2.4s ease-in-out infinite;
 }
 
 @keyframes dr-remembering-pulse {
   0%,
   100% {
-    opacity: 0.4;
+    opacity: 0.65;
   }
   50% {
-    opacity: 0.82;
+    opacity: 0.95;
   }
 }
 
@@ -906,69 +910,73 @@
   transition-delay: 2.6s;
 }
 
+/* ---- Real buttons, not bare text — this class is shared across
+   Reconstruction (YES — TAKE ME IN / NOT QUITE / RESTART / TRY AGAIN),
+   Reflection (CONTINUE) and Closing (RETURN TO THE ROOM), so fixing it
+   once here fixes every "this looks like plain text" action across the
+   whole dream journey. Secondary uses a dark translucent scrim (not just
+   a light drop-shadow) behind white text — that scrim is what actually
+   guarantees legibility over ANY cloud/photo brightness, which is also
+   why the old per-image data-light-bg text-color flip below is gone: a
+   real background under the label makes it unnecessary. */
 .dr-choice {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.76rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  /* Was --dream-warm-neutral at 0.78 opacity — read as too dark/faint
-     against the cloud background, especially the lighter cloud areas.
-     Matches the already-white hover state and .dr-choice--yes below;
-     this just makes that same readable tone the resting state too,
-     with a soft shadow (not weight/size) doing the legibility work. */
   color: var(--dream-white);
-  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
-  background: none;
-  border: none;
+  background: rgba(6, 7, 6, 0.4);
+  border: 1px solid rgba(244, 240, 232, 0.32);
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   outline: none;
-  padding: 0.9em 0.6em;
-  margin: -0.6em 0;
-  opacity: 0.85;
+  padding: 0.75em 1.7em;
+  margin: 0;
   cursor: pointer;
   transition:
-    opacity 0.4s var(--ease-soft),
-    color 0.4s var(--ease-soft),
-    letter-spacing 0.4s var(--ease-soft);
-}
-
-.dr-choice::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: currentColor;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.5s var(--ease-memory);
+    background 0.3s var(--ease-soft),
+    border-color 0.3s var(--ease-soft),
+    transform 0.3s var(--ease-soft),
+    box-shadow 0.3s var(--ease-soft);
 }
 
 .dr-choice:hover,
 .dr-choice:focus-visible {
-  opacity: 1;
-  color: var(--dream-white);
-  letter-spacing: 0.26em;
+  background: rgba(6, 7, 6, 0.55);
+  border-color: rgba(244, 240, 232, 0.6);
+  transform: translateY(-1px);
 }
 
-.dr-choice:hover::after,
-.dr-choice:focus-visible::after {
-  transform: scaleX(1);
+.dr-choice:focus-visible {
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.45);
 }
 
+/* Primary — the one path that actually advances (YES — TAKE ME IN,
+   CONTINUE, RETURN TO THE ROOM): filled cyan/teal, same tokens as the
+   rest of the product's primary CTA. */
 .dr-choice--yes {
-  color: var(--dream-white);
-  opacity: 0.92;
+  color: var(--dream-cta-ink);
+  background: var(--dream-cta);
+  border-color: transparent;
+  box-shadow: 0 0.6rem 1.6rem rgba(45, 212, 191, 0.22);
 }
 
-/* THIS IS WHAT I FOUND — when the settled image reads as light where this
-   text sits (a bright sky, fog, wall, snow…), the usual light warm text
-   washes out against it. Flips to dark text with a soft light backing
-   glow (in place of the dark drop-shadow, which would do nothing useful
-   against a light photo) instead. A dark image keeps the default light
-   text untouched — see isImageCenterLight in dreamAccentColor.ts. */
+.dr-choice--yes:hover,
+.dr-choice--yes:focus-visible {
+  background: var(--dream-cta-hover);
+  border-color: transparent;
+  color: var(--dream-cta-ink);
+}
+
+/* THIS IS WHAT I FOUND / IS THIS HOW IT FELT — plain text with no
+   background of its own, so it still needs the light-image flip; the
+   choices above no longer do now that they carry their own scrim. */
 .dr-reveal[data-light-bg='true'] .dr-line {
   color: var(--dream-black);
   text-shadow: 0 0.05em 0.6em rgba(244, 240, 232, 0.55);
@@ -976,16 +984,6 @@
 
 .dr-reveal[data-light-bg='true'] .dr-line--felt {
   color: var(--dream-warm-neutral-dark);
-}
-
-.dr-reveal[data-light-bg='true'] .dr-choice {
-  color: var(--dream-warm-neutral-dark);
-}
-
-.dr-reveal[data-light-bg='true'] .dr-choice:hover,
-.dr-reveal[data-light-bg='true'] .dr-choice:focus-visible,
-.dr-reveal[data-light-bg='true'] .dr-choice--yes {
-  color: var(--dream-black);
 }
 
 .dr-correct-textarea {

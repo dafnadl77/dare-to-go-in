@@ -247,9 +247,13 @@
 
 /* "Press and hold while you speak" — a short, quiet clarification that
    the circle needs a real press-and-hold, not a tap. Sits below I'D
-   RATHER TYPE, same faded treatment, deliberately smaller/dimmer than
-   both so it reads as a caption, not competing with HOLD TO TELL ME
-   itself for attention. */
+   RATHER TYPE, deliberately smaller than HOLD TO TELL ME itself so it
+   reads as a caption, not competing for attention — but was originally
+   --dream-warm-neutral-dim (a dark brown-grey) at 0.68rem/0.75 opacity
+   with no shadow, which read as genuinely hard to read, not just quiet.
+   Now the warm-neutral (lighter) tone with a real shadow doing the
+   legibility work, same pattern as every other fixed caption in this
+   file — still visibly secondary to the label above it. */
 .htr-hold-hint {
   /* .htr-type-link above this is visually enlarged and pushed down by its
      own `transform: translateY(20px) scale(1.4)` — a transform never
@@ -259,12 +263,13 @@
      ~6px below this element's flow position before this margin. */
   margin: 12px 0 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.8rem;
   font-weight: 400;
-  letter-spacing: 0.04em;
-  color: var(--dream-warm-neutral-dim);
+  letter-spacing: 0.02em;
+  color: var(--dream-warm-neutral);
+  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.5);
   text-align: center;
-  opacity: 0.75;
+  opacity: 0.9;
   transition: opacity 0.4s var(--ease-soft), filter 0.6s var(--ease-soft);
 }
 
@@ -343,17 +348,19 @@
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
 }
 
+/* "TELL ME EVERYTHING YOU REMEMBER." / he: "ספרו לי הכל, כל מה שזכור." —
+   named directly as hard to read; was 0.72-0.88rem at 0.85 opacity. */
 .central-recording-subheading {
   margin: 0 0 2.2rem;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 500;
-  font-size: clamp(0.72rem, 1.5vw, 0.88rem);
-  letter-spacing: 0.16em;
+  font-size: clamp(0.85rem, 1.8vw, 1.02rem);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--dream-warm-neutral);
   text-align: center;
-  opacity: 0.85;
-  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.45);
+  opacity: 0.95;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.55);
 }
 
 /* Plain wrapper so the ripple ring (below) can sit concentrically behind
@@ -610,9 +617,11 @@
 
 .central-back {
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.66rem;
+  /* Was 0.66rem (10.56px computed) — below a practical reading minimum
+     even for a subordinate "back" action. */
+  font-size: 0.78rem;
   font-weight: 400;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   /* Was --dream-warm-neutral-dim at 0.58 — matches .central-done (its
      paired action) which was already white; this was the odd one out. */
@@ -623,7 +632,7 @@
   outline: none;
   padding: 0.9em 0.6em;
   margin: -0.6em 0;
-  opacity: 0.75;
+  opacity: 0.8;
   transition:
     opacity 0.4s var(--ease-soft),
     color 0.4s var(--ease-soft),
