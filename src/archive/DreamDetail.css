@@ -167,9 +167,15 @@
   color: var(--dream-warm-neutral);
 }
 
+/* English editorial heading (the saved dream's own title) — same
+   Fraunces/optical-sizing treatment as the brand mark; Hebrew needs no
+   separate handling (see .dr-question's own comment in
+   DreamReflection.css for why the existing RTL backstop already covers
+   it — a Hebrew-titled saved dream stays in Heebo automatically). */
 .dd-title {
   margin: 0.5rem 0 0;
-  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-family: 'Fraunces', Georgia, serif;
+  font-optical-sizing: auto;
   font-weight: 400;
   font-size: clamp(1.9rem, 4vw, 2.7rem);
   color: var(--dream-white);
@@ -207,9 +213,15 @@
    titles must be clearly larger than body copy." Re-bumped so the
    eyebrow's minimum (1.35rem) clears the body's maximum (1.25rem) at
    every width, while staying well under .dd-title's 1.9rem–2.7rem. */
+/* "THE DREAM" / "WHAT STOOD OUT" / "YOUR ASSOCIATION" / "A POSSIBLE
+   THREAD" / "A QUESTION WORTH SITTING WITH" — same Fraunces/optical-
+   sizing treatment as the brand mark and every other English editorial
+   heading now. Hebrew needs no separate handling (see .dr-question's own
+   comment in DreamReflection.css). */
 .dd-eyebrow {
   margin: 0;
-  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-family: 'Fraunces', Georgia, serif;
+  font-optical-sizing: auto;
   font-size: clamp(1.35rem, 2.6vw, 1.7rem);
   font-weight: 700;
   letter-spacing: 0.08em;

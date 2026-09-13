@@ -84,9 +84,15 @@
   }
 }
 
+/* English editorial heading — "DON'T LET IT DISAPPEAR." / "DREAM SAVED."
+   — same Fraunces/optical-sizing treatment as the brand mark; Hebrew
+   needs no separate handling (see .dr-question's own comment in
+   DreamReflection.css for why the existing RTL backstop already covers
+   it). */
 .dc-title {
   margin: 0;
-  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-family: 'Fraunces', Georgia, serif;
+  font-optical-sizing: auto;
   font-weight: 400;
   font-size: clamp(38px, 4vw, 68px);
   letter-spacing: 0.01em;

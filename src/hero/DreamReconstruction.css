@@ -802,17 +802,27 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.1rem;
+  gap: clamp(1.1rem, 2.5vw, 1.6rem);
+  padding: 0 6vw;
+  text-align: center;
   pointer-events: none;
 }
 
+/* This is the one genuinely generated/extracted word shown during
+   reconstruction (e.g. "סופרוומן") — named directly as still too small
+   and hard to read on real production screenshots. Was clamp(0.85rem,
+   2vw, 1.15rem), which floors to 13.6px on mobile (2vw is under the
+   0.85rem minimum below ~650px). Substantially larger now, and paired
+   with .dr-remembering's own (already-fixed) 0.85rem status line just
+   below it — this is deliberately the bigger of the two, establishing
+   the generated-word/status-line hierarchy requested. */
 .dr-fragment {
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-weight: 500;
-  font-size: clamp(0.85rem, 2vw, 1.15rem);
-  letter-spacing: 0.22em;
+  font-weight: 600;
+  font-size: clamp(1.5rem, 4.2vw, 2.4rem);
+  letter-spacing: 0.06em;
   color: var(--dream-white);
-  text-shadow: 0 0.05em 0.8em rgba(0, 0, 0, 0.6);
+  text-shadow: 0 0.05em 0.9em rgba(0, 0, 0, 0.65);
   opacity: 0;
   filter: blur(10px);
   transform: translateY(8px) scale(1.05);

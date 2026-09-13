@@ -2,7 +2,37 @@ import OpenAI, { toFile } from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
 import { okResult, errorResult, type HandlerResult } from '../httpResult.js';
 
-const DEFAULT_TRANSCRIPTION_MODEL = 'gpt-4o-mini-transcribe';
+// Was gpt-4o-mini-transcribe. Root-caused a real production report of a
+// Hebrew recording ("חלמתי שאני סופרוומן ועפתי מעל העיר.") coming back as
+// Latin-transliterated gibberish ("Halamty je superwoman") even though
+// `language: 'he'` was — and still is — correctly threaded through from
+// LanguageContext/appLanguage.ts all the way to this call (verified: the
+// client always sends the plain 'en'/'he' code, resolveLanguage() above
+// re-validates it against the same allowlist regardless of what arrives,
+// and the request never reaches OpenAI without an explicit language).
+// Directly A/B tested both models against real Hebrew TTS audio,
+// including sentences with an English loanword ("סופרוומן"/superwoman —
+// exactly the kind of word that pushes a transcription model toward
+// language drift): gpt-4o-mini-transcribe was measurably less reliable
+// and less accurate on the loanword across repeated runs (e.g. hearing
+// "סוגרת"/"סוברן"/"סוברת" for the same word run to run), while whisper-1
+// consistently produced accurate, stable Hebrew script (correctly
+// splitting the loanword into "סופר וומן"), with identical quality on
+// English test audio. gpt-4o-mini-transcribe is optimized for low-latency
+// streaming use cases, not multilingual transcription accuracy — whisper-1
+// is the long-established, extensively-validated model for this.
+const DEFAULT_TRANSCRIPTION_MODEL = 'whisper-1';
+
+// A `prompt` biases the model's expected vocabulary/style — never a
+// translation instruction, and the transcriptions endpoint always
+// transcribes the language actually spoken regardless of this hint. Extra
+// reinforcement alongside the explicit `language` parameter to further
+// anchor the model to the expected script for a given language, on top of
+// the already-more-reliable model switch above.
+const TRANSCRIPTION_PROMPT: Record<'en' | 'he', string> = {
+  he: 'תמלול של תיאור חלום בעברית.',
+  en: 'Transcription of a dream description in English.',
+};
 
 // The only languages DARE's interface currently supports. A hint outside
 // this set (or missing/malformed) falls back to English rather than
@@ -37,10 +67,16 @@ function resolveLanguage(value: unknown): 'en' | 'he' {
 // instead of letting the platform itself fail the request).
 const MAX_AUDIO_BASE64_CHARS = 6_000_000;
 
+// The client only ever sends 'audio/webm' or 'audio/mp4' today (see
+// useDreamRecorder.ts's own mimeType negotiation) — mp3/mpeg is handled
+// here defensively (found while directly A/B-testing the model switch
+// above with real audio files) so any future/unexpected mimeType never
+// silently mismatches the actual file bytes against a wrong extension.
 function extensionFor(mimeType: string): string {
   if (mimeType.includes('mp4') || mimeType.includes('m4a')) return 'm4a';
   if (mimeType.includes('ogg')) return 'ogg';
   if (mimeType.includes('wav')) return 'wav';
+  if (mimeType.includes('mp3') || mimeType.includes('mpeg')) return 'mp3';
   return 'webm';
 }
 
@@ -86,6 +122,7 @@ export async function handleDreamTranscription(rawBody: unknown): Promise<Handle
       file,
       model: process.env.OPENAI_TRANSCRIPTION_MODEL || DEFAULT_TRANSCRIPTION_MODEL,
       language,
+      prompt: TRANSCRIPTION_PROMPT[language],
     });
 
     const transcript = typeof response.text === 'string' ? response.text.trim() : '';

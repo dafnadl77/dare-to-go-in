@@ -15,10 +15,21 @@
 /* Only ever mounted fresh at the 'reflecting' step now — an `animation`
    (not a `transition`) so the reveal actually plays on that mount, per the
    established pattern for elements that don't persist across steps. */
+/* English editorial heading — the SAME font stack as the DARE brand mark
+   (MemoryTitle.css's .memory-title: Fraunces, weight 400, optical sizing
+   auto, 0.01em tracking), not an approximated serif. Hebrew is untouched
+   by this: the existing global RTL backstop in index.css
+   (`:root[dir='rtl'] * { font-family: Heebo !important }`) already
+   overrides this back to Heebo whenever the UI is Hebrew, the same way
+   it already does for every other heading in the product — this class is
+   deliberately NOT added to that backstop's brand-only exemption list
+   (.memory-title/.ar-brand), so Hebrew correctly keeps its own
+   typography here with no extra code. */
 .dr-question {
   margin: 0;
   max-width: 30em;
-  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-family: 'Fraunces', Georgia, serif;
+  font-optical-sizing: auto;
   font-weight: 400;
   font-size: clamp(1.3rem, 3.2vw, 1.9rem);
   line-height: 1.4;
@@ -130,9 +141,13 @@
 /* Arrival timeline: hero image resolves 0-1.4s (see dr-image-hero-in in
    DreamReconstruction.css), title 1.4-2s, subtitle just after, choices
    emerge 2-3s (staggered per-choice delay, see .da-choice below). */
+/* English editorial heading — same Fraunces/optical-sizing treatment as
+   the brand mark; see .dr-question's own comment above for why Hebrew
+   needs no separate handling here. */
 .da-title {
   margin: 0;
-  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-family: 'Fraunces', Georgia, serif;
+  font-optical-sizing: auto;
   font-weight: 400;
   font-size: clamp(2rem, 4.4vw, 3.4rem);
   letter-spacing: 0.01em;
@@ -861,7 +876,12 @@
    them. */
 .dr-thought-label {
   margin: 0 0 0.6rem;
-  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  /* Editorial heading, same treatment as .dr-question/.da-title/the
+     archive's .dd-eyebrow — Fraunces in English, and the existing global
+     RTL backstop (src/index.css) naturally reverts this to Heebo for
+     Hebrew, so no separate Hebrew override is needed. */
+  font-family: 'Fraunces', Georgia, serif;
+  font-optical-sizing: auto;
   font-size: clamp(1.1rem, 2.1vw, 1.32rem);
   font-weight: 700;
   letter-spacing: 0.06em;
