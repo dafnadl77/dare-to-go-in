@@ -136,6 +136,13 @@
   -webkit-backdrop-filter: blur(6px);
 }
 
+/* font-family/weight/style/stretch/optical-sizing/letter-spacing come
+   from .font-editorial-display's shared rule (src/index.css) — this is
+   the SAME brand mark as .memory-title (the HOME logo), just much
+   smaller, so it needs that rule's fixed-opsz correction too (a plain
+   `auto` at this size renders visibly different, sturdier glyphs — see
+   that rule's own comment). Stays Fraunces in Hebrew via the existing
+   RTL exemption for .ar-brand alongside .memory-title, further below. */
 .ar-brand {
   margin: 0;
   padding: 0.3em 0;
@@ -143,10 +150,7 @@
   border: none;
   outline: none;
   cursor: pointer;
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 400;
   font-size: clamp(1rem, 2vw, 1.3rem);
-  letter-spacing: 0.01em;
   color: var(--dream-white);
   opacity: 0.92;
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
@@ -346,13 +350,73 @@ html[lang='he'] .ar-title {
 }
 
 .ar-insights-item {
+  display: block;
+}
+
+/* The whole card is now a real <button> (was a plain, inert <li>) — a
+   recurring motif opens the matching dreams, so it needs to visibly and
+   functionally behave like the rest of this app's clickable rows (see
+   .dt-card in DreamTimeline.css for the same pattern: cursor, hover,
+   focus-visible, a trailing chevron), never a bright/filled button —
+   same dark editorial card look as before, just now interactive. */
+.ar-insights-button {
+  width: 100%;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 0.35rem;
-  padding: 0.8em 1.1em;
+  padding: 0.8em 2.4em 0.8em 1.1em;
   border-radius: 12px;
   background: rgba(244, 240, 232, 0.05);
   border: 1px solid rgba(244, 240, 232, 0.12);
+  position: relative;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    background 0.25s var(--ease-soft),
+    border-color 0.25s var(--ease-soft);
+}
+
+html[dir='rtl'] .ar-insights-button {
+  padding: 0.8em 1.1em 0.8em 2.4em;
+}
+
+.ar-insights-button:hover {
+  background: rgba(244, 240, 232, 0.09);
+  border-color: rgba(244, 240, 232, 0.22);
+}
+
+.ar-insights-button:focus-visible {
+  outline: 2px solid var(--dream-btn-border-strong);
+  outline-offset: 2px;
+}
+
+.ar-insights-chevron {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  font-size: 1.3rem;
+  color: var(--dream-warm-neutral);
+  opacity: 0.6;
+  transition:
+    opacity 0.25s var(--ease-soft),
+    transform 0.25s var(--ease-soft);
+}
+
+html[dir='rtl'] .ar-insights-chevron {
+  right: auto;
+  left: 1rem;
+  transform: translateY(-50%) scaleX(-1);
+}
+
+.ar-insights-button:hover .ar-insights-chevron {
+  opacity: 0.9;
+  transform: translateY(-50%) translateX(3px);
+}
+
+html[dir='rtl'] .ar-insights-button:hover .ar-insights-chevron {
+  transform: translateY(-50%) scaleX(-1) translateX(3px);
 }
 
 .ar-insights-row {
@@ -381,6 +445,7 @@ html[lang='he'] .ar-title {
    from (titles only, never the dream text itself), quieter than the
    motif/count row above it. */
 .ar-insights-dreams {
+  display: block;
   margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.78rem;

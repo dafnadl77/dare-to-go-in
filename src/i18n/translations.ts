@@ -117,6 +117,10 @@ export interface Translations {
     insightsNotEnough: string;
     insightsEmpty: string;
     insightsAppearsInDreams: string;
+    insightsOpenAria: string;
+    insightsMotifGoneTitle: string;
+    insightsMotifGoneBody: string;
+    insightsBackToOverview: string;
     settingsSubtitle: string;
     settingsEmailLabel: string;
     settingsLanguageLabel: string;
@@ -214,7 +218,7 @@ export const en: Translations = {
     finishDream: 'FINISH DREAM',
     transcribing: 'TRANSCRIBING…',
     tellMeWhatHappened: 'TELL ME WHAT HAPPENED.',
-    typingPlaceholder: 'Start with anything you remember...',
+    typingPlaceholder: 'Start with whatever you remember.',
     back: '← Back',
     imDone: 'I’M DONE',
     iThinkIHaveIt: 'I THINK I HAVE IT.',
@@ -289,6 +293,10 @@ export const en: Translations = {
     insightsNotEnough: 'Save a few more dreams to start seeing recurring themes here.',
     insightsEmpty: "Nothing recurring yet across your saved dreams.",
     insightsAppearsInDreams: 'Appears in {count} dreams',
+    insightsOpenAria: 'Open dreams that mention',
+    insightsMotifGoneTitle: "These dreams aren't available anymore",
+    insightsMotifGoneBody: 'This motif no longer matches any saved dream.',
+    insightsBackToOverview: 'Back to Insights',
     settingsSubtitle: 'Your account.',
     settingsEmailLabel: 'Signed in as',
     settingsLanguageLabel: 'Language',
@@ -392,7 +400,7 @@ export const he: Translations = {
     finishDream: 'סיום החלום',
     transcribing: 'מתמלל…',
     tellMeWhatHappened: 'ספרו לי מה קרה.',
-    typingPlaceholder: 'התחילו מכל מה שאתם זוכרים...',
+    typingPlaceholder: 'התחילו מכל מה שאתם זוכרים.',
     back: '← חזרה',
     imDone: 'סיימתי',
     iThinkIHaveIt: 'נדמה שיש לי את זה.',
@@ -467,6 +475,10 @@ export const he: Translations = {
     insightsNotEnough: 'שמרו עוד כמה חלומות כדי לראות כאן נושאים חוזרים.',
     insightsEmpty: 'עדיין אין דבר שחוזר בין החלומות השמורים שלכם.',
     insightsAppearsInDreams: 'מופיע ב-{count} חלומות',
+    insightsOpenAria: 'פתחו חלומות שמזכירים את',
+    insightsMotifGoneTitle: 'החלומות האלה כבר לא זמינים',
+    insightsMotifGoneBody: 'הנושא הזה כבר לא תואם אף חלום שמור.',
+    insightsBackToOverview: 'חזרה לתובנות',
     settingsSubtitle: 'החשבון שלכם.',
     settingsEmailLabel: 'מחוברים בתור',
     settingsLanguageLabel: 'שפה',

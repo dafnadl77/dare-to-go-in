@@ -434,8 +434,20 @@ function motifCandidatesFromSavedDream(dream: SavedDream): string[] {
     matching over data that already exists. Returns null (not an empty
     array) only when fewer than 2 real dreams exist at all, since no
     cross-dream recurrence is even possible yet — NOT an arbitrary
-    "need 3+ dreams" gate. */
-export function getRecurringMotifs(entries: ArchiveEntry[]): RecurringMotif[] | null {
+    "need 3+ dreams" gate.
+
+    `language` is the CURRENT UI language, used the exact same way
+    isDisplaySafe already guards every other card field in this file: a
+    motif candidate extracted from a dream that was described in Hebrew
+    stays Hebrew forever (dreamAnalysis mirrors whatever language the
+    dream was actually described in — there is no stored English variant
+    of it to fall back to, and this file never invents one), so it is
+    simply skipped while the UI is English, rather than displayed in the
+    wrong script or silently machine-translated. The SAME normalized
+    motif can therefore show a different count/dream-list per UI
+    language — expected, not a bug: it only ever counts occurrences that
+    are honestly displayable in the language currently being shown. */
+export function getRecurringMotifs(entries: ArchiveEntry[], language: AppLanguage = getAppLanguage()): RecurringMotif[] | null {
   const real = entries.filter((e): e is Extract<ArchiveEntry, { kind: 'real' }> => e.kind === 'real');
   if (real.length < 2) return null;
 
@@ -448,7 +460,7 @@ export function getRecurringMotifs(entries: ArchiveEntry[]): RecurringMotif[] | 
     const perDream = new Map<string, string>();
     for (const raw of candidates) {
       const norm = normalizeMotifCandidate(raw);
-      if (norm && !perDream.has(norm.key)) perDream.set(norm.key, norm.label);
+      if (norm && isDisplaySafe(norm.label, language) && !perDream.has(norm.key)) perDream.set(norm.key, norm.label);
     }
     for (const [key, label] of perDream) {
       const existing = byKey.get(key);

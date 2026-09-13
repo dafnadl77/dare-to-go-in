@@ -140,9 +140,41 @@ button:disabled {
    is exactly the kind of guessed/duplicated CSS that caused the
    mismatch. Grouped directly onto the existing heading selectors (rather
    than requiring a JSX class-name change on every call site) — genuinely
-   one rule, not copies of it. */
+   one rule, not copies of it.
+
+   THE ACTUAL REMAINING BUG (found only by rendering and visually
+   comparing pixels, not by comparing getComputedStyle strings): Fraunces
+   is a variable font whose "opsz" (optical size) axis runs 9..144 (see
+   the Google Fonts URL in index.html) and dramatically changes the
+   letterforms themselves — low opsz is a sturdier, lower-contrast "text"
+   cut; high opsz is the thin-hairline, high-contrast "display" cut that
+   makes the logo look like a logo. `font-optical-sizing: auto` resolves
+   opsz to roughly the element's OWN font-size in px — confirmed by
+   rendering the same text at the same 84px with `auto` vs an explicit
+   `"opsz" 84` and comparing pixels: identical. That is exactly why
+   "matching font-family/weight/optical-sizing" kept failing to look
+   right: the logo (.memory-title, ~84-104px) auto-resolves to a high
+   opsz and gets the dramatic display cut, while a 30-40px heading with
+   the SAME `font-optical-sizing: auto` auto-resolves to a LOW opsz and
+   gets a completely different, sturdier "text" cut — even though
+   `getComputedStyle().fontOpticalSizing` and `.fontVariationSettings`
+   report identically ("auto" / "normal") for both, since neither
+   property ever reflects the internal size-dependent value auto
+   actually applies. A computed-style comparison alone cannot catch this
+   — only rendering and visually comparing glyphs can, which is what
+   surfaced it here.
+
+   Fix: stop using `auto` for every heading that ISN'T the logo itself —
+   force the exact fixed opsz the logo itself renders at (measured live:
+   83.968px → opsz ≈ 84) via an explicit font-variation-settings value,
+   so a 30px heading gets the SAME thin, high-contrast display glyphs as
+   the 84px logo instead of the low-opsz text cut. `.memory-title` itself
+   is deliberately left on `auto` (unchanged, never part of any
+   complaint) so its own responsive clamp(2.6rem, 8.2vw, 7.5rem) sizing
+   keeps auto-adjusting exactly as it already did. */
 .font-editorial-display,
 .ar-title,
+.ar-brand,
 .da-title,
 .dr-question,
 .dc-title,
@@ -153,8 +185,8 @@ button:disabled {
   font-weight: 400;
   font-style: normal;
   font-stretch: 100%;
-  font-optical-sizing: auto;
-  font-variation-settings: normal;
+  font-optical-sizing: none;
+  font-variation-settings: 'opsz' 84;
   font-feature-settings: normal;
   letter-spacing: 0.01em;
 }
@@ -206,7 +238,11 @@ button:disabled {
    logo (DreamArchive.tsx/.css) — it has its own `dir="ltr"` for the same
    bidi reason but was never added to this exemption, so it had exactly
    the same "silently renders in Heebo under Hebrew" bug, just never
-   diagnosed until now. Same fix, same reasoning. */
+   diagnosed until now. Same fix, same reasoning. Its fixed-opsz
+   correction (unlike .memory-title, which deliberately keeps `auto`)
+   comes from the .font-editorial-display group above, which .ar-brand is
+   also a member of — that value isn't touched by this RTL block, so it
+   already survives into Hebrew with no extra rule needed here. */
 :root[dir='rtl'] .memory-title,
 :root[dir='rtl'] .memory-title *,
 :root[dir='rtl'] .ar-brand {

@@ -6,6 +6,7 @@ import {
   getRecurringMotifs,
   setLastArchiveScrollTop,
   type ArchiveEntry,
+  type RecurringMotif,
 } from './archiveData';
 import { toggleFavorite } from '../hero/dreamStorage';
 import DreamTimeline from './DreamTimeline';
@@ -62,6 +63,16 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
   // toggleFavorite() writes straight to localStorage, which on its own
   // triggers no re-render.
   const [favoriteVersion, setFavoriteVersion] = useState(0);
+  // Set only while viewing one recurring motif's own filtered dream list
+  // (reached by clicking it in the Insights overview) — null shows the
+  // overview list instead. Reset any time Insights itself is (re)entered
+  // or left, so a stale filtered view never lingers behind the sidenav.
+  const [openMotif, setOpenMotif] = useState<RecurringMotif | null>(null);
+
+  const goToSection = (section: ArchiveSection) => {
+    setActiveSection(section);
+    setOpenMotif(null);
+  };
 
   // Re-derived on every language change (not just on mount) — mock/sample
   // titles, excerpts and keywords must follow the CURRENT interface
@@ -72,7 +83,18 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
     () => (activeSection === 'favorites' ? entries.filter((e) => e.kind === 'real' && e.favorite) : entries),
     [entries, activeSection],
   );
-  const recurringMotifs = useMemo(() => getRecurringMotifs(entries), [entries]);
+  const recurringMotifs = useMemo(() => getRecurringMotifs(entries, language), [entries, language]);
+  // Re-matched against the LIVE entries list (not the possibly-stale
+  // `openMotif.dreams` snapshot from when it was opened) by id, exactly
+  // like DreamTimeline's own dream cards — so a language switch mid-view
+  // still shows correctly re-localized titles, and a dream that genuinely
+  // no longer exists simply drops out rather than crashing anything (see
+  // the empty state below).
+  const motifDreamIds = useMemo(() => new Set((openMotif?.dreams ?? []).map((d) => d.id)), [openMotif]);
+  const motifEntries = useMemo(
+    () => (openMotif ? entries.filter((e) => e.kind === 'real' && motifDreamIds.has(e.id)) : []),
+    [entries, openMotif, motifDreamIds],
+  );
 
   const handleToggleFavorite = (id: string) => {
     toggleFavorite(id);
@@ -149,7 +171,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
             type="button"
             className={`ar-nav-item${activeSection === 'all' ? ' ar-nav-item--active' : ''}`}
             aria-current={activeSection === 'all' ? 'page' : undefined}
-            onClick={() => setActiveSection('all')}
+            onClick={() => goToSection('all')}
           >
             {t('archive.navAllDreams')}
           </button>
@@ -157,7 +179,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
             type="button"
             className={`ar-nav-item${activeSection === 'favorites' ? ' ar-nav-item--active' : ''}`}
             aria-current={activeSection === 'favorites' ? 'page' : undefined}
-            onClick={() => setActiveSection('favorites')}
+            onClick={() => goToSection('favorites')}
           >
             {t('archive.navFavorites')}
           </button>
@@ -165,7 +187,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
             type="button"
             className={`ar-nav-item${activeSection === 'insights' ? ' ar-nav-item--active' : ''}`}
             aria-current={activeSection === 'insights' ? 'page' : undefined}
-            onClick={() => setActiveSection('insights')}
+            onClick={() => goToSection('insights')}
           >
             {t('archive.navInsights')}
           </button>
@@ -173,7 +195,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
             type="button"
             className={`ar-nav-item${activeSection === 'settings' ? ' ar-nav-item--active' : ''}`}
             aria-current={activeSection === 'settings' ? 'page' : undefined}
-            onClick={() => setActiveSection('settings')}
+            onClick={() => goToSection('settings')}
           >
             {t('archive.navSettings')}
           </button>
@@ -186,17 +208,23 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
             items={
               activeSection === 'all'
                 ? [{ label: t('archive.pageHeading') }]
-                : [
-                    { label: t('archive.pageHeading'), onClick: () => setActiveSection('all') },
-                    {
-                      label:
-                        activeSection === 'favorites'
-                          ? t('archive.navFavorites')
-                          : activeSection === 'insights'
-                            ? t('archive.navInsights')
-                            : t('archive.navSettings'),
-                    },
-                  ]
+                : activeSection === 'insights' && openMotif
+                  ? [
+                      { label: t('archive.pageHeading'), onClick: () => goToSection('all') },
+                      { label: t('archive.navInsights'), onClick: () => setOpenMotif(null) },
+                      { label: openMotif.label },
+                    ]
+                  : [
+                      { label: t('archive.pageHeading'), onClick: () => goToSection('all') },
+                      {
+                        label:
+                          activeSection === 'favorites'
+                            ? t('archive.navFavorites')
+                            : activeSection === 'insights'
+                              ? t('archive.navInsights')
+                              : t('archive.navSettings'),
+                      },
+                    ]
             }
           />
           {(activeSection === 'all' || activeSection === 'favorites') && (
@@ -229,7 +257,27 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
             </>
           )}
 
-          {activeSection === 'insights' && (
+          {activeSection === 'insights' && openMotif && (
+            <div className="ar-panel">
+              <h1 className="ar-title">{openMotif.label}</h1>
+              <p className="ar-subtitle">
+                {t('archive.insightsAppearsInDreams').replace('{count}', String(openMotif.count))}
+              </p>
+              {motifEntries.length === 0 ? (
+                <div className="ar-empty-state">
+                  <p className="ar-empty-title">{t('archive.insightsMotifGoneTitle')}</p>
+                  <p className="ar-empty-body">{t('archive.insightsMotifGoneBody')}</p>
+                  <button type="button" className="btn btn-secondary" data-cursor-hover onClick={() => setOpenMotif(null)}>
+                    {t('archive.insightsBackToOverview')}
+                  </button>
+                </div>
+              ) : (
+                <DreamTimeline entries={motifEntries} onOpenEntry={handleOpenEntry} onToggleFavorite={handleToggleFavorite} />
+              )}
+            </div>
+          )}
+
+          {activeSection === 'insights' && !openMotif && (
             <div className="ar-panel">
               <h1 className="ar-title">{t('archive.navInsights')}</h1>
               <p className="ar-subtitle">{t('archive.insightsSubtitle')}</p>
@@ -241,15 +289,26 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
                 <ul className="ar-insights-list">
                   {recurringMotifs.map((m) => (
                     <li key={m.key} className="ar-insights-item">
-                      <div className="ar-insights-row">
-                        <span className="ar-insights-word">{m.label}</span>
-                        <span className="ar-insights-count">
-                          {t('archive.insightsAppearsInDreams').replace('{count}', String(m.count))}
+                      <button
+                        type="button"
+                        className="ar-insights-button"
+                        data-cursor-hover
+                        onClick={() => setOpenMotif(m)}
+                        aria-label={`${t('archive.insightsOpenAria')} ${m.label}`}
+                      >
+                        <span className="ar-insights-row">
+                          <span className="ar-insights-word">{m.label}</span>
+                          <span className="ar-insights-count">
+                            {t('archive.insightsAppearsInDreams').replace('{count}', String(m.count))}
+                          </span>
                         </span>
-                      </div>
-                      {m.dreams.length > 0 && (
-                        <p className="ar-insights-dreams">{m.dreams.map((d) => d.title).join(' · ')}</p>
-                      )}
+                        {m.dreams.length > 0 && (
+                          <span className="ar-insights-dreams">{m.dreams.map((d) => d.title).join(' · ')}</span>
+                        )}
+                        <span className="ar-insights-chevron" aria-hidden="true">
+                          ›
+                        </span>
+                      </button>
                     </li>
                   ))}
                 </ul>

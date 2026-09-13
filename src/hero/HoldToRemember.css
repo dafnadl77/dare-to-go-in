@@ -605,6 +605,15 @@
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
 }
 
+/* text-align: center (was `start`) — the empty-state placeholder
+   ("Start with whatever you remember." / he "התחילו מכל מה שאתם
+   זוכרים.") read as visibly off-center under the centered heading above
+   it (.central-typing-heading). `::placeholder` cannot be given its own
+   independent text-align in this engine — confirmed live, it always
+   inherits the field's own alignment — so this centers the textarea's
+   real typed content too; consistent with every other single-column
+   element in this app already being center-aligned, and confirmed live
+   to still read fine for a real multi-line dream description. */
 .central-typing-textarea {
   width: 100%;
   min-height: 5.2em;
@@ -617,7 +626,7 @@
   font-weight: 400;
   font-size: clamp(1.08rem, 2.2vw, 1.32rem);
   line-height: 1.7;
-  text-align: start;
+  text-align: center;
   resize: none;
   outline: none;
   padding: 0.5em 0.15em 0.9em;
@@ -625,9 +634,14 @@
   transition: border-color 0.4s var(--ease-soft);
 }
 
+/* Was --dream-warm-neutral-dim (a dim brown/grey) at 0.75 opacity —
+   exactly the low-contrast pattern fixed everywhere else in this app.
+   Real white/ivory with a shadow doing the legibility work, matching
+   every other fixed caption/placeholder in the product. */
 .central-typing-textarea::placeholder {
-  color: var(--dream-warm-neutral-dim);
-  opacity: 0.75;
+  color: var(--dream-white);
+  opacity: 0.7;
+  text-shadow: 0 0.04em 0.5em rgba(0, 0, 0, 0.5);
   font-style: normal;
 }
 
