@@ -105,6 +105,16 @@ export interface Translations {
     navSettings: string;
     navComingSoon: string;
     openEntry: string;
+    favoriteAdd: string;
+    favoriteRemove: string;
+    emptyFavoritesTitle: string;
+    emptyFavoritesBody: string;
+    insightsSubtitle: string;
+    insightsNotEnough: string;
+    insightsEmpty: string;
+    settingsSubtitle: string;
+    settingsEmailLabel: string;
+    settingsLanguageLabel: string;
   };
   dreamDetail: {
     backToArchive: string;
@@ -262,6 +272,16 @@ export const en: Translations = {
     navSettings: 'Settings',
     navComingSoon: 'Soon',
     openEntry: 'Open',
+    favoriteAdd: 'Add to favorites',
+    favoriteRemove: 'Remove from favorites',
+    emptyFavoritesTitle: 'No favorites yet',
+    emptyFavoritesBody: 'Mark a dream as a favorite to see it here.',
+    insightsSubtitle: "What keeps recurring in your dreams.",
+    insightsNotEnough: 'Save a few more dreams to start seeing recurring themes here.',
+    insightsEmpty: "Nothing recurring yet across your saved dreams.",
+    settingsSubtitle: 'Your account.',
+    settingsEmailLabel: 'Signed in as',
+    settingsLanguageLabel: 'Language',
   },
   dreamDetail: {
     backToArchive: 'BACK TO MY DREAM ARCHIVE',
@@ -425,6 +445,16 @@ export const he: Translations = {
     navSettings: 'הגדרות',
     navComingSoon: 'בקרוב',
     openEntry: 'פתחו',
+    favoriteAdd: 'הוספה למועדפים',
+    favoriteRemove: 'הסרה מהמועדפים',
+    emptyFavoritesTitle: 'אין עדיין מועדפים',
+    emptyFavoritesBody: 'סמנו חלום כמועדף כדי לראות אותו כאן.',
+    insightsSubtitle: 'מה שחוזר בחלומות שלכם.',
+    insightsNotEnough: 'שמרו עוד כמה חלומות כדי לראות כאן נושאים חוזרים.',
+    insightsEmpty: 'עדיין אין דבר שחוזר בין החלומות השמורים שלכם.',
+    settingsSubtitle: 'החשבון שלכם.',
+    settingsEmailLabel: 'מחוברים בתור',
+    settingsLanguageLabel: 'שפה',
   },
   dreamDetail: {
     backToArchive: 'חזרה לארכיון החלומות שלי',

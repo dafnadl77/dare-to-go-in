@@ -599,26 +599,31 @@
 
 /* ---- Waiting for the real reflection engine — same restrained language
    as REMEMBERING..., no spinner, no percentage, no box. ---- */
+/* "התבוננות…" / "REFLECTING…" — same class of bug as .dr-remembering in
+   DreamReconstruction.css: was 0.68rem pulsing down to 0.4 opacity at its
+   dimmest, effectively invisible for half of every cycle. Same fix: a
+   real minimum size, white, and a raised opacity floor so it stays
+   readable through the whole pulse. */
 .dr-interpreting {
   margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.85rem;
   font-weight: 500;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--dream-warm-neutral);
-  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
-  opacity: 0.45;
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.55);
+  opacity: 0.75;
   animation: dr-interpreting-pulse 2.6s ease-in-out infinite;
 }
 
 @keyframes dr-interpreting-pulse {
   0%,
   100% {
-    opacity: 0.4;
+    opacity: 0.65;
   }
   50% {
-    opacity: 0.82;
+    opacity: 0.95;
   }
 }
 
@@ -758,6 +763,13 @@
   gap: 1.4rem;
 }
 
+/* Was a brown-grey at rest, tinted to the per-dream accent color (often
+   gold/orange/brown) once active/settled — named directly as icons that
+   "disappear against the clouds." Now always white, never brown/orange/
+   gold/cyan, with only opacity (not hue) distinguishing not-yet-reached
+   from active/settled — clearly visible against any part of the
+   background. The circular container keeps a subtle translucent-white
+   outline instead of an accent-tinted one. */
 .dr-node-icon {
   position: relative;
   flex-shrink: 0;
@@ -767,11 +779,12 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  border: 1px solid rgba(244, 240, 232, 0.3);
-  color: var(--dream-warm-neutral-dim);
+  border: 1px solid rgba(244, 240, 232, 0.35);
+  color: var(--dream-white);
+  opacity: 0.55;
   background: rgba(6, 7, 6, 0.25);
   transition:
-    color 1.8s var(--ease-memory),
+    opacity 1.8s var(--ease-memory),
     border-color 1.8s var(--ease-memory);
 }
 
@@ -793,8 +806,8 @@
 
 .dr-node-row[data-state='active'] .dr-node-icon,
 .dr-node-row[data-state='settled'] .dr-node-icon {
-  color: rgb(var(--accent-rgb));
-  border-color: rgba(var(--accent-rgb), 0.7);
+  opacity: 1;
+  border-color: rgba(244, 240, 232, 0.7);
 }
 
 .dr-node-row[data-state='active'] .dr-node-icon-glow {
@@ -839,23 +852,22 @@
    falling back to a dim 214,178,110 with no shadow) — exactly the tiny
    dark-gold labels ("WHAT I NOTICE" / "YOUR ASSOCIATION" / "ONE POSSIBLE
    THREAD" / "A QUESTION WORTH KEEPING", he: "מה שבולט" etc.) flagged as
-   unreadable. Substantially larger now, a brighter warm gold that's
-   actually defined, full opacity, and a real shadow doing the legibility
-   work over the cloud background — same treatment class as every other
-   eyebrow in the product now uses. */
+   unreadable. A later pass moved these to a brighter gold, which was
+   then flagged again as still too brown/gold-toned against the clouds —
+   these are real section HEADINGS now, not a decorative accent, so
+   they're plain white (matching every other heading in the product),
+   substantially larger, full opacity, with a real shadow doing the
+   legibility work over the cloud background regardless of what's behind
+   them. */
 .dr-thought-label {
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.6rem;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: clamp(0.92rem, 1.7vw, 1.05rem);
+  font-size: clamp(1.1rem, 2.1vw, 1.32rem);
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgb(226, 196, 140);
+  color: var(--dream-white);
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.65);
-}
-
-.dr-node-row[data-state='active'] .dr-thought-label {
-  color: rgb(var(--accent-rgb));
 }
 
 /* Every generated sentence displays in full — no ellipsis, no line-clamp,
@@ -909,31 +921,42 @@
   }
 }
 
+/* "SEE OTHER LENSES" / "זוויות נוספות" — a real secondary button now (was
+   12px bare text, then a legibility-only fix that kept it small). Same
+   transparent/white-outline system as the rest of the app. */
 .dr-lenses-toggle {
   position: relative;
   pointer-events: auto;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.2em;
+  font-size: clamp(0.85rem, 1.6vw, 0.95rem);
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  /* Was --dream-warm-neutral-dim at 0.7 — too dark/faint to read as a
-     real action label against the cloud background. */
   color: var(--dream-white);
   text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.5);
-  background: none;
-  border: none;
+  background: transparent;
+  border: 1px solid rgba(244, 240, 232, 0.5);
+  border-radius: 999px;
   outline: none;
-  padding: 0.5em 0.2em;
+  padding: 0.55em 1.2em;
   cursor: pointer;
-  opacity: 0.8;
-  transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
+  transition: background 0.3s var(--ease-soft), border-color 0.3s var(--ease-soft), transform 0.3s var(--ease-soft);
 }
 
 .dr-lenses-toggle:hover,
 .dr-lenses-toggle:focus-visible {
-  opacity: 1;
-  letter-spacing: 0.24em;
+  background: var(--dream-btn-hover-bg);
+  border-color: rgba(244, 240, 232, 0.85);
+  transform: translateY(-1px);
+}
+
+.dr-lenses-toggle:focus-visible {
+  box-shadow: 0 0 0 3px var(--dream-btn-glow);
+}
+
+.dr-lenses-toggle:active {
+  background: var(--dream-btn-active-bg);
+  transform: translateY(0);
 }
 
 .dr-lenses {
@@ -948,32 +971,31 @@
   margin: 0;
   max-width: 30em;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: clamp(0.95rem, 1.8vw, 1.15rem);
-  line-height: 1.5;
-  color: var(--dream-warm-neutral);
-  /* Was missing entirely — .dr-lens-label and .dr-lenses-toggle right
-     next to this already got the "too dark/faint, add a shadow" fix in
-     an earlier pass; this actual lens paragraph text was the one left
-     out. */
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  line-height: 1.55;
+  color: var(--dream-white);
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.55);
 }
 
+/* "COGNITIVE" / "JUNGIAN" / "PSYCHODYNAMIC" tags — still too small/weak
+   per the additional-lenses readability pass. */
 .dr-lens-label {
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  /* Was --dream-warm-neutral-dim — matches the .dr-lenses-toggle fix
-     above so the lens tag itself is legible, not just the toggle. */
+  font-size: clamp(0.78rem, 1.4vw, 0.88rem);
+  font-weight: 700;
+  letter-spacing: 0.14em;
   color: var(--dream-white);
-  opacity: 0.8;
+  opacity: 0.9;
   text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.5);
 }
 
+/* Was bottom: 7vh, only ~4vh clear of .dr-continue-wrap's own 3vh below
+   it — named directly as not having enough room to breathe before the
+   CONTINUE button. Pushed further up for real separation. */
 .dr-grounding {
   position: absolute;
   left: 50%;
-  bottom: 7vh;
+  bottom: 12vh;
   transform: translateX(-50%);
   margin: 0;
   max-width: 28em;
@@ -1161,7 +1183,8 @@
 
   /* The last element on the page — generous room above mobile browser
      chrome, so CONTINUE is never the thing the dreamer has to fight the
-     UI to reach. */
+     UI to reach. Extra margin-top matches the desktop gap increase — the
+     disclaimer needs to breathe before the button, not run into it. */
   .dr-continue-wrap {
     position: relative;
     left: auto;
@@ -1169,6 +1192,7 @@
     transform: none;
     display: flex;
     justify-content: center;
+    margin-top: 1.4rem;
     padding-bottom: max(2vh, env(safe-area-inset-bottom, 0px));
   }
 }

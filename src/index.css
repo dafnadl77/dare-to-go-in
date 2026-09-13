@@ -11,16 +11,18 @@
   --dream-ocean: #21403c;
   --dream-ocean-soft: #3c5c56;
 
-  /* The one shared primary-button accent (src/ui/buttons.css) — a real
-     cyan/teal, distinct from --dream-ocean's own muted, near-desaturated
-     dark teal above (which reads as a background/surface color, not an
-     actionable one). Bright enough to read unmistakably as "click me"
-     against the app's dark backgrounds, in both the cinematic cloud
-     screens and the personal-area's own dark-blue surfaces. */
-  --dream-cta: #2dd4bf;
-  --dream-cta-hover: #5eead4;
-  --dream-cta-active: #14b8a6;
-  --dream-cta-ink: #052e2b;
+  /* The one shared button system (src/ui/buttons.css and every hand-
+     written button in the app): transparent background, a solid white/
+     ivory border, white text — never a filled color. A prior pass used a
+     filled cyan/teal here; that direction was explicitly rejected as "not
+     approved" and replaced with this one. Kept as tokens (not inline
+     literals) so every button — shared class or hand-written — draws from
+     the same three values. */
+  --dream-btn-border: rgba(244, 240, 232, 0.85);
+  --dream-btn-border-strong: rgba(244, 240, 232, 1);
+  --dream-btn-hover-bg: rgba(255, 255, 255, 0.08);
+  --dream-btn-active-bg: rgba(255, 255, 255, 0.14);
+  --dream-btn-glow: rgba(244, 240, 232, 0.28);
 
   --ease-memory: cubic-bezier(0.16, 0.72, 0.2, 1);
   --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
@@ -148,9 +150,16 @@ button:disabled {
    This restores the exact English values on both the heading and its
    per-letter animation spans (.mt-word/.mt-char inherit font-family
    normally, but the blanket rule targets every element directly, so the
-   restore has to as well, not just the parent). */
+   restore has to as well, not just the parent).
+
+   .ar-brand is the SAME brand mark, re-rendered as the archive header's
+   logo (DreamArchive.tsx/.css) — it has its own `dir="ltr"` for the same
+   bidi reason but was never added to this exemption, so it had exactly
+   the same "silently renders in Heebo under Hebrew" bug, just never
+   diagnosed until now. Same fix, same reasoning. */
 :root[dir='rtl'] .memory-title,
-:root[dir='rtl'] .memory-title * {
+:root[dir='rtl'] .memory-title *,
+:root[dir='rtl'] .ar-brand {
   font-family: 'Fraunces', Georgia, serif !important;
   letter-spacing: 0.01em !important;
 }

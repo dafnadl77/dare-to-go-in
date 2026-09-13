@@ -418,19 +418,19 @@
   transform: translate(3px, 4px) rotate(4deg);
 }
 
+/* "הבחירה בידך." / "THE CHOICE IS YOURS." — named directly as too small
+   and too dim (was 0.72rem at 0.75 opacity). Substantially larger now,
+   full-strength white, with real breathing room above it. */
 .dc-choice-hint {
-  margin: 0;
+  margin-top: 1.6rem;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.26em;
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  /* Was --dream-warm-neutral-dim at 0.6 opacity — too dark/faint against
-     the cloud background. A soft shadow does the legibility work rather
-     than weight, so this stays quiet, not loud. */
   color: var(--dream-white);
-  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
-  opacity: 0.75;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.55);
+  opacity: 0.95;
 }
 
 /* ---- KEEP THIS DREAM's outcome — energy rushes to center, the portal
@@ -636,47 +636,49 @@
 
    Raised to full white at a larger size — the original dim/small
    treatment read as barely visible against the cloud background. */
+/* "מעבר לארכיון החלומות שלי" / "Go to my dream archive" — was an
+   underline-on-hover text link, which reads as a caption, not an action.
+   It IS a real action (navigates to the archive), so it now uses the
+   same secondary outlined-pill treatment as every other button in the
+   app, just sized down a touch since it sits below the primary RETURN TO
+   THE ROOM action. */
 .dc-archive-invite {
   position: relative;
-  margin-top: -0.6rem;
-  background: none;
-  border: none;
-  padding: 0.3em 0;
+  margin-top: 0.4rem;
+  background: transparent;
+  border: 1px solid rgba(244, 240, 232, 0.5);
+  border-radius: 999px;
+  padding: 0.6em 1.5em;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-weight: 400;
-  font-size: clamp(1rem, 2vw, 1.3rem);
-  letter-spacing: 0.01em;
+  font-weight: 600;
+  font-size: clamp(0.85rem, 1.6vw, 0.98rem);
+  letter-spacing: 0.02em;
   color: var(--dream-white);
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
   cursor: pointer;
+  outline: none;
   opacity: 0;
   animation: dc-fade-in 1.8s var(--ease-memory) 2.4s forwards;
-  transition: color 0.6s var(--ease-soft), text-shadow 0.6s var(--ease-soft);
-}
-
-.dc-archive-invite::after {
-  content: '';
-  position: absolute;
-  left: 8%;
-  right: 8%;
-  bottom: 0.1em;
-  height: 1px;
-  background: currentColor;
-  opacity: 0.5;
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform 0.7s var(--ease-memory);
+  transition:
+    background 0.3s var(--ease-soft),
+    border-color 0.3s var(--ease-soft),
+    transform 0.3s var(--ease-soft);
 }
 
 .dc-archive-invite:hover,
 .dc-archive-invite:focus-visible {
-  color: var(--dream-white);
-  text-shadow: 0 0 1.1rem rgba(var(--accent-rgb, 244, 240, 232), 0.45), 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
+  background: var(--dream-btn-hover-bg);
+  border-color: rgba(244, 240, 232, 0.85);
+  transform: translateY(-1px);
 }
 
-.dc-archive-invite:hover::after,
-.dc-archive-invite:focus-visible::after {
-  transform: scaleX(1);
+.dc-archive-invite:focus-visible {
+  box-shadow: 0 0 0 3px var(--dream-btn-glow);
+}
+
+.dc-archive-invite:active {
+  background: var(--dream-btn-active-bg);
+  transform: translateY(0);
 }
 
 @media (prefers-reduced-motion: reduce) {

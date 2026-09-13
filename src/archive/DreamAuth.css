@@ -238,20 +238,22 @@
 }
 
 /* ---- CREATE MY ARCHIVE / ENTER MY ARCHIVE — a real, unmistakably-
-   clickable primary button now (filled cyan/teal, the one shared
-   --dream-cta treatment — see src/ui/buttons.css), not the bare
-   text-link this used to be. Written directly here (not by relying on
-   the shared .btn-primary CLASS's own cascade position, which loads
-   before this file and would lose any overlapping property to this
-   file's own rules regardless) so the win is guaranteed regardless of
-   import order — same tokens, same states, genuinely one system. ---- */
+   clickable primary button (transparent + solid white/ivory outline, the
+   one shared button system — see src/ui/buttons.css), not the bare
+   text-link this used to be, and not the filled cyan/teal an earlier
+   pass used (explicitly rejected — no filled color anywhere). Written
+   directly here (not by relying on the shared .btn-primary CLASS's own
+   cascade position, which loads before this file and would lose any
+   overlapping property to this file's own rules regardless) so the win
+   is guaranteed regardless of import order — same tokens, same states,
+   genuinely one system. ---- */
 .auth-submit {
   position: relative;
   align-self: center;
   margin-top: 0.6rem;
   min-width: 12rem;
-  background: var(--dream-cta);
-  border: 1px solid transparent;
+  background: transparent;
+  border: 1.5px solid var(--dream-btn-border);
   border-radius: 999px;
   outline: none;
   padding: 0.85em 1.8em;
@@ -259,26 +261,26 @@
   font-size: 0.86rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: var(--dream-cta-ink);
+  color: var(--dream-white);
   cursor: pointer;
-  box-shadow: 0 0.6rem 1.6rem rgba(45, 212, 191, 0.22);
-  transition: background 0.3s var(--ease-soft), transform 0.3s var(--ease-soft), box-shadow 0.3s var(--ease-soft), opacity 0.3s var(--ease-soft);
+  transition: background 0.3s var(--ease-soft), border-color 0.3s var(--ease-soft), transform 0.3s var(--ease-soft), box-shadow 0.3s var(--ease-soft), opacity 0.3s var(--ease-soft);
 }
 
 .auth-submit:hover:not(:disabled),
 .auth-submit:focus-visible:not(:disabled) {
-  background: var(--dream-cta-hover);
+  background: var(--dream-btn-hover-bg);
+  border-color: var(--dream-btn-border-strong);
   transform: translateY(-1px);
-  box-shadow: 0 0.9rem 2rem rgba(45, 212, 191, 0.3);
+  box-shadow: 0 0 1.4rem var(--dream-btn-glow);
 }
 
 .auth-submit:active:not(:disabled) {
-  background: var(--dream-cta-active);
+  background: var(--dream-btn-active-bg);
   transform: translateY(0);
 }
 
 .auth-submit:focus-visible {
-  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.45);
+  box-shadow: 0 0 0 3px var(--dream-btn-glow);
 }
 
 .auth-submit:disabled {

@@ -22,11 +22,14 @@
 .dt-month-heading {
   margin: 0 0 1rem;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--dream-warm-neutral-dim);
+  /* Was --dream-warm-neutral-dim, a brown-grey — gray-on-blue against the
+     archive's own dark-blue surface, per the readability audit. */
+  color: var(--dream-warm-neutral);
+  opacity: 0.85;
 }
 
 html[lang='he'] .dt-month-heading {
@@ -37,6 +40,15 @@ html[lang='he'] .dt-month-heading {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
+}
+
+/* Wraps .dt-card so the favorite toggle below can sit as a SIBLING
+   absolutely positioned over its corner, rather than nested inside it —
+   a button can't validly nest inside another button. */
+.dt-card-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
 }
 
 /* ---- One dream — a real, bounded card: a visible surface and border,
@@ -76,7 +88,7 @@ html[dir='rtl'] .dt-card {
 
 .dt-card:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.5);
+  box-shadow: 0 0 0 2px var(--dream-btn-border);
 }
 
 .dt-card-thumb {
@@ -131,10 +143,11 @@ html[dir='rtl'] .dt-card {
 .dt-card-date {
   flex: none;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.74rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  color: var(--dream-warm-neutral-dim);
+  letter-spacing: 0.1em;
+  color: var(--dream-warm-neutral);
+  opacity: 0.85;
 }
 
 html[lang='he'] .dt-card-date {
@@ -155,11 +168,11 @@ html[lang='he'] .dt-card-date {
 
 .dt-card-keywords {
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.76rem;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  color: var(--dream-warm-neutral-dim);
-  opacity: 0.8;
+  letter-spacing: 0.04em;
+  color: var(--dream-warm-neutral);
+  opacity: 0.85;
 }
 
 /* A quiet affordance, not a real menu yet — see DreamArchive's own notes
@@ -188,7 +201,59 @@ html[dir='rtl'] .dt-card:focus-visible .dt-card-chevron {
   transform: scaleX(-1) translateX(3px);
 }
 
+/* Favorite toggle — a sibling of .dt-card (see the markup comment in
+   DreamTimeline.tsx for why), positioned over its thumbnail's top corner.
+   Same transparent/white-outline button language as the rest of the app;
+   filled with currentColor only for the heart glyph itself when active,
+   never a colored background. */
+.dt-card-favorite {
+  position: absolute;
+  top: 0.6rem;
+  inset-inline-end: 0.6rem;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(6, 8, 14, 0.55);
+  border: 1px solid rgba(244, 240, 232, 0.5);
+  color: var(--dream-white);
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.25s var(--ease-soft), transform 0.25s var(--ease-soft), border-color 0.25s var(--ease-soft), background 0.25s var(--ease-soft);
+}
+
+.dt-card-wrap:hover .dt-card-favorite,
+.dt-card-favorite:focus-visible,
+.dt-card-favorite--active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.dt-card-favorite:hover,
+.dt-card-favorite:focus-visible {
+  border-color: rgba(244, 240, 232, 0.9);
+  background: rgba(6, 8, 14, 0.75);
+}
+
+.dt-card-favorite:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--dream-btn-glow);
+}
+
 @media (max-width: 640px) {
+  /* Touch devices have no hover — the toggle must be visible without one,
+     at a comfortable minimum touch target. */
+  .dt-card-favorite {
+    opacity: 1;
+    transform: scale(1);
+    width: 34px;
+    height: 34px;
+  }
+
   .dt-card {
     gap: 0.85rem;
     padding: 0.75rem;
@@ -211,7 +276,8 @@ html[dir='rtl'] .dt-card:focus-visible .dt-card-chevron {
 @media (prefers-reduced-motion: reduce) {
   .dt-card,
   .dt-card-image,
-  .dt-card-chevron {
+  .dt-card-chevron,
+  .dt-card-favorite {
     transition-duration: 0.01s !important;
   }
 }

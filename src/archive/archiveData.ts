@@ -32,6 +32,10 @@ export type ArchiveEntry =
       image: string;
       stoodOut: string;
       savedDream: SavedDream;
+      /** Only real saved dreams can be favorited — see toggleFavorite in
+          dreamStorage.ts. Mock entries have no persistent identity worth
+          toggling, so they simply don't carry this field. */
+      favorite: boolean;
     }
   | { kind: 'mock'; id: string; date: Date; title: string; excerpt: string; keywords: string[]; image: string; mock: MockDream };
 
@@ -177,6 +181,7 @@ function toEntry(dream: SavedDream, fallbackIndex: number, language: AppLanguage
     image: dream.dreamImageDataUrl ?? FALLBACK_IMAGES[fallbackIndex % FALLBACK_IMAGES.length],
     stoodOut: stoodOutFromSavedDream(dream, language),
     savedDream: dream,
+    favorite: dream.favorite === true,
   };
 }
 
@@ -233,6 +238,40 @@ export function formatEntryMonth(date: Date, language: AppLanguage = getAppLangu
 
 export function formatEntryYear(date: Date): string {
   return String(date.getFullYear());
+}
+
+/** A single recurring keyword across this dreamer's own real saved
+    dreams, with how many of those dreams it appeared in. */
+export interface RecurringKeyword {
+  word: string;
+  count: number;
+}
+
+/** The one real, data-derived thing INSIGHTS can honestly show right now:
+    which of the dreamer's own already-extracted keywords (see
+    keywordsFromSavedDream above — emotions/atmosphere/objects the
+    analysis step already found, never a new AI call) recur across more
+    than one of their real saved dreams. Never invents a theme, never
+    calls any AI to interpret anything — pure frequency counting over data
+    that already exists. Returns null (not an empty array) when there
+    aren't enough real dreams yet to make a frequency count meaningful,
+    so the UI can show an honest "not enough dreams yet" state instead of
+    a misleadingly empty list. */
+export function getRecurringKeywords(entries: ArchiveEntry[], minDreams = 3): RecurringKeyword[] | null {
+  const real = entries.filter((e): e is Extract<ArchiveEntry, { kind: 'real' }> => e.kind === 'real');
+  if (real.length < minDreams) return null;
+  const counts = new Map<string, number>();
+  for (const entry of real) {
+    for (const word of entry.keywords) {
+      counts.set(word, (counts.get(word) ?? 0) + 1);
+    }
+  }
+  const recurring = Array.from(counts.entries())
+    .filter(([, count]) => count > 1)
+    .map(([word, count]) => ({ word, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+  return recurring.length > 0 ? recurring : [];
 }
 
 /**

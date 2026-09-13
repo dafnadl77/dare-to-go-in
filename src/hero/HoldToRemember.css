@@ -215,11 +215,12 @@
    `transform: translateY(20px) scale(1.4)` trick rather than a real
    font-size — that transform is exactly why .htr-hold-hint below it
    needed a compensating margin (see that rule's own comment). Now a real
-   outlined secondary pill, the same dark-translucent treatment as
-   .central-back/.dr-choice, so "this is a clickable alternate action"
-   reads the same everywhere in the journey, not just in the typing
-   panel. No more enlarging transform — normal flex `gap` between this,
-   the circle above, and the hint below is enough on its own now. */
+   outlined secondary pill — the shared transparent/white-outline system
+   (src/ui/buttons.css), no fill of any color, so "this is a clickable
+   alternate action" reads the same everywhere in the journey, not just
+   in the typing panel. No more enlarging transform — normal flex `gap`
+   between this, the circle above, and the hint below is enough on its
+   own now. */
 .htr-type-link {
   position: relative;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
@@ -227,11 +228,9 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--dream-white);
-  background: rgba(6, 7, 6, 0.4);
-  border: 1px solid rgba(244, 240, 232, 0.32);
+  background: transparent;
+  border: 1px solid rgba(244, 240, 232, 0.5);
   border-radius: 999px;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
   outline: none;
   padding: 0.65em 1.4em;
   transition:
@@ -243,16 +242,17 @@
 
 .htr-type-link:hover,
 .htr-type-link:focus-visible {
-  background: rgba(6, 7, 6, 0.55);
-  border-color: rgba(244, 240, 232, 0.6);
+  background: var(--dream-btn-hover-bg);
+  border-color: rgba(244, 240, 232, 0.85);
   transform: translateY(-1px);
 }
 
 .htr-type-link:focus-visible {
-  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.45);
+  box-shadow: 0 0 0 3px var(--dream-btn-glow);
 }
 
 .htr-type-link:active {
+  background: var(--dream-btn-active-bg);
   transform: translateY(0);
 }
 
@@ -470,44 +470,47 @@
 /* The single most important action in the whole capture flow — finishing
    a recording/typed dream — used to be the same quiet text-link
    treatment as every other secondary label nearby, easy to miss. Now a
-   real filled primary button (the shared --dream-cta treatment — see
+   real primary button (the shared transparent/white-outline system — see
    src/ui/buttons.css), written directly here rather than relying on
    that file's own class/cascade position for the same reason as
    .auth-submit (DreamAuth.css): guarantees the win regardless of import
-   order, while still using the exact same shared tokens/states. */
+   order, while still using the exact same shared tokens/states. No
+   filled color — a prior pass used filled cyan/teal here; that was
+   explicitly rejected. */
 .central-finish {
   position: relative;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: var(--dream-cta-ink);
-  background: var(--dream-cta);
-  border: 1px solid transparent;
+  color: var(--dream-white);
+  background: transparent;
+  border: 1.5px solid var(--dream-btn-border);
   border-radius: 999px;
   outline: none;
   padding: 0.75em 1.8em;
   margin: 0.2em 0;
-  box-shadow: 0 0.6rem 1.6rem rgba(45, 212, 191, 0.22);
   transition:
     background 0.3s var(--ease-soft),
+    border-color 0.3s var(--ease-soft),
     transform 0.3s var(--ease-soft),
     box-shadow 0.3s var(--ease-soft);
 }
 
 .central-finish:hover,
 .central-finish:focus-visible {
-  background: var(--dream-cta-hover);
+  background: var(--dream-btn-hover-bg);
+  border-color: var(--dream-btn-border-strong);
   transform: translateY(-1px);
-  box-shadow: 0 0.9rem 2rem rgba(45, 212, 191, 0.3);
+  box-shadow: 0 0 1.4rem var(--dream-btn-glow);
 }
 
 .central-finish:focus-visible {
-  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.45);
+  box-shadow: 0 0 0 3px var(--dream-btn-glow);
 }
 
 .central-finish:active {
-  background: var(--dream-cta-active);
+  background: var(--dream-btn-active-bg);
   transform: translateY(0);
 }
 
@@ -625,26 +628,24 @@
 
 /* BACK — was bare uppercase text next to a filled teal pill (I'M DONE),
    which is exactly the "which one is clickable" problem the capture-flow
-   button audit called out. Now a real outlined secondary pill: same
-   height/padding/radius/font-size as .central-done and .central-finish
-   next to it (0.82rem, 0.75em/1.6em padding, 999px radius) so the two
-   read as one coherent action pair, just with primary vs. secondary
-   fill — the same dark-translucent secondary treatment already used for
-   .dr-choice elsewhere in the dream journey. */
+   button audit called out. Now a real outlined secondary pill — the same
+   transparent/white-outline system as every other button in the app
+   (src/ui/buttons.css), sized a touch smaller than .central-done next to
+   it so the pair reads as primary+secondary, not two identical actions.
+   No fill of any color — a prior pass used a dark translucent backdrop
+   here; that's gone too, per the "transparent background" requirement. */
 .central-back {
   position: relative;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--dream-white);
-  background: rgba(6, 7, 6, 0.4);
-  border: 1px solid rgba(244, 240, 232, 0.32);
+  background: transparent;
+  border: 1px solid rgba(244, 240, 232, 0.5);
   border-radius: 999px;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
   outline: none;
-  padding: 0.75em 1.6em;
+  padding: 0.68em 1.4em;
   margin: 0;
   transition:
     background 0.3s var(--ease-soft),
@@ -654,55 +655,57 @@
 
 .central-back:hover,
 .central-back:focus-visible {
-  background: rgba(6, 7, 6, 0.55);
-  border-color: rgba(244, 240, 232, 0.6);
+  background: var(--dream-btn-hover-bg);
+  border-color: rgba(244, 240, 232, 0.85);
   transform: translateY(-1px);
 }
 
 .central-back:focus-visible {
-  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.45);
+  box-shadow: 0 0 0 3px var(--dream-btn-glow);
 }
 
 .central-back:active {
+  background: var(--dream-btn-active-bg);
   transform: translateY(0);
 }
 
 /* I'M DONE — the typing flow's own completion action, the same real
    primary-button role as .central-finish above (the recording flow's
-   equivalent) — same shared treatment for both. */
+   equivalent) — same shared treatment for both. No filled color. */
 .central-done {
   position: relative;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: var(--dream-cta-ink);
-  background: var(--dream-cta);
-  border: 1px solid transparent;
+  color: var(--dream-white);
+  background: transparent;
+  border: 1.5px solid var(--dream-btn-border);
   border-radius: 999px;
   outline: none;
   padding: 0.75em 1.8em;
   margin: 0.2em 0;
-  box-shadow: 0 0.6rem 1.6rem rgba(45, 212, 191, 0.22);
   transition:
     background 0.3s var(--ease-soft),
+    border-color 0.3s var(--ease-soft),
     transform 0.3s var(--ease-soft),
     box-shadow 0.3s var(--ease-soft);
 }
 
 .central-done:hover,
 .central-done:focus-visible {
-  background: var(--dream-cta-hover);
+  background: var(--dream-btn-hover-bg);
+  border-color: var(--dream-btn-border-strong);
   transform: translateY(-1px);
-  box-shadow: 0 0.9rem 2rem rgba(45, 212, 191, 0.3);
+  box-shadow: 0 0 1.4rem var(--dream-btn-glow);
 }
 
 .central-done:focus-visible {
-  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.45);
+  box-shadow: 0 0 0 3px var(--dream-btn-glow);
 }
 
 .central-done:active {
-  background: var(--dream-cta-active);
+  background: var(--dream-btn-active-bg);
   transform: translateY(0);
 }
 

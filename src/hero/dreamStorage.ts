@@ -24,6 +24,10 @@ export interface SavedDream {
   dreamReflection: DreamReflectionResult;
   corrections: string[];
   appLanguage: AppLanguage;
+  /** Optional so every dream saved before this field existed still parses
+      fine from localStorage (`undefined` reads as "not favorited") — no
+      migration needed for existing stored data. */
+  favorite?: boolean;
 }
 
 const STORAGE_KEY = 'dare.savedDreams.v1';
@@ -69,6 +73,16 @@ export function getDream(id: string): SavedDream | null {
 
 export function deleteDream(id: string): void {
   writeAll(readAll().filter((d) => d.id !== id));
+}
+
+/** Flips one saved dream's favorite flag. A no-op if the id isn't found
+    (e.g. it was deleted in another tab) rather than throwing. */
+export function toggleFavorite(id: string): void {
+  const all = readAll();
+  const dream = all.find((d) => d.id === id);
+  if (!dream) return;
+  dream.favorite = !dream.favorite;
+  writeAll(all);
 }
 
 /**

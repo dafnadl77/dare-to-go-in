@@ -1,12 +1,21 @@
-import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import DreamStageBackground from '../hero/DreamStageBackground';
-import { getArchiveEntries, getLastArchiveScrollTop, setLastArchiveScrollTop, type ArchiveEntry } from './archiveData';
+import {
+  getArchiveEntries,
+  getLastArchiveScrollTop,
+  getRecurringKeywords,
+  setLastArchiveScrollTop,
+  type ArchiveEntry,
+} from './archiveData';
+import { toggleFavorite } from '../hero/dreamStorage';
 import DreamTimeline from './DreamTimeline';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
 import './DreamArchive.css';
+
+type ArchiveSection = 'all' | 'favorites' | 'insights' | 'settings';
 
 interface DreamArchiveProps {
   onBack: () => void;
@@ -24,25 +33,46 @@ interface DreamArchiveProps {
  * CONTENT on top of it is now structured and easy to scan, per the
  * approved personal-archive direction.
  *
- * Favorites/Insights/Settings are shown in the nav (matching that
- * direction) but are honestly disabled — no such views/data exist yet,
- * and this task is not the one that builds them; see .ar-nav-disabled.
- * All Dreams is the one real, working section: exactly what already
- * existed here before this pass.
+ * Favorites/Insights/Settings are real, minimal sections now:
+ * - Favorites: a real per-dream toggle (see DreamTimeline's favorite
+ *   button), filtering to just the favorited real dreams — persisted via
+ *   the existing localStorage dream storage, no schema change.
+ * - Insights: pure frequency counting over keywords the analysis step
+ *   already extracted (see getRecurringKeywords) — never a new AI call,
+ *   never an invented theme. Honestly shows "not enough dreams yet" when
+ *   there isn't enough real data for the count to mean anything.
+ * - Settings: the account email already known from auth, the language
+ *   switcher already in the header, and sign out — nothing invented.
  */
 export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: DreamArchiveProps) {
-  const { t, language } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const { user, signOut } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     bgVideoRef.current?.play().catch(() => {});
   }, []);
 
+  const [activeSection, setActiveSection] = useState<ArchiveSection>('all');
+  // Bumped on every favorite toggle so the entries memo below re-derives —
+  // toggleFavorite() writes straight to localStorage, which on its own
+  // triggers no re-render.
+  const [favoriteVersion, setFavoriteVersion] = useState(0);
+
   // Re-derived on every language change (not just on mount) — mock/sample
   // titles, excerpts and keywords must follow the CURRENT interface
   // language even if the dreamer switches it mid-visit; see
   // archiveData.ts's own language-aware entry builders.
-  const entries = useMemo(() => getArchiveEntries(language), [language]);
+  const entries = useMemo(() => getArchiveEntries(language), [language, favoriteVersion]);
+  const visibleEntries = useMemo(
+    () => (activeSection === 'favorites' ? entries.filter((e) => e.kind === 'real' && e.favorite) : entries),
+    [entries, activeSection],
+  );
+  const recurringKeywords = useMemo(() => getRecurringKeywords(entries), [entries]);
+
+  const handleToggleFavorite = (id: string) => {
+    toggleFavorite(id);
+    setFavoriteVersion((v) => v + 1);
+  };
 
   // Restores the scroll position left behind before opening a dream's
   // detail view (see DreamDetail.tsx's "← BACK TO MY DREAMS") — behavior
@@ -110,42 +140,124 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
 
       <div className="ar-shell-body">
         <nav className="ar-sidenav" aria-label={t('archive.dreamArchiveNav')}>
-          <span className="ar-nav-item ar-nav-item--active" aria-current="page">
+          <button
+            type="button"
+            className={`ar-nav-item${activeSection === 'all' ? ' ar-nav-item--active' : ''}`}
+            aria-current={activeSection === 'all' ? 'page' : undefined}
+            onClick={() => setActiveSection('all')}
+          >
             {t('archive.navAllDreams')}
-          </span>
-          <span className="ar-nav-item ar-nav-item--disabled">
+          </button>
+          <button
+            type="button"
+            className={`ar-nav-item${activeSection === 'favorites' ? ' ar-nav-item--active' : ''}`}
+            aria-current={activeSection === 'favorites' ? 'page' : undefined}
+            onClick={() => setActiveSection('favorites')}
+          >
             {t('archive.navFavorites')}
-            <span className="ar-nav-badge">{t('archive.navComingSoon')}</span>
-          </span>
-          <span className="ar-nav-item ar-nav-item--disabled">
+          </button>
+          <button
+            type="button"
+            className={`ar-nav-item${activeSection === 'insights' ? ' ar-nav-item--active' : ''}`}
+            aria-current={activeSection === 'insights' ? 'page' : undefined}
+            onClick={() => setActiveSection('insights')}
+          >
             {t('archive.navInsights')}
-            <span className="ar-nav-badge">{t('archive.navComingSoon')}</span>
-          </span>
-          <span className="ar-nav-item ar-nav-item--disabled">
+          </button>
+          <button
+            type="button"
+            className={`ar-nav-item${activeSection === 'settings' ? ' ar-nav-item--active' : ''}`}
+            aria-current={activeSection === 'settings' ? 'page' : undefined}
+            onClick={() => setActiveSection('settings')}
+          >
             {t('archive.navSettings')}
-            <span className="ar-nav-badge">{t('archive.navComingSoon')}</span>
-          </span>
+          </button>
         </nav>
 
         <main className="ar-main">
-          <div className="ar-hero-row">
-            <div className="ar-hero-copy">
-              <h1 className="ar-title">{t('archive.pageHeading')}</h1>
-              <p className="ar-subtitle">{t('archive.pageSubtitle')}</p>
-            </div>
-            {/* A real action, not a fake one — "a new dream" starts from
-                the same HOLD/TYPE capture the whole app already has, so
-                this returns to the room exactly like the header's own
-                brand button, just with an unmistakably primary look. */}
-            <button type="button" className="ar-new-dream btn btn-primary" data-cursor-hover onClick={onBack}>
-              <span className="ar-new-dream-plus" aria-hidden="true">
-                +
-              </span>
-              {t('archive.newDream')}
-            </button>
-          </div>
+          {(activeSection === 'all' || activeSection === 'favorites') && (
+            <>
+              <div className="ar-hero-row">
+                <div className="ar-hero-copy">
+                  <h1 className="ar-title">{activeSection === 'favorites' ? t('archive.navFavorites') : t('archive.pageHeading')}</h1>
+                  <p className="ar-subtitle">{t('archive.pageSubtitle')}</p>
+                </div>
+                {/* A real action, not a fake one — "a new dream" starts from
+                    the same HOLD/TYPE capture the whole app already has, so
+                    this returns to the room exactly like the header's own
+                    brand button, just with an unmistakably primary look. */}
+                <button type="button" className="ar-new-dream btn btn-primary" data-cursor-hover onClick={onBack}>
+                  <span className="ar-new-dream-plus" aria-hidden="true">
+                    +
+                  </span>
+                  {t('archive.newDream')}
+                </button>
+              </div>
 
-          <DreamTimeline entries={entries} onOpenEntry={handleOpenEntry} />
+              {activeSection === 'favorites' && visibleEntries.length === 0 ? (
+                <div className="ar-empty-state">
+                  <p className="ar-empty-title">{t('archive.emptyFavoritesTitle')}</p>
+                  <p className="ar-empty-body">{t('archive.emptyFavoritesBody')}</p>
+                </div>
+              ) : (
+                <DreamTimeline entries={visibleEntries} onOpenEntry={handleOpenEntry} onToggleFavorite={handleToggleFavorite} />
+              )}
+            </>
+          )}
+
+          {activeSection === 'insights' && (
+            <div className="ar-panel">
+              <h1 className="ar-title">{t('archive.navInsights')}</h1>
+              <p className="ar-subtitle">{t('archive.insightsSubtitle')}</p>
+              {recurringKeywords === null ? (
+                <p className="ar-panel-note">{t('archive.insightsNotEnough')}</p>
+              ) : recurringKeywords.length === 0 ? (
+                <p className="ar-panel-note">{t('archive.insightsEmpty')}</p>
+              ) : (
+                <ul className="ar-insights-list">
+                  {recurringKeywords.map((k) => (
+                    <li key={k.word} className="ar-insights-item">
+                      <span className="ar-insights-word">{k.word}</span>
+                      <span className="ar-insights-count">×{k.count}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {activeSection === 'settings' && (
+            <div className="ar-panel">
+              <h1 className="ar-title">{t('archive.navSettings')}</h1>
+              <p className="ar-subtitle">{t('archive.settingsSubtitle')}</p>
+              <div className="ar-settings-row">
+                <span className="ar-settings-label">{t('archive.settingsEmailLabel')}</span>
+                <span className="ar-settings-value">{user?.email ?? '—'}</span>
+              </div>
+              <div className="ar-settings-row">
+                <span className="ar-settings-label">{t('archive.settingsLanguageLabel')}</span>
+                <div className="ar-settings-lang-buttons">
+                  <button
+                    type="button"
+                    className={`ar-settings-lang-btn${language === 'en' ? ' ar-settings-lang-btn--active' : ''}`}
+                    onClick={() => setLanguage('en')}
+                  >
+                    EN
+                  </button>
+                  <button
+                    type="button"
+                    className={`ar-settings-lang-btn${language === 'he' ? ' ar-settings-lang-btn--active' : ''}`}
+                    onClick={() => setLanguage('he')}
+                  >
+                    עברית
+                  </button>
+                </div>
+              </div>
+              <button type="button" className="ar-settings-signout btn btn-secondary" data-cursor-hover onClick={() => signOut()}>
+                {t('auth.signOut')}
+              </button>
+            </div>
+          )}
         </main>
       </div>
 

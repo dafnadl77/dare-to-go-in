@@ -6,6 +6,11 @@ import './DreamTimeline.css';
 interface DreamTimelineProps {
   entries: ArchiveEntry[];
   onOpenEntry: (entry: ArchiveEntry) => void;
+  /** Only real saved dreams can be favorited (see ArchiveEntry) — omitted
+      entirely (rather than passed a no-op) so a caller that genuinely has
+      no favoriting UI yet (there is none currently) doesn't need to fake
+      one. */
+  onToggleFavorite?: (id: string) => void;
 }
 
 interface MonthGroup {
@@ -36,25 +41,59 @@ function groupByMonth(entries: ArchiveEntry[]): MonthGroup[] {
   return groups;
 }
 
-function DreamCard({ entry, onOpen }: { entry: ArchiveEntry; onOpen: () => void }) {
+function DreamCard({
+  entry,
+  onOpen,
+  onToggleFavorite,
+}: {
+  entry: ArchiveEntry;
+  onOpen: () => void;
+  onToggleFavorite?: (id: string) => void;
+}) {
   const { t } = useLanguage();
   return (
-    <button type="button" className="dt-card" data-cursor-hover onClick={onOpen} aria-label={`${t('archive.openEntry')} ${entry.title}`}>
-      <span className="dt-card-thumb">
-        <img className="dt-card-image" src={entry.image} alt="" loading="lazy" />
-      </span>
-      <span className="dt-card-body">
-        <span className="dt-card-top">
-          <span className="dt-card-title">{entry.title}</span>
-          <span className="dt-card-date">{formatEntryDayMonth(entry.date)}</span>
+    <span className="dt-card-wrap">
+      <button type="button" className="dt-card" data-cursor-hover onClick={onOpen} aria-label={`${t('archive.openEntry')} ${entry.title}`}>
+        <span className="dt-card-thumb">
+          <img className="dt-card-image" src={entry.image} alt="" loading="lazy" />
         </span>
-        <span className="dt-card-excerpt">{entry.excerpt}</span>
-        {entry.keywords.length > 0 && <span className="dt-card-keywords">{entry.keywords.join(' · ')}</span>}
-      </span>
-      <span className="dt-card-chevron" aria-hidden="true">
-        ›
-      </span>
-    </button>
+        <span className="dt-card-body">
+          <span className="dt-card-top">
+            <span className="dt-card-title">{entry.title}</span>
+            <span className="dt-card-date">{formatEntryDayMonth(entry.date)}</span>
+          </span>
+          <span className="dt-card-excerpt">{entry.excerpt}</span>
+          {entry.keywords.length > 0 && <span className="dt-card-keywords">{entry.keywords.join(' · ')}</span>}
+        </span>
+        <span className="dt-card-chevron" aria-hidden="true">
+          ›
+        </span>
+      </button>
+      {/* A sibling of .dt-card, not a nested button inside it — buttons
+          can't nest in valid HTML. Only real saved dreams carry a
+          `favorite` flag (see ArchiveEntry); mock entries render no
+          toggle at all rather than a fake/no-op one. */}
+      {entry.kind === 'real' && onToggleFavorite && (
+        <button
+          type="button"
+          className={`dt-card-favorite${entry.favorite ? ' dt-card-favorite--active' : ''}`}
+          data-cursor-hover
+          onClick={() => onToggleFavorite(entry.id)}
+          aria-pressed={entry.favorite}
+          aria-label={entry.favorite ? t('archive.favoriteRemove') : t('archive.favoriteAdd')}
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path
+              d="M12 4.5c1.7-2 4.6-2.3 6.4-.5 1.9 1.9 1.9 5 0 6.9L12 17l-6.4-6.1c-1.9-1.9-1.9-5 0-6.9 1.8-1.8 4.7-1.5 6.4.5Z"
+              fill={entry.favorite ? 'currentColor' : 'none'}
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      )}
+    </span>
   );
 }
 
@@ -67,7 +106,7 @@ function DreamCard({ entry, onOpen }: { entry: ArchiveEntry; onOpen: () => void 
  * archiveData.ts): adding a real saved dream inserts it in the right
  * place automatically, nothing here is sized for exactly N items.
  */
-export default function DreamTimeline({ entries, onOpenEntry }: DreamTimelineProps) {
+export default function DreamTimeline({ entries, onOpenEntry, onToggleFavorite }: DreamTimelineProps) {
   const groups = groupByMonth(entries);
 
   return (
@@ -79,7 +118,7 @@ export default function DreamTimeline({ entries, onOpenEntry }: DreamTimelinePro
           </p>
           <div className="dt-card-list">
             {group.items.map((entry) => (
-              <DreamCard key={entry.id} entry={entry} onOpen={() => onOpenEntry(entry)} />
+              <DreamCard key={entry.id} entry={entry} onOpen={() => onOpenEntry(entry)} onToggleFavorite={onToggleFavorite} />
             ))}
           </div>
         </div>

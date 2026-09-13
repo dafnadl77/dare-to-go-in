@@ -214,9 +214,13 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  /* Warm muted gold, not the dim neutral used elsewhere — this is a
-     label that should read clearly, not recede. */
-  color: #c9a768;
+  /* Was a warm gold with no shadow — the same "gold text that disappears
+     against clouds" pattern flagged on the live reflection screen's own
+     section labels. Real section headings now read plain white, matching
+     every other heading in the product, with a shadow doing the
+     legibility work regardless of what's behind them. */
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
 }
 
 html[lang='he'] .dd-eyebrow {

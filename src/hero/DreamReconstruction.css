@@ -914,11 +914,12 @@
    Reconstruction (YES — TAKE ME IN / NOT QUITE / RESTART / TRY AGAIN),
    Reflection (CONTINUE) and Closing (RETURN TO THE ROOM), so fixing it
    once here fixes every "this looks like plain text" action across the
-   whole dream journey. Secondary uses a dark translucent scrim (not just
-   a light drop-shadow) behind white text — that scrim is what actually
-   guarantees legibility over ANY cloud/photo brightness, which is also
-   why the old per-image data-light-bg text-color flip below is gone: a
-   real background under the label makes it unnecessary. */
+   whole dream journey. Transparent background + solid white/ivory
+   border, no fill of any color (a prior pass used a dark translucent
+   scrim, then filled cyan/teal for the primary variant — both were
+   explicitly rejected). A text-shadow, not a background tint, is what
+   now guarantees legibility over any cloud/photo brightness, so the old
+   per-image data-light-bg text-color flip below stays unnecessary. */
 .dr-choice {
   position: relative;
   display: inline-flex;
@@ -930,11 +931,10 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--dream-white);
-  background: rgba(6, 7, 6, 0.4);
-  border: 1px solid rgba(244, 240, 232, 0.32);
+  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.6);
+  background: transparent;
+  border: 1px solid rgba(244, 240, 232, 0.5);
   border-radius: 999px;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
   outline: none;
   padding: 0.75em 1.7em;
   margin: 0;
@@ -948,35 +948,36 @@
 
 .dr-choice:hover,
 .dr-choice:focus-visible {
-  background: rgba(6, 7, 6, 0.55);
-  border-color: rgba(244, 240, 232, 0.6);
+  background: var(--dream-btn-hover-bg);
+  border-color: rgba(244, 240, 232, 0.85);
   transform: translateY(-1px);
 }
 
 .dr-choice:focus-visible {
-  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.45);
+  box-shadow: 0 0 0 3px var(--dream-btn-glow);
+}
+
+.dr-choice:active {
+  background: var(--dream-btn-active-bg);
+  transform: translateY(0);
 }
 
 /* Primary — the one path that actually advances (YES — TAKE ME IN,
-   CONTINUE, RETURN TO THE ROOM): filled cyan/teal, same tokens as the
-   rest of the product's primary CTA. */
+   CONTINUE, RETURN TO THE ROOM): same transparent/white-outline system,
+   just the full-strength border so it reads as "the" action. */
 .dr-choice--yes {
-  color: var(--dream-cta-ink);
-  background: var(--dream-cta);
-  border-color: transparent;
-  box-shadow: 0 0.6rem 1.6rem rgba(45, 212, 191, 0.22);
+  border-color: var(--dream-btn-border);
 }
 
 .dr-choice--yes:hover,
 .dr-choice--yes:focus-visible {
-  background: var(--dream-cta-hover);
-  border-color: transparent;
-  color: var(--dream-cta-ink);
+  border-color: var(--dream-btn-border-strong);
 }
 
 /* THIS IS WHAT I FOUND / IS THIS HOW IT FELT — plain text with no
-   background of its own, so it still needs the light-image flip; the
-   choices above no longer do now that they carry their own scrim. */
+   border/background of its own, so it still needs the light-image flip;
+   the choices above no longer do now that their own text-shadow does the
+   legibility work regardless of what's behind them. */
 .dr-reveal[data-light-bg='true'] .dr-line {
   color: var(--dream-black);
   text-shadow: 0 0.05em 0.6em rgba(244, 240, 232, 0.55);
