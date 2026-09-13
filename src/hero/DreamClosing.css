@@ -84,18 +84,15 @@
   }
 }
 
-/* English editorial heading — "DON'T LET IT DISAPPEAR." / "DREAM SAVED."
-   — same Fraunces/optical-sizing treatment as the brand mark; Hebrew
-   needs no separate handling (see .dr-question's own comment in
-   DreamReflection.css for why the existing RTL backstop already covers
-   it). */
+/* Full editorial typography comes from .font-editorial-display's shared
+   rule (src/index.css) — "DON'T LET IT DISAPPEAR." / "DREAM SAVED." now
+   genuinely match the HOME logo's computed typography, not just its
+   font-family name. Hebrew needs no separate handling (see
+   .dr-question's own comment in DreamReflection.css for why the
+   existing RTL backstop already covers it). */
 .dc-title {
   margin: 0;
-  font-family: 'Fraunces', Georgia, serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
   font-size: clamp(38px, 4vw, 68px);
-  letter-spacing: 0.01em;
   color: var(--dream-white);
   text-shadow: 0 0.05em 0.9em rgba(0, 0, 0, 0.6);
 }

@@ -67,63 +67,9 @@
   padding: 12vh 6vw 10vh;
 }
 
-/* ---- Breadcrumb — "DARE TO GO IN / <current page>". Deliberately
-   dir="ltr" on the row itself, same reasoning as .language-switcher and
-   .trn-archive-link elsewhere: a persistent brand/navigation element
-   keeps one fixed reading order in every language rather than mirroring,
-   so "DARE TO GO IN" is always first — exactly the order specified for
-   Hebrew too. The current-page segment still renders its own Hebrew text
-   completely naturally inside that row; only the ROW's own left-to-right
-   sequencing is fixed, not the glyphs within each segment. ---- */
-.legal-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  margin: 0 0 2.2rem;
-  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.74rem;
-}
-
-.legal-crumb-home {
-  background: none;
-  border: none;
-  outline: none;
-  margin: 0;
-  padding: 0.2em;
-  cursor: pointer;
-  font: inherit;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  color: var(--dream-warm-neutral);
-  opacity: 0.75;
-  transition: opacity 0.4s var(--ease-soft), color 0.4s var(--ease-soft);
-}
-
-.legal-crumb-home:hover,
-.legal-crumb-home:focus-visible {
-  opacity: 1;
-  color: var(--dream-white);
-  text-decoration: underline;
-  text-underline-offset: 0.22em;
-}
-
-.legal-crumb-sep {
-  color: var(--dream-warm-neutral-dim);
-  opacity: 0.6;
-}
-
-.legal-crumb-current {
-  color: var(--dream-warm-neutral-dim);
-  opacity: 0.85;
-  /* The current page's own name renders in its own script's natural
-     direction regardless of the row's fixed dir="ltr" — Hebrew glyphs
-     still read correctly right-to-left within this one segment. */
-  unicode-bidi: isolate;
-}
-
-html[lang='he'] .legal-crumb-current {
-  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-}
+/* Breadcrumb — now the shared src/ui/Breadcrumb.tsx/.css component
+   (rendered directly in LegalPage.tsx) rather than markup local to this
+   file; see Breadcrumb.css for its styling. */
 
 .legal-title {
   margin: 0;
@@ -237,10 +183,6 @@ html[lang='he'] .legal-return {
      make room for the fixed DARE button above it. */
   .legal-column {
     padding: 14vh 6vw 8vh;
-  }
-
-  .legal-breadcrumb {
-    font-size: 0.68rem;
   }
 }
 

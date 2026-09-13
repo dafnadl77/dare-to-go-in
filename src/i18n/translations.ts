@@ -22,6 +22,10 @@
  */
 
 export interface Translations {
+  breadcrumb: {
+    ariaLabel: string;
+    signIn: string;
+  };
   hero: {
     dreamPrompt: string;
     myDreamsNav: string;
@@ -112,6 +116,7 @@ export interface Translations {
     insightsSubtitle: string;
     insightsNotEnough: string;
     insightsEmpty: string;
+    insightsAppearsInDreams: string;
     settingsSubtitle: string;
     settingsEmailLabel: string;
     settingsLanguageLabel: string;
@@ -189,6 +194,10 @@ export interface Translations {
 }
 
 export const en: Translations = {
+  breadcrumb: {
+    ariaLabel: 'Breadcrumb',
+    signIn: 'Sign In',
+  },
   hero: {
     dreamPrompt: 'WHAT DO YOU REMEMBER FROM YOUR DREAM?',
     myDreamsNav: 'MY DREAMS',
@@ -279,6 +288,7 @@ export const en: Translations = {
     insightsSubtitle: "What keeps recurring in your dreams.",
     insightsNotEnough: 'Save a few more dreams to start seeing recurring themes here.',
     insightsEmpty: "Nothing recurring yet across your saved dreams.",
+    insightsAppearsInDreams: 'Appears in {count} dreams',
     settingsSubtitle: 'Your account.',
     settingsEmailLabel: 'Signed in as',
     settingsLanguageLabel: 'Language',
@@ -362,6 +372,10 @@ export const en: Translations = {
  * (impersonal/infinitive constructions) since DARE addresses any dreamer.
  */
 export const he: Translations = {
+  breadcrumb: {
+    ariaLabel: 'ניווט מיקום',
+    signIn: 'כניסה',
+  },
   hero: {
     dreamPrompt: 'מה זכור לך מהחלום?',
     myDreamsNav: 'החלומות שלי',
@@ -452,6 +466,7 @@ export const he: Translations = {
     insightsSubtitle: 'מה שחוזר בחלומות שלכם.',
     insightsNotEnough: 'שמרו עוד כמה חלומות כדי לראות כאן נושאים חוזרים.',
     insightsEmpty: 'עדיין אין דבר שחוזר בין החלומות השמורים שלכם.',
+    insightsAppearsInDreams: 'מופיע ב-{count} חלומות',
     settingsSubtitle: 'החשבון שלכם.',
     settingsEmailLabel: 'מחוברים בתור',
     settingsLanguageLabel: 'שפה',

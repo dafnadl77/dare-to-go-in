@@ -15,25 +15,23 @@
 /* Only ever mounted fresh at the 'reflecting' step now — an `animation`
    (not a `transition`) so the reveal actually plays on that mount, per the
    established pattern for elements that don't persist across steps. */
-/* English editorial heading — the SAME font stack as the DARE brand mark
-   (MemoryTitle.css's .memory-title: Fraunces, weight 400, optical sizing
-   auto, 0.01em tracking), not an approximated serif. Hebrew is untouched
-   by this: the existing global RTL backstop in index.css
-   (`:root[dir='rtl'] * { font-family: Heebo !important }`) already
-   overrides this back to Heebo whenever the UI is Hebrew, the same way
-   it already does for every other heading in the product — this class is
-   deliberately NOT added to that backstop's brand-only exemption list
-   (.memory-title/.ar-brand), so Hebrew correctly keeps its own
-   typography here with no extra code. */
+/* font-family/weight/style/stretch/optical-sizing/variation-settings/
+   feature-settings/letter-spacing all come from .font-editorial-display's
+   shared rule (src/index.css) — the FULL computed typography of the
+   HOME "DARE TO GO IN" logo, not just its font-family name. Hebrew is
+   untouched by this: the existing global RTL backstop in index.css
+   (`:root[dir='rtl'] * { font-family: Heebo !important; letter-spacing:
+   normal !important }`) already overrides both back to Heebo/normal
+   whenever the UI is Hebrew, the same way it already does for every
+   other heading in the product — this class is deliberately NOT added
+   to that backstop's brand-only exemption list (.memory-title/
+   .ar-brand), so Hebrew correctly keeps its own typography here with no
+   extra code. */
 .dr-question {
   margin: 0;
   max-width: 30em;
-  font-family: 'Fraunces', Georgia, serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
   font-size: clamp(1.3rem, 3.2vw, 1.9rem);
   line-height: 1.4;
-  letter-spacing: 0.01em;
   color: var(--dream-white);
   text-align: center;
   text-shadow: 0 0.05em 0.7em rgba(0, 0, 0, 0.55);
@@ -173,16 +171,14 @@
 /* Arrival timeline: hero image resolves 0-1.4s (see dr-image-hero-in in
    DreamReconstruction.css), title 1.4-2s, subtitle just after, choices
    emerge 2-3s (staggered per-choice delay, see .da-choice below). */
-/* English editorial heading — same Fraunces/optical-sizing treatment as
-   the brand mark; see .dr-question's own comment above for why Hebrew
-   needs no separate handling here. */
+/* Full editorial typography (font-family/weight/style/stretch/optical-
+   sizing/variation+feature-settings/letter-spacing) comes from
+   .font-editorial-display's shared rule (src/index.css); see
+   .dr-question's own comment above for why Hebrew needs no separate
+   handling here. */
 .da-title {
   margin: 0;
-  font-family: 'Fraunces', Georgia, serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
   font-size: clamp(2rem, 4.4vw, 3.4rem);
-  letter-spacing: 0.01em;
   color: var(--dream-white);
   text-align: center;
   text-shadow: 0 0 1.8rem rgba(var(--accent-rgb), 0.5), 0 0.05em 0.8em rgba(0, 0, 0, 0.6);
@@ -908,38 +904,27 @@
    substantially larger, full opacity, with a real shadow doing the
    legibility work over the cloud background regardless of what's behind
    them. */
+/* Full editorial typography (font-family/weight/style/stretch/optical-
+   sizing/variation+feature-settings/letter-spacing) comes from
+   .font-editorial-display's shared rule (src/index.css) — the exact
+   computed typography of the HOME logo, weight 400 included: the Google
+   Fonts import (index.html) only ever loads Fraunces at weight 400
+   (`Fraunces:opsz,wght@9..144,400`), so the previous font-weight: 700
+   here was never real bold glyphs, only a browser-synthesized (faux)
+   bold that didn't match the logo despite sharing its font-family name.
+   Hebrew's own real, correctly-loaded bold Heebo (a real loaded weight,
+   Heebo:wght@300;400;500;600;700 in index.html — never a faux-bold
+   problem) is restored explicitly below rather than left at 400. */
 .dr-thought-label {
   margin: 0 0 0.6rem;
-  /* Editorial heading, same treatment as .dr-question/.da-title/the
-     archive's .dd-eyebrow — Fraunces in English, and the existing global
-     RTL backstop (src/index.css) naturally reverts this to Heebo for
-     Hebrew, so no separate Hebrew font-family override is needed.
-     font-weight stays 700 here (Hebrew's existing, unaffected bold
-     Heebo — a real loaded weight, Heebo:wght@300;400;500;600;700 in
-     index.html, never a problem) — see the :root:not([dir='rtl'])
-     override just below for why English needs its own weight. */
-  font-family: 'Fraunces', Georgia, serif;
-  font-optical-sizing: auto;
   font-size: clamp(1.1rem, 2.1vw, 1.32rem);
-  font-weight: 700;
-  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--dream-white);
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.65);
 }
 
-/* English only: the Google Fonts import (index.html) loads Fraunces at
-   weight 400 ONLY (`Fraunces:opsz,wght@9..144,400`) — no 700 axis value
-   was ever fetched, so font-weight: 700 on a Fraunces-family element
-   never rendered real bold glyphs, only a browser-synthesized (faux)
-   bold. That's exactly why these labels didn't visually match the HOME
-   "DARE TO GO IN" logo (.memory-title, weight 400) even though the
-   font-family already matched — confirmed by injecting both into the
-   same page and comparing renders. Scoped to :root:not([dir='rtl']) so
-   Hebrew's own real, correctly-loaded bold Heebo (the base rule above)
-   is completely unaffected. */
-:root:not([dir='rtl']) .dr-thought-label {
-  font-weight: 400;
+:root[dir='rtl'] .dr-thought-label {
+  font-weight: 700;
 }
 
 /* Every generated sentence displays in full — no ellipsis, no line-clamp,

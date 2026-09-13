@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { describeAuthError } from '../auth/authErrors';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
+import Breadcrumb from '../ui/Breadcrumb';
 import './DreamAuth.css';
 
 export type AuthMode = 'signup' | 'signin';
@@ -153,6 +154,7 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated,
       </button>
 
       <div className="auth-content">
+        <Breadcrumb ariaLabel={t('breadcrumb.ariaLabel')} onHome={onBack} items={[{ label: t('breadcrumb.signIn') }]} />
         {awaitingConfirmationFor ? (
           <>
             <h1 className="auth-eyebrow-title">{t('auth.checkYourEmailTitle')}</h1>

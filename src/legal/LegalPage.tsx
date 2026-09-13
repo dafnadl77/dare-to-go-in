@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { getLegalDocument, type LegalKey } from './legalContent';
+import Breadcrumb from '../ui/Breadcrumb';
 import './LegalPage.css';
 
 interface LegalPageProps {
@@ -45,21 +46,7 @@ export default function LegalPage({ documentKey, onBack }: LegalPageProps) {
 
       <div className="legal-scroll">
         <article className="legal-column">
-          {/* "DARE TO GO IN / <current page>" — dir="ltr" so the brand
-              name always comes first, in every language (see
-              LegalPage.css's own comment on why); the current page's own
-              label still renders its real EN/HE text correctly. */}
-          <nav className="legal-breadcrumb" dir="ltr" aria-label={t('footer.legalNavAriaLabel')}>
-            <button type="button" className="legal-crumb-home" data-cursor-hover onClick={onBack}>
-              DARE TO GO IN
-            </button>
-            <span className="legal-crumb-sep" aria-hidden="true">
-              /
-            </span>
-            <span className="legal-crumb-current" aria-current="page">
-              {doc.title}
-            </span>
-          </nav>
+          <Breadcrumb ariaLabel={t('breadcrumb.ariaLabel')} onHome={onBack} items={[{ label: doc.title }]} />
 
           <h1 className="legal-title">{doc.title}</h1>
           <p className="legal-updated">{doc.updated}</p>

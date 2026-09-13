@@ -3,7 +3,7 @@ import DreamStageBackground from '../hero/DreamStageBackground';
 import {
   getArchiveEntries,
   getLastArchiveScrollTop,
-  getRecurringKeywords,
+  getRecurringMotifs,
   setLastArchiveScrollTop,
   type ArchiveEntry,
 } from './archiveData';
@@ -13,6 +13,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
+import Breadcrumb from '../ui/Breadcrumb';
 import './DreamArchive.css';
 
 type ArchiveSection = 'all' | 'favorites' | 'insights' | 'settings';
@@ -37,10 +38,14 @@ interface DreamArchiveProps {
  * - Favorites: a real per-dream toggle (see DreamTimeline's favorite
  *   button), filtering to just the favorited real dreams — persisted via
  *   the existing localStorage dream storage, no schema change.
- * - Insights: pure frequency counting over keywords the analysis step
- *   already extracted (see getRecurringKeywords) — never a new AI call,
- *   never an invented theme. Honestly shows "not enough dreams yet" when
- *   there isn't enough real data for the count to mean anything.
+ * - Insights: real recurring-motif detection over every structured field
+ *   the analysis step already extracted — people/places/objects/actions,
+ *   not just the narrow keyword pool the card chips use (see
+ *   getRecurringMotifs in archiveData.ts for the full field priority) —
+ *   never a new AI call, never an invented theme. A motif is eligible the
+ *   moment it appears in 2 SEPARATE saved dreams; there is no arbitrary
+ *   "need 3+ dreams first" gate — only "fewer than 2 real dreams" is
+ *   mathematically incapable of recurrence at all.
  * - Settings: the account email already known from auth, the language
  *   switcher already in the header, and sign out — nothing invented.
  */
@@ -67,7 +72,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
     () => (activeSection === 'favorites' ? entries.filter((e) => e.kind === 'real' && e.favorite) : entries),
     [entries, activeSection],
   );
-  const recurringKeywords = useMemo(() => getRecurringKeywords(entries), [entries]);
+  const recurringMotifs = useMemo(() => getRecurringMotifs(entries), [entries]);
 
   const handleToggleFavorite = (id: string) => {
     toggleFavorite(id);
@@ -175,6 +180,25 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
         </nav>
 
         <main className="ar-main">
+          <Breadcrumb
+            ariaLabel={t('breadcrumb.ariaLabel')}
+            onHome={onBack}
+            items={
+              activeSection === 'all'
+                ? [{ label: t('archive.pageHeading') }]
+                : [
+                    { label: t('archive.pageHeading'), onClick: () => setActiveSection('all') },
+                    {
+                      label:
+                        activeSection === 'favorites'
+                          ? t('archive.navFavorites')
+                          : activeSection === 'insights'
+                            ? t('archive.navInsights')
+                            : t('archive.navSettings'),
+                    },
+                  ]
+            }
+          />
           {(activeSection === 'all' || activeSection === 'favorites') && (
             <>
               <div className="ar-hero-row">
@@ -209,16 +233,23 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
             <div className="ar-panel">
               <h1 className="ar-title">{t('archive.navInsights')}</h1>
               <p className="ar-subtitle">{t('archive.insightsSubtitle')}</p>
-              {recurringKeywords === null ? (
+              {recurringMotifs === null ? (
                 <p className="ar-panel-note">{t('archive.insightsNotEnough')}</p>
-              ) : recurringKeywords.length === 0 ? (
+              ) : recurringMotifs.length === 0 ? (
                 <p className="ar-panel-note">{t('archive.insightsEmpty')}</p>
               ) : (
                 <ul className="ar-insights-list">
-                  {recurringKeywords.map((k) => (
-                    <li key={k.word} className="ar-insights-item">
-                      <span className="ar-insights-word">{k.word}</span>
-                      <span className="ar-insights-count">×{k.count}</span>
+                  {recurringMotifs.map((m) => (
+                    <li key={m.key} className="ar-insights-item">
+                      <div className="ar-insights-row">
+                        <span className="ar-insights-word">{m.label}</span>
+                        <span className="ar-insights-count">
+                          {t('archive.insightsAppearsInDreams').replace('{count}', String(m.count))}
+                        </span>
+                      </div>
+                      {m.dreams.length > 0 && (
+                        <p className="ar-insights-dreams">{m.dreams.map((d) => d.title).join(' · ')}</p>
+                      )}
                     </li>
                   ))}
                 </ul>

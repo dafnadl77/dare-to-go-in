@@ -47,12 +47,13 @@ html {
 }
 
 /* ONE typography system, EN and HE alike — Heebo (with Assistant as a
-   second-choice Hebrew fallback) for every product-UI surface: headings,
-   body, buttons, labels, nav, archive, forms, auth, legal, footer. The
-   ONE deliberate exception is .memory-title, the "DARE TO GO IN" brand
-   mark — it keeps its own Fraunces treatment and LTR direction in every
-   language (see MemoryTitle.css and the RTL override at the bottom of
-   this file) because it's a logo, not body/heading text. */
+   second-choice Hebrew fallback) for every product-UI surface: body,
+   buttons, labels, nav, archive, forms, auth, legal, footer. The
+   deliberate exception is editorial display headings — see
+   .font-editorial-display below, which every major English display
+   heading shares with .memory-title, the "DARE TO GO IN" brand mark —
+   in every language, the RTL override at the bottom of this file forces
+   Hebrew back to Heebo regardless of which class is applied. */
 body {
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   color: var(--dream-white);
@@ -107,6 +108,55 @@ button:disabled {
 ::selection {
   background: var(--dream-warm-neutral);
   color: var(--dream-black);
+}
+
+/* ===================================================================
+   EDITORIAL DISPLAY TYPOGRAPHY — the ONE source of truth for "looks like
+   the DARE TO GO IN logo," reproducing its FULL computed typography, not
+   just its font-family name. Verified live via getComputedStyle() on
+   .memory-title (MemoryTitle.css) rather than assumed:
+     fontFamily:            Fraunces, Georgia, serif
+     fontWeight:            400
+     fontStyle:             normal
+     fontStretch:           100%
+     fontOpticalSizing:     auto
+     fontVariationSettings: normal   (Fraunces' opsz axis is driven by
+                                       font-optical-sizing, not an
+                                       explicit variation-settings value —
+                                       this computes to 'normal' on the
+                                       logo itself, so reproducing
+                                       'normal' here is the correct match,
+                                       not a gap)
+     fontFeatureSettings:   normal
+     letterSpacing:         0.01em
+   A prior pass matched only font-family, which still let two headings
+   silently render FAKE bold: font-weight: 700 was set on them, but the
+   Google Fonts import below only ever fetches Fraunces at weight 400
+   (see index.html), so the browser was synthesizing a bold that was
+   never actually downloaded — same family name, visibly different
+   glyphs. Every property below is a real font-rendering axis, so listing
+   this once here and applying the class is what actually keeps every
+   heading identical to the logo — restating any of these per-component
+   is exactly the kind of guessed/duplicated CSS that caused the
+   mismatch. Grouped directly onto the existing heading selectors (rather
+   than requiring a JSX class-name change on every call site) — genuinely
+   one rule, not copies of it. */
+.font-editorial-display,
+.ar-title,
+.da-title,
+.dr-question,
+.dc-title,
+.dd-title,
+.dr-thought-label,
+.dd-eyebrow {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-style: normal;
+  font-stretch: 100%;
+  font-optical-sizing: auto;
+  font-variation-settings: normal;
+  font-feature-settings: normal;
+  letter-spacing: 0.01em;
 }
 
 /* ===================================================================

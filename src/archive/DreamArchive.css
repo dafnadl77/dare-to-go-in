@@ -260,13 +260,20 @@
   margin-bottom: clamp(2rem, 4vw, 3rem);
 }
 
+/* font-family/weight/letter-spacing come from .font-editorial-display's
+   shared rule (src/index.css) — the archive's own page heading now
+   genuinely matches the HOME logo's typography in English. Hebrew's own
+   prior bold weight (700, Heebo — this was never a mismatch, so it's
+   restored explicitly below rather than left at the shared rule's 400). */
 .ar-title {
   margin: 0;
-  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-weight: 700;
   font-size: clamp(1.9rem, 3.6vw, 2.6rem);
   color: var(--dream-white);
   text-shadow: 0 0.05em 0.9em rgba(0, 0, 0, 0.6);
+}
+
+html[lang='he'] .ar-title {
+  font-weight: 700;
 }
 
 .ar-subtitle {
@@ -340,13 +347,20 @@
 
 .ar-insights-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.35rem;
   padding: 0.8em 1.1em;
   border-radius: 12px;
   background: rgba(244, 240, 232, 0.05);
   border: 1px solid rgba(244, 240, 232, 0.12);
+}
+
+.ar-insights-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .ar-insights-word {
@@ -354,7 +368,6 @@
   font-size: 1rem;
   font-weight: 600;
   color: var(--dream-white);
-  text-transform: capitalize;
 }
 
 .ar-insights-count {
@@ -362,6 +375,18 @@
   font-size: 0.85rem;
   color: var(--dream-warm-neutral);
   opacity: 0.85;
+}
+
+/* Optional secondary line — which saved dreams this motif actually came
+   from (titles only, never the dream text itself), quieter than the
+   motif/count row above it. */
+.ar-insights-dreams {
+  margin: 0;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--dream-warm-neutral-dim);
+  opacity: 0.9;
 }
 
 .ar-settings-row {

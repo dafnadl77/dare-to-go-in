@@ -240,38 +240,235 @@ export function formatEntryYear(date: Date): string {
   return String(date.getFullYear());
 }
 
-/** A single recurring keyword across this dreamer's own real saved
-    dreams, with how many of those dreams it appeared in. */
-export interface RecurringKeyword {
-  word: string;
-  count: number;
+/**
+ * One saved dream a recurring motif was actually found in — enough for
+ * INSIGHTS to optionally show which dreams, never more than what's
+ * already on the entry (no new lookup, no dream text repeated here).
+ */
+export interface RecurringMotifDream {
+  id: string;
+  title: string;
+  date: Date;
 }
 
-/** The one real, data-derived thing INSIGHTS can honestly show right now:
-    which of the dreamer's own already-extracted keywords (see
-    keywordsFromSavedDream above — emotions/atmosphere/objects the
-    analysis step already found, never a new AI call) recur across more
-    than one of their real saved dreams. Never invents a theme, never
-    calls any AI to interpret anything — pure frequency counting over data
-    that already exists. Returns null (not an empty array) when there
-    aren't enough real dreams yet to make a frequency count meaningful,
-    so the UI can show an honest "not enough dreams yet" state instead of
-    a misleadingly empty list. */
-export function getRecurringKeywords(entries: ArchiveEntry[], minDreams = 3): RecurringKeyword[] | null {
+/** A single recurring motif/entity across this dreamer's own real saved
+    dreams — a person, place, object or action that the extraction step
+    already found in at least two SEPARATE dreams (never a repeat count
+    within one dream). `label` is the nicest-looking original casing seen
+    for it; `key` is the normalized form used for matching. */
+export interface RecurringMotif {
+  key: string;
+  label: string;
+  count: number;
+  dreams: RecurringMotifDream[];
+}
+
+/** Generic/pronoun words too vague to mean anything as a "recurring
+    motif" even if the extraction step happened to output one verbatim
+    (e.g. an action's subject/target field, or a low-confidence object
+    name) — kept short and unopinionated on purpose, this is not a full
+    stop-word list, just enough to filter obvious noise in both of DARE's
+    supported languages. */
+const GENERIC_MOTIF_WORDS = new Set([
+  'it',
+  'this',
+  'that',
+  'these',
+  'those',
+  'something',
+  'someone',
+  'somewhere',
+  'someplace',
+  'anything',
+  'anyone',
+  'anywhere',
+  'everything',
+  'everyone',
+  'nothing',
+  'nobody',
+  'somebody',
+  'anybody',
+  'thing',
+  'things',
+  'person',
+  'people',
+  'place',
+  'stuff',
+  'me',
+  'i',
+  'you',
+  'we',
+  'he',
+  'she',
+  'they',
+  'him',
+  'her',
+  'them',
+  'unknown',
+  'unclear',
+  'זה',
+  'זאת',
+  'אלה',
+  'משהו',
+  'מישהו',
+  'איפשהו',
+  'מקום כלשהו',
+  'כלום',
+  'דבר',
+  'דברים',
+  'אדם',
+  'אנשים',
+  'מקום',
+  'הוא',
+  'היא',
+  'הם',
+  'הן',
+  'אני',
+  'אתה',
+  'את',
+  'אנחנו',
+  'לא ידוע',
+  'לא ברור',
+]);
+
+/** Strips exactly one leading English possessive/article before matching
+    — "my grandmother" and "grandmother" are the same recurring person,
+    but this is deliberately a single, cheap prefix strip, not stemming
+    or NLP: good enough for the common case, never invents a match that
+    isn't there. Hebrew has no equivalent single-token prefix to strip
+    (possession is usually a full separate word or a suffix), so Hebrew
+    candidates pass through untouched other than trimming/casing below. */
+const LEADING_ARTICLE_OR_POSSESSIVE = /^(my|his|her|their|our|your|the|a|an|some)\s+/i;
+
+function toTitleCaseIfPlainLatin(text: string): string {
+  if (!/^[a-z][a-z\s'-]*$/.test(text)) return text;
+  return text
+    .split(' ')
+    .map((w) => (w.length ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(' ');
+}
+
+/** Normalizes one raw candidate string (a person's nameOrRole, a place
+    name, an action, ...) into a matchable key + a display label, or null
+    if it isn't a safe/meaningful motif candidate at all. Case-insensitive
+    and punctuation-trimmed per the spec; never translates and never
+    matches across languages — a Hebrew candidate only ever matches
+    another occurrence of the same Hebrew text. */
+function normalizeMotifCandidate(raw: string | null | undefined): { key: string; label: string } | null {
+  if (!raw) return null;
+  let text = raw.trim();
+  if (!text) return null;
+  text = text.replace(LEADING_ARTICLE_OR_POSSESSIVE, '').trim();
+  // Trim surrounding punctuation/quotes without touching internal
+  // characters (so "David Bowie's" only loses the trailing quote/nothing
+  // here, not the whole word — the possessive "'s" is rare enough in
+  // extracted entity names that leaving it is safer than guessing at
+  // stemming rules).
+  text = text.replace(/^["'.,:;!?()\-–—\s]+|["'.,:;!?()\-–—\s]+$/g, '');
+  if (!text) return null;
+  // A real recurring motif is a short entity/action, not a sentence —
+  // this also naturally excludes most of the sourceText/summary fallback
+  // (see motifCandidatesFromSavedDream) unless it happens to already be
+  // short.
+  if (text.length > 40) return null;
+  if (!/[a-zA-Zא-ת]/.test(text)) return null;
+  const key = text.toLowerCase().replace(/\s+/g, ' ');
+  if (key.length < 2 || GENERIC_MOTIF_WORDS.has(key)) return null;
+  return { key, label: toTitleCaseIfPlainLatin(text) };
+}
+
+/**
+ * Every real, already-extracted candidate motif for one saved dream —
+ * never a new AI call, never invented. Pulled from the SAME
+ * DreamAnalysis/SavedDream fields the live journey already produced,
+ * prioritized per spec:
+ *   1. Extracted entities: dreamAnalysis.people/places/objects/actions
+ *      (the detailed, per-entity arrays — this is where a named
+ *      character like "David Bowie" or "my grandmother", or an action
+ *      like "falling", actually lives) plus their reconstruction digests
+ *      (keyPeople/keyObjects/keyActions), which cover the odd case where
+ *      the detailed arrays came back sparse but the digest didn't.
+ *   2. Saved keywords/themes: the same emotions/emotionalAtmosphere pool
+ *      keywordsFromSavedDream already uses for the card chips.
+ *   3. The dreamer's own saved standout element (selectedElement).
+ *   4. Title/dream text — ONLY when a dream contributes nothing at all
+ *      from 1-3 (an edge case for a very old or unusually sparse saved
+ *      record); normalizeMotifCandidate's own length cap keeps this from
+ *      turning a whole sentence into a fake "motif."
+ * Every candidate goes through normalizeMotifCandidate, so duplicates,
+ * generic words, and sentence-length text are already filtered by the
+ * time this reaches the cross-dream counting step below.
+ */
+function motifCandidatesFromSavedDream(dream: SavedDream): string[] {
+  const a = dream.dreamAnalysis;
+  const structured = [
+    ...a.people.map((p) => p.nameOrRole),
+    ...a.places.map((p) => p.name),
+    ...a.objects.map((o) => o.name),
+    ...a.actions.map((ac) => ac.action),
+    ...a.reconstruction.keyPeople,
+    ...a.reconstruction.keyObjects,
+    ...a.reconstruction.keyActions,
+    ...a.emotions.map((e) => e.emotion),
+    ...a.reconstruction.emotionalAtmosphere,
+  ];
+  if (dream.selectedElement) structured.push(dream.selectedElement);
+
+  const hasAnyStructuredText = structured.some((c) => c && c.trim());
+  if (hasAnyStructuredText) return structured;
+
+  // Fallback only — see doc comment above. The dream's own title-source
+  // fields, never a new interpretation of them.
+  const fallback: string[] = [];
+  const firstClause = a.summary?.split(/[.!?]/)[0]?.trim();
+  if (firstClause) fallback.push(firstClause);
+  if (a.reconstruction.primarySetting) fallback.push(a.reconstruction.primarySetting);
+  return fallback;
+}
+
+/** The real, data-derived thing INSIGHTS shows: which motifs/entities the
+    extraction step already found recur across at least TWO SEPARATE real
+    saved dreams (never a repeat count within the same dream — each
+    dream's own candidates are de-duplicated before counting). Never
+    invents a theme, never calls any AI to interpret anything — pure
+    matching over data that already exists. Returns null (not an empty
+    array) only when fewer than 2 real dreams exist at all, since no
+    cross-dream recurrence is even possible yet — NOT an arbitrary
+    "need 3+ dreams" gate. */
+export function getRecurringMotifs(entries: ArchiveEntry[]): RecurringMotif[] | null {
   const real = entries.filter((e): e is Extract<ArchiveEntry, { kind: 'real' }> => e.kind === 'real');
-  if (real.length < minDreams) return null;
-  const counts = new Map<string, number>();
+  if (real.length < 2) return null;
+
+  const byKey = new Map<string, { label: string; dreams: RecurringMotifDream[] }>();
   for (const entry of real) {
-    for (const word of entry.keywords) {
-      counts.set(word, (counts.get(word) ?? 0) + 1);
+    const candidates = motifCandidatesFromSavedDream(entry.savedDream);
+    // De-dupe WITHIN this one dream first — mentioning "falling" three
+    // times in one dream must still only count as one dream toward
+    // cross-dream recurrence.
+    const perDream = new Map<string, string>();
+    for (const raw of candidates) {
+      const norm = normalizeMotifCandidate(raw);
+      if (norm && !perDream.has(norm.key)) perDream.set(norm.key, norm.label);
+    }
+    for (const [key, label] of perDream) {
+      const existing = byKey.get(key);
+      const dreamRef: RecurringMotifDream = { id: entry.id, title: entry.title, date: entry.date };
+      if (existing) existing.dreams.push(dreamRef);
+      else byKey.set(key, { label, dreams: [dreamRef] });
     }
   }
-  const recurring = Array.from(counts.entries())
-    .filter(([, count]) => count > 1)
-    .map(([word, count]) => ({ word, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 8);
-  return recurring.length > 0 ? recurring : [];
+
+  const recurring = Array.from(byKey.entries())
+    .filter(([, v]) => v.dreams.length >= 2)
+    .map(([key, v]) => ({
+      key,
+      label: v.label,
+      count: v.dreams.length,
+      dreams: [...v.dreams].sort((a, b) => b.date.getTime() - a.date.getTime()),
+    }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+    .slice(0, 12);
+  return recurring;
 }
 
 /**

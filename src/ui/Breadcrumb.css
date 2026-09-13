@@ -1,0 +1,85 @@
+/* Shared breadcrumb trail — see Breadcrumb.tsx. Readable white/ivory
+   text throughout (not the dimmer --dream-warm-neutral tokens some older
+   nav chrome in this app uses) per the explicit "readable white/ivory
+   text" requirement; Heebo for the row itself (normal UI chrome, not an
+   editorial display heading). */
+.app-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35em;
+  margin: 0 0 clamp(1.4rem, 3vw, 2.2rem);
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.76rem;
+}
+
+.crumb-home,
+.crumb-link {
+  background: none;
+  border: none;
+  outline: none;
+  margin: 0;
+  padding: 0.2em;
+  cursor: pointer;
+  font: inherit;
+  color: var(--dream-white);
+  opacity: 0.82;
+  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.5);
+  transition:
+    opacity 0.2s var(--ease-soft),
+    color 0.2s var(--ease-soft);
+}
+
+.crumb-home {
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.crumb-link {
+  font-weight: 500;
+  /* The crumb's own label renders in its natural script direction
+     regardless of the row's fixed dir="ltr" — a Hebrew dream title or
+     nav label still reads correctly right-to-left within this one
+     segment. */
+  unicode-bidi: isolate;
+}
+
+.crumb-home:hover,
+.crumb-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+
+.crumb-home:focus-visible,
+.crumb-link:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--dream-btn-border-strong);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.crumb-segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+}
+
+.crumb-sep {
+  color: var(--dream-white);
+  opacity: 0.4;
+}
+
+.crumb-current {
+  color: var(--dream-white);
+  opacity: 0.95;
+  font-weight: 500;
+  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.5);
+  unicode-bidi: isolate;
+}
+
+@media (max-width: 640px) {
+  .app-breadcrumb {
+    font-size: 0.68rem;
+  }
+}

@@ -6,6 +6,7 @@ import { translateTexts } from './dreamTranslationEngine';
 import { useLanguage } from '../i18n/LanguageContext';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
+import Breadcrumb from '../ui/Breadcrumb';
 import './DreamDetail.css';
 
 interface DreamDetailProps {
@@ -162,6 +163,11 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
           animation on a sibling of both fixes it structurally. */}
       <div className="dd-scene">
         <div className="dd-column">
+          <Breadcrumb
+            ariaLabel={t('breadcrumb.ariaLabel')}
+            onHome={onGoHome}
+            items={[{ label: t('archive.pageHeading'), onClick: onBack }, { label: entry.title }]}
+          />
           <div className="dd-hero">
             <span className="dd-image-wrap">
               <span className="dd-image-glow" style={{ backgroundImage: `url(${entry.image})` }} aria-hidden="true" />
