@@ -85,6 +85,38 @@
   }
 }
 
+/* On the 'interpreting' (processing/generating) step, .dr-anchor is the
+   only title-like text on screen, paired with .dr-interpreting below it —
+   flagged directly as "tiny and low-contrast... against the cloud
+   background" on real production screenshots (Hebrew example: the short
+   chosen-element phrase shown while "התבוננות…" runs beneath it).
+   Scoped to this one step only, via the existing .dream-reflection
+   data-step attribute — during 'reflecting' (paired with the big Fraunces
+   question) and the final 'reflection' display, .dr-anchor stays the
+   original quiet caption; that usage wasn't part of this complaint and
+   changing it wasn't asked for. animation-name swapped to a brighter
+   endpoint since the base animation's own `to` keyframe (opacity: 0.55)
+   would otherwise override a plain `opacity` property here. */
+@keyframes dr-anchor-in-bright {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dream-reflection[data-step='interpreting'] .dr-anchor {
+  font-size: clamp(1.3rem, 3.4vw, 1.9rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.7em rgba(0, 0, 0, 0.6);
+  animation-name: dr-anchor-in-bright;
+}
+
 /* =====================================================================
    THE DREAM STAGE — after the portal, the dreamer has arrived directly
    inside the approved moving cloud video (DreamStageVideo, rendered by
@@ -616,29 +648,31 @@
    as REMEMBERING..., no spinner, no percentage, no box. ---- */
 /* "התבוננות…" / "REFLECTING…" — same class of bug as .dr-remembering in
    DreamReconstruction.css: was 0.68rem pulsing down to 0.4 opacity at its
-   dimmest, effectively invisible for half of every cycle. Same fix: a
-   real minimum size, white, and a raised opacity floor so it stays
-   readable through the whole pulse. */
+   dimmest, effectively invisible for half of every cycle. That first pass
+   (0.85rem/0.75 opacity) was still flagged as tiny/low-contrast on real
+   screenshots, paired with .dr-anchor above it — sized up again and the
+   pulse floor raised further (see dr-interpreting-pulse below) so it
+   never dips below a clearly-readable minimum. */
 .dr-interpreting {
   margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.85rem;
-  font-weight: 500;
-  letter-spacing: 0.18em;
+  font-size: clamp(1rem, 2.2vw, 1.2rem);
+  font-weight: 600;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--dream-white);
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.55);
-  opacity: 0.75;
+  opacity: 0.85;
   animation: dr-interpreting-pulse 2.6s ease-in-out infinite;
 }
 
 @keyframes dr-interpreting-pulse {
   0%,
   100% {
-    opacity: 0.65;
+    opacity: 0.85;
   }
   50% {
-    opacity: 0.95;
+    opacity: 1;
   }
 }
 
@@ -879,7 +913,11 @@
   /* Editorial heading, same treatment as .dr-question/.da-title/the
      archive's .dd-eyebrow — Fraunces in English, and the existing global
      RTL backstop (src/index.css) naturally reverts this to Heebo for
-     Hebrew, so no separate Hebrew override is needed. */
+     Hebrew, so no separate Hebrew font-family override is needed.
+     font-weight stays 700 here (Hebrew's existing, unaffected bold
+     Heebo — a real loaded weight, Heebo:wght@300;400;500;600;700 in
+     index.html, never a problem) — see the :root:not([dir='rtl'])
+     override just below for why English needs its own weight. */
   font-family: 'Fraunces', Georgia, serif;
   font-optical-sizing: auto;
   font-size: clamp(1.1rem, 2.1vw, 1.32rem);
@@ -888,6 +926,20 @@
   text-transform: uppercase;
   color: var(--dream-white);
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.65);
+}
+
+/* English only: the Google Fonts import (index.html) loads Fraunces at
+   weight 400 ONLY (`Fraunces:opsz,wght@9..144,400`) — no 700 axis value
+   was ever fetched, so font-weight: 700 on a Fraunces-family element
+   never rendered real bold glyphs, only a browser-synthesized (faux)
+   bold. That's exactly why these labels didn't visually match the HOME
+   "DARE TO GO IN" logo (.memory-title, weight 400) even though the
+   font-family already matched — confirmed by injecting both into the
+   same page and comparing renders. Scoped to :root:not([dir='rtl']) so
+   Hebrew's own real, correctly-loaded bold Heebo (the base rule above)
+   is completely unaffected. */
+:root:not([dir='rtl']) .dr-thought-label {
+  font-weight: 400;
 }
 
 /* Every generated sentence displays in full — no ellipsis, no line-clamp,

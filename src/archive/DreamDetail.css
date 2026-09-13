@@ -216,13 +216,17 @@
 /* "THE DREAM" / "WHAT STOOD OUT" / "YOUR ASSOCIATION" / "A POSSIBLE
    THREAD" / "A QUESTION WORTH SITTING WITH" — same Fraunces/optical-
    sizing treatment as the brand mark and every other English editorial
-   heading now. Hebrew needs no separate handling (see .dr-question's own
-   comment in DreamReflection.css). */
+   heading now. Hebrew needs no separate handling for font-family (see
+   .dr-question's own comment in DreamReflection.css) — font-weight is a
+   separate story, see the html[lang='he'] override below. */
 .dd-eyebrow {
   margin: 0;
   font-family: 'Fraunces', Georgia, serif;
   font-optical-sizing: auto;
   font-size: clamp(1.35rem, 2.6vw, 1.7rem);
+  /* 700 here — matches Hebrew's existing, unaffected bold Heebo (a real
+     loaded weight, Heebo:wght@300;400;500;600;700 in index.html). English
+     overrides this to 400 below, to actually match the HOME logo. */
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -237,6 +241,20 @@
 
 html[lang='he'] .dd-eyebrow {
   letter-spacing: normal;
+}
+
+/* English only: the Google Fonts import (index.html) loads Fraunces at
+   weight 400 ONLY (`Fraunces:opsz,wght@9..144,400`) — no 700 axis value
+   was ever fetched, so font-weight: 700 on a Fraunces-family element
+   never rendered real bold glyphs, only a browser-synthesized (faux)
+   bold. That's exactly why this didn't visually match the HOME "DARE TO
+   GO IN" logo (.memory-title, weight 400) even though the font-family
+   already matched — confirmed by injecting both into the same page and
+   comparing renders. Scoped to html[lang='en'] (this file's existing
+   Hebrew-scoping convention, see the rule above) so Hebrew's own real
+   bold Heebo is completely unaffected. */
+html[lang='en'] .dd-eyebrow {
+  font-weight: 400;
 }
 
 .dd-body {

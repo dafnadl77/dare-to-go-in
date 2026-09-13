@@ -218,11 +218,20 @@
    outlined secondary pill — the shared transparent/white-outline system
    (src/ui/buttons.css), no fill of any color, so "this is a clickable
    alternate action" reads the same everywhere in the journey, not just
-   in the typing panel. No more enlarging transform — normal flex `gap`
-   between this, the circle above, and the hint below is enough on its
-   own now. */
+   in the typing panel.
+
+   margin-top added on top of the flex `gap` above (1.1rem, see
+   .hold-to-remember): .htr-circle carries its own `transform: scale(1.4)`
+   (see that rule), which doesn't affect flex layout but does inflate the
+   circle's actual painted/hit-tested size — confirmed live via
+   getBoundingClientRect() that the circle's real bottom edge sits BELOW
+   this button's top edge (an ~8px overlap) with gap alone, reading as one
+   cluster rather than two separate controls. This margin only affects the
+   gap above this button, not the .htr-hold-hint spacing below it (that
+   still comes from the unchanged flex `gap`). */
 .htr-type-link {
   position: relative;
+  margin-top: 2.4rem;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.78rem;
   font-weight: 600;
@@ -345,8 +354,16 @@
     filter 0.5s var(--ease-soft);
 }
 
+/* .central-recording is centered independently via top:50% + translateY
+   (see that rule) — its own top margin doesn't shift it closer to the
+   quiet .dream-prompt heading above; growing this box's own height at
+   the top instead re-centers it slightly lower, which is what actually
+   opens up the gap. Confirmed live: the quiet .dream-prompt/"I'M
+   LISTENING." gap was ~7px with no top margin here — read as one run-on
+   block, not two distinct states — 2rem clears it to a visibly separate
+   ~23px. */
 .central-recording-heading {
-  margin: 0 0 0.6rem;
+  margin: 2rem 0 0.6rem;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 400;
   font-size: clamp(1.4rem, 3vw, 1.9rem);
