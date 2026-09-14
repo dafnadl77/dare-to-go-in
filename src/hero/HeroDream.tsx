@@ -25,9 +25,11 @@ import { generateDreamImage, type ImageResult } from './dreamImage';
 import { getDreamReflection, type DreamReflectionRequest } from './dreamReflectionEngine';
 import type { ReflectionResult } from './dreamReflectionSchema';
 import { saveDream, buildSavedDream } from './dreamStorage';
+import { saveDreamRemote } from './dreamRemoteStorage';
 import { extractAccentColor, extractDreamPalette, isImageCenterLight, type AccentColor } from './dreamAccentColor';
 import type { CentralMode } from './centralMode';
 import { useLanguage } from '../i18n/LanguageContext';
+import { useAuth } from '../auth/AuthContext';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
 import './HeroDream.css';
@@ -82,6 +84,7 @@ interface HeroDreamProps {
 
 export default function HeroDream({ onGoToArchive, onOpenLegal }: HeroDreamProps) {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
   const uiLayerRef = useRef<HTMLDivElement>(null);
@@ -442,7 +445,23 @@ export default function HeroDream({ onGoToArchive, onOpenLegal }: HeroDreamProps
       dreamReflection: reflectionEngineResult.reflection,
       corrections,
     });
-    saveDream(record);
+    // Signed in -> this dream belongs to that account from the start, in
+    // Supabase (RLS-enforced, see dreamRemoteStorage.ts). Signed out ->
+    // unchanged from before: localStorage only, exactly like every dream
+    // saved before Supabase persistence existed. The visual "saving" beat
+    // below is a fixed-duration animation independent of real save
+    // latency either way (see the comment on it), so this fires the
+    // remote insert without awaiting it — a failure is logged, never
+    // surfaced as a save error to the dreamer, matching how every other
+    // best-effort persistence call in this app already behaves (e.g.
+    // writeAll in dreamStorage.ts itself).
+    if (user) {
+      saveDreamRemote(record, user.id).catch((err) => {
+        console.error('Failed to save dream to Supabase:', err);
+      });
+    } else {
+      saveDream(record);
+    }
     setInsideStep('saving');
   };
 

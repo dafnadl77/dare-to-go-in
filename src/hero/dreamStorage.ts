@@ -3,13 +3,16 @@ import type { DreamReflectionResult } from './dreamReflectionSchema';
 import { getAppLanguage, type AppLanguage } from './appLanguage';
 
 /**
- * A single saved dream, capturing everything a future MY DREAMS area (and
- * future recurring-pattern detection across THIS dreamer's own saved
- * dreams — never a generic symbol dictionary) will need. Persistence for
- * this stage is localStorage only (see below), but every consumer of this
- * module talks to it purely through saveDream/getDreams/getDream/
- * deleteDream, so swapping in a real authenticated backend later never
- * requires touching the experience code that calls these functions.
+ * A single saved dream, capturing everything MY DREAMS (and
+ * recurring-pattern detection across THIS dreamer's own saved dreams —
+ * never a generic symbol dictionary) needs. This module is the LOCAL
+ * (localStorage) half of dream persistence — used for anonymous,
+ * signed-out saves on Home exactly as before, and as the source for the
+ * explicit local→Supabase import prompt (LocalDreamImportPrompt.tsx). An
+ * authenticated session's own dreams live in Supabase instead — see
+ * dreamRemoteStorage.ts, which mirrors this exact SavedDream shape so
+ * both paths interchange freely. HeroDream.tsx's handleSaveDream is the
+ * one place that decides which of the two a given save actually uses.
  */
 export interface SavedDream {
   id: string;
@@ -83,6 +86,42 @@ export function toggleFavorite(id: string): void {
   if (!dream) return;
   dream.favorite = !dream.favorite;
   writeAll(all);
+}
+
+const MIGRATION_MARKER_KEY = 'dare.localDreamMigration.v1';
+type MigrationStatus = 'imported' | 'declined';
+
+function readMigrationMarkers(): Record<string, MigrationStatus> {
+  try {
+    const raw = localStorage.getItem(MIGRATION_MARKER_KEY);
+    if (!raw) return {};
+    const parsed: unknown = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? (parsed as Record<string, MigrationStatus>) : {};
+  } catch {
+    return {};
+  }
+}
+
+/** Whether THIS account (by Supabase user id) has already been offered
+    the local→Supabase dream import — 'imported'/'declined' once they've
+    answered, undefined if never asked yet. Keyed per user id (not
+    global) so a second account signing into the same browser still gets
+    its own, independent prompt — see LocalDreamImportPrompt.tsx, the
+    only place that reads this. Never auto-set: only setMigrationStatus,
+    called after an explicit Import/Not now click, writes it. */
+export function getMigrationStatus(userId: string): MigrationStatus | undefined {
+  return readMigrationMarkers()[userId];
+}
+
+export function setMigrationStatus(userId: string, status: MigrationStatus): void {
+  try {
+    const all = readMigrationMarkers();
+    all[userId] = status;
+    localStorage.setItem(MIGRATION_MARKER_KEY, JSON.stringify(all));
+  } catch {
+    // Best-effort, same as writeAll above — worst case the prompt simply
+    // reappears next visit, never a lost/duplicated import.
+  }
 }
 
 /**

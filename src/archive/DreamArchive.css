@@ -201,6 +201,18 @@
   padding: 1rem max(1.5rem, 6vw) 6vh;
 }
 
+/* Same horizontal alignment as .ar-shell-body, and the same z-index: 2
+   stacking fix the footer needed (AppFooter.css) — a plain in-flow block
+   here would otherwise paint BELOW the fixed .ar-night-tint overlay
+   (z-index: 1), visually darkening it despite correct text color. */
+.ar-import-banner-row {
+  position: relative;
+  z-index: 2;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem max(1.5rem, 6vw) 0;
+}
+
 .ar-sidenav {
   flex: none;
   width: 200px;

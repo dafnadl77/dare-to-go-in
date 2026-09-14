@@ -183,6 +183,15 @@ export interface Translations {
     he: string;
     ariaLabel: string;
   };
+  dreamImport: {
+    bannerTitleOne: string;
+    bannerTitleMany: string;
+    bannerBody: string;
+    importButton: string;
+    notNowButton: string;
+    importing: string;
+    importError: string;
+  };
   a11y: {
     controlAriaLabel: string;
     panelTitle: string;
@@ -358,6 +367,15 @@ export const en: Translations = {
     en: 'EN',
     he: 'עברית',
     ariaLabel: 'Change language',
+  },
+  dreamImport: {
+    bannerTitleOne: 'Found 1 dream saved in this browser.',
+    bannerTitleMany: 'Found {count} dreams saved in this browser.',
+    bannerBody: 'Import it into your account? It will stay saved in this browser too — nothing is deleted.',
+    importButton: 'Import',
+    notNowButton: 'Not now',
+    importing: 'Importing…',
+    importError: "Couldn't import right now. Try again later.",
   },
   a11y: {
     controlAriaLabel: 'Accessibility settings',
@@ -540,6 +558,15 @@ export const he: Translations = {
     en: 'EN',
     he: 'עברית',
     ariaLabel: 'שינוי שפה',
+  },
+  dreamImport: {
+    bannerTitleOne: 'נמצא חלום אחד שנשמר בדפדפן הזה.',
+    bannerTitleMany: 'נמצאו {count} חלומות שנשמרו בדפדפן הזה.',
+    bannerBody: 'לייבא אותם לחשבון שלך? הם יישארו שמורים גם בדפדפן הזה — שום דבר לא נמחק.',
+    importButton: 'ייבוא',
+    notNowButton: 'לא עכשיו',
+    importing: 'מייבא…',
+    importError: 'לא הצלחנו לייבא כרגע. נסו שוב מאוחר יותר.',
   },
   a11y: {
     controlAriaLabel: 'הגדרות נגישות',

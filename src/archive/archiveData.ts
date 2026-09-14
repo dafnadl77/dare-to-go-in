@@ -1,5 +1,4 @@
 import type { SavedDream } from '../hero/dreamStorage';
-import { getDreams } from '../hero/dreamStorage';
 import { containsHebrew, getAppLanguage, type AppLanguage } from '../hero/appLanguage';
 import { dateLocale } from '../i18n/locale';
 import { MOCK_DREAMS, type MockDream } from './mockDreams';
@@ -201,11 +200,18 @@ function mockToEntry(mock: MockDream, language: AppLanguage): ArchiveEntry {
 
 /**
  * The archive's full, real, chronologically-sorted entry list (newest
- * first) — real saved dreams from this browser's localStorage, plus the
- * mock dreams filling out the rest of the timeline for design purposes.
- * Never hardcoded to "6 items": any number of real saved dreams merges in
+ * first) — the dreamer's own real saved dreams, plus the mock dreams
+ * filling out the rest of the timeline for design purposes. Never
+ * hardcoded to "6 items": any number of real saved dreams merges in
  * correctly by date, and the mock dreams stop mattering entirely once a
  * dreamer has saved enough of their own.
+ *
+ * Deliberately storage-agnostic: `dreams` is passed in rather than read
+ * from localStorage directly, so this same formatter works whether the
+ * caller sourced them from dreamStorage.ts (anonymous/local) or
+ * dreamRemoteStorage.ts (an authenticated Supabase user's own rows) —
+ * DreamArchive.tsx (the only real caller) is always the latter, since it
+ * only ever renders for a signed-in user.
  *
  * Takes `language` explicitly (defaulting to the live appLanguage) so a
  * caller that re-derives this on every language change (see
@@ -213,8 +219,8 @@ function mockToEntry(mock: MockDream, language: AppLanguage): ArchiveEntry {
  * titles/excerpts/keywords for both real and mock entries, rather than
  * whatever language was active the one time this ran.
  */
-export function getArchiveEntries(language: AppLanguage = getAppLanguage()): ArchiveEntry[] {
-  const real = getDreams().map((dream, i) => toEntry(dream, i, language));
+export function getArchiveEntries(dreams: SavedDream[], language: AppLanguage = getAppLanguage()): ArchiveEntry[] {
+  const real = dreams.map((dream, i) => toEntry(dream, i, language));
   const mock = MOCK_DREAMS.map((m) => mockToEntry(m, language));
   return [...real, ...mock].sort((a, b) => b.date.getTime() - a.date.getTime());
 }

@@ -8,10 +8,12 @@ import {
   type ArchiveEntry,
   type RecurringMotif,
 } from './archiveData';
-import { toggleFavorite } from '../hero/dreamStorage';
+import { getDreamsRemote, toggleFavoriteRemote } from '../hero/dreamRemoteStorage';
+import type { SavedDream } from '../hero/dreamStorage';
 import { containsHebrew } from '../hero/appLanguage';
 import { translateTexts } from './dreamTranslationEngine';
 import DreamTimeline from './DreamTimeline';
+import LocalDreamImportPrompt from './LocalDreamImportPrompt';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
 import AppFooter from '../legal/AppFooter';
@@ -74,10 +76,38 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
   }, []);
 
   const [activeSection, setActiveSection] = useState<ArchiveSection>('all');
-  // Bumped on every favorite toggle so the entries memo below re-derives —
-  // toggleFavorite() writes straight to localStorage, which on its own
-  // triggers no re-render.
-  const [favoriteVersion, setFavoriteVersion] = useState(0);
+  // The dreamer's own real saved dreams — always from Supabase here (this
+  // screen only ever renders for a signed-in user, see App.tsx's own auth
+  // guard), never localStorage directly. LocalDreamImportPrompt below is
+  // the one explicit, opt-in path that moves a pre-Supabase browser's
+  // local dreams into this list; handleToggleFavorite updates it directly
+  // (optimistic, reverted on failure) rather than re-fetching everything.
+  const [dreams, setDreams] = useState<SavedDream[]>([]);
+  useEffect(() => {
+    if (!user) {
+      setDreams([]);
+      return;
+    }
+    let cancelled = false;
+    getDreamsRemote(user.id)
+      .then((remote) => {
+        if (!cancelled) setDreams(remote);
+      })
+      .catch((err) => {
+        console.error('Failed to load dreams from Supabase:', err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  const handleImported = (imported: SavedDream[]) => {
+    setDreams((prev) => {
+      const existingIds = new Set(prev.map((d) => d.id));
+      return [...prev, ...imported.filter((d) => !existingIds.has(d.id))];
+    });
+  };
+
   // Set only while viewing one recurring motif's own filtered dream list
   // (reached by clicking it in the Insights overview) — null shows the
   // overview list instead. Reset any time Insights itself is (re)entered
@@ -93,7 +123,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
   // titles, excerpts and keywords must follow the CURRENT interface
   // language even if the dreamer switches it mid-visit; see
   // archiveData.ts's own language-aware entry builders.
-  const entries = useMemo(() => getArchiveEntries(language), [language, favoriteVersion]);
+  const entries = useMemo(() => getArchiveEntries(dreams, language), [dreams, language]);
   const visibleEntries = useMemo(
     () => (activeSection === 'favorites' ? entries.filter((e) => e.kind === 'real' && e.favorite) : entries),
     [entries, activeSection],
@@ -153,8 +183,17 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
   const motifDisplayLabel = (m: RecurringMotif): string => motifTranslations[`${language}:${m.key}`] ?? m.label;
 
   const handleToggleFavorite = (id: string) => {
-    toggleFavorite(id);
-    setFavoriteVersion((v) => v + 1);
+    if (!user) return;
+    const current = dreams.find((d) => d.id === id);
+    if (!current) return;
+    const next = current.favorite !== true;
+    // Optimistic — instant toggle, matching how this already felt when
+    // toggleFavorite() wrote straight to localStorage synchronously.
+    setDreams((prev) => prev.map((d) => (d.id === id ? { ...d, favorite: next } : d)));
+    toggleFavoriteRemote(id, user.id, next).catch((err) => {
+      console.error('Failed to update favorite in Supabase:', err);
+      setDreams((prev) => prev.map((d) => (d.id === id ? { ...d, favorite: !next } : d)));
+    });
   };
 
   // Restores the scroll position left behind before opening a dream's
@@ -234,6 +273,12 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
           </div>
         )}
       </header>
+
+      {user && (
+        <div className="ar-import-banner-row">
+          <LocalDreamImportPrompt userId={user.id} onImported={handleImported} />
+        </div>
+      )}
 
       <div className="ar-shell-body">
         <nav className="ar-sidenav" aria-label={t('archive.dreamArchiveNav')}>
