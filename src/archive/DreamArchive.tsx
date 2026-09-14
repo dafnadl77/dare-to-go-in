@@ -363,10 +363,14 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
                 </button>
               </div>
 
-              {activeSection === 'favorites' && visibleEntries.length === 0 ? (
+              {visibleEntries.length === 0 ? (
                 <div className="ar-empty-state">
-                  <p className="ar-empty-title">{t('archive.emptyFavoritesTitle')}</p>
-                  <p className="ar-empty-body">{t('archive.emptyFavoritesBody')}</p>
+                  <p className="ar-empty-title">
+                    {activeSection === 'favorites' ? t('archive.emptyFavoritesTitle') : t('archive.emptyAllDreamsTitle')}
+                  </p>
+                  <p className="ar-empty-body">
+                    {activeSection === 'favorites' ? t('archive.emptyFavoritesBody') : t('archive.emptyAllDreamsBody')}
+                  </p>
                 </div>
               ) : (
                 <DreamTimeline entries={visibleEntries} onOpenEntry={handleOpenEntry} onToggleFavorite={handleToggleFavorite} />

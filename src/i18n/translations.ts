@@ -113,6 +113,8 @@ export interface Translations {
     favoriteRemove: string;
     emptyFavoritesTitle: string;
     emptyFavoritesBody: string;
+    emptyAllDreamsTitle: string;
+    emptyAllDreamsBody: string;
     insightsSubtitle: string;
     insightsNotEnough: string;
     insightsEmpty: string;
@@ -298,6 +300,8 @@ export const en: Translations = {
     favoriteRemove: 'Remove from favorites',
     emptyFavoritesTitle: 'No favorites yet',
     emptyFavoritesBody: 'Mark a dream as a favorite to see it here.',
+    emptyAllDreamsTitle: 'No dreams saved yet',
+    emptyAllDreamsBody: 'Your saved dreams will appear here once you keep your first one.',
     insightsSubtitle: "What keeps recurring in your dreams.",
     insightsNotEnough: 'Save a few more dreams to start seeing recurring themes here.',
     insightsEmpty: "Nothing recurring yet across your saved dreams.",
@@ -489,6 +493,8 @@ export const he: Translations = {
     favoriteRemove: 'הסרה מהמועדפים',
     emptyFavoritesTitle: 'אין עדיין מועדפים',
     emptyFavoritesBody: 'סמנו חלום כמועדף כדי לראות אותו כאן.',
+    emptyAllDreamsTitle: 'עדיין לא נשמרו חלומות',
+    emptyAllDreamsBody: 'החלומות השמורים שלכם יופיעו כאן ברגע שתשמרו את הראשון.',
     insightsSubtitle: 'מה שחוזר בחלומות שלכם.',
     insightsNotEnough: 'שמרו עוד כמה חלומות כדי לראות כאן נושאים חוזרים.',
     insightsEmpty: 'עדיין אין דבר שחוזר בין החלומות השמורים שלכם.',

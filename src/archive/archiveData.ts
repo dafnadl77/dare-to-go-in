@@ -1,7 +1,7 @@
 import type { SavedDream } from '../hero/dreamStorage';
 import { containsHebrew, getAppLanguage, type AppLanguage } from '../hero/appLanguage';
 import { dateLocale } from '../i18n/locale';
-import { MOCK_DREAMS, type MockDream } from './mockDreams';
+import type { MockDream } from './mockDreams';
 
 /**
  * One entry in the MY DREAM ARCHIVE timeline — either a real dream this
@@ -184,27 +184,11 @@ function toEntry(dream: SavedDream, fallbackIndex: number, language: AppLanguage
   };
 }
 
-function mockToEntry(mock: MockDream, language: AppLanguage): ArchiveEntry {
-  const copy = mock[language];
-  return {
-    kind: 'mock',
-    id: mock.id,
-    date: new Date(`${mock.date}T00:00:00`),
-    title: copy.title,
-    excerpt: copy.excerpt,
-    keywords: copy.keywords,
-    image: mock.image,
-    mock,
-  };
-}
-
 /**
  * The archive's full, real, chronologically-sorted entry list (newest
- * first) — the dreamer's own real saved dreams, plus the mock dreams
- * filling out the rest of the timeline for design purposes. Never
+ * first) — ONLY the dreamer's own real saved dreams, newest first. Never
  * hardcoded to "6 items": any number of real saved dreams merges in
- * correctly by date, and the mock dreams stop mattering entirely once a
- * dreamer has saved enough of their own.
+ * correctly by date.
  *
  * Deliberately storage-agnostic: `dreams` is passed in rather than read
  * from localStorage directly, so this same formatter works whether the
@@ -213,16 +197,27 @@ function mockToEntry(mock: MockDream, language: AppLanguage): ArchiveEntry {
  * DreamArchive.tsx (the only real caller) is always the latter, since it
  * only ever renders for a signed-in user.
  *
+ * Deliberately does NOT fall back to mockDreams.ts's design-stage
+ * placeholder content when `dreams` is empty — a previous version
+ * concatenated MOCK_DREAMS onto every result unconditionally, which meant
+ * a genuinely new authenticated account with zero real Supabase rows saw
+ * four fake "saved" dreams (The Open Door, The Ocean, Grandmother, The
+ * Empty City) presented as its own archive. mockDreams.ts's MOCK_DREAMS/
+ * MockDream stay in the repo for future dev/preview use, but this
+ * function — the one real production data path DreamArchive.tsx renders
+ * — must return exactly what the authenticated user actually owns,
+ * including a genuinely empty array. See ArchiveEntry's own `kind: 'mock'`
+ * variant, still declared in this file for that type's history/possible
+ * future dev use, but no longer ever constructed here.
+ *
  * Takes `language` explicitly (defaulting to the live appLanguage) so a
  * caller that re-derives this on every language change (see
  * DreamArchive.tsx's own useMemo dependency) gets genuinely re-localized
- * titles/excerpts/keywords for both real and mock entries, rather than
- * whatever language was active the one time this ran.
+ * titles/excerpts/keywords, rather than whatever language was active the
+ * one time this ran.
  */
 export function getArchiveEntries(dreams: SavedDream[], language: AppLanguage = getAppLanguage()): ArchiveEntry[] {
-  const real = dreams.map((dream, i) => toEntry(dream, i, language));
-  const mock = MOCK_DREAMS.map((m) => mockToEntry(m, language));
-  return [...real, ...mock].sort((a, b) => b.date.getTime() - a.date.getTime());
+  return dreams.map((dream, i) => toEntry(dream, i, language)).sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
 /** Both date formatters default to the current app language (read from
