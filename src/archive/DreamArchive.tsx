@@ -9,6 +9,8 @@ import {
   type RecurringMotif,
 } from './archiveData';
 import { toggleFavorite } from '../hero/dreamStorage';
+import { containsHebrew } from '../hero/appLanguage';
+import { translateTexts } from './dreamTranslationEngine';
 import DreamTimeline from './DreamTimeline';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
@@ -18,6 +20,18 @@ import Breadcrumb from '../ui/Breadcrumb';
 import './DreamArchive.css';
 
 type ArchiveSection = 'all' | 'favorites' | 'insights' | 'settings';
+
+/** Whether a recurring-motif label's own script doesn't match what's
+    natural for the given UI language — the exact trigger for the
+    display-only localization pass below (see motifTranslations). A
+    motif's label is always either Hebrew or Latin script (see
+    normalizeMotifCandidate in archiveData.ts), so this is symmetric:
+    Hebrew text under an English UI, or non-Hebrew (Latin) text under a
+    Hebrew UI. */
+function motifLabelNeedsLocalization(label: string, language: 'en' | 'he'): boolean {
+  const hasHebrew = containsHebrew(label);
+  return language === 'he' ? !hasHebrew : hasHebrew;
+}
 
 interface DreamArchiveProps {
   onBack: () => void;
@@ -83,7 +97,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
     () => (activeSection === 'favorites' ? entries.filter((e) => e.kind === 'real' && e.favorite) : entries),
     [entries, activeSection],
   );
-  const recurringMotifs = useMemo(() => getRecurringMotifs(entries, language), [entries, language]);
+  const recurringMotifs = useMemo(() => getRecurringMotifs(entries), [entries]);
   // Re-matched against the LIVE entries list (not the possibly-stale
   // `openMotif.dreams` snapshot from when it was opened) by id, exactly
   // like DreamTimeline's own dream cards — so a language switch mid-view
@@ -95,6 +109,47 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
     () => (openMotif ? entries.filter((e) => e.kind === 'real' && motifDreamIds.has(e.id)) : []),
     [entries, openMotif, motifDreamIds],
   );
+
+  // DISPLAY-ONLY localization for motif labels — never touches
+  // getRecurringMotifs' own matching/counting (that stays keyed on the
+  // ORIGINAL normalized motif regardless of language, see archiveData.ts).
+  // A Hebrew-only motif under an English UI (or the reverse) is looked up
+  // here and, if a translation is cached, shown translated; otherwise the
+  // ORIGINAL label renders as-is — this only ever ADDS a nicer label, it
+  // never hides a recurring motif the way an earlier version did. Keyed
+  // by `${language}:${motif.key}` so a translation is fetched once per
+  // language and reused across every render/re-open of that motif.
+  const [motifTranslations, setMotifTranslations] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (!recurringMotifs) return;
+    const pending = recurringMotifs.filter(
+      (m) => motifLabelNeedsLocalization(m.label, language) && !(`${language}:${m.key}` in motifTranslations),
+    );
+    if (pending.length === 0) return;
+    let cancelled = false;
+    translateTexts(pending.map((m) => m.label)).then((result) => {
+      if (cancelled || result.status !== 'ok') return;
+      setMotifTranslations((prev) => {
+        const next = { ...prev };
+        pending.forEach((m, i) => {
+          next[`${language}:${m.key}`] = result.translations[i];
+        });
+        return next;
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recurringMotifs, language]);
+
+  /** The label to actually render for one motif — the cached translation
+      when this motif's own script didn't match the current UI language
+      and translation succeeded, otherwise the original stored label
+      (translation still pending, failed, or simply not needed). Never
+      returns anything other than a real label — an Insight is never
+      hidden for language reasons (see the effect above). */
+  const motifDisplayLabel = (m: RecurringMotif): string => motifTranslations[`${language}:${m.key}`] ?? m.label;
 
   const handleToggleFavorite = (id: string) => {
     toggleFavorite(id);
@@ -212,7 +267,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
                   ? [
                       { label: t('archive.pageHeading'), onClick: () => goToSection('all') },
                       { label: t('archive.navInsights'), onClick: () => setOpenMotif(null) },
-                      { label: openMotif.label },
+                      { label: motifDisplayLabel(openMotif) },
                     ]
                   : [
                       { label: t('archive.pageHeading'), onClick: () => goToSection('all') },
@@ -259,7 +314,14 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
 
           {activeSection === 'insights' && openMotif && (
             <div className="ar-panel">
-              <h1 className="ar-title">{openMotif.label}</h1>
+              {/* An explicit action, not just the breadcrumb — a filtered
+                  list reached by clicking into a motif needs its own
+                  visible way back next to the heading, not only a crumb
+                  three levels up. */}
+              <button type="button" className="ar-back-link btn btn-secondary" data-cursor-hover onClick={() => setOpenMotif(null)}>
+                {t('archive.insightsBackToOverview')}
+              </button>
+              <h1 className="ar-title">{motifDisplayLabel(openMotif)}</h1>
               <p className="ar-subtitle">
                 {t('archive.insightsAppearsInDreams').replace('{count}', String(openMotif.count))}
               </p>
@@ -287,30 +349,33 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
                 <p className="ar-panel-note">{t('archive.insightsEmpty')}</p>
               ) : (
                 <ul className="ar-insights-list">
-                  {recurringMotifs.map((m) => (
-                    <li key={m.key} className="ar-insights-item">
-                      <button
-                        type="button"
-                        className="ar-insights-button"
-                        data-cursor-hover
-                        onClick={() => setOpenMotif(m)}
-                        aria-label={`${t('archive.insightsOpenAria')} ${m.label}`}
-                      >
-                        <span className="ar-insights-row">
-                          <span className="ar-insights-word">{m.label}</span>
-                          <span className="ar-insights-count">
-                            {t('archive.insightsAppearsInDreams').replace('{count}', String(m.count))}
+                  {recurringMotifs.map((m) => {
+                    const label = motifDisplayLabel(m);
+                    return (
+                      <li key={m.key} className="ar-insights-item">
+                        <button
+                          type="button"
+                          className="ar-insights-button"
+                          data-cursor-hover
+                          onClick={() => setOpenMotif(m)}
+                          aria-label={`${t('archive.insightsOpenAria')} ${label}`}
+                        >
+                          <span className="ar-insights-row">
+                            <span className="ar-insights-word">{label}</span>
+                            <span className="ar-insights-count">
+                              {t('archive.insightsAppearsInDreams').replace('{count}', String(m.count))}
+                            </span>
                           </span>
-                        </span>
-                        {m.dreams.length > 0 && (
-                          <span className="ar-insights-dreams">{m.dreams.map((d) => d.title).join(' · ')}</span>
-                        )}
-                        <span className="ar-insights-chevron" aria-hidden="true">
-                          ›
-                        </span>
-                      </button>
-                    </li>
-                  ))}
+                          {m.dreams.length > 0 && (
+                            <span className="ar-insights-dreams">{m.dreams.map((d) => d.title).join(' · ')}</span>
+                          )}
+                          <span className="ar-insights-chevron" aria-hidden="true">
+                            ›
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>

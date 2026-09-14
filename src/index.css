@@ -189,6 +189,19 @@ button:disabled {
   font-variation-settings: 'opsz' 84;
   font-feature-settings: normal;
   letter-spacing: 0.01em;
+  /* The logo (.memory-title, MemoryTitle.css) renders each WORD as its
+     own flex child with `gap: 0 0.5em` between them — it never renders an
+     actual space character, so plain heading text (a normal text node,
+     using the browser's default space-character width) reads visibly
+     TIGHTER between words even with every font axis above already
+     identical. Confirmed by rendering the real .memory-title element
+     next to a heading at the same font-size side by side: this was the
+     one remaining real visual difference once opsz was fixed (see the
+     comment below) — word-spacing closes it. 0.2em measured as the
+     closest visual match to the logo's own 0.5em flex-gap at this
+     typeface/size (word-spacing ADDS to the default space width rather
+     than replacing it, so it isn't the same 0.5em number). */
+  word-spacing: 0.2em;
 }
 
 /* ===================================================================
@@ -213,9 +226,19 @@ button:disabled {
    serif (Frank Ruhl Libre) for a handful of display headings, back when
    English headings used a different font (Fraunces) than Hebrew ones —
    removed now that those same headings are Heebo in English too, so
-   there is no longer a mismatch to correct for RTL specifically. */
+   there is no longer a mismatch to correct for RTL specifically.
+
+   word-spacing is reset here for the same reason letter-spacing already
+   is: .font-editorial-display's word-spacing: 0.2em (added to visually
+   match the logo's own inter-word gap — see that rule's comment) would
+   otherwise leak into every multi-word Hebrew heading that shares those
+   classes (.ar-title/.da-title/.dr-question/.dc-title/.dd-eyebrow/
+   .dr-thought-label are all commonly multi-word in Hebrew), spreading
+   Hebrew words apart for no reason — Hebrew has no equivalent
+   convention for it, exactly like the existing letter-spacing case. */
 :root[dir='rtl'] * {
   letter-spacing: normal !important;
+  word-spacing: normal !important;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif !important;
 }
 

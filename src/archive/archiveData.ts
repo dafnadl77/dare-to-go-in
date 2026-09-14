@@ -436,18 +436,19 @@ function motifCandidatesFromSavedDream(dream: SavedDream): string[] {
     cross-dream recurrence is even possible yet — NOT an arbitrary
     "need 3+ dreams" gate.
 
-    `language` is the CURRENT UI language, used the exact same way
-    isDisplaySafe already guards every other card field in this file: a
-    motif candidate extracted from a dream that was described in Hebrew
-    stays Hebrew forever (dreamAnalysis mirrors whatever language the
-    dream was actually described in — there is no stored English variant
-    of it to fall back to, and this file never invents one), so it is
-    simply skipped while the UI is English, rather than displayed in the
-    wrong script or silently machine-translated. The SAME normalized
-    motif can therefore show a different count/dream-list per UI
-    language — expected, not a bug: it only ever counts occurrences that
-    are honestly displayable in the language currently being shown. */
-export function getRecurringMotifs(entries: ArchiveEntry[], language: AppLanguage = getAppLanguage()): RecurringMotif[] | null {
+    Deliberately NOT language-aware: a motif candidate extracted from a
+    dream described in Hebrew stays Hebrew (dreamAnalysis mirrors
+    whatever language the dream was actually described in), and this
+    always counts/returns it regardless of the current UI language — an
+    earlier version filtered out script-mismatched motifs here, which
+    just made English Insights go empty whenever the underlying dreams
+    were Hebrew. Matching/counting identity is ALWAYS the original
+    normalized motif; language-appropriate DISPLAY (translating a
+    Hebrew-only label for an English UI, or vice versa) is a separate,
+    display-only concern handled by the caller (see DreamArchive.tsx's
+    own motif-label localization) — it never changes what's counted or
+    which dreams a motif points at. */
+export function getRecurringMotifs(entries: ArchiveEntry[]): RecurringMotif[] | null {
   const real = entries.filter((e): e is Extract<ArchiveEntry, { kind: 'real' }> => e.kind === 'real');
   if (real.length < 2) return null;
 
@@ -460,7 +461,7 @@ export function getRecurringMotifs(entries: ArchiveEntry[], language: AppLanguag
     const perDream = new Map<string, string>();
     for (const raw of candidates) {
       const norm = normalizeMotifCandidate(raw);
-      if (norm && isDisplaySafe(norm.label, language) && !perDream.has(norm.key)) perDream.set(norm.key, norm.label);
+      if (norm && !perDream.has(norm.key)) perDream.set(norm.key, norm.label);
     }
     for (const [key, label] of perDream) {
       const existing = byKey.get(key);

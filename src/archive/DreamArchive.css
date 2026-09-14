@@ -331,6 +331,15 @@ html[lang='he'] .ar-title {
   margin-bottom: 0;
 }
 
+/* The filtered-motif view's own explicit way back — a real button next
+   to the heading, not just the breadcrumb three levels up. Reuses the
+   shared .btn.btn-secondary treatment (transparent/white-outline, no
+   fill) verbatim. */
+.ar-back-link {
+  display: inline-flex;
+  margin-bottom: 1.2rem;
+}
+
 .ar-panel-note {
   margin: clamp(1.5rem, 3vw, 2rem) 0 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
