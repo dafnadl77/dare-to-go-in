@@ -1,10 +1,27 @@
 /* =====================================================================
-   The shared legal/credit footer — deliberately small, quiet, one line
-   of links plus one dim line of credit. Never a generic multi-column
-   corporate footer block. Class prefix `footer-`/`app-footer`, not reused
-   elsewhere. ===================================================================== */
+   The shared legal/credit footer — deliberately small and quiet in
+   SIZE/WEIGHT only, one line of links plus one line of credit, both
+   rendered in literal white at full opacity (never a dim treatment).
+   Never a generic multi-column corporate footer block. Class prefix
+   `footer-`/`app-footer`, not reused elsewhere. ===================================================================== */
 .app-footer {
-  position: static;
+  /* This is the actual root cause behind "still too dark" on
+     DreamArchive/DreamDetail (Insights included): the footer text color
+     itself was already correct, but as a plain position:static element
+     it painted in the EARLIEST stacking layer within .dream-archive —
+     BELOW any positioned sibling with its own z-index, including the
+     fixed, semi-transparent .ar-night-tint overlay (z-index: 1,
+     DreamArchive.css) that covers the full viewport at every scroll
+     depth. That overlay was visually darkening literal white text
+     underneath it, confirmed by sampling the rendered pixels (not just
+     getComputedStyle, which correctly reported white/opacity:1 the
+     whole time — the ancestor CHAIN was fine, this was a sibling
+     stacking-order gap). position:relative + a z-index above every
+     known background tint (1) and the two-column body layout (2) lifts
+     the footer into its own paint layer above them, on every screen
+     this component mounts on — never a page-specific fix. */
+  position: relative;
+  z-index: 3;
   width: 100%;
   padding: 2.4rem 6vw calc(1.6rem + env(safe-area-inset-bottom));
   text-align: center;
@@ -13,9 +30,11 @@
 /* Hero and DreamAuth are fixed, non-scrolling scenes — pins the footer to
    the bottom of the viewport instead of leaving it in normal flow, which
    on those two screens would mean it never appears (nothing scrolls
-   there). Archive/Detail stay position:static (the default above): the
-   footer is simply the last thing on the page, like an ordinary page
-   footer, so it can never float over the last archive entry. */
+   there). Archive/Detail stay in normal flow (position:relative, the
+   default above, only for its own z-index stacking — not absolute/fixed
+   positioning): the footer is simply the last thing on the page, like an
+   ordinary page footer, so it can never float over the last archive
+   entry. */
 .app-footer--pinned {
   position: absolute;
   left: 0;
@@ -56,18 +75,18 @@
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  /* Was --dream-white at opacity 0.45 — too small and too dim to read
-     over a bright part of the cloud background. Near-full-opacity warm
-     ivory + a doubled-up text-shadow (one tight, one soft — real over-
-     video legibility test, not just a subjectively "should be enough"
-     value) doing the contrast work regardless of what's directly behind
-     it, not just a bigger dim label. */
-  color: var(--dream-white);
-  opacity: 0.96;
+  /* Reported too dark three times running even after --dream-white
+     (a warm ivory, rgb(244,240,232) — NOT literal white) at rising
+     opacity. Literal #fff at opacity: 1, full stop — no design token,
+     no warm/ivory tint, no reduced alpha. The text-shadow stays only
+     for legibility against bright video frames; it doesn't tint or dim
+     the white itself. */
+  color: #fff;
+  opacity: 1;
   text-shadow:
     0 0.05em 0.6em rgba(0, 0, 0, 0.8),
     0 0.01em 0.15em rgba(0, 0, 0, 0.9);
-  transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
+  transition: text-shadow 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
 }
 
 html[lang='he'] .footer-link {
@@ -78,7 +97,12 @@ html[lang='he'] .footer-link {
 
 .footer-link:hover,
 .footer-link:focus-visible {
-  opacity: 1;
+  /* Base state is already true white at opacity 1 — hover/focus adds a
+     glow on top rather than "brightening" a dimmer resting state. */
+  text-shadow:
+    0 0.05em 0.6em rgba(0, 0, 0, 0.8),
+    0 0.01em 0.15em rgba(0, 0, 0, 0.9),
+    0 0 0.7em rgba(255, 255, 255, 0.7);
 }
 
 .footer-link:focus-visible {
@@ -104,17 +128,12 @@ html:not([lang='he']) .footer-link:focus-visible {
   font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0.03em;
-  /* Was --dream-warm-neutral (a dim tan, not white) at 0.85 opacity —
-     genuinely faded into a bright/patterned background (real production
-     screenshots on Home and elsewhere) despite the links above already
-     being fixed to white — and 0.85 white alone was STILL flagged as too
-     dark after that first fix, so this is deliberately pushed further:
-     the same near-full opacity and doubled shadow as .footer-link now,
-     not a dimmer secondary treatment — the only thing distinguishing
-     this from the links is the smaller font-size, never a fainter color
-     or lower opacity. */
-  color: var(--dream-white);
-  opacity: 0.95;
+  /* Same requirement as .footer-link above: literal #fff at opacity 1,
+     no design token, no ivory/warm tint, no reduced alpha — the only
+     thing distinguishing this from the links is the smaller font-size,
+     never a fainter color or lower opacity. */
+  color: #fff;
+  opacity: 1;
   text-shadow:
     0 0.05em 0.6em rgba(0, 0, 0, 0.8),
     0 0.01em 0.15em rgba(0, 0, 0, 0.9);
