@@ -22,6 +22,19 @@
   user-select: none;
 }
 
+/* Short landscape phones (same breakpoint LanguageSwitcher.css's
+   .top-right-nav and HeroDream.css already use for this exact class of
+   viewport): the logo's own width-only clamp() has no height awareness,
+   so on a wide-but-short viewport (confirmed live at 844x390) its normal
+   size collides with the top-right nav (MY DREAMS/EN/עברית) — measured
+   via getBoundingClientRect(), a real pixel overlap, not a guess. Purely
+   a smaller size here, same centering/behavior otherwise. */
+@media (max-height: 500px) {
+  .memory-title {
+    font-size: clamp(1.8rem, 6vw, 3rem);
+  }
+}
+
 .mt-char {
   --prox: 0;
   display: inline-block;

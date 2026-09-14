@@ -370,6 +370,15 @@ export default function HoldToRemember({
 
   const handleDoneTyping = () => {
     onDreamCapture?.(createTextDreamInput(entry));
+    // Unlike handleBack/handleClose's typing branch, this used to leave
+    // `entry` populated — invisible while the journey moves on through
+    // reconstruction/reflection/closing, but if that dream is later
+    // discarded (LET IT GO) and centralMode returns to 'hold' for a new
+    // one, TYPE re-mounts with the PREVIOUS dream's full text still in
+    // the textarea, and typing lands mid-string instead of into an empty
+    // field. onDreamCapture above already received its own copy of the
+    // text, so clearing it here can't affect the dream already handed off.
+    setEntry('');
     setCentralMode('settled');
   };
 
