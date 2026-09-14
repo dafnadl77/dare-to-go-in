@@ -4,6 +4,7 @@ import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
 import type { InsideStep } from './DreamReconstruction';
 import { useLanguage } from '../i18n/LanguageContext';
+import EditorialTitle from '../ui/EditorialTitle';
 import './DreamClosing.css';
 
 interface DreamClosingProps {
@@ -63,7 +64,9 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
           </div>
 
           <div className="dc-block dc-block--closing" style={accentVars}>
-            <p className="dc-title">{t('closing.dontLetItDisappear')}</p>
+            <p className="dc-title">
+              <EditorialTitle text={t('closing.dontLetItDisappear')} />
+            </p>
             <div className="dc-choices">
               <button type="button" className="dc-portal dc-portal--keep" data-cursor-hover onClick={onSave}>
                 <span className="dc-portal-glow" aria-hidden="true" />
@@ -137,7 +140,9 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
 
       {step === 'saved' && (
         <div className="dc-block dc-block--enter" style={accentVars}>
-          <p className="dc-title dc-title--small dc-title--materialize">{t('closing.dreamSaved')}</p>
+          <p className="dc-title dc-title--small dc-title--materialize">
+            <EditorialTitle text={t('closing.dreamSaved')} />
+          </p>
           <button type="button" className="dr-choice dr-choice--yes" data-cursor-hover onClick={onReturnToRoom}>
             {t('closing.returnToTheRoom')}
           </button>
@@ -167,7 +172,9 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
 
       {step === 'gone' && (
         <div className="dc-block dc-block--enter">
-          <p className="dc-title dc-title--small">{t('closing.gone')}</p>
+          <p className="dc-title dc-title--small">
+            <EditorialTitle text={t('closing.gone')} />
+          </p>
         </div>
       )}
     </div>

@@ -17,6 +17,7 @@ import { useAuth } from '../auth/AuthContext';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
 import Breadcrumb from '../ui/Breadcrumb';
+import EditorialTitle from '../ui/EditorialTitle';
 import './DreamArchive.css';
 
 type ArchiveSection = 'all' | 'favorites' | 'insights' | 'settings';
@@ -208,7 +209,21 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
           overlap anything once scrolled past). */}
       <header className="ar-shell-header">
         <button type="button" className="ar-brand" dir="ltr" data-cursor-hover onClick={onBack} aria-label={t('archive.backToDare')}>
-          DARE TO GO IN
+          {/* The brand mark is never translated and must always keep the
+              logo's word-flow treatment, even under a Hebrew UI — unlike
+              every other heading, so this can't go through the
+              language-gated EditorialTitle (src/ui/EditorialTitle.tsx),
+              which intentionally falls back to plain text for non-English.
+              Applies the same shared .editorial-word-flow/.editorial-word
+              classes (src/index.css) directly, since the text itself is a
+              static literal, not translatable content. */}
+          <span className="editorial-word-flow">
+            {['DARE', 'TO', 'GO', 'IN'].map((word) => (
+              <span className="editorial-word" key={word}>
+                {word}
+              </span>
+            ))}
+          </span>
         </button>
         {user && (
           <div className="ar-account">
@@ -286,7 +301,9 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
             <>
               <div className="ar-hero-row">
                 <div className="ar-hero-copy">
-                  <h1 className="ar-title">{activeSection === 'favorites' ? t('archive.navFavorites') : t('archive.pageHeading')}</h1>
+                  <h1 className="ar-title">
+                    <EditorialTitle text={activeSection === 'favorites' ? t('archive.navFavorites') : t('archive.pageHeading')} />
+                  </h1>
                   <p className="ar-subtitle">{t('archive.pageSubtitle')}</p>
                 </div>
                 {/* A real action, not a fake one — "a new dream" starts from
@@ -321,7 +338,21 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
               <button type="button" className="ar-back-link btn btn-secondary" data-cursor-hover onClick={() => setOpenMotif(null)}>
                 {t('archive.insightsBackToOverview')}
               </button>
-              <h1 className="ar-title">{motifDisplayLabel(openMotif)}</h1>
+              <h1 className="ar-title">
+                {/* motifDisplayLabel can fall back to the motif's original
+                    (possibly Hebrew) label while its translation is still
+                    pending, even with language === 'en' — the containsHebrew
+                    guard (already used the same way in DreamDetail.tsx) keeps
+                    that untranslated Hebrew text on its own plain rendering
+                    instead of incorrectly getting the Latin word-flow/Fraunces
+                    treatment; this only changes the wrapper choice, never the
+                    translation logic itself. */}
+                {containsHebrew(motifDisplayLabel(openMotif)) ? (
+                  motifDisplayLabel(openMotif)
+                ) : (
+                  <EditorialTitle text={motifDisplayLabel(openMotif)} />
+                )}
+              </h1>
               <p className="ar-subtitle">
                 {t('archive.insightsAppearsInDreams').replace('{count}', String(openMotif.count))}
               </p>
@@ -341,7 +372,9 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
 
           {activeSection === 'insights' && !openMotif && (
             <div className="ar-panel">
-              <h1 className="ar-title">{t('archive.navInsights')}</h1>
+              <h1 className="ar-title">
+                <EditorialTitle text={t('archive.navInsights')} />
+              </h1>
               <p className="ar-subtitle">{t('archive.insightsSubtitle')}</p>
               {recurringMotifs === null ? (
                 <p className="ar-panel-note">{t('archive.insightsNotEnough')}</p>
@@ -383,7 +416,9 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
 
           {activeSection === 'settings' && (
             <div className="ar-panel">
-              <h1 className="ar-title">{t('archive.navSettings')}</h1>
+              <h1 className="ar-title">
+                <EditorialTitle text={t('archive.navSettings')} />
+              </h1>
               <p className="ar-subtitle">{t('archive.settingsSubtitle')}</p>
               <div className="ar-settings-row">
                 <span className="ar-settings-label">{t('archive.settingsEmailLabel')}</span>

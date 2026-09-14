@@ -189,19 +189,31 @@ button:disabled {
   font-variation-settings: 'opsz' 84;
   font-feature-settings: normal;
   letter-spacing: 0.01em;
-  /* The logo (.memory-title, MemoryTitle.css) renders each WORD as its
-     own flex child with `gap: 0 0.5em` between them — it never renders an
-     actual space character, so plain heading text (a normal text node,
-     using the browser's default space-character width) reads visibly
-     TIGHTER between words even with every font axis above already
-     identical. Confirmed by rendering the real .memory-title element
-     next to a heading at the same font-size side by side: this was the
-     one remaining real visual difference once opsz was fixed (see the
-     comment below) — word-spacing closes it. 0.2em measured as the
-     closest visual match to the logo's own 0.5em flex-gap at this
-     typeface/size (word-spacing ADDS to the default space width rather
-     than replacing it, so it isn't the same 0.5em number). */
-  word-spacing: 0.2em;
+}
+
+/* ===================================================================
+   EDITORIAL WORD-FLOW — the exact structural mechanism .memory-title
+   (the HOME logo, MemoryTitle.css) uses to space words apart: each word
+   is its OWN flex child with a real `gap: 0 0.5em` between them, never a
+   rendered space character. A previous pass tried to approximate this on
+   plain text nodes with `word-spacing`, which is a different mechanism
+   (it pads the existing space glyph rather than replacing it with a real
+   gap) and never quite matched on close visual comparison. Reused
+   verbatim, not re-implemented: src/ui/EditorialTitle.tsx wraps English
+   heading text in exactly this class structure, and .memory-title itself
+   (MemoryTitle.css) now applies these same two classes rather than
+   redeclaring the same rules under `.mt-word` — genuinely one
+   implementation behind both, not two copies that happen to agree. */
+.editorial-word-flow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 0.5em;
+}
+
+.editorial-word {
+  display: inline-flex;
+  white-space: nowrap;
 }
 
 /* ===================================================================
@@ -228,17 +240,15 @@ button:disabled {
    removed now that those same headings are Heebo in English too, so
    there is no longer a mismatch to correct for RTL specifically.
 
-   word-spacing is reset here for the same reason letter-spacing already
-   is: .font-editorial-display's word-spacing: 0.2em (added to visually
-   match the logo's own inter-word gap — see that rule's comment) would
-   otherwise leak into every multi-word Hebrew heading that shares those
-   classes (.ar-title/.da-title/.dr-question/.dc-title/.dd-eyebrow/
-   .dr-thought-label are all commonly multi-word in Hebrew), spreading
-   Hebrew words apart for no reason — Hebrew has no equivalent
-   convention for it, exactly like the existing letter-spacing case. */
+   Word spacing for English headings now comes from real word-span
+   structure (.editorial-word-flow/.editorial-word, see above and
+   src/ui/EditorialTitle.tsx) which EditorialTitle only ever builds for
+   'en' — Hebrew text always takes that component's plain-text passthrough
+   branch instead, so there is no word-spacing property left to leak into
+   Hebrew here (unlike the old word-spacing approximation this replaced,
+   which did need an explicit reset). */
 :root[dir='rtl'] * {
   letter-spacing: normal !important;
-  word-spacing: normal !important;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif !important;
 }
 
@@ -253,9 +263,9 @@ button:disabled {
    not of the blanket rule itself, so the brand mark was silently
    rendering in Heebo/Assistant with normal letter-spacing under Hebrew.
    This restores the exact English values on both the heading and its
-   per-letter animation spans (.mt-word/.mt-char inherit font-family
-   normally, but the blanket rule targets every element directly, so the
-   restore has to as well, not just the parent).
+   per-letter animation spans (.editorial-word/.mt-char inherit
+   font-family normally, but the blanket rule targets every element
+   directly, so the restore has to as well, not just the parent).
 
    .ar-brand is the SAME brand mark, re-rendered as the archive header's
    logo (DreamArchive.tsx/.css) — it has its own `dir="ltr"` for the same

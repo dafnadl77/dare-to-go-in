@@ -6,6 +6,7 @@ import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
 import type { InsideStep } from './DreamReconstruction';
 import { useLanguage } from '../i18n/LanguageContext';
+import EditorialTitle from '../ui/EditorialTitle';
 import './DreamReflection.css';
 
 interface DreamReflectionProps {
@@ -163,7 +164,9 @@ export default function DreamReflection({
           <div className="da-content">
             {(step === 'prompt' || step === 'choices' || step === 'selected') && (
               <>
-                <h2 className="da-title">{t('reflection.thisIsYourDream')}</h2>
+                <h2 className="da-title">
+                  <EditorialTitle text={t('reflection.thisIsYourDream')} />
+                </h2>
                 <p className="da-subtitle">{t('reflection.chooseTheMoment')}</p>
               </>
             )}
@@ -210,7 +213,9 @@ export default function DreamReflection({
 
             {step === 'reflecting' && (
               <>
-                <p className="dr-question dr-question--asking">{questionText}</p>
+                <p className="dr-question dr-question--asking">
+                  {questionText && <EditorialTitle text={questionText} />}
+                </p>
                 {selectedElement && <p className="dr-anchor">{selectedElement}</p>}
                 <div className="dr-response">
                   <div className={`dr-writing-surface${responseText ? ' has-text' : ''}`}>
@@ -285,7 +290,9 @@ export default function DreamReflection({
                     {NODE_ICONS[i]}
                   </span>
                   <div className={`dr-thought dr-thought--${f.tier}`}>
-                    <h3 className="dr-thought-label">{t(f.labelKey)}</h3>
+                    <h3 className="dr-thought-label">
+                      <EditorialTitle text={t(f.labelKey)} />
+                    </h3>
                     <p className="dr-thought-text">{sanitizeAiTextForDisplay(reflectionResult[f.key])}</p>
                   </div>
                 </div>

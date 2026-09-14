@@ -1,9 +1,11 @@
+/* The word-flow structure (each word its own flex child with a real
+   gap, never a rendered space) comes from the shared .editorial-word-flow
+   class (src/index.css) — applied via className in MemoryTitle.tsx
+   alongside .memory-title, not redeclared here. src/ui/EditorialTitle.tsx
+   reuses that SAME class for every other English editorial heading, so
+   this is genuinely one implementation behind both, not two copies. */
 .memory-title {
   position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0 0.5em;
   margin: 0;
   padding: 0 0.4em;
   max-width: 90vw;
@@ -18,11 +20,6 @@
   text-shadow: 0 0.04em 0.6em rgba(0, 0, 0, 0.35);
   pointer-events: none;
   user-select: none;
-}
-
-.mt-word {
-  display: inline-flex;
-  white-space: nowrap;
 }
 
 .mt-char {

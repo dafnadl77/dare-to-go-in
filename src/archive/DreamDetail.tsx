@@ -7,6 +7,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
 import Breadcrumb from '../ui/Breadcrumb';
+import EditorialTitle from '../ui/EditorialTitle';
 import './DreamDetail.css';
 
 interface DreamDetailProps {
@@ -176,13 +177,17 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
             <p className="dd-date">
               {formatEntryDayMonth(entry.date)} {formatEntryYear(entry.date)}
             </p>
-            <h1 className="dd-title">{entry.title}</h1>
+            <h1 className="dd-title">
+              <EditorialTitle text={entry.title} />
+            </h1>
           </div>
 
           {reflection ? (
             <div className="dd-narrative">
               <section className="dd-block">
-                <p className="dd-eyebrow">{t('dreamDetail.theDream')}</p>
+                <p className="dd-eyebrow">
+                  <EditorialTitle text={t('dreamDetail.theDream')} />
+                </p>
                 {dreamText ? (
                   <p className="dd-body">{dreamText}</p>
                 ) : (
@@ -192,7 +197,9 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
 
               {(stoodOutText || (selectedElementRaw && language === 'en' && containsHebrew(selectedElementRaw))) && (
                 <section className="dd-block">
-                  <p className="dd-eyebrow">{t('dreamDetail.whatStoodOut')}</p>
+                  <p className="dd-eyebrow">
+                    <EditorialTitle text={t('dreamDetail.whatStoodOut')} />
+                  </p>
                   {stoodOutText ? (
                     <p className="dd-body dd-body--stood-out">{stoodOutText}</p>
                   ) : (
@@ -202,7 +209,9 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
               )}
 
               <section className="dd-block">
-                <p className="dd-eyebrow">{t('dreamDetail.yourAssociation')}</p>
+                <p className="dd-eyebrow">
+                  <EditorialTitle text={t('dreamDetail.yourAssociation')} />
+                </p>
                 {associationText ? (
                   <p className="dd-body">{associationText}</p>
                 ) : (
@@ -211,12 +220,16 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
               </section>
 
               <section className="dd-block">
-                <p className="dd-eyebrow">{t('dreamDetail.aPossibleThread')}</p>
+                <p className="dd-eyebrow">
+                  <EditorialTitle text={t('dreamDetail.aPossibleThread')} />
+                </p>
                 <p className="dd-body dd-body--thread">{sanitizeAiTextForDisplay(reflection.possibleThread)}</p>
               </section>
 
               <section className="dd-block">
-                <p className="dd-eyebrow">{t('dreamDetail.aQuestionWorthSittingWith')}</p>
+                <p className="dd-eyebrow">
+                  <EditorialTitle text={t('dreamDetail.aQuestionWorthSittingWith')} />
+                </p>
                 <p className="dd-body dd-body--question">{sanitizeAiTextForDisplay(reflection.continuityQuestion)}</p>
               </section>
 

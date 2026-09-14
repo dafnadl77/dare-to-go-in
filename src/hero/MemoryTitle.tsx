@@ -80,7 +80,12 @@ export default function MemoryTitle({ revealed, dissolving = false, reconstructi
   return (
     <h1
       ref={rootRef}
-      className={`memory-title${revealed ? ' is-revealed' : ''}${settled ? ' is-settled' : ''}${dissolving ? ' is-dissolving' : ''}${reconstructing ? ' is-reconstructing' : ''}`}
+      // editorial-word-flow (src/index.css) is the shared word-spacing
+      // structure src/ui/EditorialTitle.tsx also uses for every other
+      // English heading — applied here directly (not redeclared in
+      // MemoryTitle.css) so the logo and those headings share one real
+      // implementation.
+      className={`memory-title editorial-word-flow${revealed ? ' is-revealed' : ''}${settled ? ' is-settled' : ''}${dissolving ? ' is-dissolving' : ''}${reconstructing ? ' is-reconstructing' : ''}`}
       aria-label={TITLE}
       // DARE TO GO IN is the brand mark — never translated, and its
       // visual order must never be affected by a Hebrew (RTL) document
@@ -91,7 +96,7 @@ export default function MemoryTitle({ revealed, dissolving = false, reconstructi
       dir="ltr"
     >
       {words.map((word, wi) => (
-        <span className="mt-word" key={wi}>
+        <span className="editorial-word" key={wi}>
           {word.split('').map((ch, ci) => {
             const i = globalIndex++;
             const seed = hashSeed(i + 1);
