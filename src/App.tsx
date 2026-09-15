@@ -5,7 +5,8 @@ import DreamArchive from './archive/DreamArchive';
 import DreamDetail from './archive/DreamDetail';
 import type { ArchiveEntry } from './archive/archiveData';
 import LanguageSwitcher from './i18n/LanguageSwitcher';
-import { useAuth, POST_AUTH_REDIRECT_PARAM, POST_AUTH_REDIRECT_VALUE } from './auth/AuthContext';
+import ResetPassword from './archive/ResetPassword';
+import { useAuth, POST_AUTH_REDIRECT_PARAM, POST_AUTH_REDIRECT_VALUE, RESET_PASSWORD_VIEW_VALUE } from './auth/AuthContext';
 import { useLanguage } from './i18n/LanguageContext';
 import LegalPage from './legal/LegalPage';
 import type { LegalKey } from './legal/legalContent';
@@ -22,7 +23,7 @@ import AccessibilityControl from './a11y/AccessibilityControl';
     DREAM ARCHIVE" from the brief. 'privacy' | 'accessibility' | 'terms'
     are the legal pages (see src/legal) — public, unguarded, reachable
     from every screen's own footer. */
-type AppView = 'dream' | 'auth' | 'archive' | 'detail' | LegalKey;
+type AppView = 'dream' | 'auth' | 'archive' | 'detail' | 'reset-password' | LegalKey;
 
 const LEGAL_VIEWS: LegalKey[] = ['privacy', 'accessibility', 'terms'];
 
@@ -42,6 +43,13 @@ function getInitialView(): AppView {
   const value = new URLSearchParams(window.location.search).get(POST_AUTH_REDIRECT_PARAM);
   if (value === POST_AUTH_REDIRECT_VALUE) return 'archive';
   if (value === 'auth') return 'auth';
+  // A real password-recovery email link (see resetPasswordRedirectUrl in
+  // AuthContext.tsx) lands here with this exact query value, alongside
+  // Supabase's own auth params (a `code` param, or hash tokens — either
+  // way this plain search param survives untouched). React state set
+  // here persists for the rest of this page load even if Supabase's own
+  // client later cleans its params out of the URL.
+  if (value === RESET_PASSWORD_VIEW_VALUE) return 'reset-password';
   if (value && (LEGAL_VIEWS as string[]).includes(value)) return value as LegalKey;
   return 'dream';
 }
@@ -87,7 +95,7 @@ function AuthLoadingScreen() {
 }
 
 function App() {
-  const { user, loading } = useAuth();
+  const { user, loading, isPasswordRecovery } = useAuth();
   const { t } = useLanguage();
   const [view, setViewState] = useState<AppView>(() => getInitialView());
   const [authMode, setAuthMode] = useState<AuthMode>('signup');
@@ -120,13 +128,24 @@ function App() {
   // never a fake stored boolean. Waits for `loading` to resolve first so
   // a genuinely signed-in dreamer refreshing on the archive never gets
   // bounced to auth just because the session hasn't loaded yet.
+  //
+  // A password-recovery link creates a real session the exact same way a
+  // normal sign-in does (see AuthContext.tsx), so `user` alone can't
+  // keep it out of the archive — isPasswordRecovery is what does that:
+  // whenever it's true, archive/detail redirect to the dedicated "set a
+  // new password" screen instead of either auth or the archive itself,
+  // until updatePassword() actually succeeds and clears the flag.
   useEffect(() => {
     if (loading) return;
+    if (isPasswordRecovery && (view === 'archive' || view === 'detail')) {
+      setView('reset-password');
+      return;
+    }
     if ((view === 'archive' || view === 'detail') && !user) {
       setView('auth');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, user, view]);
+  }, [loading, user, view, isPasswordRecovery]);
 
   let screen: ReactNode;
 
@@ -144,6 +163,18 @@ function App() {
         onSwitchMode={setAuthMode}
         onBack={() => setView('dream')}
         onAuthenticated={() => setView('archive')}
+        onOpenLegal={handleOpenLegal}
+      />
+    );
+  } else if (view === 'reset-password') {
+    screen = (
+      <ResetPassword
+        onBack={() => setView('dream')}
+        onDone={() => setView('archive')}
+        onRequestNewLink={() => {
+          setAuthMode('forgot');
+          setView('auth');
+        }}
         onOpenLegal={handleOpenLegal}
       />
     );

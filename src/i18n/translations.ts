@@ -171,6 +171,27 @@ export interface Translations {
     signOut: string;
     checkYourEmailTitle: string;
     checkYourEmailMessage: string;
+    forgotPassword: string;
+    resetRequestTitle: string;
+    resetRequestTagline: string;
+    resetRequestSubmit: string;
+    resetRequestSending: string;
+    resetRequestSentMessage: string;
+    backToSignIn: string;
+    setNewPasswordTitle: string;
+    setNewPasswordTagline: string;
+    newPasswordPlaceholder: string;
+    confirmPasswordPlaceholder: string;
+    passwordsDontMatch: string;
+    updatePasswordSubmit: string;
+    updatingPassword: string;
+    passwordUpdatedTitle: string;
+    passwordUpdatedMessage: string;
+    continueToArchive: string;
+    resetLinkChecking: string;
+    resetLinkInvalidTitle: string;
+    resetLinkInvalidMessage: string;
+    requestNewLink: string;
   };
   footer: {
     designedDevelopedPrefix: string;
@@ -358,6 +379,27 @@ export const en: Translations = {
     signOut: 'Sign out',
     checkYourEmailTitle: 'CHECK YOUR EMAIL',
     checkYourEmailMessage: 'I sent a confirmation link to {email}. Open it to finish creating your archive.',
+    forgotPassword: 'Forgot password?',
+    resetRequestTitle: 'RESET YOUR PASSWORD',
+    resetRequestTagline: 'Enter your email and I’ll send you a link to choose a new one.',
+    resetRequestSubmit: 'SEND RESET LINK',
+    resetRequestSending: 'Sending…',
+    resetRequestSentMessage: 'If an archive exists for {email}, I’ve sent a link to reset the password.',
+    backToSignIn: '← Back to sign in',
+    setNewPasswordTitle: 'SET A NEW PASSWORD',
+    setNewPasswordTagline: 'Choose a new password for your archive.',
+    newPasswordPlaceholder: 'New password',
+    confirmPasswordPlaceholder: 'Confirm new password',
+    passwordsDontMatch: 'Those passwords don’t match.',
+    updatePasswordSubmit: 'SET NEW PASSWORD',
+    updatingPassword: 'Updating…',
+    passwordUpdatedTitle: 'PASSWORD UPDATED',
+    passwordUpdatedMessage: 'Your password has been changed.',
+    continueToArchive: 'Continue to My Dreams',
+    resetLinkChecking: 'Checking your link…',
+    resetLinkInvalidTitle: 'LINK EXPIRED',
+    resetLinkInvalidMessage: 'This password reset link is invalid or has expired. Request a new one below.',
+    requestNewLink: 'Request a new link',
   },
   footer: {
     designedDevelopedPrefix: 'Design, Development & Build:',
@@ -551,6 +593,27 @@ export const he: Translations = {
     signOut: 'התנתקות',
     checkYourEmailTitle: 'בדקו את תיבת המייל',
     checkYourEmailMessage: 'נשלח קישור אישור אל {email}. פתחו אותו כדי להשלים את יצירת הארכיון.',
+    forgotPassword: 'שכחת סיסמה?',
+    resetRequestTitle: 'איפוס הסיסמה שלך',
+    resetRequestTagline: 'הזינו את כתובת האימייל שלכם ונשלח לכם קישור לבחירת סיסמה חדשה.',
+    resetRequestSubmit: 'שליחת קישור לאיפוס',
+    resetRequestSending: 'שולח…',
+    resetRequestSentMessage: 'אם קיים ארכיון עבור {email}, שלחנו אליו קישור לאיפוס הסיסמה.',
+    backToSignIn: '← חזרה להתחברות',
+    setNewPasswordTitle: 'בחירת סיסמה חדשה',
+    setNewPasswordTagline: 'בחרו סיסמה חדשה לארכיון שלכם.',
+    newPasswordPlaceholder: 'סיסמה חדשה',
+    confirmPasswordPlaceholder: 'אימות סיסמה חדשה',
+    passwordsDontMatch: 'הסיסמאות אינן תואמות.',
+    updatePasswordSubmit: 'קביעת סיסמה חדשה',
+    updatingPassword: 'מעדכן…',
+    passwordUpdatedTitle: 'הסיסמה עודכנה',
+    passwordUpdatedMessage: 'הסיסמה שלכם שונתה בהצלחה.',
+    continueToArchive: 'מעבר לחלומות שלי',
+    resetLinkChecking: 'בודקים את הקישור…',
+    resetLinkInvalidTitle: 'הקישור פג תוקף',
+    resetLinkInvalidMessage: 'קישור איפוס הסיסמה אינו תקין או שפג תוקפו. בקשו קישור חדש למטה.',
+    requestNewLink: 'בקשת קישור חדש',
   },
   footer: {
     designedDevelopedPrefix: 'עיצוב, פיתוח ובנייה:',

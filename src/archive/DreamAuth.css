@@ -306,6 +306,40 @@
   box-shadow: none;
 }
 
+/* ---- Forgot password? — understated on purpose: quiet, small, no
+   border/background, sitting right where a dreamer expects it (just
+   below the password field), in the same restrained text-link language
+   as .auth-switch-link rather than a second button competing with
+   ENTER MY ARCHIVE. Sign-in only (see DreamAuth.tsx). ---- */
+.auth-forgot-link {
+  align-self: center;
+  margin: -0.5rem 0 0;
+  padding: 0.2em 0.4em;
+  background: none;
+  border: none;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--dream-white);
+  opacity: 0.7;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.55);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-color: rgba(244, 240, 232, 0.35);
+  cursor: pointer;
+  transition: opacity 0.4s var(--ease-soft), text-decoration-color 0.4s var(--ease-soft);
+}
+
+.auth-forgot-link:hover,
+.auth-forgot-link:focus-visible {
+  opacity: 1;
+  text-decoration-color: var(--dream-white);
+}
+
+.auth-forgot-link:focus-visible {
+  outline: none;
+}
+
 .auth-switch {
   margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;

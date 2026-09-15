@@ -8,7 +8,7 @@ import type { LegalKey } from '../legal/legalContent';
 import Breadcrumb from '../ui/Breadcrumb';
 import './DreamAuth.css';
 
-export type AuthMode = 'signup' | 'signin';
+export type AuthMode = 'signup' | 'signin' | 'forgot';
 
 interface DreamAuthProps {
   mode: AuthMode;
@@ -69,7 +69,7 @@ function looksLikeEmail(value: string): boolean {
  */
 export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated, onOpenLegal }: DreamAuthProps) {
   const { t } = useLanguage();
-  const { signInWithPassword, signUpWithPassword, signInWithGoogle } = useAuth();
+  const { signInWithPassword, signUpWithPassword, signInWithGoogle, resetPasswordForEmail } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     bgVideoRef.current?.play().catch(() => {});
@@ -90,8 +90,15 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated,
   // would just get reversed by the auth guard the instant it discovers
   // there is still no real session — a confusing, unexplained dead end.
   const [awaitingConfirmationFor, setAwaitingConfirmationFor] = useState<string | null>(null);
+  // Set once a password-reset request genuinely went through (mode ===
+  // 'forgot') — mirrors awaitingConfirmationFor's own pattern. The
+  // message shown is the SAME regardless of whether the email actually
+  // has an archive (see resetPasswordForEmail's own doc comment on why —
+  // Supabase itself never reveals that, so this app doesn't either).
+  const [resetSentFor, setResetSentFor] = useState<string | null>(null);
 
   const isSignUp = mode === 'signup';
+  const isForgot = mode === 'forgot';
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -103,6 +110,19 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated,
       setErrorMessage(t('auth.errorInvalidEmail'));
       return;
     }
+
+    if (isForgot) {
+      setPending('password');
+      const result = await resetPasswordForEmail(trimmedEmail);
+      setPending(null);
+      if (!result.ok) {
+        setErrorMessage(describeAuthError(result.error, t));
+      } else {
+        setResetSentFor(trimmedEmail);
+      }
+      return;
+    }
+
     if (isSignUp && password.length < 6) {
       setErrorMessage(t('auth.errorWeakPassword'));
       return;
@@ -143,6 +163,7 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated,
   const switchModeAndClearError = (next: AuthMode) => {
     setErrorMessage(null);
     setAwaitingConfirmationFor(null);
+    setResetSentFor(null);
     onSwitchMode(next);
   };
 
@@ -172,6 +193,16 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated,
             <h1 className="auth-eyebrow-title">{t('auth.checkYourEmailTitle')}</h1>
             <p className="auth-tagline">{t('auth.checkYourEmailMessage').replace('{email}', awaitingConfirmationFor)}</p>
           </>
+        ) : resetSentFor ? (
+          <>
+            <h1 className="auth-eyebrow-title">{t('auth.checkYourEmailTitle')}</h1>
+            <p className="auth-tagline">{t('auth.resetRequestSentMessage').replace('{email}', resetSentFor)}</p>
+          </>
+        ) : isForgot ? (
+          <>
+            <h1 className="auth-eyebrow-title">{t('auth.resetRequestTitle')}</h1>
+            <p className="auth-tagline">{t('auth.resetRequestTagline')}</p>
+          </>
         ) : isSignUp ? (
           <>
             <h1 className="auth-eyebrow-title">{t('auth.keepYourDreams')}</h1>
@@ -184,21 +215,25 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated,
           </>
         )}
 
-        {!awaitingConfirmationFor && <form className="auth-form" onSubmit={handleSubmit}>
-          <button
-            type="button"
-            className="auth-google"
-            data-cursor-hover
-            onClick={handleGoogleClick}
-            disabled={pending !== null}
-          >
-            <GoogleMark />
-            {pending === 'google' ? t('auth.redirectingToGoogle') : t('auth.continueWithGoogle')}
-          </button>
+        {!awaitingConfirmationFor && !resetSentFor && <form className="auth-form" onSubmit={handleSubmit}>
+          {!isForgot && (
+            <>
+              <button
+                type="button"
+                className="auth-google"
+                data-cursor-hover
+                onClick={handleGoogleClick}
+                disabled={pending !== null}
+              >
+                <GoogleMark />
+                {pending === 'google' ? t('auth.redirectingToGoogle') : t('auth.continueWithGoogle')}
+              </button>
 
-          <div className="auth-divider" aria-hidden="true">
-            <span>{t('auth.or')}</span>
-          </div>
+              <div className="auth-divider" aria-hidden="true">
+                <span>{t('auth.or')}</span>
+              </div>
+            </>
+          )}
 
           {errorMessage && (
             <p className="auth-error" role="alert">
@@ -220,32 +255,55 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated,
             />
           </label>
 
-          <label className="auth-field">
-            <input
-              className="auth-input"
-              type="password"
-              autoComplete={isSignUp ? 'new-password' : 'current-password'}
-              dir="ltr"
-              placeholder={t('auth.passwordPlaceholder')}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={pending !== null}
-            />
-          </label>
+          {!isForgot && (
+            <label className="auth-field">
+              <input
+                className="auth-input"
+                type="password"
+                autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                dir="ltr"
+                placeholder={t('auth.passwordPlaceholder')}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={pending !== null}
+              />
+            </label>
+          )}
+
+          {/* Understated on purpose — sign-in only, never during account
+              creation (there's no existing password to forget yet). */}
+          {mode === 'signin' && (
+            <button
+              type="button"
+              className="auth-forgot-link"
+              data-cursor-hover
+              onClick={() => switchModeAndClearError('forgot')}
+            >
+              {t('auth.forgotPassword')}
+            </button>
+          )}
 
           <button type="submit" className="auth-submit" data-cursor-hover disabled={pending !== null}>
-            {pending === 'password'
-              ? isSignUp
-                ? t('auth.creatingAccount')
-                : t('auth.signingIn')
-              : isSignUp
-                ? t('auth.createMyArchive')
-                : t('auth.enterMyArchive')}
+            {isForgot
+              ? pending === 'password'
+                ? t('auth.resetRequestSending')
+                : t('auth.resetRequestSubmit')
+              : pending === 'password'
+                ? isSignUp
+                  ? t('auth.creatingAccount')
+                  : t('auth.signingIn')
+                : isSignUp
+                  ? t('auth.createMyArchive')
+                  : t('auth.enterMyArchive')}
           </button>
         </form>}
 
         <p className="auth-switch">
-          {awaitingConfirmationFor || isSignUp ? (
+          {isForgot || resetSentFor ? (
+            <button type="button" className="auth-switch-link" data-cursor-hover onClick={() => switchModeAndClearError('signin')}>
+              {t('auth.backToSignIn')}
+            </button>
+          ) : awaitingConfirmationFor || isSignUp ? (
             <>
               {t('auth.alreadyHaveArchive')}
               <button type="button" className="auth-switch-link" data-cursor-hover onClick={() => switchModeAndClearError('signin')}>

@@ -16,6 +16,18 @@ interface AuthContextValue {
       genuinely signed-in dreamer would flash through the auth screen on
       every refresh before their real session loads. */
   loading: boolean;
+  /** True from the moment Supabase's own PASSWORD_RECOVERY auth event
+      fires (the dreamer followed a real password-reset email link) until
+      updatePassword() below actually succeeds. This — not merely "a
+      session exists" — is what App.tsx's guard checks to keep a
+      recovery link from dropping straight into the normal archive
+      before a new password is actually set: a recovery link creates a
+      real Supabase session same as any sign-in, so `user` alone can't
+      tell the two apart. Deliberately NOT cleared just by navigating
+      away (see App.tsx) — only a genuine successful password change
+      clears it, so a dreamer who backs out and returns to the same link
+      is still correctly routed to "set a new password", not the archive. */
+  isPasswordRecovery: boolean;
   signInWithPassword: (email: string, password: string) => Promise<AuthActionResult>;
   /** `sessionCreated` distinguishes two genuinely different successes: a
       fresh Supabase project has "Confirm email" on by default, so a brand
@@ -28,6 +40,16 @@ interface AuthContextValue {
       error) if the redirect itself couldn't even start; a successful
       call never "returns" in the normal sense, the page just leaves. */
   signInWithGoogle: () => Promise<AuthActionResult>;
+  /** The official Supabase password-recovery request — always resolves
+      to a generic success (Supabase itself never reveals whether the
+      email is actually registered, so this app doesn't either; see
+      ResetPassword request screen). Only a genuine failure to even reach
+      Supabase (network, rate limit) surfaces as an error here. */
+  resetPasswordForEmail: (email: string) => Promise<AuthActionResult>;
+  /** Sets a new password on the CURRENT session — only meaningful while
+      isPasswordRecovery is true (see ResetPassword.tsx, which is the
+      only caller). Clears isPasswordRecovery on success. */
+  updatePassword: (newPassword: string) => Promise<AuthActionResult>;
   signOut: () => Promise<void>;
 }
 
@@ -40,21 +62,36 @@ const AuthContext = createContext<AuthContextValue | null>(null);
     param is the whole mechanism, not a route. */
 export const POST_AUTH_REDIRECT_PARAM = 'view';
 export const POST_AUTH_REDIRECT_VALUE = 'archive';
+/** The view App.tsx shows for a password-recovery link — see
+    ResetPassword.tsx. Exported so App.tsx's getInitialView() recognizes
+    it without either file guessing the other's string literal. */
+export const RESET_PASSWORD_VIEW_VALUE = 'reset-password';
 
 /** Always built from the browser's own current origin — never a
     hardcoded domain — so this is correct in every environment without
     edits: localhost:5173 in dev, the real Vercel domain in production,
-    and any future domain with no code change. Used for both the Google
-    OAuth redirect and the sign-up confirmation-email link, so a
-    confirmed/authenticated dreamer always lands back on the archive
-    instead of the bare homepage. */
+    daretogoin.com now that it's live, and any future domain with no code
+    change. Used for the Google OAuth redirect and the sign-up
+    confirmation-email link, so a confirmed/authenticated dreamer always
+    lands back on the archive instead of the bare homepage. */
 function postAuthRedirectUrl(): string {
   return `${window.location.origin}/?${POST_AUTH_REDIRECT_PARAM}=${POST_AUTH_REDIRECT_VALUE}`;
+}
+
+/** Same never-hardcoded-origin approach as postAuthRedirectUrl, pointed
+    at the dedicated "set a new password" view instead — see
+    resetPasswordForEmail below and ResetPassword.tsx. Must be added to
+    Supabase's Auth → URL Configuration → Redirect URLs allow-list (see
+    this task's own final report) or Supabase silently falls back to the
+    project's default Site URL instead of sending the dreamer here. */
+function resetPasswordRedirectUrl(): string {
+  return `${window.location.origin}/?${POST_AUTH_REDIRECT_PARAM}=${RESET_PASSWORD_VIEW_VALUE}`;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -69,8 +106,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      // Fires exactly once, only when the session that just materialized
+      // came from a real password-recovery link (see
+      // resetPasswordRedirectUrl) — never for an ordinary sign-in, even
+      // though both end up setting a real session the same way. This is
+      // the one authoritative signal ResetPassword.tsx/App.tsx's guard
+      // rely on; nothing here parses the URL itself.
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+      }
     });
 
     return () => {
@@ -82,6 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       loading,
+      isPasswordRecovery,
       async signInWithPassword(email, password) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) return { ok: false, error };
@@ -118,11 +165,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // back through onAuthStateChange, not through this return value.
         return { ok: true, sessionCreated: true };
       },
+      async resetPasswordForEmail(email) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: resetPasswordRedirectUrl(),
+        });
+        // Supabase itself never distinguishes "no account for this
+        // email" as its own error here (a deliberate anti-enumeration
+        // choice on their side) — only a real failure to even make the
+        // request (network, rate limit) comes back as an error, so the
+        // caller can safely show one generic "if an account exists…"
+        // message regardless of which branch this took.
+        if (error) return { ok: false, error };
+        return { ok: true, sessionCreated: false };
+      },
+      async updatePassword(newPassword) {
+        const { error } = await supabase.auth.updateUser({ password: newPassword });
+        if (error) return { ok: false, error };
+        setIsPasswordRecovery(false);
+        return { ok: true, sessionCreated: true };
+      },
       async signOut() {
         await supabase.auth.signOut();
       },
     }),
-    [user, loading],
+    [user, loading, isPasswordRecovery],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
