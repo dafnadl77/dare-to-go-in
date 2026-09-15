@@ -66,9 +66,11 @@
   transition: opacity 0.4s var(--ease-soft);
 }
 
+/* Sized ~27% larger than its original 1.3em per explicit request —
+   wordmark/typography/spacing/alignment untouched. */
 .auth-back-icon {
-  width: 1.3em;
-  height: 1.3em;
+  width: 1.65em;
+  height: 1.65em;
   border-radius: 22%;
   flex: none;
   object-fit: cover;

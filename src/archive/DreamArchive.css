@@ -164,10 +164,12 @@
    a large app-icon look. The source PNG is a flat opaque square (no
    alpha channel) with the rounded shape baked into the artwork itself;
    this CSS clip reproduces that shape at display size without touching
-   the favicon file. No added background/border/glow. */
+   the favicon file. No added background/border/glow. Sized ~26% larger
+   than its original 1.15em per explicit request — wordmark/typography/
+   spacing/alignment untouched. */
 .ar-brand-icon {
-  width: 1.15em;
-  height: 1.15em;
+  width: 1.45em;
+  height: 1.45em;
   border-radius: 22%;
   flex: none;
   object-fit: cover;
