@@ -52,9 +52,19 @@ export async function getDreamsRemote(ownerId: string): Promise<SavedDream[]> {
   return (data ?? []).map(rowToSavedDream);
 }
 
-/** One new dream, saved directly to this user's own account. */
+/** One new dream, saved directly to this user's own account. Uses the
+    same upsert+ignoreDuplicates shape as importDreamsRemote below (keyed
+    on the dream's own client-generated id) rather than a plain insert —
+    every caller always passes a genuinely fresh dream/id, so this changes
+    nothing about normal behavior, but it makes a RETRY of the exact same
+    call (e.g. App.tsx's pending-save resume, after a save that may have
+    actually succeeded server-side despite a client-side network error)
+    safely idempotent: a retry can never create a second row for the same
+    dream. */
 export async function saveDreamRemote(dream: SavedDream, ownerId: string): Promise<void> {
-  const { error } = await supabase.from('dreams').insert(savedDreamToRow(dream, ownerId));
+  const { error } = await supabase
+    .from('dreams')
+    .upsert(savedDreamToRow(dream, ownerId), { onConflict: 'id', ignoreDuplicates: true });
   if (error) throw error;
 }
 

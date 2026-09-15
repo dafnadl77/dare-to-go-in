@@ -159,6 +159,8 @@ export interface Translations {
     signingIn: string;
     creatingAccount: string;
     checkingSession: string;
+    savingYourDream: string;
+    saveDreamFailedMessage: string;
     redirectingToGoogle: string;
     errorInvalidEmail: string;
     errorInvalidCredentials: string;
@@ -367,6 +369,8 @@ export const en: Translations = {
     signingIn: 'Signing in…',
     creatingAccount: 'Creating your archive…',
     checkingSession: 'One moment…',
+    savingYourDream: 'Saving your dream…',
+    saveDreamFailedMessage: 'I couldn’t save your dream. Your words are still safe — let’s try again.',
     redirectingToGoogle: 'Connecting to Google…',
     errorInvalidEmail: 'That doesn’t look like a valid email address.',
     errorInvalidCredentials: 'That email and password don’t match. Try again, or create a new archive.',
@@ -581,6 +585,8 @@ export const he: Translations = {
     signingIn: 'מתחברים…',
     creatingAccount: 'יוצרים את הארכיון שלך…',
     checkingSession: 'רגע…',
+    savingYourDream: 'שומר את החלום שלך…',
+    saveDreamFailedMessage: 'לא הצלחתי לשמור את החלום. המילים שלך עדיין בטוחות — ננסה שוב.',
     redirectingToGoogle: 'מתחברים אל Google…',
     errorInvalidEmail: 'זו לא נראית ככתובת אימייל תקינה.',
     errorInvalidCredentials: 'האימייל והסיסמה לא תואמים. נסו שוב, או צרו ארכיון חדש.',

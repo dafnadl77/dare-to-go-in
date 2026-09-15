@@ -1,9 +1,12 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import HeroDream from './hero/HeroDream';
 import DreamAuth, { type AuthMode } from './archive/DreamAuth';
 import DreamArchive from './archive/DreamArchive';
 import DreamDetail from './archive/DreamDetail';
 import type { ArchiveEntry } from './archive/archiveData';
+import type { SavedDream } from './hero/dreamStorage';
+import { saveDreamRemote } from './hero/dreamRemoteStorage';
+import { getPendingDreamSave, setPendingDreamSave, clearPendingDreamSave } from './hero/pendingDreamSave';
 import LanguageSwitcher from './i18n/LanguageSwitcher';
 import ResetPassword from './archive/ResetPassword';
 import { useAuth, POST_AUTH_REDIRECT_PARAM, POST_AUTH_REDIRECT_VALUE, RESET_PASSWORD_VIEW_VALUE } from './auth/AuthContext';
@@ -69,8 +72,12 @@ function writeViewToUrl(view: AppView) {
     protected screen. Deliberately plain (no new visual language): the
     same black/ivory palette as the rest of the app, nothing borrowed
     from the cloud/room scenes those protected screens themselves use, so
-    there's nothing to flash before we know whether to show them at all. */
-function AuthLoadingScreen() {
+    there's nothing to flash before we know whether to show them at all.
+    Reused (never redesigned) for the pending-save resume below — the
+    same "wait for something real before showing the destination" purpose
+    this screen already exists for — with an optional error+retry state
+    for a genuine save failure (see attemptPendingSave in App()). */
+function AuthLoadingScreen({ messageKey = 'auth.checkingSession', onRetry }: { messageKey?: string; onRetry?: () => void }) {
   const { t } = useLanguage();
   return (
     <div
@@ -78,6 +85,8 @@ function AuthLoadingScreen() {
         position: 'fixed',
         inset: 0,
         display: 'flex',
+        flexDirection: 'column',
+        gap: '1.2rem',
         alignItems: 'center',
         justifyContent: 'center',
         background: 'var(--dream-black)',
@@ -86,10 +95,33 @@ function AuthLoadingScreen() {
         fontSize: '0.8rem',
         letterSpacing: '0.14em',
         textTransform: 'uppercase',
+        textAlign: 'center',
+        padding: '0 1.5rem',
         opacity: 0.7,
       }}
     >
-      {t('auth.checkingSession')}
+      {t(messageKey)}
+      {onRetry && (
+        <button
+          type="button"
+          data-cursor-hover
+          onClick={onRetry}
+          style={{
+            background: 'none',
+            border: '1px solid currentColor',
+            borderRadius: '999px',
+            padding: '0.6em 1.4em',
+            color: 'inherit',
+            fontFamily: 'inherit',
+            fontSize: 'inherit',
+            letterSpacing: 'inherit',
+            textTransform: 'inherit',
+            cursor: 'pointer',
+          }}
+        >
+          {t('reconstruction.tryAgain')}
+        </button>
+      )}
     </div>
   );
 }
@@ -100,10 +132,87 @@ function App() {
   const [view, setViewState] = useState<AppView>(() => getInitialView());
   const [authMode, setAuthMode] = useState<AuthMode>('signup');
   const [openEntry, setOpenEntry] = useState<ArchiveEntry | null>(null);
+  // SAVE THIS DREAM, chosen while signed OUT (see HeroDream.tsx's
+  // handleSaveDream): 'none' the rest of the time; 'awaiting-auth' once a
+  // dream is pending and DreamAuth is showing (view === 'auth' already
+  // covers what's on screen, nothing extra to render here); 'resuming'/
+  // 'error' while the pending dream is actually being written to Supabase
+  // once a real session exists — these two override whatever `view`
+  // happens to be (see the screen-selection below), so the dreamer can
+  // never land on the (still dream-less) archive before that save is
+  // genuinely confirmed. Initialized synchronously from localStorage so a
+  // returning Google OAuth / email-confirmation redirect never flashes
+  // the ordinary archive first.
+  const [pendingSaveState, setPendingSaveState] = useState<'none' | 'awaiting-auth' | 'resuming' | 'error'>(() =>
+    getPendingDreamSave() ? 'awaiting-auth' : 'none',
+  );
+  // Guards the resume attempt below against firing twice concurrently
+  // (e.g. a fast double state change right after sign-in) — a ref, not
+  // state, since it must be readable synchronously inside the same effect
+  // tick that sets it.
+  const isResumingSaveRef = useRef(false);
 
   const setView = (next: AppView) => {
     setViewState(next);
     writeViewToUrl(next);
+  };
+
+  // The one place a pending dream is actually written to Supabase — used
+  // both by the effect below (every automatic trigger: ordinary sign-in/
+  // up, and a fresh page load already authenticated after a Google/email
+  // redirect) and by the error state's own Retry action. saveDreamRemote
+  // itself is upsert-based (see dreamRemoteStorage.ts), so a retry after
+  // an uncertain failure can never create a duplicate row.
+  const attemptPendingSave = useCallback(async () => {
+    if (isResumingSaveRef.current || !user) return;
+    const pending = getPendingDreamSave();
+    if (!pending) {
+      setPendingSaveState('none');
+      return;
+    }
+    isResumingSaveRef.current = true;
+    setPendingSaveState('resuming');
+    try {
+      await saveDreamRemote(pending, user.id);
+      clearPendingDreamSave();
+      setPendingSaveState('none');
+      setView('archive');
+    } catch (err) {
+      console.error('Failed to resume pending dream save:', err);
+      setPendingSaveState('error');
+    } finally {
+      isResumingSaveRef.current = false;
+    }
+  }, [user]);
+
+  // Fires the resume above the moment a real session exists alongside a
+  // pending dream — covers every path a dreamer can reach that combination
+  // from: an ordinary sign-in/up (DreamAuth's onAuthenticated already
+  // flips `user`, which re-runs this), and a fresh page load that's
+  // already authenticated after returning from Google OAuth or a sign-up
+  // confirmation-email link (both round trips survive only because the
+  // pending dream itself lives in localStorage — see pendingDreamSave.ts
+  // — not in this component's own state).
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      // Genuinely signed out — nothing to resume yet; leave any pending
+      // dream exactly where it is for a future sign-in to pick up (see
+      // the TTL in pendingDreamSave.ts for how long that stays valid).
+      setPendingSaveState((prev) => (prev === 'resuming' ? prev : getPendingDreamSave() ? 'awaiting-auth' : 'none'));
+      return;
+    }
+    attemptPendingSave();
+  }, [user, loading, attemptPendingSave]);
+
+  // HeroDream's own SAVE, chosen while signed out (see its handleSaveDream)
+  // — the completed dream survives HeroDream's own unmount (it's about to
+  // be replaced by the existing DreamAuth screen) because it's handed up
+  // here and written to localStorage, not kept in HeroDream's local state.
+  const handleRequireAuthForSave = (dream: SavedDream) => {
+    setPendingDreamSave(dream);
+    setPendingSaveState('awaiting-auth');
+    setView('auth');
   };
 
   // The Hero's own way into the Dream Archive area — previously the only
@@ -149,7 +258,20 @@ function App() {
 
   let screen: ReactNode;
 
-  if ((view === 'archive' || view === 'detail') && loading) {
+  if (pendingSaveState === 'resuming' || pendingSaveState === 'error') {
+    // Takes priority over `view` entirely — the pending dream is only
+    // ever in this state right after a real session just materialized
+    // (see the effect above), so `view` at this exact moment is either
+    // still 'auth' or already flipped to 'archive'/POST_AUTH_REDIRECT's
+    // default; either way, the dreamer must see this, not that, until the
+    // save is genuinely confirmed (or fails, with a real way to retry).
+    screen = (
+      <AuthLoadingScreen
+        messageKey={pendingSaveState === 'error' ? 'auth.saveDreamFailedMessage' : 'auth.savingYourDream'}
+        onRetry={pendingSaveState === 'error' ? attemptPendingSave : undefined}
+      />
+    );
+  } else if ((view === 'archive' || view === 'detail') && loading) {
     // Never render the real archive/detail content until we genuinely
     // know whether this visitor is signed in — avoids a flash of
     // protected content before the guard above can react.
@@ -161,7 +283,21 @@ function App() {
       <DreamAuth
         mode={authMode}
         onSwitchMode={setAuthMode}
-        onBack={() => setView('dream')}
+        onBack={() => {
+          // Backing out of an auth prompt reached via SAVE — while
+          // nothing has been authenticated yet — is a deliberate cancel:
+          // clear the pending dream rather than leaving it to potentially
+          // attach itself to some unrelated future sign-in on this same
+          // browser (see pendingDreamSave.ts's own TTL note on that same
+          // risk). Never touches a pending dream that's already resuming/
+          // resolved, since this branch only renders while it's still
+          // 'awaiting-auth'.
+          if (pendingSaveState === 'awaiting-auth') {
+            clearPendingDreamSave();
+            setPendingSaveState('none');
+          }
+          setView('dream');
+        }}
         onAuthenticated={() => setView('archive')}
         onOpenLegal={handleOpenLegal}
       />
@@ -199,7 +335,13 @@ function App() {
       />
     );
   } else {
-    screen = <HeroDream onGoToArchive={() => setView('auth')} onOpenLegal={handleOpenLegal} />;
+    screen = (
+      <HeroDream
+        onGoToArchive={() => setView('auth')}
+        onRequireAuthForSave={handleRequireAuthForSave}
+        onOpenLegal={handleOpenLegal}
+      />
+    );
   }
 
   return (

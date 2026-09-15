@@ -24,7 +24,7 @@ import { getDisplayLabels } from './dreamElementLabels';
 import { generateDreamImage, type ImageResult } from './dreamImage';
 import { getDreamReflection, type DreamReflectionRequest } from './dreamReflectionEngine';
 import type { ReflectionResult } from './dreamReflectionSchema';
-import { saveDream, buildSavedDream } from './dreamStorage';
+import { buildSavedDream, type SavedDream } from './dreamStorage';
 import { saveDreamRemote } from './dreamRemoteStorage';
 import { extractAccentColor, extractDreamPalette, isImageCenterLight, type AccentColor } from './dreamAccentColor';
 import type { CentralMode } from './centralMode';
@@ -79,10 +79,18 @@ interface HeroDreamProps {
       separately-mounted Dream Archive area (see App.tsx). Nothing about
       the reconstruction/reflection/closing journey itself changes. */
   onGoToArchive: () => void;
+  /** SAVE THIS DREAM, chosen while signed OUT — see handleSaveDream. The
+      completed dream is handed up to App.tsx (which outlives this
+      component across the view switch to DreamAuth — HeroDream itself
+      unmounts) rather than silently written to the anonymous localStorage
+      archive. App.tsx shows the existing Sign In/Sign Up screen, then
+      resumes this exact save once a real session exists — see
+      pendingDreamSave.ts. */
+  onRequireAuthForSave: (dream: SavedDream) => void;
   onOpenLegal: (key: LegalKey) => void;
 }
 
-export default function HeroDream({ onGoToArchive, onOpenLegal }: HeroDreamProps) {
+export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal }: HeroDreamProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
   const videoARef = useRef<HTMLVideoElement>(null);
@@ -445,23 +453,28 @@ export default function HeroDream({ onGoToArchive, onOpenLegal }: HeroDreamProps
       dreamReflection: reflectionEngineResult.reflection,
       corrections,
     });
+    if (!user) {
+      // Signed OUT — a dream must belong to a real account, never the
+      // anonymous localStorage archive by default (see App.tsx's
+      // handleRequireAuthForSave). Hand the completed dream up and stop
+      // here: no "saving" animation, no DREAM SAVED. — nothing here has
+      // actually been persisted yet, and this component is about to
+      // unmount as App.tsx switches to the existing Sign In/Sign Up
+      // screen, so there is nothing left for local state to do.
+      onRequireAuthForSave(record);
+      return;
+    }
     // Signed in -> this dream belongs to that account from the start, in
-    // Supabase (RLS-enforced, see dreamRemoteStorage.ts). Signed out ->
-    // unchanged from before: localStorage only, exactly like every dream
-    // saved before Supabase persistence existed. The visual "saving" beat
-    // below is a fixed-duration animation independent of real save
-    // latency either way (see the comment on it), so this fires the
+    // Supabase (RLS-enforced, see dreamRemoteStorage.ts). The visual
+    // "saving" beat below is a fixed-duration animation independent of
+    // real save latency (see the comment on it), so this fires the
     // remote insert without awaiting it — a failure is logged, never
     // surfaced as a save error to the dreamer, matching how every other
     // best-effort persistence call in this app already behaves (e.g.
     // writeAll in dreamStorage.ts itself).
-    if (user) {
-      saveDreamRemote(record, user.id).catch((err) => {
-        console.error('Failed to save dream to Supabase:', err);
-      });
-    } else {
-      saveDream(record);
-    }
+    saveDreamRemote(record, user.id).catch((err) => {
+      console.error('Failed to save dream to Supabase:', err);
+    });
     setInsideStep('saving');
   };
 
