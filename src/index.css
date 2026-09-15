@@ -176,6 +176,7 @@ button:disabled {
 .ar-title,
 .ar-brand,
 .crumb-home,
+.auth-back,
 .da-title,
 .dr-question,
 .dc-title,
@@ -290,8 +291,11 @@ button:disabled {
 :root[dir='rtl'] .memory-title,
 :root[dir='rtl'] .memory-title *,
 :root[dir='rtl'] .ar-brand,
+:root[dir='rtl'] .ar-brand *,
 :root[dir='rtl'] .crumb-home,
-:root[dir='rtl'] .crumb-home * {
+:root[dir='rtl'] .crumb-home *,
+:root[dir='rtl'] .auth-back,
+:root[dir='rtl'] .auth-back * {
   font-family: 'Fraunces', Georgia, serif !important;
   letter-spacing: 0.01em !important;
 }

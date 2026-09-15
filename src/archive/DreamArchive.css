@@ -144,6 +144,9 @@
    that rule's own comment). Stays Fraunces in Hebrew via the existing
    RTL exemption for .ar-brand alongside .memory-title, further below. */
 .ar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
   margin: 0;
   padding: 0.3em 0;
   background: none;
@@ -155,6 +158,19 @@
   opacity: 0.92;
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
   transition: opacity 0.4s var(--ease-soft);
+}
+
+/* The approved D favicon, small and elegant next to the wordmark — never
+   a large app-icon look. The source PNG is a flat opaque square (no
+   alpha channel) with the rounded shape baked into the artwork itself;
+   this CSS clip reproduces that shape at display size without touching
+   the favicon file. No added background/border/glow. */
+.ar-brand-icon {
+  width: 1.15em;
+  height: 1.15em;
+  border-radius: 22%;
+  flex: none;
+  object-fit: cover;
 }
 
 .ar-brand:hover,

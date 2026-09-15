@@ -38,31 +38,45 @@
   }
 }
 
+/* The full brand lockup (icon + "DARE TO GO IN"), not just "DARE" —
+   font-family/weight/opsz/letter-spacing come from the shared
+   .font-editorial-display group (index.css, .auth-back is a member)
+   rather than being set here, avoiding the same kind of competing
+   direct-rule conflict already found and fixed on Breadcrumb's
+   .crumb-home. Kept small/quiet (font-size, opacity) — a top-left exit
+   affordance, not a second hero logo. */
 .auth-back {
   position: fixed;
   top: max(20px, env(safe-area-inset-top));
   left: max(20px, env(safe-area-inset-left));
   z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
   margin: 0;
   padding: 0.4em 0.3em;
   background: none;
   border: none;
   outline: none;
   cursor: pointer;
-  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.24em;
   color: var(--dream-white);
   opacity: 0.55;
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
-  transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
+  transition: opacity 0.4s var(--ease-soft);
+}
+
+.auth-back-icon {
+  width: 1.3em;
+  height: 1.3em;
+  border-radius: 22%;
+  flex: none;
+  object-fit: cover;
 }
 
 .auth-back:hover,
 .auth-back:focus-visible {
   opacity: 0.95;
-  letter-spacing: 0.3em;
 }
 
 .auth-content {

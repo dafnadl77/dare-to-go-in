@@ -255,7 +255,12 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
               which intentionally falls back to plain text for non-English.
               Applies the same shared .editorial-word-flow/.editorial-word
               classes (src/index.css) directly, since the text itself is a
-              static literal, not translatable content. */}
+              static literal, not translatable content. The approved D
+              favicon (public/apple-touch-icon.png — not regenerated, not
+              altered) sits before the wordmark in DOM order, which combined
+              with this button's own dir="ltr" keeps it visually first in
+              both languages. */}
+          <img className="ar-brand-icon" src="/apple-touch-icon.png" alt="" aria-hidden="true" />
           <span className="editorial-word-flow">
             {['DARE', 'TO', 'GO', 'IN'].map((word) => (
               <span className="editorial-word" key={word}>

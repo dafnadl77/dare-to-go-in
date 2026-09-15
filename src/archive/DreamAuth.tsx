@@ -150,7 +150,19 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated,
     <div className="dream-auth">
       <DreamStageBackground ref={bgVideoRef} active />
       <button type="button" className="auth-back" dir="ltr" data-cursor-hover onClick={onBack} aria-label={t('auth.backToDare')}>
-        DARE
+        {/* The full brand lockup, not just "DARE" — never translated, LTR
+            in every language (dir="ltr" here, plus the RTL font exemption
+            in index.css). Same approved D favicon + word-flow structure as
+            .ar-brand (DreamArchive.tsx) and the shared Breadcrumb's
+            .crumb-home, not a fourth separate implementation. */}
+        <img className="auth-back-icon" src="/apple-touch-icon.png" alt="" aria-hidden="true" />
+        <span className="editorial-word-flow">
+          {['DARE', 'TO', 'GO', 'IN'].map((word) => (
+            <span className="editorial-word" key={word}>
+              {word}
+            </span>
+          ))}
+        </span>
       </button>
 
       <div className="auth-content">
