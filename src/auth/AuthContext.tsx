@@ -156,7 +156,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async signInWithGoogle() {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
-          options: { redirectTo: postAuthRedirectUrl() },
+          // prompt: 'select_account' forces Google's own native account
+          // chooser every time this fires (an explicit "Continue with
+          // Google" click — see DreamAuth.tsx's handleGoogleClick, the
+          // only caller) instead of silently reusing whichever Google
+          // account happens to already be signed in on this device. Purely
+          // a Google-side authorization-request parameter passed through
+          // Supabase's own supported OAuth options — never touches Supabase
+          // session restoration for an already-authenticated DARE user,
+          // which goes through getSession()/onAuthStateChange and never
+          // calls this at all.
+          options: { redirectTo: postAuthRedirectUrl(), queryParams: { prompt: 'select_account' } },
         });
         if (error) return { ok: false, error };
         // On success the browser is already navigating to Google — there
