@@ -175,6 +175,7 @@ button:disabled {
 .font-editorial-display,
 .ar-title,
 .ar-brand,
+.crumb-home,
 .da-title,
 .dr-question,
 .dc-title,
@@ -275,10 +276,22 @@ button:disabled {
    correction (unlike .memory-title, which deliberately keeps `auto`)
    comes from the .font-editorial-display group above, which .ar-brand is
    also a member of — that value isn't touched by this RTL block, so it
-   already survives into Hebrew with no extra rule needed here. */
+   already survives into Hebrew with no extra rule needed here.
+
+   .crumb-home is the SAME brand mark again — the small "DARE TO GO IN"
+   the shared Breadcrumb (Breadcrumb.tsx) renders at the top of every
+   navigable page except Home. Its icon+wordmark lockup (see Breadcrumb.css)
+   needs the `*` form like .memory-title, not just the bare class like
+   .ar-brand: its children are the same .editorial-word spans, and without
+   this the blanket rule above would still force them to Heebo/normal
+   individually even with the parent exempted, since font-family/
+   letter-spacing here are being forced directly on every element, not
+   just inherited from an exempted ancestor. */
 :root[dir='rtl'] .memory-title,
 :root[dir='rtl'] .memory-title *,
-:root[dir='rtl'] .ar-brand {
+:root[dir='rtl'] .ar-brand,
+:root[dir='rtl'] .crumb-home,
+:root[dir='rtl'] .crumb-home * {
   font-family: 'Fraunces', Georgia, serif !important;
   letter-spacing: 0.01em !important;
 }

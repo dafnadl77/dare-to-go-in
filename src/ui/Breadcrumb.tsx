@@ -31,11 +31,27 @@ interface BreadcrumbProps {
  * `unicode-bidi: isolate` in Breadcrumb.css, so Hebrew segments read
  * correctly right-to-left within themselves.
  */
+/** The brand name itself — never translated, always this exact string,
+    always LTR (see .crumb-home's own dir="ltr" plus the RTL font
+    exemption in index.css). Rendered as real word-flow spans (the same
+    .editorial-word-flow/.editorial-word classes .memory-title and
+    EditorialTitle use — see src/index.css) so the small header wordmark
+    genuinely shares the logo's own word-spacing mechanism, not an
+    approximation of it. */
+const BRAND_WORDS = ['DARE', 'TO', 'GO', 'IN'];
+
 export default function Breadcrumb({ items, onHome, ariaLabel }: BreadcrumbProps) {
   return (
     <nav className="app-breadcrumb" dir="ltr" aria-label={ariaLabel}>
       <button type="button" className="crumb-home" dir="ltr" data-cursor-hover onClick={onHome}>
-        DARE TO GO IN
+        <img className="crumb-home-icon" src="/apple-touch-icon.png" alt="" aria-hidden="true" />
+        <span className="editorial-word-flow crumb-home-words">
+          {BRAND_WORDS.map((word) => (
+            <span className="editorial-word" key={word}>
+              {word}
+            </span>
+          ))}
+        </span>
       </button>
       {items.map((item, i) => (
         <span className="crumb-segment" key={i}>
