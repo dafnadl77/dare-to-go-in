@@ -13,6 +13,7 @@ import { useAuth, POST_AUTH_REDIRECT_PARAM, POST_AUTH_REDIRECT_VALUE, RESET_PASS
 import { useLanguage } from './i18n/LanguageContext';
 import LegalPage from './legal/LegalPage';
 import type { LegalKey } from './legal/legalContent';
+import AboutPage from './about/AboutPage';
 import AccessibilityControl from './a11y/AccessibilityControl';
 
 /** Which top-level experience is mounted. No router is introduced for
@@ -26,7 +27,7 @@ import AccessibilityControl from './a11y/AccessibilityControl';
     DREAM ARCHIVE" from the brief. 'privacy' | 'accessibility' | 'terms'
     are the legal pages (see src/legal) — public, unguarded, reachable
     from every screen's own footer. */
-type AppView = 'dream' | 'auth' | 'archive' | 'detail' | 'reset-password' | LegalKey;
+type AppView = 'dream' | 'auth' | 'archive' | 'detail' | 'reset-password' | 'about' | LegalKey;
 
 const LEGAL_VIEWS: LegalKey[] = ['privacy', 'accessibility', 'terms'];
 
@@ -53,6 +54,7 @@ function getInitialView(): AppView {
   // here persists for the rest of this page load even if Supabase's own
   // client later cleans its params out of the URL.
   if (value === RESET_PASSWORD_VIEW_VALUE) return 'reset-password';
+  if (value === 'about') return 'about';
   if (value && (LEGAL_VIEWS as string[]).includes(value)) return value as LegalKey;
   return 'dream';
 }
@@ -278,6 +280,8 @@ function App() {
     screen = <AuthLoadingScreen />;
   } else if (LEGAL_VIEWS.includes(view as LegalKey)) {
     screen = <LegalPage documentKey={view as LegalKey} onBack={() => setView('dream')} />;
+  } else if (view === 'about') {
+    screen = <AboutPage onBack={() => setView('dream')} onOpenLegal={handleOpenLegal} />;
   } else if (view === 'auth') {
     screen = (
       <DreamAuth
@@ -355,6 +359,12 @@ function App() {
           <>
             <button type="button" className="trn-archive-link" data-cursor-hover onClick={handleMyDreamsNav}>
               {t('hero.myDreamsNav')}
+            </button>
+            <span className="trn-divider" aria-hidden="true">
+              |
+            </span>
+            <button type="button" className="trn-archive-link" data-cursor-hover onClick={() => setView('about')}>
+              {t('hero.aboutNav')}
             </button>
             <span className="trn-divider" aria-hidden="true">
               |

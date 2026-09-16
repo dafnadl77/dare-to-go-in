@@ -25,10 +25,12 @@ export interface Translations {
   breadcrumb: {
     ariaLabel: string;
     signIn: string;
+    about: string;
   };
   hero: {
     dreamPrompt: string;
     myDreamsNav: string;
+    aboutNav: string;
   };
   hold: {
     holdToTellMe: string;
@@ -229,16 +231,30 @@ export interface Translations {
     reset: string;
     close: string;
   };
+  about: {
+    pageTitle: string;
+    pageDescription: string;
+    eyebrow: string;
+    headline: string;
+    paragraphIntro: string;
+    paragraphPractice: string;
+    paragraphAi: string;
+    emphasis: string;
+    credit: string;
+    privacyLink: string;
+  };
 }
 
 export const en: Translations = {
   breadcrumb: {
     ariaLabel: 'Breadcrumb',
     signIn: 'Sign In',
+    about: 'About',
   },
   hero: {
     dreamPrompt: 'WHAT DO YOU REMEMBER FROM YOUR DREAM?',
     myDreamsNav: 'MY DREAMS',
+    aboutNav: 'ABOUT',
   },
   hold: {
     holdToTellMe: 'HOLD TO TELL ME',
@@ -439,6 +455,21 @@ export const en: Translations = {
     reset: 'Reset',
     close: 'Close',
   },
+  about: {
+    pageTitle: 'About DARE | DARE TO GO IN',
+    pageDescription:
+      'Discover DARE TO GO IN — a private AI-powered space for recording, exploring and reflecting on the dreams that stay with you.',
+    eyebrow: 'ABOUT DARE',
+    headline: 'Some dreams\nstay with us.',
+    paragraphIntro: 'DARE TO GO IN is a private space for returning to the dreams that linger.',
+    paragraphPractice:
+      'Record what you remember.\nFollow the details that stood out.\nExplore the associations they awaken — and, over time, notice the images, people, places and patterns that keep returning.',
+    paragraphAi:
+      'DARE uses AI to help you reflect, not to tell you what your dreams “mean.”\nThere are no definitive interpretations here.\nNo predictions.\nNo diagnosis.\nJust possibilities, connections, and questions worth sitting with.',
+    emphasis: 'Your dreams remain yours.',
+    credit: 'Concept, design & development by Dafna Dalmeida.',
+    privacyLink: 'Privacy Policy',
+  },
 };
 
 /**
@@ -451,10 +482,12 @@ export const he: Translations = {
   breadcrumb: {
     ariaLabel: 'ניווט מיקום',
     signIn: 'כניסה',
+    about: 'אודות',
   },
   hero: {
     dreamPrompt: 'מה זכור לך מהחלום?',
     myDreamsNav: 'החלומות שלי',
+    aboutNav: 'אודות',
   },
   hold: {
     holdToTellMe: 'לחצי והחזיקי כדי לספר',
@@ -654,5 +687,19 @@ export const he: Translations = {
     reduceMotion: 'הפחתת תנועה',
     reset: 'איפוס',
     close: 'סגירה',
+  },
+  about: {
+    pageTitle: 'על DARE | DARE TO GO IN',
+    pageDescription: 'הכירו את DARE TO GO IN — מרחב פרטי מבוסס AI לתיעוד, חקירה והתבוננות בחלומות שנשארים איתנו.',
+    eyebrow: 'על DARE',
+    headline: 'יש חלומות שנשארים איתנו.',
+    paragraphIntro: 'DARE TO GO IN הוא מרחב פרטי לחזור אל החלומות שנשארים איתנו גם אחרי שהתעוררנו.',
+    paragraphPractice:
+      'כתבו או הקליטו את מה שאתם זוכרים.\nהתעכבו על הפרטים שבלטו.\nחקרו את האסוציאציות שהם מעוררים — ועם הזמן, שימו לב לדימויים, לאנשים, למקומות ולדפוסים שחוזרים שוב ושוב.',
+    paragraphAi:
+      'DARE משתמש ב-AI כדי לעזור לכם להתבונן בחלומות שלכם — לא כדי לקבוע מה הם "אומרים".\nאין כאן פירושים מוחלטים.\nאין תחזיות.\nאין אבחנות.\nרק אפשרויות, חיבורים ושאלות ששווה להישאר איתן קצת.',
+    emphasis: 'החלומות שלכם נשארים שלכם.',
+    credit: 'קונספט, עיצוב ופיתוח: דפנה דלמדה',
+    privacyLink: 'מדיניות פרטיות',
   },
 };
