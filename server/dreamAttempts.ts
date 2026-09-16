@@ -10,17 +10,8 @@ export { MAX_IMAGE_ATTEMPTS, MAX_REFLECTION_ATTEMPTS };
     minted by this request. */
 export async function createNewTrialIdentity(trialId: string): Promise<boolean> {
   const client = getSupabaseServiceClient();
-  if (!client) {
-    console.error('[trialIdentity] service client not configured (missing env var) — cannot create trial row');
-    return false;
-  }
+  if (!client) return false;
   const { error } = await client.from('trial_identities').insert({ id: trialId });
-  if (error) {
-    // Never logs the key/url — only Supabase's own error metadata, which
-    // is exactly what's needed to tell an auth/apikey rejection apart
-    // from an unrelated database error.
-    console.error('[trialIdentity] insert failed:', { message: error.message, code: error.code, hint: error.hint, details: error.details });
-  }
   return !error;
 }
 
