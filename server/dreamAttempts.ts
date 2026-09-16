@@ -71,11 +71,18 @@ async function callReserveFn(fnName: string, attemptId: string, identity: Caller
     p_trial_id: identity.kind === 'trial' ? identity.trialId : null,
   });
   if (error) return null;
-  // The SQL function RETURNs the new count only on a successful
-  // conditional UPDATE; no rows back means the WHERE clause rejected it
-  // (wrong ownership, unknown id, or the cap already reached) — the
-  // request is never distinguished further than that to the caller.
-  return Array.isArray(data) && data.length > 0 ? 'reserved' : 'rejected';
+  // The SQL function is declared `returns integer` — a single scalar,
+  // not `setof integer` or a table — so PostgREST's RPC call returns the
+  // bare new count directly (a JSON number) on a successful conditional
+  // UPDATE, or JSON null when the underlying UPDATE...RETURNING matched
+  // zero rows (wrong ownership, unknown id, or the cap already reached).
+  // It is never wrapped in an array; checking Array.isArray(data) here
+  // was the actual production bug (every reservation, including the
+  // very first for a brand-new dream, was misread as rejected because a
+  // bare number is never an array) — caught via a real anonymous
+  // end-to-end test after the service-role key fix, confirmed against
+  // both the HTTP response and the dream_attempts row's own image_count.
+  return typeof data === 'number' ? 'reserved' : 'rejected';
 }
 
 async function callRefundFn(fnName: string, attemptId: string): Promise<void> {
