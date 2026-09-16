@@ -95,6 +95,21 @@
   padding: 7vh 6vw 6vh 4vw;
 }
 
+/* English only — moves the whole column further from the image/fade
+   edge as one unit for more breathing room, per explicit request.
+   Hebrew's own position (the base rule above) is deliberately untouched.
+   Scoped to the desktop split (min-width matching the mobile breakpoint
+   below) rather than left unguarded: `html:not([lang='he'])` combined
+   with a class has higher specificity than the mobile media query's own
+   plain `.about-column { margin-left: 0 }` reset, so without this guard
+   it would win at every width, including mobile, and silently break the
+   stacked mobile layout for English only. */
+@media (min-width: 861px) {
+  html:not([lang='he']) .about-column {
+    margin-left: 54%;
+  }
+}
+
 .about-eyebrow {
   margin: 1.4rem 0 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
@@ -204,6 +219,15 @@ html[lang='he'] .about-privacy-link {
   .about-column {
     margin-left: 40%;
     max-width: 560px;
+  }
+}
+
+/* Same English-only nudge as the base rule above, scoped to exactly this
+   tablet band (min-width guard for the same specificity-vs-mobile reason
+   documented there — without it this would also win on mobile). */
+@media (min-width: 861px) and (max-width: 1080px) {
+  html:not([lang='he']) .about-column {
+    margin-left: 47%;
   }
 }
 
