@@ -6,6 +6,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(405).json({ reason: 'request_failed', message: 'Method not allowed.' });
     return;
   }
-  const result = await handleDreamTranslation(req.body);
+  const result = await handleDreamTranslation(req.body, { authorization: req.headers.authorization, cookie: req.headers.cookie });
   res.status(result.status).json(result.body);
 }

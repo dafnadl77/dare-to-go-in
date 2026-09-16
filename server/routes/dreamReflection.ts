@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
-import { okResult, errorResult, type HandlerResult } from '../httpResult.js';
+import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpResult.js';
 import { validateDreamAnalysis, type DreamAnalysis } from '../../src/hero/dreamAnalysisSchema.js';
 import {
   buildDreamReflectionSystemPrompt,
@@ -9,6 +9,8 @@ import {
   validateDreamReflectionResult,
 } from '../../src/hero/dreamReflectionSchema.js';
 import type { AppLanguage } from '../../src/hero/appLanguage.js';
+import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
+import { reserveReflectionAttempt, refundReflectionAttempt } from '../dreamAttempts.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
 
@@ -41,13 +43,20 @@ THE ELEMENT THE DREAMER CHOSE AS STANDING OUT TO THEM: ${selectedElement}
 THE DREAMER'S OWN ASSOCIATION WITH THAT ELEMENT (their exact words): "${reflectionResponse}"`;
 }
 
-export async function handleDreamReflection(rawBody: unknown): Promise<HandlerResult> {
+export async function handleDreamReflection(rawBody: unknown, requestHeaders: RequestHeaders): Promise<HandlerResult> {
+  const resolved = await resolveCallerIdentity(requestHeaders);
+  if (!resolved.ok) {
+    return errorResult(resolved.status, resolved.reason, resolved.message);
+  }
+  const cookieHeaders = resolved.setCookieHeader ? { 'Set-Cookie': resolved.setCookieHeader } : undefined;
+
   const body = (rawBody ?? {}) as {
     dreamAnalysis?: unknown;
     selectedElement?: unknown;
     reflectionResponse?: unknown;
     reconstructionCorrections?: unknown;
     language?: unknown;
+    attemptId?: unknown;
   };
   // Defaults to English for any caller that doesn't send it — matches
   // the pre-bilingual behavior exactly.
@@ -55,23 +64,41 @@ export async function handleDreamReflection(rawBody: unknown): Promise<HandlerRe
 
   const dreamAnalysis = validateDreamAnalysis(body.dreamAnalysis);
   if (!dreamAnalysis) {
-    return errorResult(400, 'invalid_response', 'dreamAnalysis is missing or does not match the expected DreamAnalysis shape.');
+    return withHeaders(
+      errorResult(400, 'invalid_response', 'dreamAnalysis is missing or does not match the expected DreamAnalysis shape.'),
+      cookieHeaders,
+    );
   }
   const selectedElement = typeof body.selectedElement === 'string' ? body.selectedElement.trim() : '';
   if (!selectedElement) {
-    return errorResult(400, 'empty_input', 'selectedElement must be a non-empty string.');
+    return withHeaders(errorResult(400, 'empty_input', 'selectedElement must be a non-empty string.'), cookieHeaders);
   }
   const reflectionResponse = typeof body.reflectionResponse === 'string' ? body.reflectionResponse.trim() : '';
   if (!reflectionResponse) {
-    return errorResult(400, 'empty_input', 'reflectionResponse must be a non-empty string.');
+    return withHeaders(errorResult(400, 'empty_input', 'reflectionResponse must be a non-empty string.'), cookieHeaders);
   }
   const reconstructionCorrections = Array.isArray(body.reconstructionCorrections)
     ? body.reconstructionCorrections.filter((c): c is string => typeof c === 'string')
     : [];
+  const attemptId = typeof body.attemptId === 'string' ? body.attemptId : '';
+  if (!attemptId) {
+    return withHeaders(errorResult(400, 'invalid_response', 'attemptId is required.'), cookieHeaders);
+  }
 
   const client = getOpenAIClient();
   if (!client) {
-    return errorResult(503, 'not_configured', 'The Dream Reflection backend is missing OPENAI_API_KEY.');
+    return withHeaders(errorResult(503, 'not_configured', 'The Dream Reflection backend is missing OPENAI_API_KEY.'), cookieHeaders);
+  }
+
+  const reservation = await reserveReflectionAttempt(attemptId, resolved.identity);
+  if (reservation === null) {
+    return withHeaders(errorResult(503, 'not_configured', 'Reflection usage tracking is not configured.'), cookieHeaders);
+  }
+  if (reservation === 'rejected') {
+    return withHeaders(
+      errorResult(403, 'limit_reached', 'This dream has already used its reflection attempts, or the attempt is invalid.'),
+      cookieHeaders,
+    );
   }
 
   const input = buildReflectionInput(dreamAnalysis, selectedElement, reflectionResponse, reconstructionCorrections);
@@ -95,32 +122,44 @@ export async function handleDreamReflection(rawBody: unknown): Promise<HandlerRe
     try {
       parsed = JSON.parse(response.output_text);
     } catch {
-      return errorResult(502, 'invalid_response', 'The AI response was not valid JSON.');
+      await refundReflectionAttempt(attemptId);
+      return withHeaders(errorResult(502, 'invalid_response', 'The AI response was not valid JSON.'), cookieHeaders);
     }
 
     const validated = validateDreamReflectionResult(parsed);
     if (!validated) {
-      return errorResult(502, 'invalid_response', 'The AI response did not match the expected DreamReflectionResult schema.');
+      await refundReflectionAttempt(attemptId);
+      return withHeaders(
+        errorResult(502, 'invalid_response', 'The AI response did not match the expected DreamReflectionResult schema.'),
+        cookieHeaders,
+      );
     }
 
     // The grounding line's exact wording/tone is safety-relevant — always
     // enforced by the server, never left to the model's own phrasing.
     validated.groundingStatement = getGroundingStatement(language);
 
-    return okResult(validated);
+    return withHeaders(okResult(validated), cookieHeaders);
   } catch (err) {
+    await refundReflectionAttempt(attemptId);
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {
-        return errorResult(502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.');
+        return withHeaders(errorResult(502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.'), cookieHeaders);
       }
       if (err.status === 429) {
-        return errorResult(429, 'rate_limited', 'The OpenAI API rate limit was reached. Please try again shortly.');
+        return withHeaders(
+          errorResult(429, 'rate_limited', 'The OpenAI API rate limit was reached. Please try again shortly.'),
+          cookieHeaders,
+        );
       }
       if (err.status === 402 || (typeof err.message === 'string' && /billing|quota|credit/i.test(err.message))) {
-        return errorResult(402, 'billing_issue', 'The OpenAI account has a billing or quota issue.');
+        return withHeaders(errorResult(402, 'billing_issue', 'The OpenAI account has a billing or quota issue.'), cookieHeaders);
       }
-      return errorResult(502, 'request_failed', 'The OpenAI API request failed.');
+      return withHeaders(errorResult(502, 'request_failed', 'The OpenAI API request failed.'), cookieHeaders);
     }
-    return errorResult(500, 'request_failed', 'An unexpected error occurred while generating the dream reflection.');
+    return withHeaders(
+      errorResult(500, 'request_failed', 'An unexpected error occurred while generating the dream reflection.'),
+      cookieHeaders,
+    );
   }
 }

@@ -1,16 +1,23 @@
 import OpenAI from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
-import { okResult, errorResult, type HandlerResult } from '../httpResult.js';
+import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpResult.js';
 import {
   buildDreamElementLabelSystemPrompt,
   DREAM_ELEMENT_LABELS_JSON_SCHEMA,
   validateElementLabels,
 } from '../../src/hero/dreamElementLabelsSchema.js';
 import type { AppLanguage } from '../../src/hero/appLanguage.js';
+import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
 
-export async function handleDreamElementLabels(rawBody: unknown): Promise<HandlerResult> {
+export async function handleDreamElementLabels(rawBody: unknown, requestHeaders: RequestHeaders): Promise<HandlerResult> {
+  const resolved = await resolveCallerIdentity(requestHeaders);
+  if (!resolved.ok) {
+    return errorResult(resolved.status, resolved.reason, resolved.message);
+  }
+  const cookieHeaders = resolved.setCookieHeader ? { 'Set-Cookie': resolved.setCookieHeader } : undefined;
+
   const body = (rawBody ?? {}) as { sourceText?: unknown; elements?: unknown; language?: unknown };
   const sourceText = typeof body.sourceText === 'string' ? body.sourceText : '';
   const elements = Array.isArray(body.elements) ? body.elements.filter((e): e is string => typeof e === 'string' && e.trim().length > 0) : [];
@@ -19,12 +26,12 @@ export async function handleDreamElementLabels(rawBody: unknown): Promise<Handle
   const language: AppLanguage = body.language === 'he' ? 'he' : 'en';
 
   if (elements.length === 0) {
-    return errorResult(400, 'empty_input', 'elements must be a non-empty array of strings.');
+    return withHeaders(errorResult(400, 'empty_input', 'elements must be a non-empty array of strings.'), cookieHeaders);
   }
 
   const client = getOpenAIClient();
   if (!client) {
-    return errorResult(503, 'not_configured', 'The Dream Element Labels backend is missing OPENAI_API_KEY.');
+    return withHeaders(errorResult(503, 'not_configured', 'The Dream Element Labels backend is missing OPENAI_API_KEY.'), cookieHeaders);
   }
 
   const input = `DREAM CONTEXT (for disambiguation only — do not label this line itself): ${sourceText || '(not provided)'}
@@ -51,28 +58,31 @@ ${elements.map((e, i) => `${i + 1}. ${e}`).join('\n')}`;
     try {
       parsed = JSON.parse(response.output_text);
     } catch {
-      return errorResult(502, 'invalid_response', 'The AI response was not valid JSON.');
+      return withHeaders(errorResult(502, 'invalid_response', 'The AI response was not valid JSON.'), cookieHeaders);
     }
 
     const labels = validateElementLabels(parsed, elements.length);
     if (!labels) {
-      return errorResult(502, 'invalid_response', 'The AI response did not match the expected labels schema.');
+      return withHeaders(errorResult(502, 'invalid_response', 'The AI response did not match the expected labels schema.'), cookieHeaders);
     }
 
-    return okResult({ labels });
+    return withHeaders(okResult({ labels }), cookieHeaders);
   } catch (err) {
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {
-        return errorResult(502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.');
+        return withHeaders(errorResult(502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.'), cookieHeaders);
       }
       if (err.status === 429) {
-        return errorResult(429, 'rate_limited', 'The OpenAI API rate limit was reached. Please try again shortly.');
+        return withHeaders(
+          errorResult(429, 'rate_limited', 'The OpenAI API rate limit was reached. Please try again shortly.'),
+          cookieHeaders,
+        );
       }
       if (err.status === 402 || (typeof err.message === 'string' && /billing|quota|credit/i.test(err.message))) {
-        return errorResult(402, 'billing_issue', 'The OpenAI account has a billing or quota issue.');
+        return withHeaders(errorResult(402, 'billing_issue', 'The OpenAI account has a billing or quota issue.'), cookieHeaders);
       }
-      return errorResult(502, 'request_failed', 'The OpenAI API request failed.');
+      return withHeaders(errorResult(502, 'request_failed', 'The OpenAI API request failed.'), cookieHeaders);
     }
-    return errorResult(500, 'request_failed', 'An unexpected error occurred while labeling dream elements.');
+    return withHeaders(errorResult(500, 'request_failed', 'An unexpected error occurred while labeling dream elements.'), cookieHeaders);
   }
 }

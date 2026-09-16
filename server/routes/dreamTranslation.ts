@@ -6,12 +6,25 @@ import {
   DREAM_TRANSLATION_JSON_SCHEMA,
   validateTranslations,
 } from '../../src/archive/dreamTranslationSchema.js';
+import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
 
 /** New, isolated route — does not modify dreamAnalysis/dreamReflection/
-    dreamElementLabels or the OpenAI client itself, only reuses them. */
-export async function handleDreamTranslation(rawBody: unknown): Promise<HandlerResult> {
+    dreamElementLabels or the OpenAI client itself, only reuses them.
+    Archive-only and always reached post-sign-in in the real UI, so —
+    unlike every other route here — this one requires a genuinely
+    authenticated user specifically; an anonymous trial identity is not
+    enough (there is no such thing as an anonymous archive). */
+export async function handleDreamTranslation(rawBody: unknown, requestHeaders: RequestHeaders): Promise<HandlerResult> {
+  const resolved = await resolveCallerIdentity(requestHeaders);
+  if (!resolved.ok) {
+    return errorResult(resolved.status, resolved.reason, resolved.message);
+  }
+  if (resolved.identity.kind !== 'user') {
+    return errorResult(401, 'not_authenticated', 'Dream translation requires a signed-in account.');
+  }
+
   const body = (rawBody ?? {}) as { texts?: unknown };
   const texts = Array.isArray(body.texts) ? body.texts.filter((t): t is string => typeof t === 'string' && t.trim().length > 0) : [];
 

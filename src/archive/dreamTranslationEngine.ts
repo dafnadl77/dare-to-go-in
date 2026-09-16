@@ -1,6 +1,15 @@
 import { validateTranslations, type TranslationResult, type TranslationErrorReason } from './dreamTranslationSchema';
+import { getAuthHeader } from '../auth/getAccessToken';
 
-const KNOWN_REASONS: TranslationErrorReason[] = ['not_configured', 'invalid_response', 'request_failed', 'rate_limited', 'billing_issue', 'empty_input'];
+const KNOWN_REASONS: TranslationErrorReason[] = [
+  'not_configured',
+  'invalid_response',
+  'request_failed',
+  'rate_limited',
+  'billing_issue',
+  'empty_input',
+  'not_authenticated',
+];
 
 /**
  * Calls the local backend for a batch of real English translations — same
@@ -12,9 +21,10 @@ const KNOWN_REASONS: TranslationErrorReason[] = ['not_configured', 'invalid_resp
  */
 export async function translateTexts(texts: string[]): Promise<TranslationResult> {
   try {
+    const authHeader = await getAuthHeader();
     const res = await fetch('/api/dream-translation', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify({ texts }),
     });
 

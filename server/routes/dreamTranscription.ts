@@ -1,6 +1,7 @@
 import OpenAI, { toFile } from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
-import { okResult, errorResult, type HandlerResult } from '../httpResult.js';
+import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpResult.js';
+import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
 
 // Was gpt-4o-mini-transcribe. Root-caused a real production report of a
 // Hebrew recording ("חלמתי שאני סופרוומן ועפתי מעל העיר.") coming back as
@@ -64,7 +65,15 @@ function resolveLanguage(value: unknown): 'en' | 'he' {
 // base64's ~33% overhead is accounted for (real dream recordings — a
 // spoken minute or two of opus/webm voice audio — are a small fraction
 // of this; this exists to reject something wildly oversized cleanly
-// instead of letting the platform itself fail the request).
+// instead of letting the platform itself fail the request). Doubles as
+// this route's cost-abuse backstop against the ~10-minute recording limit
+// (see HoldToRemember.tsx's RECORDING_MAX_DURATION_MS, the real, primary
+// enforcement): an upper bound on plausible audio size for that duration,
+// not a proof of exact duration — a client could send less data than a
+// real 10-minute recording and stay under this ceiling, which is fine,
+// since the actual OpenAI transcription cost scales with the audio
+// actually sent, not with a claimed duration. Never trusts any
+// client-supplied duration field; nothing here even accepts one.
 const MAX_AUDIO_BASE64_CHARS = 6_000_000;
 
 // The client only ever sends 'audio/webm' or 'audio/mp4' today (see
@@ -80,15 +89,21 @@ function extensionFor(mimeType: string): string {
   return 'webm';
 }
 
-export async function handleDreamTranscription(rawBody: unknown): Promise<HandlerResult> {
+export async function handleDreamTranscription(rawBody: unknown, requestHeaders: RequestHeaders): Promise<HandlerResult> {
+  const resolved = await resolveCallerIdentity(requestHeaders);
+  if (!resolved.ok) {
+    return errorResult(resolved.status, resolved.reason, resolved.message);
+  }
+  const cookieHeaders = resolved.setCookieHeader ? { 'Set-Cookie': resolved.setCookieHeader } : undefined;
+
   const body = (rawBody ?? {}) as { audioBase64?: unknown; mimeType?: unknown; language?: unknown };
 
   const audioBase64 = typeof body.audioBase64 === 'string' ? body.audioBase64 : '';
   if (!audioBase64) {
-    return errorResult(400, 'empty_input', 'audioBase64 must be a non-empty base64-encoded audio string.');
+    return withHeaders(errorResult(400, 'empty_input', 'audioBase64 must be a non-empty base64-encoded audio string.'), cookieHeaders);
   }
   if (audioBase64.length > MAX_AUDIO_BASE64_CHARS) {
-    return errorResult(413, 'request_failed', 'The recorded audio is too large to transcribe.');
+    return withHeaders(errorResult(413, 'request_failed', 'The recorded audio is too large to transcribe.'), cookieHeaders);
   }
 
   const mimeType = typeof body.mimeType === 'string' && body.mimeType.startsWith('audio/') ? body.mimeType : 'audio/webm';
@@ -104,15 +119,15 @@ export async function handleDreamTranscription(rawBody: unknown): Promise<Handle
   try {
     buffer = Buffer.from(audioBase64, 'base64');
   } catch {
-    return errorResult(400, 'invalid_response', 'audioBase64 could not be decoded.');
+    return withHeaders(errorResult(400, 'invalid_response', 'audioBase64 could not be decoded.'), cookieHeaders);
   }
   if (buffer.length === 0) {
-    return errorResult(400, 'empty_input', 'The decoded audio was empty.');
+    return withHeaders(errorResult(400, 'empty_input', 'The decoded audio was empty.'), cookieHeaders);
   }
 
   const client = getOpenAIClient();
   if (!client) {
-    return errorResult(503, 'not_configured', 'The Dream Transcription backend is missing OPENAI_API_KEY.');
+    return withHeaders(errorResult(503, 'not_configured', 'The Dream Transcription backend is missing OPENAI_API_KEY.'), cookieHeaders);
   }
 
   try {
@@ -127,23 +142,26 @@ export async function handleDreamTranscription(rawBody: unknown): Promise<Handle
 
     const transcript = typeof response.text === 'string' ? response.text.trim() : '';
     if (!transcript) {
-      return errorResult(502, 'invalid_response', 'The transcription provider returned no text.');
+      return withHeaders(errorResult(502, 'invalid_response', 'The transcription provider returned no text.'), cookieHeaders);
     }
 
-    return okResult({ transcript });
+    return withHeaders(okResult({ transcript }), cookieHeaders);
   } catch (err) {
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {
-        return errorResult(502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.');
+        return withHeaders(errorResult(502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.'), cookieHeaders);
       }
       if (err.status === 429) {
-        return errorResult(429, 'rate_limited', 'The OpenAI API rate limit was reached. Please try again shortly.');
+        return withHeaders(
+          errorResult(429, 'rate_limited', 'The OpenAI API rate limit was reached. Please try again shortly.'),
+          cookieHeaders,
+        );
       }
       if (err.status === 402 || (typeof err.message === 'string' && /billing|quota|credit/i.test(err.message))) {
-        return errorResult(402, 'billing_issue', 'The OpenAI account has a billing or quota issue.');
+        return withHeaders(errorResult(402, 'billing_issue', 'The OpenAI account has a billing or quota issue.'), cookieHeaders);
       }
-      return errorResult(502, 'request_failed', 'The transcription request failed.');
+      return withHeaders(errorResult(502, 'request_failed', 'The transcription request failed.'), cookieHeaders);
     }
-    return errorResult(500, 'request_failed', 'An unexpected error occurred while transcribing the recording.');
+    return withHeaders(errorResult(500, 'request_failed', 'An unexpected error occurred while transcribing the recording.'), cookieHeaders);
   }
 }

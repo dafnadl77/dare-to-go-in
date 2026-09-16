@@ -36,6 +36,15 @@ interface HoldToRememberProps {
   onDreamCapture?: (input: DreamInput) => void;
   /** True once Dream Reconstruction begins — the whole capture UI (including the settled "I think I have it" text) dissolves away. */
   reconstructing?: boolean;
+  /** True once a genuinely failed dream-analysis response has come back
+      for the dream just submitted — swaps the settled panel's "I think I
+      have it" text for a recoverable error + retry, instead of leaving
+      the dreamer staring at that text forever (the analysisResult.status
+      === 'error' case was previously never rendered anywhere). */
+  analysisFailed?: boolean;
+  /** Re-runs analysis for the exact same captured dream — see
+      HeroDream.tsx's retryAnalysis. */
+  onRetryAnalysis?: () => void;
 }
 
 const FILL_MS = 800;
@@ -59,6 +68,13 @@ const MIC_REQUEST_TIMEOUT_MS = 20000;
 // network or a stalled response must not leave the dreamer staring at
 // "TRANSCRIBING…" forever with no way out.
 const TRANSCRIPTION_TIMEOUT_MS = 30000;
+// A server-side payload ceiling (see server/routes/dreamTranscription.ts)
+// backstops cost-abuse from directly-crafted requests, but the intended,
+// normal way a real recording ever gets this long is simply forgetting to
+// release HOLD — so this auto-finishes exactly like a real release would,
+// using the same handleFinishDream() path, rather than leaving the
+// dreamer recording indefinitely.
+const RECORDING_MAX_DURATION_MS = 10 * 60 * 1000;
 
 /** One of exactly two messages: the mic itself couldn't be reached (any
     getUserMedia-stage failure — denied, no device, busy, unsupported —
@@ -88,6 +104,8 @@ export default function HoldToRemember({
   onTypedTranscriptChange,
   onDreamCapture,
   reconstructing = false,
+  analysisFailed = false,
+  onRetryAnalysis,
 }: HoldToRememberProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const ringRef = useRef<SVGCircleElement>(null);
@@ -111,6 +129,7 @@ export default function HoldToRemember({
   const listenTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const micTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const transcriptionTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const recordingMaxDurationTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const committedRef = useRef(false);
   const finishingRef = useRef(false);
   // The real audio blob arrives asynchronously (MediaRecorder's onstop
@@ -268,6 +287,7 @@ export default function HoldToRemember({
       clearTimeout(listenTimerRef.current);
       clearTimeout(micTimeoutRef.current);
       clearTimeout(transcriptionTimeoutRef.current);
+      clearTimeout(recordingMaxDurationTimeoutRef.current);
       transcribeAbortRef.current?.abort();
       // livePreview.stop is useCallback-stable (empty deps in
       // useLivePreviewTranscript.ts) — capturing it here at mount, with
@@ -388,6 +408,7 @@ export default function HoldToRemember({
   // reconstruction.
   const handleClose = useCallback(() => {
     if (centralMode === 'recording') {
+      clearTimeout(recordingMaxDurationTimeoutRef.current);
       // reset() (not finish()) stops the MediaRecorder, stops every mic
       // MediaStream track, and closes the AudioContext — the browser's mic
       // indicator goes away because the tracks are actually stopped.
@@ -443,6 +464,7 @@ export default function HoldToRemember({
     if (finishingRef.current) return;
     finishingRef.current = true;
     setFinishing(true);
+    clearTimeout(recordingMaxDurationTimeoutRef.current);
     pendingTranscriptionRef.current = true;
     recorder.finish();
     // The preview's job ends here — the real, authoritative transcript
@@ -478,6 +500,19 @@ export default function HoldToRemember({
     }
     requestAnimationFrame(decay);
   }, [recorder, holdRef, setCentralMode, livePreview]);
+
+  // Additive safety valve, not a UX feature to advertise — a real dreamer
+  // finishes in well under this. Starts counting only once recording is
+  // genuinely confirmed (centralMode reaching 'recording'), and is cleared
+  // above the moment the dream finishes or the panel is closed any other
+  // way, so this can only ever fire while a recording is truly still open.
+  useEffect(() => {
+    if (centralMode !== 'recording') return;
+    recordingMaxDurationTimeoutRef.current = setTimeout(() => {
+      handleFinishDream();
+    }, RECORDING_MAX_DURATION_MS);
+    return () => clearTimeout(recordingMaxDurationTimeoutRef.current);
+  }, [centralMode, handleFinishDream]);
 
   // The real audio blob shows up asynchronously via MediaRecorder's onstop,
   // after handleFinishDream already returns. Once it exists, send it to
@@ -739,8 +774,36 @@ export default function HoldToRemember({
         className={`central-settled${centralMode === 'settled' ? ' is-active' : ''}`}
         aria-hidden={centralMode !== 'settled'}
       >
-        <p className="central-settled-text">{t('hold.iThinkIHaveIt')}</p>
-        <p className="central-settled-text central-settled-text--second">{t('hold.letMePutItBackTogether')}</p>
+        {analysisFailed ? (
+          <>
+            <p className="central-settled-text">{t('hold.analysisFailed')}</p>
+            <div className="central-settled-actions">
+              <button
+                type="button"
+                className="central-done"
+                data-cursor-hover
+                tabIndex={centralMode === 'settled' ? 0 : -1}
+                onClick={onRetryAnalysis}
+              >
+                {t('hold.tryAgain')}
+              </button>
+              <button
+                type="button"
+                className="central-back"
+                data-cursor-hover
+                tabIndex={centralMode === 'settled' ? 0 : -1}
+                onClick={() => setCentralMode('typing')}
+              >
+                {t('hold.editDream')}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="central-settled-text">{t('hold.iThinkIHaveIt')}</p>
+            <p className="central-settled-text central-settled-text--second">{t('hold.letMePutItBackTogether')}</p>
+          </>
+        )}
       </div>
     </div>
   );

@@ -13,7 +13,14 @@
  * produces a translated string for DISPLAY, requested fresh each time
  * (the caller is responsible for caching — see dreamTranslationEngine.ts).
  */
-export type TranslationErrorReason = 'not_configured' | 'invalid_response' | 'request_failed' | 'rate_limited' | 'billing_issue' | 'empty_input';
+export type TranslationErrorReason =
+  | 'not_configured'
+  | 'invalid_response'
+  | 'request_failed'
+  | 'rate_limited'
+  | 'billing_issue'
+  | 'empty_input'
+  | 'not_authenticated';
 
 export type TranslationResult =
   | { status: 'ok'; translations: string[] }

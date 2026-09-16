@@ -56,6 +56,9 @@ export interface Translations {
     cancelRecording: string;
     cancelTranscription: string;
     cancelTyping: string;
+    analysisFailed: string;
+    tryAgain: string;
+    editDream: string;
   };
   reconstruction: {
     remembering: string;
@@ -280,6 +283,9 @@ export const en: Translations = {
     cancelRecording: 'Cancel recording',
     cancelTranscription: 'Cancel transcription',
     cancelTyping: 'Cancel typing',
+    analysisFailed: 'Something went wrong while I was putting this together.',
+    tryAgain: 'TRY AGAIN',
+    editDream: 'EDIT',
   },
   reconstruction: {
     remembering: 'REMEMBERING…',
@@ -513,6 +519,9 @@ export const he: Translations = {
     cancelRecording: 'ביטול הקלטה',
     cancelTranscription: 'ביטול תמלול',
     cancelTyping: 'ביטול הקלדה',
+    analysisFailed: 'משהו השתבש בזמן שניסיתי להרכיב את זה מחדש.',
+    tryAgain: 'ניסיון נוסף',
+    editDream: 'עריכה',
   },
   reconstruction: {
     remembering: 'היזכרות…',

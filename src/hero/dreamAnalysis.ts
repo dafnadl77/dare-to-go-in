@@ -1,5 +1,6 @@
 import { dreamInputSourceText, type DreamInput } from './dreamInput';
 import { validateDreamAnalysis, type AnalysisResult } from './dreamAnalysisSchema';
+import { getAuthHeader } from '../auth/getAccessToken';
 
 export type {
   DreamPerson,
@@ -35,9 +36,10 @@ export async function analyzeDream(dreamInput: DreamInput): Promise<AnalysisResu
   }
 
   try {
+    const authHeader = await getAuthHeader();
     const res = await fetch('/api/dream-analysis', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify({ sourceText, inputMode: dreamInput.inputMode }),
     });
 
@@ -46,7 +48,16 @@ export async function analyzeDream(dreamInput: DreamInput): Promise<AnalysisResu
     if (!res.ok) {
       if (data && typeof data === 'object' && 'reason' in data && 'message' in data) {
         const errData = data as { reason: unknown; message: unknown };
-        const knownReasons = ['not_configured', 'invalid_response', 'request_failed', 'empty_input', 'rate_limited', 'billing_issue'];
+        const knownReasons = [
+          'not_configured',
+          'invalid_response',
+          'request_failed',
+          'empty_input',
+          'rate_limited',
+          'billing_issue',
+          'not_authenticated',
+          'limit_reached',
+        ];
         const reason = typeof errData.reason === 'string' && knownReasons.includes(errData.reason) ? errData.reason : 'request_failed';
         return {
           status: 'error',
@@ -58,14 +69,17 @@ export async function analyzeDream(dreamInput: DreamInput): Promise<AnalysisResu
     }
 
     const validated = validateDreamAnalysis(data);
-    if (!validated) {
+    const attemptId = data && typeof data === 'object' && typeof (data as { attemptId?: unknown }).attemptId === 'string'
+      ? (data as { attemptId: string }).attemptId
+      : null;
+    if (!validated || !attemptId) {
       return {
         status: 'error',
         reason: 'invalid_response',
         message: 'Analysis backend returned a response that did not match the expected DreamAnalysis schema.',
       };
     }
-    return { status: 'ok', analysis: validated };
+    return { status: 'ok', analysis: validated, attemptId };
   } catch (err) {
     return {
       status: 'error',

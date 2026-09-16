@@ -1,25 +1,46 @@
 import type { ReconstructionBrief } from './reconstructionBrief';
+import { getAuthHeader } from '../auth/getAccessToken';
 
-export type ImageErrorReason = 'not_configured' | 'invalid_response' | 'request_failed' | 'rate_limited' | 'billing_issue';
+export type ImageErrorReason =
+  | 'not_configured'
+  | 'invalid_response'
+  | 'request_failed'
+  | 'rate_limited'
+  | 'billing_issue'
+  | 'not_authenticated'
+  | 'limit_reached';
 
 export type ImageResult =
   | { status: 'ok'; imageDataUrl: string }
   | { status: 'error'; reason: ImageErrorReason; message: string };
 
-const KNOWN_REASONS: ImageErrorReason[] = ['not_configured', 'invalid_response', 'request_failed', 'rate_limited', 'billing_issue'];
+const KNOWN_REASONS: ImageErrorReason[] = [
+  'not_configured',
+  'invalid_response',
+  'request_failed',
+  'rate_limited',
+  'billing_issue',
+  'not_authenticated',
+  'limit_reached',
+];
 
 /**
  * Calls the local backend to generate one real dream image from a real
  * ReconstructionBrief — the backend holds the OpenAI key, this only ever
  * talks to the same-origin proxy. Never fabricates an image or a URL on
- * failure; always returns a controlled error result instead.
+ * failure; always returns a controlled error result instead. `attemptId`
+ * is the id returned by the dream's own /api/dream-analysis call (see
+ * dreamAnalysis.ts) — the server rejects any image request without a
+ * valid one it can charge the max-3 limit against (see
+ * server/routes/dreamImage.ts).
  */
-export async function generateDreamImage(brief: ReconstructionBrief): Promise<ImageResult> {
+export async function generateDreamImage(brief: ReconstructionBrief, attemptId: string): Promise<ImageResult> {
   try {
+    const authHeader = await getAuthHeader();
     const res = await fetch('/api/dream-image', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reconstructionBrief: brief }),
+      headers: { 'Content-Type': 'application/json', ...authHeader },
+      body: JSON.stringify({ reconstructionBrief: brief, attemptId }),
     });
 
     const data: unknown = await res.json().catch(() => null);

@@ -1,7 +1,15 @@
 import { validateElementLabels, type ElementLabelsResult, type ElementLabelErrorReason } from './dreamElementLabelsSchema';
 import { getAppLanguage, type AppLanguage } from './appLanguage';
+import { getAuthHeader } from '../auth/getAccessToken';
 
-const KNOWN_REASONS: ElementLabelErrorReason[] = ['not_configured', 'invalid_response', 'request_failed', 'rate_limited', 'billing_issue'];
+const KNOWN_REASONS: ElementLabelErrorReason[] = [
+  'not_configured',
+  'invalid_response',
+  'request_failed',
+  'rate_limited',
+  'billing_issue',
+  'not_authenticated',
+];
 
 /**
  * Calls the local backend for short display labels for a set of real
@@ -12,9 +20,10 @@ const KNOWN_REASONS: ElementLabelErrorReason[] = ['not_configured', 'invalid_res
  */
 export async function getElementLabelsInLanguage(sourceText: string, elements: string[], language: AppLanguage): Promise<ElementLabelsResult> {
   try {
+    const authHeader = await getAuthHeader();
     const res = await fetch('/api/dream-element-labels', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify({ sourceText, elements, language }),
     });
 

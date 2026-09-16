@@ -1,14 +1,27 @@
 import type { DreamAnalysis } from './dreamAnalysisSchema';
 import { validateDreamReflectionResult, type ReflectionResult, type ReflectionErrorReason } from './dreamReflectionSchema';
 import { getAppLanguage } from './appLanguage';
+import { getAuthHeader } from '../auth/getAccessToken';
 
-const KNOWN_REASONS: ReflectionErrorReason[] = ['not_configured', 'invalid_response', 'request_failed', 'rate_limited', 'billing_issue'];
+const KNOWN_REASONS: ReflectionErrorReason[] = [
+  'not_configured',
+  'invalid_response',
+  'request_failed',
+  'rate_limited',
+  'billing_issue',
+  'not_authenticated',
+  'limit_reached',
+];
 
 export interface DreamReflectionRequest {
   dreamAnalysis: DreamAnalysis;
   selectedElement: string;
   reflectionResponse: string;
   reconstructionCorrections: string[];
+  /** The dream's own /api/dream-analysis attemptId — required so the
+      server can enforce the max-3 reflection limit against the right
+      dream (see server/routes/dreamReflection.ts). */
+  attemptId: string;
 }
 
 /**
@@ -19,9 +32,10 @@ export interface DreamReflectionRequest {
  */
 export async function getDreamReflection(request: DreamReflectionRequest): Promise<ReflectionResult> {
   try {
+    const authHeader = await getAuthHeader();
     const res = await fetch('/api/dream-reflection', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify({ ...request, language: getAppLanguage() }),
     });
 

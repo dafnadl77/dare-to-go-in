@@ -29,7 +29,14 @@ export interface DreamReflectionResult {
   groundingStatement: string;
 }
 
-export type ReflectionErrorReason = 'not_configured' | 'invalid_response' | 'request_failed' | 'rate_limited' | 'billing_issue';
+export type ReflectionErrorReason =
+  | 'not_configured'
+  | 'invalid_response'
+  | 'request_failed'
+  | 'rate_limited'
+  | 'billing_issue'
+  | 'not_authenticated'
+  | 'limit_reached';
 
 export type ReflectionResult =
   | { status: 'ok'; reflection: DreamReflectionResult }

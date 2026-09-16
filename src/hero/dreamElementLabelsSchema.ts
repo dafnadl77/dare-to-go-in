@@ -9,7 +9,13 @@ import type { AppLanguage } from './appLanguage.js';
  * label, in the requested language, for each already-derived candidate
  * string.
  */
-export type ElementLabelErrorReason = 'not_configured' | 'invalid_response' | 'request_failed' | 'rate_limited' | 'billing_issue';
+export type ElementLabelErrorReason =
+  | 'not_configured'
+  | 'invalid_response'
+  | 'request_failed'
+  | 'rate_limited'
+  | 'billing_issue'
+  | 'not_authenticated';
 
 export type ElementLabelsResult = { status: 'ok'; labels: string[] } | { status: 'error'; reason: ElementLabelErrorReason; message: string };
 

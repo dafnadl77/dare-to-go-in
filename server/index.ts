@@ -1,11 +1,14 @@
 import 'dotenv/config';
-import express from 'express';
+import express, { type Request, type Response } from 'express';
 import { handleDreamAnalysis } from './routes/dreamAnalysis.js';
 import { handleDreamImage } from './routes/dreamImage.js';
 import { handleDreamReflection } from './routes/dreamReflection.js';
 import { handleDreamElementLabels } from './routes/dreamElementLabels.js';
 import { handleDreamTranslation } from './routes/dreamTranslation.js';
 import { handleDreamTranscription } from './routes/dreamTranscription.js';
+import { handleClaimTrial } from './routes/claimTrial.js';
+import type { HandlerResult } from './httpResult.js';
+import type { RequestHeaders } from './callerIdentity.js';
 
 const app = express();
 // Raised from the original 2mb to comfortably fit a base64-encoded audio
@@ -14,34 +17,43 @@ const app = express();
 // other route's payloads are tiny JSON and are unaffected by a larger cap.
 app.use(express.json({ limit: '10mb' }));
 
-app.post('/api/dream-analysis', async (req, res) => {
-  const result = await handleDreamAnalysis(req.body);
+function requestHeaders(req: Request): RequestHeaders {
+  return { authorization: req.headers.authorization, cookie: req.headers.cookie };
+}
+
+function send(res: Response, result: HandlerResult) {
+  if (result.headers) {
+    for (const [key, value] of Object.entries(result.headers)) res.setHeader(key, value);
+  }
   res.status(result.status).json(result.body);
+}
+
+app.post('/api/dream-analysis', async (req, res) => {
+  send(res, await handleDreamAnalysis(req.body, requestHeaders(req)));
 });
 
 app.post('/api/dream-image', async (req, res) => {
-  const result = await handleDreamImage(req.body);
-  res.status(result.status).json(result.body);
+  send(res, await handleDreamImage(req.body, requestHeaders(req)));
 });
 
 app.post('/api/dream-reflection', async (req, res) => {
-  const result = await handleDreamReflection(req.body);
-  res.status(result.status).json(result.body);
+  send(res, await handleDreamReflection(req.body, requestHeaders(req)));
 });
 
 app.post('/api/dream-element-labels', async (req, res) => {
-  const result = await handleDreamElementLabels(req.body);
-  res.status(result.status).json(result.body);
+  send(res, await handleDreamElementLabels(req.body, requestHeaders(req)));
 });
 
 app.post('/api/dream-translation', async (req, res) => {
-  const result = await handleDreamTranslation(req.body);
-  res.status(result.status).json(result.body);
+  send(res, await handleDreamTranslation(req.body, requestHeaders(req)));
 });
 
 app.post('/api/dream-transcription', async (req, res) => {
-  const result = await handleDreamTranscription(req.body);
-  res.status(result.status).json(result.body);
+  send(res, await handleDreamTranscription(req.body, requestHeaders(req)));
+});
+
+app.post('/api/claim-trial', async (req, res) => {
+  send(res, await handleClaimTrial(req.body, requestHeaders(req)));
 });
 
 // A distinct name (not PORT) so it can never collide with an ambient PORT

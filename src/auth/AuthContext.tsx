@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
+import { claimTrial } from './claimTrial';
 
 export type AuthActionResult =
   | { ok: true; sessionCreated: boolean }
@@ -116,6 +117,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // rely on; nothing here parses the URL itself.
       if (event === 'PASSWORD_RECOVERY') {
         setIsPasswordRecovery(true);
+      }
+      // SIGNED_IN fires only for a genuinely new sign-in during this page
+      // lifetime (password sign-in, sign-up that creates a session
+      // immediately, or an OAuth/magic-link redirect completing) — never
+      // for the initial session restore on page load (that's its own
+      // INITIAL_SESSION event) and never for a background token refresh,
+      // so this never re-fires the claim on every reload of an already
+      // signed-in visitor.
+      if (event === 'SIGNED_IN' && session?.access_token) {
+        claimTrial(session.access_token);
       }
     });
 

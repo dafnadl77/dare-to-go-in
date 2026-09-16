@@ -1,3 +1,5 @@
+import { getAuthHeader } from '../auth/getAccessToken';
+
 /**
  * Calls the local backend to turn a recorded dream clip into text — the
  * backend holds the OpenAI key, this only ever talks to the same-origin
@@ -11,7 +13,8 @@ export type TranscriptionErrorReason =
   | 'request_failed'
   | 'empty_input'
   | 'rate_limited'
-  | 'billing_issue';
+  | 'billing_issue'
+  | 'not_authenticated';
 
 export type TranscriptionResult =
   | { status: 'ok'; transcript: string }
@@ -24,6 +27,7 @@ const KNOWN_REASONS: TranscriptionErrorReason[] = [
   'empty_input',
   'rate_limited',
   'billing_issue',
+  'not_authenticated',
 ];
 
 function blobToBase64(blob: Blob): Promise<string> {
@@ -77,9 +81,10 @@ export async function transcribeDreamAudio(
   }
 
   try {
+    const authHeader = await getAuthHeader();
     const res = await fetch('/api/dream-transcription', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify({ audioBase64, mimeType: audioBlob.type || 'audio/webm', language }),
       signal,
     });

@@ -188,19 +188,18 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   const correctionCountRef = useRef(0);
   const reconstructingEnteredAtRef = useRef(0);
 
-  const startImageGeneration = useCallback((token: string, briefToUse: ReconstructionBrief) => {
+  const startImageGeneration = useCallback((token: string, briefToUse: ReconstructionBrief, attemptId: string) => {
     if (generationTokenRef.current === token) return;
     generationTokenRef.current = token;
     setImagePending(true);
     setImageResult(null);
-    generateDreamImage(briefToUse).then((result) => {
+    generateDreamImage(briefToUse, attemptId).then((result) => {
       setImageResult(result);
       setImagePending(false);
     });
   }, []);
 
-  const handleDreamCapture = (input: DreamInput) => {
-    dreamInputRef.current = input;
+  const runAnalysis = (input: DreamInput) => {
     setAnalysisPending(true);
     setAnalysisResult(null);
     analyzeDream(input)
@@ -210,6 +209,19 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       .finally(() => {
         setAnalysisPending(false);
       });
+  };
+
+  const handleDreamCapture = (input: DreamInput) => {
+    dreamInputRef.current = input;
+    runAnalysis(input);
+  };
+
+  // TRY AGAIN, from the recoverable analysis-failed state — re-submits the
+  // exact same captured dream (never a new one), so a transient failure
+  // (network blip, rate limit) doesn't cost the dreamer their words.
+  const handleRetryAnalysis = () => {
+    if (!dreamInputRef.current) return;
+    runAnalysis(dreamInputRef.current);
   };
 
   // Kick off the reconstruction sequence AND the one real initial image
@@ -244,7 +256,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       });
     }
 
-    startImageGeneration('initial', newBrief);
+    startImageGeneration('initial', newBrief, analysisResult.attemptId);
     const t = setTimeout(() => setReconstructionPhase('dissolving'), SETTLE_PAUSE_MS);
     return () => clearTimeout(t);
   }, [analysisResult, reconstructionPhase, startImageGeneration]);
@@ -347,7 +359,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     setBrief(newBrief);
     correctionCountRef.current += 1;
     setReconstructionPhase('regenerating');
-    startImageGeneration(`correction-${correctionCountRef.current}`, newBrief);
+    startImageGeneration(`correction-${correctionCountRef.current}`, newBrief, analysisResult.attemptId);
   };
 
   const handleYes = () => setReconstructionPhase('entering');
@@ -398,6 +410,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         selectedElement,
         reflectionResponse: text,
         reconstructionCorrections: corrections,
+        attemptId: analysisResult.attemptId,
       });
     }
   };
@@ -421,6 +434,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       selectedElement,
       reflectionResponse,
       reconstructionCorrections: corrections,
+      attemptId: analysisResult.attemptId,
     });
   };
 
@@ -517,7 +531,8 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       setPhase: ((p: ReconstructionPhase) => setReconstructionPhase(p)) as (...args: never[]) => void,
       setInsideStep: ((s: InsideStep) => setInsideStep(s)) as (...args: never[]) => void,
       setDisplayedImage: ((url: string) => setDisplayedImageUrl(url)) as (...args: never[]) => void,
-      setAnalysis: ((a: unknown) => setAnalysisResult({ status: 'ok', analysis: a } as AnalysisResult)) as (...args: never[]) => void,
+      setAnalysis: ((a: unknown) =>
+        setAnalysisResult({ status: 'ok', analysis: a, attemptId: 'debug-attempt' } as AnalysisResult)) as (...args: never[]) => void,
       setDreamElements: ((els: string[]) => setDreamElements(els)) as (...args: never[]) => void,
       getReflectionState: (() => ({ selectedElement, reflectionResponse, reflectionEngineResult })) as (...args: never[]) => void,
       setReflectionResult: ((r: unknown) =>
@@ -646,6 +661,8 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
             onTypedTranscriptChange={setTypedTranscript}
             onDreamCapture={handleDreamCapture}
             reconstructing={isReconstructing}
+            analysisFailed={analysisResult?.status === 'error'}
+            onRetryAnalysis={handleRetryAnalysis}
           />
         </div>
       </div>

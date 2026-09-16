@@ -766,6 +766,18 @@
   transition-delay: 1.6s;
 }
 
+/* The recoverable-error state (analysis genuinely failed, not just still
+   pending) — same panel, same two-pill pattern already used everywhere
+   else in this flow (.central-done / .central-back), never a new visual
+   language. */
+.central-settled-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.4rem;
+  margin-top: 1.6rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .htr-circle::before {
     animation: none;

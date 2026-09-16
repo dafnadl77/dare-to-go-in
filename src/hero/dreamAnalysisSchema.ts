@@ -101,10 +101,12 @@ export type AnalysisErrorReason =
   | 'request_failed'
   | 'empty_input'
   | 'rate_limited'
-  | 'billing_issue';
+  | 'billing_issue'
+  | 'not_authenticated'
+  | 'limit_reached';
 
 export type AnalysisResult =
-  | { status: 'ok'; analysis: DreamAnalysis }
+  | { status: 'ok'; analysis: DreamAnalysis; attemptId: string }
   | { status: 'error'; reason: AnalysisErrorReason; message: string };
 
 /**
