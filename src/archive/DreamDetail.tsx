@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import DreamStageBackground from '../hero/DreamStageBackground';
 import { sanitizeAiTextForDisplay, containsHebrew } from '../hero/appLanguage';
 import { formatEntryDayMonth, formatEntryYear, type ArchiveEntry } from './archiveData';
+import { useDreamImageSrc } from './useDreamImageSrc';
 import { translateTexts } from './dreamTranslationEngine';
 import { useLanguage } from '../i18n/LanguageContext';
 import AppFooter from '../legal/AppFooter';
@@ -62,6 +63,7 @@ type TranslationState = 'idle' | 'loading' | 'ready' | 'error';
  */
 export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: DreamDetailProps) {
   const { t, language } = useLanguage();
+  const imageSrc = useDreamImageSrc(entry);
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     bgVideoRef.current?.play().catch(() => {});
@@ -171,8 +173,8 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
           />
           <div className="dd-hero">
             <span className="dd-image-wrap">
-              <span className="dd-image-glow" style={{ backgroundImage: `url(${entry.image})` }} aria-hidden="true" />
-              <img className="dd-image" src={entry.image} alt={entry.title} />
+              <span className="dd-image-glow" style={{ backgroundImage: `url(${imageSrc})` }} aria-hidden="true" />
+              <img className="dd-image" src={imageSrc} alt={entry.title} />
             </span>
             <p className="dd-date">
               {formatEntryDayMonth(entry.date)} {formatEntryYear(entry.date)}

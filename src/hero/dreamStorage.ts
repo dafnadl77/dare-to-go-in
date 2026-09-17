@@ -20,8 +20,23 @@ export interface SavedDream {
   sourceText: string;
   inputMode: 'voice' | 'text';
   dreamAnalysis: DreamAnalysis;
-  /** The generated dream image as a data URL, or null if none was available. */
+  /** The generated dream image as a data URL, or null if none was available.
+      Legacy representation — every dream saved before Phase 2's Storage
+      migration has this populated and `dreamImagePath` absent. New
+      Supabase-backed saves populate `dreamImagePath` instead and never
+      persist this field remotely (see dreamRemoteStorage.ts's
+      saveDreamRemote) — it still flows through the anonymous/pending-save
+      journey exactly as before, since Storage upload only ever happens at
+      the final authenticated save, not before. */
   dreamImageDataUrl: string | null;
+  /** Phase 2: the Storage object path (`{owner_id}/{dream_id}.jpg`) for a
+      dream whose image lives in the private `dream-images` bucket, or
+      absent/null for a legacy base64 dream. Optional so every dream saved
+      before this field existed still parses fine — no migration needed
+      for existing stored data (see dreamImageDataUrl's own note above).
+      Never a signed URL — those are minted on demand and never
+      persisted (see archive/useDreamImageSrc.ts). */
+  dreamImagePath?: string | null;
   selectedElement: string;
   reflectionResponse: string;
   dreamReflection: DreamReflectionResult;

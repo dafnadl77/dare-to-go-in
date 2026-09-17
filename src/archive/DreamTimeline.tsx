@@ -1,5 +1,6 @@
 import type { ArchiveEntry } from './archiveData';
 import { formatEntryDayMonth, formatEntryMonth, formatEntryYear } from './archiveData';
+import { useDreamImageSrc } from './useDreamImageSrc';
 import { useLanguage } from '../i18n/LanguageContext';
 import './DreamTimeline.css';
 
@@ -51,11 +52,12 @@ function DreamCard({
   onToggleFavorite?: (id: string) => void;
 }) {
   const { t } = useLanguage();
+  const imageSrc = useDreamImageSrc(entry);
   return (
     <span className="dt-card-wrap">
       <button type="button" className="dt-card" data-cursor-hover onClick={onOpen} aria-label={`${t('archive.openEntry')} ${entry.title}`}>
         <span className="dt-card-thumb">
-          <img className="dt-card-image" src={entry.image} alt="" loading="lazy" />
+          <img className="dt-card-image" src={imageSrc} alt="" loading="lazy" />
         </span>
         <span className="dt-card-body">
           <span className="dt-card-top">
