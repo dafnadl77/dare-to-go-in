@@ -341,7 +341,7 @@ function App() {
   } else {
     screen = (
       <HeroDream
-        onGoToArchive={() => setView('auth')}
+        onGoToArchive={() => setView(user ? 'archive' : 'auth')}
         onRequireAuthForSave={handleRequireAuthForSave}
         onOpenLegal={handleOpenLegal}
       />

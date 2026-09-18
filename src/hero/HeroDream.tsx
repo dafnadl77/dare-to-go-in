@@ -479,27 +479,29 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       return;
     }
     // Signed in -> this dream belongs to that account from the start, in
-    // Supabase (RLS-enforced, see dreamRemoteStorage.ts). The visual
-    // "saving" beat below is a fixed-duration animation independent of
-    // real save latency (see the comment on it), so this fires the
-    // remote insert without awaiting it — a failure is logged, never
-    // surfaced as a save error to the dreamer, matching how every other
-    // best-effort persistence call in this app already behaves (e.g.
-    // writeAll in dreamStorage.ts itself).
-    saveDreamRemote(record, user.id).catch((err) => {
-      console.error('Failed to save dream to Supabase:', err);
-    });
+    // Supabase (RLS-enforced, see dreamRemoteStorage.ts). DREAM SAVED. must
+    // never appear before that write is actually confirmed — a session
+    // that looks signed-in can still be stale/invalid, and a fire-and-
+    // forget save here would silently lose the dream with no recovery
+    // path. SAVE_LOCK_MS is kept only as a MINIMUM visual duration for the
+    // "saving" beat (so a fast save doesn't flash); a slow save simply
+    // holds "saving" longer, and a failed save reverts to the KEEP THIS
+    // DREAM / LET IT GO choice with dreamSavedRef reset, so the dreamer
+    // can retry with the exact same record.
     setInsideStep('saving');
+    const startedAt = Date.now();
+    saveDreamRemote(record, user.id).then(
+      () => {
+        const remaining = Math.max(SAVE_LOCK_MS - (Date.now() - startedAt), 0);
+        setTimeout(() => setInsideStep('saved'), remaining);
+      },
+      (err) => {
+        console.error('Failed to save dream to Supabase:', err);
+        dreamSavedRef.current = false;
+        setInsideStep('closing');
+      },
+    );
   };
-
-  // The data is already safely written above — this is purely the visual
-  // memory-lock beat (image contracts, luminous frame traces) before
-  // DREAM SAVED. appears, never a delay on the actual save itself.
-  useEffect(() => {
-    if (insideStep !== 'saving') return;
-    const t = setTimeout(() => setInsideStep('saved'), SAVE_LOCK_MS);
-    return () => clearTimeout(t);
-  }, [insideStep]);
 
   const handleLetGo = () => setInsideStep('letting-go');
 
