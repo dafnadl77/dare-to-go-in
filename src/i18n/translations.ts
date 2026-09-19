@@ -602,7 +602,7 @@ export const he: Translations = {
     theDream: 'החלום',
     whatStoodOut: 'מה שבלט',
     yourAssociation: 'האסוציאציה שלך',
-    aPossibleThread: 'חוט אפשרי',
+    aPossibleThread: 'כיוון שכדאי לחקור',
     aQuestionWorthSittingWith: 'שאלה להתבוננות פנימה',
     translating: 'מתרגם…',
     translationUnavailable: 'הרשומה המקורית נשמרה בשפה אחרת — התרגום אינו זמין כרגע.',
