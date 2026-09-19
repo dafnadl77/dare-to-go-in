@@ -355,7 +355,7 @@ function App() {
         {/* Hero-only — DreamAuth/DreamArchive/DreamDetail already have
             their own way back or are the archive itself, so a second
             "go to my dreams" link there would be redundant at best. */}
-        {view === 'dream' && (
+        {(view === 'dream' || view === 'about') && (
           <>
             <button type="button" className="trn-archive-link" data-cursor-hover onClick={handleMyDreamsNav}>
               {t('hero.myDreamsNav')}
@@ -363,6 +363,10 @@ function App() {
             <span className="trn-divider" aria-hidden="true">
               |
             </span>
+          </>
+        )}
+        {view === 'dream' && (
+          <>
             <button type="button" className="trn-archive-link" data-cursor-hover onClick={() => setView('about')}>
               {t('hero.aboutNav')}
             </button>

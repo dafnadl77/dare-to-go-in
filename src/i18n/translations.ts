@@ -603,7 +603,7 @@ export const he: Translations = {
     whatStoodOut: 'מה שבלט',
     yourAssociation: 'האסוציאציה שלך',
     aPossibleThread: 'חוט אפשרי',
-    aQuestionWorthSittingWith: 'שאלה לשבת עמה',
+    aQuestionWorthSittingWith: 'שאלה להתבוננות פנימה',
     translating: 'מתרגם…',
     translationUnavailable: 'הרשומה המקורית נשמרה בשפה אחרת — התרגום אינו זמין כרגע.',
     disclaimer: 'זו השתקפות, לא אבחנה או פרשנות חד-משמעית.',
