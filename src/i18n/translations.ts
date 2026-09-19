@@ -547,7 +547,7 @@ export const he: Translations = {
     tryAgain: 'נסו שוב',
     whatINotice: 'מה שבולט',
     yourAssociation: 'האסוציאציה שלך',
-    onePossibleThread: 'חוט אפשרי אחד',
+    onePossibleThread: 'כיוון שכדאי לחקור',
     aQuestionWorthKeeping: 'שאלה שכדאי לשמור',
     seeOtherLenses: 'זוויות נוספות',
     hideOtherLenses: 'הסתרת הזוויות',
