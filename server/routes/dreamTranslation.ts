@@ -2,9 +2,10 @@ import OpenAI from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
 import { okResult, errorResult, type HandlerResult } from '../httpResult.js';
 import {
-  DREAM_TRANSLATION_SYSTEM_PROMPT,
+  buildDreamTranslationSystemPrompt,
   DREAM_TRANSLATION_JSON_SCHEMA,
   validateTranslations,
+  type TranslationTarget,
 } from '../../src/archive/dreamTranslationSchema.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
@@ -26,7 +27,8 @@ export async function handleDreamTranslation(rawBody: unknown, requestHeaders: R
     return errorResult(401, 'not_authenticated', 'Dream translation requires a signed-in account.');
   }
 
-  const body = (rawBody ?? {}) as { texts?: unknown };
+  const body = (rawBody ?? {}) as { texts?: unknown; targetLanguage?: unknown };
+  const target: TranslationTarget = body.targetLanguage === 'he' ? 'he' : 'en';
   const texts = Array.isArray(body.texts) ? body.texts.filter((t): t is string => typeof t === 'string' && t.trim().length > 0) : [];
 
   if (texts.length === 0) {
@@ -46,7 +48,7 @@ ${texts.map((t, i) => `${i + 1}. ${t}`).join('\n')}`;
       async (retryNote) => {
         const response = await client.responses.create({
           model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
-          instructions: DREAM_TRANSLATION_SYSTEM_PROMPT + retryNote,
+          instructions: buildDreamTranslationSystemPrompt(target) + retryNote,
           input,
           text: {
             format: {
@@ -64,9 +66,10 @@ ${texts.map((t, i) => `${i + 1}. ${t}`).join('\n')}`;
         }
       },
       (translations) => translations,
-      // English output; the source passages are the dreamer's own text, so
-      // scripts they use are excused (only unrelated ones are intrusions).
-      { route: 'dream-translation', language: 'en', context: texts.join('\n') },
+      // Output in the target language; the source passages are the dreamer's
+      // own text, so scripts they use are excused (only unrelated ones are
+      // intrusions).
+      { route: 'dream-translation', language: target, context: texts.join('\n') },
     );
     if (outcome.status !== 'ok') {
       return errorResult(

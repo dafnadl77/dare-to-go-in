@@ -43,7 +43,7 @@ export type ArchiveEntry =
     whose own generated image failed to save (dreamImageDataUrl is null). */
 const FALLBACK_IMAGES = ['/dream-assets/dream-art-alt.jpg', '/dream-assets/dream-bed-alt.jpg', '/dream-assets/dream-mirror-alt.jpg'];
 
-function titleCase(text: string): string {
+export function titleCase(text: string): string {
   return text
     .split(' ')
     .map((w) => (w.length ? w[0].toUpperCase() + w.slice(1) : w))
@@ -108,7 +108,7 @@ function fallbackExcerpt(language: AppLanguage): string {
  * English regardless of source language. Only if none of those apply does
  * this fall back to a generic, language-appropriate label.
  */
-function titleFromSavedDream(dream: SavedDream, language: AppLanguage): string {
+export function titleFromSavedDream(dream: SavedDream, language: AppLanguage): string {
   const setting = dream.dreamAnalysis.reconstruction.primarySetting;
   if (setting && isDisplaySafe(setting, language)) return titleCase(setting.trim().slice(0, 34));
   const firstClause = dream.dreamAnalysis.summary.split(/[.!?]/)[0]?.trim();

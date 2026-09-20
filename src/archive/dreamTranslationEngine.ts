@@ -1,4 +1,4 @@
-import { validateTranslations, type TranslationResult, type TranslationErrorReason } from './dreamTranslationSchema';
+import { validateTranslations, type TranslationResult, type TranslationErrorReason, type TranslationTarget } from './dreamTranslationSchema';
 import { getAuthHeader } from '../auth/getAccessToken';
 
 const KNOWN_REASONS: TranslationErrorReason[] = [
@@ -19,13 +19,13 @@ const KNOWN_REASONS: TranslationErrorReason[] = [
  * result instead, which DreamDetail.tsx falls back from (see its own
  * comment on what it shows while this is pending/failed).
  */
-export async function translateTexts(texts: string[]): Promise<TranslationResult> {
+export async function translateTexts(texts: string[], targetLanguage: TranslationTarget = 'en'): Promise<TranslationResult> {
   try {
     const authHeader = await getAuthHeader();
     const res = await fetch('/api/dream-translation', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeader },
-      body: JSON.stringify({ texts }),
+      body: JSON.stringify({ texts, targetLanguage }),
     });
 
     const data: unknown = await res.json().catch(() => null);

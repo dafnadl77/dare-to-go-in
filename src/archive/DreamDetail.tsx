@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import DreamStageBackground from '../hero/DreamStageBackground';
 import { sanitizeAiTextForDisplay, containsHebrew } from '../hero/appLanguage';
-import { formatEntryDayMonth, formatEntryYear, type ArchiveEntry } from './archiveData';
+import { formatEntryDayMonth, formatEntryYear, titleCase, titleFromSavedDream, type ArchiveEntry } from './archiveData';
 import { useDreamImageSrc } from './useDreamImageSrc';
 import { translateTexts } from './dreamTranslationEngine';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -35,7 +35,15 @@ interface DreamDetailProps {
     only `display` is, which is either the original (already English), the
     resolved translation, or a plain loading/error placeholder — so raw
     Hebrew never reaches an English page, even for a moment. */
-type FieldKey = 'dream' | 'stoodOut' | 'association';
+type FieldKey = 'dream' | 'stoodOut' | 'association' | 'title' | 'thread' | 'question';
+
+/** Whether an AI-generated/derived string is in the wrong script for the
+    active UI language and so needs a real translation: any Hebrew on the
+    English UI; Latin-only prose (no Hebrew at all) on the Hebrew UI. */
+function needsTranslation(text: string, language: 'en' | 'he'): boolean {
+  if (language === 'en') return containsHebrew(text);
+  return !containsHebrew(text) && /[A-Za-z]{3}/.test(text);
+}
 type TranslationState = 'idle' | 'loading' | 'ready' | 'error';
 
 /**
@@ -82,25 +90,41 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
   const associationRaw = entry.kind === 'real' ? entry.savedDream.reflectionResponse : null;
   const selectedElementRaw = entry.kind === 'real' ? entry.savedDream.selectedElement : null;
 
+  // The title is derived from the saved record in the language the dream was
+  // SAVED in — never from entry.title, which App keeps as a snapshot from the
+  // moment the dream was opened and so goes stale on a language switch.
+  const savedDream = entry.kind === 'real' ? entry.savedDream : null;
+  const ownTitle = savedDream ? titleFromSavedDream(savedDream, savedDream.appLanguage) : entry.title;
+  const currentLanguageTitle = savedDream ? titleFromSavedDream(savedDream, language) : entry.title;
+  const threadRaw = reflection?.possibleThread ?? null;
+  const questionRaw = reflection?.continuityQuestion ?? null;
+
   const [translationState, setTranslationState] = useState<TranslationState>('idle');
   const [translated, setTranslated] = useState<Partial<Record<FieldKey, string>>>({});
 
   useEffect(() => {
     setTranslationState('idle');
     setTranslated({});
-    // Only the English UI ever force-translates the dreamer's own words —
-    // see the module comment above.
-    if (entry.kind !== 'real' || language !== 'en') return;
+    if (entry.kind !== 'real') return;
 
     const items: { key: FieldKey; text: string }[] = [];
-    if (sourceTextRaw && containsHebrew(sourceTextRaw)) items.push({ key: 'dream', text: sourceTextRaw });
-    if (selectedElementRaw && containsHebrew(selectedElementRaw)) items.push({ key: 'stoodOut', text: selectedElementRaw });
-    if (associationRaw && containsHebrew(associationRaw)) items.push({ key: 'association', text: associationRaw });
+    // The dreamer's own words: only the English UI ever force-translates
+    // them — see the module comment above.
+    if (language === 'en') {
+      if (sourceTextRaw && containsHebrew(sourceTextRaw)) items.push({ key: 'dream', text: sourceTextRaw });
+      if (selectedElementRaw && containsHebrew(selectedElementRaw)) items.push({ key: 'stoodOut', text: selectedElementRaw });
+      if (associationRaw && containsHebrew(associationRaw)) items.push({ key: 'association', text: associationRaw });
+    }
+    // AI-generated/derived fields (title, direction to explore, question to
+    // keep) follow the active UI language in either direction.
+    if (needsTranslation(ownTitle, language)) items.push({ key: 'title', text: ownTitle });
+    if (threadRaw && needsTranslation(threadRaw, language)) items.push({ key: 'thread', text: threadRaw });
+    if (questionRaw && needsTranslation(questionRaw, language)) items.push({ key: 'question', text: questionRaw });
     if (items.length === 0) return;
 
     let cancelled = false;
     setTranslationState('loading');
-    translateTexts(items.map((i) => i.text)).then((result) => {
+    translateTexts(items.map((i) => i.text), language).then((result) => {
       if (cancelled) return;
       if (result.status === 'ok') {
         const next: Partial<Record<FieldKey, string>> = {};
@@ -136,6 +160,18 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
     return null; // loading — see the *-loading placeholder rendered below
   }
 
+  /** Same idea for the AI-generated fields, which follow the UI language in
+      both directions. Null while the translation is pending (a loading
+      placeholder is rendered); if it fails, the saved text is shown with
+      any Hebrew stripped on the English UI, and only if nothing readable
+      is left, the "translation unavailable" note. */
+  function resolveAi(key: FieldKey, raw: string): string | null {
+    if (!needsTranslation(raw, language)) return raw;
+    if (translationState === 'ready' && translated[key]) return translated[key]!;
+    if (translationState === 'error') return sanitizeAiTextForDisplay(raw) || t('dreamDetail.translationUnavailable');
+    return null;
+  }
+
   const dreamText = sourceTextRaw ? resolve('dream', sourceTextRaw) : null;
   const stoodOutText = selectedElementRaw ? resolve('stoodOut', selectedElementRaw) : entry.kind === 'real' ? entry.stoodOut : null;
   const associationText = associationRaw
@@ -143,6 +179,15 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
     : reflection
       ? sanitizeAiTextForDisplay(reflection.personalAssociation)
       : null;
+  const threadText = threadRaw ? resolveAi('thread', threadRaw) : null;
+  const questionText = questionRaw ? resolveAi('question', questionRaw) : null;
+  const resolvedTitle = resolveAi('title', ownTitle);
+  const displayTitle =
+    resolvedTitle === null
+      ? currentLanguageTitle
+      : language === 'en' && resolvedTitle === translated.title
+        ? titleCase(resolvedTitle)
+        : resolvedTitle;
 
   return (
     <div className="dream-detail">
@@ -169,18 +214,18 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
           <Breadcrumb
             ariaLabel={t('breadcrumb.ariaLabel')}
             onHome={onGoHome}
-            items={[{ label: t('archive.pageHeading'), onClick: onBack }, { label: entry.title }]}
+            items={[{ label: t('archive.pageHeading'), onClick: onBack }, { label: displayTitle }]}
           />
           <div className="dd-hero">
             <span className="dd-image-wrap">
               <span className="dd-image-glow" style={{ backgroundImage: `url(${imageSrc})` }} aria-hidden="true" />
-              <img className="dd-image" src={imageSrc} alt={entry.title} />
+              <img className="dd-image" src={imageSrc} alt={displayTitle} />
             </span>
             <p className="dd-date">
               {formatEntryDayMonth(entry.date)} {formatEntryYear(entry.date)}
             </p>
             <h1 className="dd-title">
-              <EditorialTitle text={entry.title} />
+              <EditorialTitle text={displayTitle} />
             </h1>
           </div>
 
@@ -225,14 +270,22 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
                 <p className="dd-eyebrow">
                   <EditorialTitle text={t('dreamDetail.aPossibleThread')} />
                 </p>
-                <p className="dd-body dd-body--thread">{sanitizeAiTextForDisplay(reflection.possibleThread)}</p>
+                {threadText ? (
+                  <p className="dd-body dd-body--thread">{threadText}</p>
+                ) : (
+                  <p className="dd-body dd-body--loading">{t('dreamDetail.translating')}</p>
+                )}
               </section>
 
               <section className="dd-block">
                 <p className="dd-eyebrow">
                   <EditorialTitle text={t('dreamDetail.aQuestionWorthSittingWith')} />
                 </p>
-                <p className="dd-body dd-body--question">{sanitizeAiTextForDisplay(reflection.continuityQuestion)}</p>
+                {questionText ? (
+                  <p className="dd-body dd-body--question">{questionText}</p>
+                ) : (
+                  <p className="dd-body dd-body--loading">{t('dreamDetail.translating')}</p>
+                )}
               </section>
 
               <p className="dd-disclaimer">{t('dreamDetail.disclaimer')}</p>
