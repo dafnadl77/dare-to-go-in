@@ -25,7 +25,7 @@ import type { AppLanguage } from './appLanguage.js';
  */
 export function buildLanguageIntegrityInstruction(language: AppLanguage): string {
   if (language === 'he') {
-    return `LANGUAGE INTEGRITY (mandatory, applies to every string you output): write every word of your response in natural, fluent Hebrew, using only Hebrew letters. Never switch to another language or writing system in the middle of a sentence or a word, and do not insert a foreign-language word even when a concept is hard to phrase. If a word for an ordinary concept comes to mind in another language, translate it into a natural Hebrew expression instead. The only exceptions are: proper names and brand names, established terms that have no natural Hebrew equivalent (which may stay in Latin letters as they are normally written), and the dreamer's own words when you quote them exactly. This applies to every field, including strings inside arrays and nested objects. Before you answer, re-read your output and confirm that no sentence contains a word from another language.`;
+    return `LANGUAGE INTEGRITY (mandatory, applies to every string you output): write every word of your response in natural, fluent Hebrew, using only Hebrew letters. Never switch to another language or writing system in the middle of a sentence or a word, and do not insert a foreign-language word even when a concept is hard to phrase. If a word for an ordinary concept comes to mind in another language, translate it into a natural Hebrew expression instead. Never leave an English (or other foreign) word untranslated inside a Hebrew phrase: translate it, or if it is an established foreign term write it in Hebrew letters. The only exceptions are: proper names and brand names (which may stay in Latin letters, capitalised as they are normally written), and the dreamer's own words when you quote them exactly, in quotation marks. This applies to every field, including strings inside arrays and nested objects. Before you answer, re-read your output and confirm that no sentence contains a word from another language.`;
   }
   return `LANGUAGE INTEGRITY (mandatory, applies to every string you output): write every word of your response in natural, fluent English. Never switch to another language or writing system in the middle of a sentence or a word, and do not insert a foreign-language word even when a concept is hard to phrase. If a word for an ordinary concept comes to mind in another language, translate it into a natural English expression instead. The only exceptions are: proper names and brand names, established terms that have no natural English equivalent, and the dreamer's own words when you quote them exactly. This applies to every field, including strings inside arrays and nested objects. Before you answer, re-read your output and confirm that no sentence contains a word from another language.`;
 }
@@ -42,10 +42,16 @@ export function buildSourceLanguageIntegrityInstruction(): string {
 
 /** Appended to the system prompt when regenerating after a detected intrusion; names what was wrong so the model can avoid it. */
 export function buildLanguageIntegrityRetryNote(intrusion: ScriptIntrusion): string {
-  const scripts = intrusion.scripts.join(' / ');
-  const chars = intrusion.samples.map((c) => JSON.stringify(c)).join(', ');
-  return `\n\nCORRECTION: your previous attempt contained characters from the ${scripts} writing system (${chars}), which must not appear here — including inside a word. Regenerate the entire response from scratch, strictly following the LANGUAGE INTEGRITY rule above, using only the required language and script.`;
+  const kinds = intrusion.scripts.join(' / ');
+  const found = intrusion.samples.map((c) => JSON.stringify(c)).join(', ');
+  return `\n\nCORRECTION: your previous attempt contained text that must not appear here (${kinds}: ${found}) — foreign-script characters, even inside a word, or untranslated foreign-language words. Regenerate the entire response from scratch, strictly following the LANGUAGE INTEGRITY rule above, using only the required language and script.`;
 }
+
+// A lowercase-only Latin word of 3+ letters that isn't part of a URL/email/
+// path/hashtag. Capitalised names, brands (iPhone), acronyms (AI) and
+// hyphen/digit-joined tokens never match.
+const STRAY_LATIN_WORD = /(?<![A-Za-z0-9_@./:#-])[a-z]{3,}(?![A-Za-z0-9_@./:-])/g;
+const QUOTED_SPAN = /["“„«][^"“„«”»]*["”»]/g;
 
 const LETTER_OR_MARK = new RegExp('[\\p{L}\\p{M}]', 'u');
 const NEUTRAL = new RegExp('[\\p{Script=Common}\\p{Script=Inherited}]', 'u');
@@ -92,13 +98,15 @@ export interface ScriptIntrusion {
 }
 
 /**
- * Detects a clearly accidental writing-system intrusion.
+ * Detects a clearly accidental language/writing-system intrusion.
  *
- * Allowed without question: Latin (names, brands, established terminology,
- * URLs) — and Hebrew when the required language is Hebrew. Also allowed:
- * any script the dreamer's OWN text uses (`contextText`), because quoting or
+ * Allowed without question: Latin letters (names, brands, acronyms, URLs)
+ * — and Hebrew when the required language is Hebrew. Also allowed: any
+ * script the dreamer's OWN text uses (`contextText`), because quoting or
  * referencing what the dreamer wrote is legitimate. Everything else is an
- * intrusion. Reports only — never modifies the text.
+ * intrusion. In Hebrew output, an ordinary lowercase Latin word (an
+ * untranslated English word) also counts, unless it is quoted verbatim from
+ * the dreamer's text. Reports only — never modifies the text.
  *
  * `language: null` means "the dream's own language" (dream analysis): only
  * Latin plus whatever scripts the dream text itself uses.
@@ -127,6 +135,23 @@ export function findScriptIntrusion(texts: readonly string[], language: AppLangu
       found.add(script);
       if (samples.size < 3) samples.add(ch);
       count += 1;
+    }
+  }
+
+  // Latin is allowed for names/brands/acronyms, but an ordinary lowercase
+  // English word left inside Hebrew prose is a language switch too.
+  if (language === 'he') {
+    const contextWords = new Set((contextText.toLowerCase().match(/[a-z]{3,}/g) ?? []));
+    for (const text of texts) {
+      const quoted = [...text.matchAll(QUOTED_SPAN)].map((m) => [m.index, m.index + m[0].length] as const);
+      for (const match of text.matchAll(STRAY_LATIN_WORD)) {
+        const start = match.index;
+        const inQuote = quoted.some(([from, to]) => start >= from && start < to);
+        if (inQuote && contextWords.has(match[0])) continue;
+        found.add('Latin words');
+        if (samples.size < 3) samples.add(match[0]);
+        count += 1;
+      }
     }
   }
   return count > 0 ? { scripts: [...found], count, samples: [...samples] } : null;
