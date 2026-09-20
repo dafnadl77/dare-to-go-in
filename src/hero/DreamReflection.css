@@ -1297,6 +1297,64 @@
   }
 }
 
+/* The same interpretation-title treatment as above, for the tall
+   intermediate range (641-899px wide, taller than the short-landscape
+   breakpoint — shorter viewports already get the in-flow layout above).
+   Here the layout is still the desktop one: the title is a vertically
+   centered flex item and the thought column is absolutely positioned. So
+   the title becomes the first in-flow item at the top, below the fixed
+   header row, and the thought sequence becomes the remaining flex area —
+   the column starts under the title however many lines it wraps to,
+   instead of a hand-set offset that a long title could overlap. Horizontal
+   extents reuse the column's own (left 11vw / right 15vw), so the title
+   lines up with its headings; bottom-anchored items (lenses, grounding,
+   CONTINUE) keep their exact positions since the sequence still ends at
+   the viewport's bottom edge. */
+@media (min-width: 641px) and (max-width: 899px) and (min-height: 501px) {
+  .dream-reflection[data-step='reflection'] {
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 0;
+    padding: calc(max(20px, env(safe-area-inset-top, 0px)) + 32px + 22px) 0 0;
+  }
+
+  .dream-reflection[data-step='reflection'] > .dr-anchor {
+    margin: 0 15vw 0 11vw;
+    padding-inline-start: calc(42px + 1.4rem);
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: clamp(1.1rem, 2.1vw, 1.32rem);
+    font-weight: 400;
+    font-optical-sizing: none;
+    font-variation-settings: 'opsz' 84;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+    text-transform: uppercase;
+    color: var(--dream-white);
+    text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.65);
+    overflow-wrap: anywhere;
+    animation-name: dr-anchor-in-bright;
+  }
+
+  :root[dir='rtl'] .dream-reflection[data-step='reflection'] > .dr-anchor {
+    font-weight: 700;
+  }
+
+  :root:not([dir='rtl']) .dream-reflection[data-step='reflection'] > .dr-anchor {
+    text-align: center;
+  }
+
+  .dream-reflection[data-step='reflection'] .dream-thought-sequence {
+    position: relative;
+    inset: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .dream-reflection[data-step='reflection'] .dr-node-path {
+    top: 2.2rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dr-response-textarea,
   .dr-thought,
