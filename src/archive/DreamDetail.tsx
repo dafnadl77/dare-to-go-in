@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import DreamStageBackground from '../hero/DreamStageBackground';
 import { sanitizeAiTextForDisplay, containsHebrew } from '../hero/appLanguage';
 import { formatEntryDayMonth, formatEntryYear, titleFromSavedDream, type ArchiveEntry } from './archiveData';
-import { cacheTitle, getCachedTitle, needsTranslation, savedTitleSource } from './dreamTitleTranslation';
+import { cacheLabel, cacheTitle, getCachedLabel, getCachedTitle, needsTranslation, savedTitleSource } from './dreamTitleTranslation';
 import { useDreamImageSrc } from './useDreamImageSrc';
 import { translateTexts } from './dreamTranslationEngine';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -106,11 +106,14 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
     // them — see the module comment above.
     if (language === 'en') {
       if (sourceTextRaw && containsHebrew(sourceTextRaw)) items.push({ key: 'dream', text: sourceTextRaw });
-      if (selectedElementRaw && containsHebrew(selectedElementRaw)) items.push({ key: 'stoodOut', text: selectedElementRaw });
       if (associationRaw && containsHebrew(associationRaw)) items.push({ key: 'association', text: associationRaw });
     }
-    // AI-generated/derived fields (title, direction to explore, question to
-    // keep) follow the active UI language in either direction.
+    // AI-generated/derived fields (title, "what stood out" label, direction to
+    // explore, question to keep) follow the active UI language in either
+    // direction — including labels saved in the other language by older records.
+    if (selectedElementRaw && needsTranslation(selectedElementRaw, language) && !getCachedLabel(selectedElementRaw, language)) {
+      items.push({ key: 'stoodOut', text: selectedElementRaw });
+    }
     // Shared with the archive list (dreamTitleTranslation.ts): a title it already
     // translated is not requested again.
     if (needsTranslation(ownTitle, language) && !getCachedTitle(ownTitle, language)) items.push({ key: 'title', text: ownTitle });
@@ -123,6 +126,8 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
     translateTexts(items.map((i) => i.text), language).then((result) => {
       const titleIndex = items.findIndex((item) => item.key === 'title');
       if (result.status === 'ok' && titleIndex >= 0) cacheTitle(ownTitle, language, result.translations[titleIndex]);
+      const labelIndex = items.findIndex((item) => item.key === 'stoodOut');
+      if (result.status === 'ok' && labelIndex >= 0 && selectedElementRaw) cacheLabel(selectedElementRaw, language, result.translations[labelIndex]);
       if (cancelled) return;
       if (result.status === 'ok') {
         const next: Partial<Record<FieldKey, string>> = {};
@@ -171,7 +176,13 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
   }
 
   const dreamText = sourceTextRaw ? resolve('dream', sourceTextRaw) : null;
-  const stoodOutText = selectedElementRaw ? resolve('stoodOut', selectedElementRaw) : entry.kind === 'real' ? entry.stoodOut : null;
+  const stoodOutText = selectedElementRaw
+    ? needsTranslation(selectedElementRaw, language)
+      ? (getCachedLabel(selectedElementRaw, language) ?? resolveAi('stoodOut', selectedElementRaw))
+      : sanitizeAiTextForDisplay(selectedElementRaw)
+    : entry.kind === 'real'
+      ? entry.stoodOut
+      : null;
   const associationText = associationRaw
     ? resolve('association', associationRaw)
     : reflection
@@ -235,7 +246,7 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
                 )}
               </section>
 
-              {(stoodOutText || (selectedElementRaw && language === 'en' && containsHebrew(selectedElementRaw))) && (
+              {(stoodOutText || (selectedElementRaw && needsTranslation(selectedElementRaw, language))) && (
                 <section className="dd-block">
                   <p className="dd-eyebrow">
                     <EditorialTitle text={t('dreamDetail.whatStoodOut')} />

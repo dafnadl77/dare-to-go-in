@@ -44,7 +44,7 @@ export function savedTitleSource(dream: SavedDream): string {
   return titleFromSavedDream(dream, dreamContentLanguage(dream));
 }
 
-type Kind = 'title' | 'excerpt' | 'keyword';
+type Kind = 'title' | 'excerpt' | 'keyword' | 'label';
 
 // Survives a refresh within the tab, never leaves the browser, cleared when
 // the tab closes.
@@ -73,6 +73,8 @@ const stripTrailing = (text: string) => text.trim().replace(/[\s.,;:!?…]+$/u, 
 function finalize(kind: Kind, language: AppLanguage, translated: string): string {
   if (kind === 'excerpt') return translated.trim();
   const clean = stripTrailing(translated);
+  // A "What stood out" label keeps whatever casing the translation has.
+  if (kind === 'label') return clean;
   // Keywords are shown lowercase on the card, except the English pronoun "I".
   if (kind === 'keyword') return clean.toLowerCase().replace(/\bi\b/g, 'I');
   return language === 'en' ? titleCase(clean) : clean;
@@ -99,6 +101,15 @@ export function getCachedTitle(text: string, language: AppLanguage): string | nu
 }
 export function cacheTitle(text: string, language: AppLanguage, translated: string): void {
   store('title', text, language, translated);
+}
+
+/** The AI-generated "What stood out" label (the saved selected element) — cached
+    like the title so Dream Detail never asks for it twice. */
+export function getCachedLabel(text: string, language: AppLanguage): string | null {
+  return getCached('label', text, language);
+}
+export function cacheLabel(text: string, language: AppLanguage, translated: string): void {
+  store('label', text, language, translated);
 }
 
 /** What the card needs translated for one entry: the saved-language source
