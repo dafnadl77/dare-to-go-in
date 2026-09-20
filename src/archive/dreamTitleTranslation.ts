@@ -70,7 +70,8 @@ const stripTrailing = (text: string) => text.trim().replace(/[\s.,;:!?…]+$/u, 
 function finalize(kind: Kind, language: AppLanguage, translated: string): string {
   if (kind === 'excerpt') return translated.trim();
   const clean = stripTrailing(translated);
-  if (kind === 'keyword') return clean.toLowerCase();
+  // Keywords are shown lowercase on the card, except the English pronoun "I".
+  if (kind === 'keyword') return clean.toLowerCase().replace(/\bi\b/g, 'I');
   return language === 'en' ? titleCase(clean) : clean;
 }
 
