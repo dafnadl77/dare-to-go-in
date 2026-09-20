@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { buildReflectionQuestion } from './dreamElements';
 import { usePointerParallax } from './usePointerParallax';
-import { sanitizeAiTextForDisplay } from './appLanguage';
+import { useReflectionDisplay } from './useReflectionDisplay';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
 import type { InsideStep } from './DreamReconstruction';
@@ -116,6 +116,7 @@ export default function DreamReflection({
   onContinue,
 }: DreamReflectionProps) {
   const { t } = useLanguage();
+  const showAiText = useReflectionDisplay(reflectionResult);
   const [responseText, setResponseText] = useState('');
   const [lensesVisible, setLensesVisible] = useState(false);
   const fieldRef = useRef<HTMLDivElement>(null);
@@ -293,7 +294,7 @@ export default function DreamReflection({
                     <h3 className="dr-thought-label">
                       <EditorialTitle text={t(f.labelKey)} />
                     </h3>
-                    <p className="dr-thought-text">{sanitizeAiTextForDisplay(reflectionResult[f.key])}</p>
+                    <p className="dr-thought-text">{showAiText(reflectionResult[f.key])}</p>
                   </div>
                 </div>
               );
@@ -309,7 +310,7 @@ export default function DreamReflection({
                 <div className="dr-lenses">
                   {activeLenses.map(([key, text]) => (
                     <p className="dr-lens" key={key}>
-                      <span className="dr-lens-label">{t(LENS_LABEL_KEYS[key])}</span> {sanitizeAiTextForDisplay(text as string)}
+                      <span className="dr-lens-label">{t(LENS_LABEL_KEYS[key])}</span> {showAiText(text as string)}
                     </p>
                   ))}
                 </div>

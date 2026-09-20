@@ -44,7 +44,7 @@ export function savedTitleSource(dream: SavedDream): string {
   return titleFromSavedDream(dream, dreamContentLanguage(dream));
 }
 
-type Kind = 'title' | 'excerpt' | 'keyword' | 'label';
+type Kind = 'title' | 'excerpt' | 'keyword' | 'label' | 'reflection';
 
 // Survives a refresh within the tab, never leaves the browser, cleared when
 // the tab closes.
@@ -71,7 +71,7 @@ const keyOf = (kind: Kind, text: string, language: AppLanguage) => `${kind}|${la
 const stripTrailing = (text: string) => text.trim().replace(/[\s.,;:!?…]+$/u, '');
 
 function finalize(kind: Kind, language: AppLanguage, translated: string): string {
-  if (kind === 'excerpt') return translated.trim();
+  if (kind === 'excerpt' || kind === 'reflection') return translated.trim();
   const clean = stripTrailing(translated);
   // A "What stood out" label keeps whatever casing the translation has.
   if (kind === 'label') return clean;
@@ -110,6 +110,15 @@ export function getCachedLabel(text: string, language: AppLanguage): string | nu
 }
 export function cacheLabel(text: string, language: AppLanguage, translated: string): void {
   store('label', text, language, translated);
+}
+
+/** A sentence of the live reflection (observation, association, thread, question,
+    lens text) translated for display — cached so a language toggle never asks twice. */
+export function getCachedReflectionText(text: string, language: AppLanguage): string | null {
+  return getCached('reflection', text, language);
+}
+export function cacheReflectionText(text: string, language: AppLanguage, translated: string): void {
+  store('reflection', text, language, translated);
 }
 
 /** What the card needs translated for one entry: the saved-language source

@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { sanitizeAiTextForDisplay } from './appLanguage';
+import { displayCachedReflectionText } from './useReflectionDisplay';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
 import type { InsideStep } from './DreamReconstruction';
@@ -50,7 +50,7 @@ const SPARK_COUNT = 10;
  * dissolve outcome of LET IT GO.
  */
 export default function DreamClosing({ step, reflectionResult, accentColor, onSave, onLetGo, onReturnToRoom, onGoToArchive }: DreamClosingProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const accent = accentColor ?? FALLBACK_ACCENT;
   const accentVars = { '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties;
 
@@ -59,8 +59,8 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
       {step === 'closing' && (
         <>
           <div className="dc-fading-reflection" aria-hidden="true">
-            <p className="dc-fading-text">{sanitizeAiTextForDisplay(reflectionResult.observation)}</p>
-            <p className="dc-fading-text dc-fading-text--question">{sanitizeAiTextForDisplay(reflectionResult.continuityQuestion)}</p>
+            <p className="dc-fading-text">{displayCachedReflectionText(reflectionResult.observation, language)}</p>
+            <p className="dc-fading-text dc-fading-text--question">{displayCachedReflectionText(reflectionResult.continuityQuestion, language)}</p>
           </div>
 
           <div className="dc-block dc-block--closing" style={accentVars}>
