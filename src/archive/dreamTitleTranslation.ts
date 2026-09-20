@@ -1,22 +1,29 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { containsHebrew, type AppLanguage } from '../hero/appLanguage';
-import { titleCase, titleFromSavedDream, type ArchiveEntry } from './archiveData';
+import {
+  excerptText,
+  keywordsFromSavedDream,
+  titleCase,
+  titleFromSavedDream,
+  truncateExcerpt,
+  type ArchiveEntry,
+} from './archiveData';
 import { translateTexts } from './dreamTranslationEngine';
 import type { SavedDream } from '../hero/dreamStorage';
 
 /**
- * Display-only translation of a saved dream's DERIVED title, shared by the
- * archive list (DreamArchive) and DreamDetail so both always show the same
- * title for the same dream in the same UI language. Nothing here ever
- * touches the saved dream: it is unchanged, this only fills a cache of
- * translated title strings (in memory, mirrored to sessionStorage).
+ * Display-only translation of the metadata a saved dream's archive CARD
+ * shows — title, excerpt and keywords — shared with DreamDetail (which
+ * uses the title) so both screens agree. Nothing here ever touches the
+ * saved dream: it is unchanged, this only fills a cache of translated
+ * strings (in memory, mirrored to sessionStorage).
  *
- * Cost control: a title is translated at most once per (language, text)
- * per browser tab — everything that needs a translation is sent in ONE
- * request per archive visit (chunked only if the archive is very large),
- * results are cached at module level so re-renders, list ↔ detail
- * navigation and remounts never re-request it, and a title that is already
- * in the active language is never sent at all.
+ * Cost control: each distinct string is translated at most once per
+ * (field kind, language) per browser tab. Everything a visit needs — every
+ * card's title, excerpt and keywords — goes out in ONE request (chunked
+ * only if the archive is very large), results are cached so re-renders,
+ * language toggles, list ↔ detail navigation, remounts and refreshes never
+ * re-request them, and text already in the active language is never sent.
  */
 
 /** Whether an AI-generated/derived string is in the wrong script for the
@@ -34,9 +41,11 @@ export function savedTitleSource(dream: SavedDream): string {
   return titleFromSavedDream(dream, dream.appLanguage);
 }
 
-// Survives a refresh within the tab (so wording stays stable and nothing is
-// re-requested), never leaves the browser, cleared when the tab closes.
-const STORAGE_KEY = 'dare.titleTranslations.v1';
+type Kind = 'title' | 'excerpt' | 'keyword';
+
+// Survives a refresh within the tab, never leaves the browser, cleared when
+// the tab closes.
+const STORAGE_KEY = 'dare.archiveTranslations.v2';
 function loadCache(): Map<string, string> {
   try {
     const raw: unknown = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? '{}');
@@ -50,22 +59,29 @@ function loadCache(): Map<string, string> {
 }
 const cache = loadCache();
 const inFlight = new Set<string>();
-const MAX_PER_REQUEST = 30;
+const MAX_PER_REQUEST = 40;
 
-const keyOf = (text: string, language: AppLanguage) => `${language}:${text}`;
+const keyOf = (kind: Kind, text: string, language: AppLanguage) => `${kind}|${language}|${text}`;
 
-export function getCachedTitle(text: string, language: AppLanguage): string | null {
-  return cache.get(keyOf(text, language)) ?? null;
+/** A title/keyword is a name, not a sentence: drop trailing sentence
+    punctuation the model sometimes adds. */
+const stripTrailing = (text: string) => text.trim().replace(/[\s.,;:!?…]+$/u, '');
+
+function finalize(kind: Kind, language: AppLanguage, translated: string): string {
+  if (kind === 'excerpt') return translated.trim();
+  const clean = stripTrailing(translated);
+  if (kind === 'keyword') return clean.toLowerCase();
+  return language === 'en' ? titleCase(clean) : clean;
 }
 
-/** Stores a translated title in its final display form (English titles get
-    the archive's usual Title Case). */
-export function cacheTitle(text: string, language: AppLanguage, translated: string): void {
-  // A title is a name, not a sentence: drop trailing sentence punctuation the
-  // model sometimes adds.
-  const clean = translated.trim().replace(/[\s.,;:!?…]+$/u, '');
-  if (!clean) return;
-  cache.set(keyOf(text, language), language === 'en' ? titleCase(clean) : clean);
+function getCached(kind: Kind, text: string, language: AppLanguage): string | null {
+  return cache.get(keyOf(kind, text, language)) ?? null;
+}
+
+function store(kind: Kind, text: string, language: AppLanguage, translated: string): void {
+  const value = finalize(kind, language, translated);
+  if (!value) return;
+  cache.set(keyOf(kind, text, language), value);
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(cache)));
   } catch {
@@ -73,13 +89,57 @@ export function cacheTitle(text: string, language: AppLanguage, translated: stri
   }
 }
 
+/** Title cache, used by DreamDetail so it and the list share one translation. */
+export function getCachedTitle(text: string, language: AppLanguage): string | null {
+  return getCached('title', text, language);
+}
+export function cacheTitle(text: string, language: AppLanguage, translated: string): void {
+  store('title', text, language, translated);
+}
+
+/** What the card needs translated for one entry: the saved-language source
+    text per field, or nothing when that field is already fine as is. */
+interface CardSources {
+  title: string | null;
+  excerpt: string | null;
+  keywords: string[];
+}
+
+function cardSources(dream: SavedDream, language: AppLanguage): CardSources {
+  const title = savedTitleSource(dream);
+
+  // The excerpt: keep what the list already derives for this language when
+  // that is real text in the right script; otherwise translate the summary
+  // (or observation) as saved.
+  const native = excerptText(dream, language);
+  const anyLanguage = excerptText(dream, 'he');
+  const excerpt =
+    native !== null && !needsTranslation(native, language)
+      ? null
+      : anyLanguage && needsTranslation(anyLanguage, language)
+        ? anyLanguage
+        : null;
+
+  // Keywords as saved (first three, any language); only the ones in the
+  // wrong script are translated.
+  const keywords = keywordsFromSavedDream(dream, 'he').filter((w) => needsTranslation(w, language));
+
+  return { title: needsTranslation(title, language) ? title : null, excerpt, keywords };
+}
+
+export interface CardOverrides {
+  title?: string;
+  excerpt?: string;
+  keywords?: string[];
+}
+
 /**
- * For the archive list: makes sure every real dream whose saved title is in
- * the other language has a translation on its way, and returns a map of
- * entry id → translated title for the ones that are ready. Entries without
- * a ready translation keep whatever title they already have.
+ * For the archive list: makes sure every real dream whose card text is in
+ * the other language has its translation on its way, and returns per-entry
+ * overrides for whatever is ready. A field without a ready translation
+ * keeps whatever the entry already shows.
  */
-export function useTranslatedEntryTitles(entries: ArchiveEntry[], language: AppLanguage): Record<string, string> {
+export function useTranslatedCards(entries: ArchiveEntry[], language: AppLanguage): Record<string, CardOverrides> {
   const [version, setVersion] = useState(0);
   const mounted = useRef(true);
   const failed = useRef(new Set<string>());
@@ -91,24 +151,33 @@ export function useTranslatedEntryTitles(entries: ArchiveEntry[], language: AppL
   }, []);
 
   useEffect(() => {
-    const pending = new Set<string>();
+    // Deduplicated across every card, so the same word or title is sent once.
+    const pending = new Map<string, { kind: Kind; text: string }>();
+    const want = (kind: Kind, text: string | null) => {
+      if (!text) return;
+      const key = keyOf(kind, text, language);
+      if (cache.has(key) || inFlight.has(key) || failed.current.has(key)) return;
+      pending.set(key, { kind, text });
+    };
     for (const entry of entries) {
       if (entry.kind !== 'real') continue;
-      const source = savedTitleSource(entry.savedDream);
-      const key = keyOf(source, language);
-      if (needsTranslation(source, language) && !cache.has(key) && !inFlight.has(key) && !failed.current.has(key)) {
-        pending.add(source);
-      }
+      const s = cardSources(entry.savedDream, language);
+      want('title', s.title);
+      want('excerpt', s.excerpt);
+      s.keywords.forEach((w) => want('keyword', w));
     }
-    const texts = [...pending];
-    for (let i = 0; i < texts.length; i += MAX_PER_REQUEST) {
-      const chunk = texts.slice(i, i + MAX_PER_REQUEST);
-      chunk.forEach((text) => inFlight.add(keyOf(text, language)));
-      translateTexts(chunk, language).then((result) => {
-        chunk.forEach((text, j) => {
-          inFlight.delete(keyOf(text, language));
-          if (result.status === 'ok') cacheTitle(text, language, result.translations[j]);
-          else failed.current.add(keyOf(text, language));
+    const items = [...pending.entries()];
+    for (let i = 0; i < items.length; i += MAX_PER_REQUEST) {
+      const chunk = items.slice(i, i + MAX_PER_REQUEST);
+      chunk.forEach(([key]) => inFlight.add(key));
+      translateTexts(
+        chunk.map(([, item]) => item.text),
+        language,
+      ).then((result) => {
+        chunk.forEach(([key, item], j) => {
+          inFlight.delete(key);
+          if (result.status === 'ok') store(item.kind, item.text, language, result.translations[j]);
+          else failed.current.add(key);
         });
         if (mounted.current) setVersion((v) => v + 1);
       });
@@ -116,13 +185,28 @@ export function useTranslatedEntryTitles(entries: ArchiveEntry[], language: AppL
   }, [entries, language]);
 
   return useMemo(() => {
-    const out: Record<string, string> = {};
+    const out: Record<string, CardOverrides> = {};
     for (const entry of entries) {
       if (entry.kind !== 'real') continue;
-      const source = savedTitleSource(entry.savedDream);
-      if (!needsTranslation(source, language)) continue;
-      const hit = getCachedTitle(source, language);
-      if (hit) out[entry.id] = hit;
+      const s = cardSources(entry.savedDream, language);
+      const o: CardOverrides = {};
+      if (s.title) {
+        const hit = getCached('title', s.title, language);
+        if (hit) o.title = hit;
+      }
+      if (s.excerpt) {
+        const hit = getCached('excerpt', s.excerpt, language);
+        if (hit) o.excerpt = truncateExcerpt(hit);
+      }
+      if (s.keywords.length > 0) {
+        // Only once every keyword that needs it is ready, so a card never
+        // shows a half-translated tag list.
+        const all = keywordsFromSavedDream(entry.savedDream, 'he');
+        const resolved = all.map((w) => (needsTranslation(w, language) ? getCached('keyword', w, language) : w));
+        const ready = resolved.filter((w): w is string => w !== null);
+        if (ready.length === resolved.length) o.keywords = [...new Set(ready)];
+      }
+      if (o.title !== undefined || o.excerpt !== undefined || o.keywords !== undefined) out[entry.id] = o;
     }
     return out;
     // `version` re-reads the module cache after a batch resolves.

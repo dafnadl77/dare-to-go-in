@@ -118,18 +118,30 @@ export function titleFromSavedDream(dream: SavedDream, language: AppLanguage): s
   return fallbackTitle(language);
 }
 
+export function truncateExcerpt(text: string): string {
+  return text.length > 110 ? `${text.slice(0, 109).trimEnd()}…` : text;
+}
+
+/** The untruncated text an excerpt is built from — the summary, else the
+    reflection's observation — when it is displayable in `language`, else
+    null. Exported so the list's display-only translation can start from the
+    same source. */
+export function excerptText(dream: SavedDream, language: AppLanguage): string | null {
+  const summary = dream.dreamAnalysis.summary.trim();
+  if (summary && isDisplaySafe(summary, language)) return summary;
+  const observation = dream.dreamReflection.observation.trim();
+  if (observation && isDisplaySafe(observation, language)) return observation;
+  return null;
+}
+
 /** The card's short excerpt line — one real sentence from the dream's own
     summary when it's safely displayable, otherwise the reflection's own
     observation (see titleFromSavedDream for the same reasoning), otherwise
     a generic localized note. Truncated to a card-friendly length; never a
     second/duplicate of the title itself. */
 function excerptFromSavedDream(dream: SavedDream, language: AppLanguage): string {
-  const truncate = (text: string) => (text.length > 110 ? `${text.slice(0, 109).trimEnd()}…` : text);
-  const summary = dream.dreamAnalysis.summary.trim();
-  if (summary && isDisplaySafe(summary, language)) return truncate(summary);
-  const observation = dream.dreamReflection.observation.trim();
-  if (observation && isDisplaySafe(observation, language)) return truncate(observation);
-  return fallbackExcerpt(language);
+  const text = excerptText(dream, language);
+  return text ? truncateExcerpt(text) : fallbackExcerpt(language);
 }
 
 /**
@@ -143,7 +155,7 @@ function excerptFromSavedDream(dream: SavedDream, language: AppLanguage): string
  * entirely in the other language while the UI is English; nothing pads
  * the list back out with invented words.
  */
-function keywordsFromSavedDream(dream: SavedDream, language: AppLanguage): string[] {
+export function keywordsFromSavedDream(dream: SavedDream, language: AppLanguage): string[] {
   const a = dream.dreamAnalysis;
   const pool = [
     ...a.emotions.filter((e) => e.explicit).map((e) => e.emotion),
