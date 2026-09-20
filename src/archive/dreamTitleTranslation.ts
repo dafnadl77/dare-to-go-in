@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { containsHebrew, type AppLanguage } from '../hero/appLanguage';
 import {
+  dreamContentLanguage,
   excerptText,
   keywordsFromSavedDream,
   titleCase,
@@ -35,10 +36,12 @@ export function needsTranslation(text: string, language: AppLanguage): boolean {
 }
 
 /** The title exactly as derived from the saved record, in the language the
-    dream was SAVED in — the source that gets translated, never the
-    current-language fallback ("A Saved Dream"). */
+    dream's content is actually written in (see dreamContentLanguage — not the
+    record's UI-language stamp, which is wrong for older records) — the source
+    that gets translated, never the current-language fallback ("A Saved
+    Dream"). */
 export function savedTitleSource(dream: SavedDream): string {
-  return titleFromSavedDream(dream, dream.appLanguage);
+  return titleFromSavedDream(dream, dreamContentLanguage(dream));
 }
 
 type Kind = 'title' | 'excerpt' | 'keyword';
@@ -106,20 +109,14 @@ interface CardSources {
   keywords: string[];
 }
 
-function cardSources(dream: SavedDream, language: AppLanguage): CardSources {
+export function cardSources(dream: SavedDream, language: AppLanguage): CardSources {
   const title = savedTitleSource(dream);
 
-  // The excerpt: keep what the list already derives for this language when
-  // that is real text in the right script; otherwise translate the summary
-  // (or observation) as saved.
-  const native = excerptText(dream, language);
-  const anyLanguage = excerptText(dream, 'he');
-  const excerpt =
-    native !== null && !needsTranslation(native, language)
-      ? null
-      : anyLanguage && needsTranslation(anyLanguage, language)
-        ? anyLanguage
-        : null;
+  // The excerpt, from the dream's own content language (summary first): only
+  // translated when that text is in the wrong script for the UI; otherwise
+  // the card keeps what the list already derives natively.
+  const source = excerptText(dream, dreamContentLanguage(dream));
+  const excerpt = source && needsTranslation(source, language) ? source : null;
 
   // Keywords as saved (first three, any language); only the ones in the
   // wrong script are translated.

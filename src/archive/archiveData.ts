@@ -82,6 +82,19 @@ function isDisplaySafe(text: string, language: AppLanguage): boolean {
   return true;
 }
 
+/**
+ * The language the dream's own saved content is actually written in — read
+ * from the content itself, NOT from `SavedDream.appLanguage`. That stamp
+ * records which UI language was active when the dream was saved, and older
+ * records (saved while the app was English-only, or with the English UI)
+ * carry `appLanguage: 'en'` even though the dream, its extracted summary and
+ * setting are Hebrew (the reflection text alone was English). Read-time only:
+ * nothing is rewritten in storage.
+ */
+export function dreamContentLanguage(dream: SavedDream): AppLanguage {
+  return containsHebrew(dream.sourceText ?? '') || containsHebrew(dream.dreamAnalysis?.summary ?? '') ? 'he' : 'en';
+}
+
 /** Localized, generic fallback — used only when nothing on the saved dream
     itself was safe to show (see isDisplaySafe) — real saved dreams almost
     always have a reflection, so this is expected to be rare in practice,
