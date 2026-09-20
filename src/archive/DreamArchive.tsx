@@ -12,6 +12,7 @@ import { getDreamsRemote, toggleFavoriteRemote } from '../hero/dreamRemoteStorag
 import type { SavedDream } from '../hero/dreamStorage';
 import { containsHebrew } from '../hero/appLanguage';
 import { translateTexts } from './dreamTranslationEngine';
+import { useTranslatedEntryTitles } from './dreamTitleTranslation';
 import DreamTimeline from './DreamTimeline';
 import LocalDreamImportPrompt from './LocalDreamImportPrompt';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -123,7 +124,14 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
   // titles, excerpts and keywords must follow the CURRENT interface
   // language even if the dreamer switches it mid-visit; see
   // archiveData.ts's own language-aware entry builders.
-  const entries = useMemo(() => getArchiveEntries(dreams, language), [dreams, language]);
+  const baseEntries = useMemo(() => getArchiveEntries(dreams, language), [dreams, language]);
+  // A saved title in the other language shows its translation (shared with
+  // DreamDetail, cached, one batched request) instead of the generic fallback.
+  const translatedTitles = useTranslatedEntryTitles(baseEntries, language);
+  const entries = useMemo(
+    () => baseEntries.map((e) => (e.kind === 'real' && translatedTitles[e.id] ? { ...e, title: translatedTitles[e.id] } : e)),
+    [baseEntries, translatedTitles],
+  );
   const visibleEntries = useMemo(
     () => (activeSection === 'favorites' ? entries.filter((e) => e.kind === 'real' && e.favorite) : entries),
     [entries, activeSection],

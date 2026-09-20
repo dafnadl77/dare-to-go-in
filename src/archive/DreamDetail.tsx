@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import DreamStageBackground from '../hero/DreamStageBackground';
 import { sanitizeAiTextForDisplay, containsHebrew } from '../hero/appLanguage';
-import { formatEntryDayMonth, formatEntryYear, titleCase, titleFromSavedDream, type ArchiveEntry } from './archiveData';
+import { formatEntryDayMonth, formatEntryYear, titleFromSavedDream, type ArchiveEntry } from './archiveData';
+import { cacheTitle, getCachedTitle, needsTranslation, savedTitleSource } from './dreamTitleTranslation';
 import { useDreamImageSrc } from './useDreamImageSrc';
 import { translateTexts } from './dreamTranslationEngine';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -37,13 +38,6 @@ interface DreamDetailProps {
     Hebrew never reaches an English page, even for a moment. */
 type FieldKey = 'dream' | 'stoodOut' | 'association' | 'title' | 'thread' | 'question';
 
-/** Whether an AI-generated/derived string is in the wrong script for the
-    active UI language and so needs a real translation: any Hebrew on the
-    English UI; Latin-only prose (no Hebrew at all) on the Hebrew UI. */
-function needsTranslation(text: string, language: 'en' | 'he'): boolean {
-  if (language === 'en') return containsHebrew(text);
-  return !containsHebrew(text) && /[A-Za-z]{3}/.test(text);
-}
 type TranslationState = 'idle' | 'loading' | 'ready' | 'error';
 
 /**
@@ -94,7 +88,7 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
   // SAVED in — never from entry.title, which App keeps as a snapshot from the
   // moment the dream was opened and so goes stale on a language switch.
   const savedDream = entry.kind === 'real' ? entry.savedDream : null;
-  const ownTitle = savedDream ? titleFromSavedDream(savedDream, savedDream.appLanguage) : entry.title;
+  const ownTitle = savedDream ? savedTitleSource(savedDream) : entry.title;
   const currentLanguageTitle = savedDream ? titleFromSavedDream(savedDream, language) : entry.title;
   const threadRaw = reflection?.possibleThread ?? null;
   const questionRaw = reflection?.continuityQuestion ?? null;
@@ -117,7 +111,9 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
     }
     // AI-generated/derived fields (title, direction to explore, question to
     // keep) follow the active UI language in either direction.
-    if (needsTranslation(ownTitle, language)) items.push({ key: 'title', text: ownTitle });
+    // Shared with the archive list (dreamTitleTranslation.ts): a title it already
+    // translated is not requested again.
+    if (needsTranslation(ownTitle, language) && !getCachedTitle(ownTitle, language)) items.push({ key: 'title', text: ownTitle });
     if (threadRaw && needsTranslation(threadRaw, language)) items.push({ key: 'thread', text: threadRaw });
     if (questionRaw && needsTranslation(questionRaw, language)) items.push({ key: 'question', text: questionRaw });
     if (items.length === 0) return;
@@ -125,6 +121,8 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
     let cancelled = false;
     setTranslationState('loading');
     translateTexts(items.map((i) => i.text), language).then((result) => {
+      const titleIndex = items.findIndex((item) => item.key === 'title');
+      if (result.status === 'ok' && titleIndex >= 0) cacheTitle(ownTitle, language, result.translations[titleIndex]);
       if (cancelled) return;
       if (result.status === 'ok') {
         const next: Partial<Record<FieldKey, string>> = {};
@@ -181,13 +179,8 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
       : null;
   const threadText = threadRaw ? resolveAi('thread', threadRaw) : null;
   const questionText = questionRaw ? resolveAi('question', questionRaw) : null;
-  const resolvedTitle = resolveAi('title', ownTitle);
-  const displayTitle =
-    resolvedTitle === null
-      ? currentLanguageTitle
-      : language === 'en' && resolvedTitle === translated.title
-        ? titleCase(resolvedTitle)
-        : resolvedTitle;
+  // Same cache as the archive list, so the two always show the same title.
+  const displayTitle = needsTranslation(ownTitle, language) ? (getCachedTitle(ownTitle, language) ?? currentLanguageTitle) : ownTitle;
 
   return (
     <div className="dream-detail">
