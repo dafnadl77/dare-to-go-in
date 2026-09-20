@@ -123,7 +123,17 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
 
     let cancelled = false;
     setTranslationState('loading');
-    translateTexts(items.map((i) => i.text), language).then((result) => {
+    const texts = items.map((i) => i.text);
+    // One silent retry for a transient failure (network blip, cold start, rate
+    // limit); a definite failure (not signed in, not configured, billing) is not retried.
+    const request = async () => {
+      const first = await translateTexts(texts, language);
+      const retryable = first.status === 'error' && ['request_failed', 'invalid_response', 'rate_limited'].includes(first.reason);
+      if (!retryable) return first;
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      return cancelled ? first : translateTexts(texts, language);
+    };
+    request().then((result) => {
       const titleIndex = items.findIndex((item) => item.key === 'title');
       if (result.status === 'ok' && titleIndex >= 0) cacheTitle(ownTitle, language, result.translations[titleIndex]);
       const labelIndex = items.findIndex((item) => item.key === 'stoodOut');
@@ -158,20 +168,22 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
     if (!raw) return null;
     if (language !== 'en') return raw;
     if (!containsHebrew(raw)) return sanitizeAiTextForDisplay(raw);
-    if (translationState === 'ready' && translated[key]) return translated[key]!;
+    if (translationState === 'ready') return translated[key]?.trim() ? translated[key]! : t('dreamDetail.translationUnavailable');
     if (translationState === 'error') return t('dreamDetail.translationUnavailable');
     return null; // loading — see the *-loading placeholder rendered below
   }
 
   /** Same idea for the AI-generated fields, which follow the UI language in
-      both directions. Null while the translation is pending (a loading
-      placeholder is rendered); if it fails, the saved text is shown with
-      any Hebrew stripped on the English UI, and only if nothing readable
-      is left, the "translation unavailable" note. */
+      both directions. Null only while the translation is pending (a loading
+      placeholder is rendered). Whenever a translation is unavailable — the
+      request failed, or came back empty/unusable — the SAVED text is shown
+      exactly as stored: a section never renders empty, never as leftover
+      punctuation (stripping the wrong-language letters used to leave just
+      "." or "?"), and never stays stuck on the placeholder. */
   function resolveAi(key: FieldKey, raw: string): string | null {
     if (!needsTranslation(raw, language)) return raw;
-    if (translationState === 'ready' && translated[key]) return translated[key]!;
-    if (translationState === 'error') return sanitizeAiTextForDisplay(raw) || t('dreamDetail.translationUnavailable');
+    if (translationState === 'ready') return translated[key]?.trim() ? translated[key]! : raw;
+    if (translationState === 'error') return raw;
     return null;
   }
 
