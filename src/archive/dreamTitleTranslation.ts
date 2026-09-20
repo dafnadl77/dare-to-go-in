@@ -8,11 +8,11 @@ import type { SavedDream } from '../hero/dreamStorage';
  * Display-only translation of a saved dream's DERIVED title, shared by the
  * archive list (DreamArchive) and DreamDetail so both always show the same
  * title for the same dream in the same UI language. Nothing here ever
- * touches storage: the saved dream is unchanged, this only fills an
- * in-memory cache of translated strings for the current page load.
+ * touches the saved dream: it is unchanged, this only fills a cache of
+ * translated title strings (in memory, mirrored to sessionStorage).
  *
  * Cost control: a title is translated at most once per (language, text)
- * per page load — everything that needs a translation is sent in ONE
+ * per browser tab — everything that needs a translation is sent in ONE
  * request per archive visit (chunked only if the archive is very large),
  * results are cached at module level so re-renders, list ↔ detail
  * navigation and remounts never re-request it, and a title that is already
@@ -34,7 +34,21 @@ export function savedTitleSource(dream: SavedDream): string {
   return titleFromSavedDream(dream, dream.appLanguage);
 }
 
-const cache = new Map<string, string>();
+// Survives a refresh within the tab (so wording stays stable and nothing is
+// re-requested), never leaves the browser, cleared when the tab closes.
+const STORAGE_KEY = 'dare.titleTranslations.v1';
+function loadCache(): Map<string, string> {
+  try {
+    const raw: unknown = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? '{}');
+    if (raw && typeof raw === 'object') {
+      return new Map(Object.entries(raw as Record<string, unknown>).filter((e): e is [string, string] => typeof e[1] === 'string'));
+    }
+  } catch {
+    /* storage unavailable — in-memory only */
+  }
+  return new Map();
+}
+const cache = loadCache();
 const inFlight = new Set<string>();
 const MAX_PER_REQUEST = 30;
 
@@ -47,9 +61,16 @@ export function getCachedTitle(text: string, language: AppLanguage): string | nu
 /** Stores a translated title in its final display form (English titles get
     the archive's usual Title Case). */
 export function cacheTitle(text: string, language: AppLanguage, translated: string): void {
-  const clean = translated.trim();
+  // A title is a name, not a sentence: drop trailing sentence punctuation the
+  // model sometimes adds.
+  const clean = translated.trim().replace(/[\s.,;:!?…]+$/u, '');
   if (!clean) return;
   cache.set(keyOf(text, language), language === 'en' ? titleCase(clean) : clean);
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(cache)));
+  } catch {
+    /* storage unavailable — in-memory only */
+  }
 }
 
 /**
