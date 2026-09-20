@@ -167,6 +167,25 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated,
     onSwitchMode(next);
   };
 
+  // From the neutral "check your email" state after a sign-up. That state is
+  // deliberately the same whether or not the address already had an account
+  // (Supabase's sign-up response hides that, and so does this screen), so its
+  // ways forward cover both people: sign in, reset the password, or fix the
+  // address. The typed email is kept for sign in / forgot password (the password
+  // typed for sign-up is not); "different email" clears both.
+  const leaveCheckEmail = (next: 'signin' | 'forgot' | 'different') => {
+    setErrorMessage(null);
+    setAwaitingConfirmationFor(null);
+    setResetSentFor(null);
+    setPassword('');
+    if (next === 'different') {
+      setEmail('');
+      onSwitchMode('signup');
+    } else {
+      onSwitchMode(next);
+    }
+  };
+
   return (
     <div className="dream-auth">
       <DreamStageBackground ref={bgVideoRef} active />
@@ -190,8 +209,24 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated,
         <Breadcrumb ariaLabel={t('breadcrumb.ariaLabel')} onHome={onBack} items={[{ label: t('breadcrumb.signIn') }]} />
         {awaitingConfirmationFor ? (
           <>
-            <h1 className="auth-eyebrow-title">{t('auth.checkYourEmailTitle')}</h1>
-            <p className="auth-tagline">{t('auth.checkYourEmailMessage').replace('{email}', awaitingConfirmationFor)}</p>
+            <h1 className="auth-eyebrow-title">{t('auth.signupCheckEmailTitle')}</h1>
+            <p className="auth-tagline">
+              {t('auth.signupCheckEmailBody')}
+              <br />
+              {t('auth.signupCheckEmailBodyNext')}
+            </p>
+            <button type="button" className="auth-submit" data-cursor-hover onClick={() => leaveCheckEmail('signin')}>
+              {t('auth.signupCheckEmailSignIn')}
+            </button>
+            <p className="auth-switch">
+              <button type="button" className="auth-switch-link" data-cursor-hover onClick={() => leaveCheckEmail('forgot')}>
+                {t('auth.signupCheckEmailForgot')}
+              </button>
+              <span aria-hidden="true"> · </span>
+              <button type="button" className="auth-switch-link" data-cursor-hover onClick={() => leaveCheckEmail('different')}>
+                {t('auth.signupCheckEmailDifferent')}
+              </button>
+            </p>
           </>
         ) : resetSentFor ? (
           <>
@@ -298,12 +333,12 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated,
           </button>
         </form>}
 
-        <p className="auth-switch">
+        {!awaitingConfirmationFor && <p className="auth-switch">
           {isForgot || resetSentFor ? (
             <button type="button" className="auth-switch-link" data-cursor-hover onClick={() => switchModeAndClearError('signin')}>
               {t('auth.backToSignIn')}
             </button>
-          ) : awaitingConfirmationFor || isSignUp ? (
+          ) : isSignUp ? (
             <>
               {t('auth.alreadyHaveArchive')}
               <button type="button" className="auth-switch-link" data-cursor-hover onClick={() => switchModeAndClearError('signin')}>
@@ -318,7 +353,7 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated,
               </button>
             </>
           )}
-        </p>
+        </p>}
       </div>
 
       <AppFooter onNavigate={onOpenLegal} pinned />

@@ -178,6 +178,12 @@ export interface Translations {
     signOut: string;
     checkYourEmailTitle: string;
     checkYourEmailMessage: string;
+    signupCheckEmailTitle: string;
+    signupCheckEmailBody: string;
+    signupCheckEmailBodyNext: string;
+    signupCheckEmailSignIn: string;
+    signupCheckEmailForgot: string;
+    signupCheckEmailDifferent: string;
     forgotPassword: string;
     resetRequestTitle: string;
     resetRequestTagline: string;
@@ -405,6 +411,12 @@ export const en: Translations = {
     signOut: 'Sign out',
     checkYourEmailTitle: 'CHECK YOUR EMAIL',
     checkYourEmailMessage: 'I sent a confirmation link to {email}. Open it to finish creating your archive.',
+    signupCheckEmailTitle: 'CHECK YOUR EMAIL',
+    signupCheckEmailBody: 'If you’re new to DARE, a link to confirm your account is on its way.',
+    signupCheckEmailBodyNext: 'Already have an account? Sign in, or reset your password.',
+    signupCheckEmailSignIn: 'Sign in',
+    signupCheckEmailForgot: 'Forgot password',
+    signupCheckEmailDifferent: 'Use a different email',
     forgotPassword: 'Forgot password?',
     resetRequestTitle: 'RESET YOUR PASSWORD',
     resetRequestTagline: 'Enter your email and I’ll send you a link to choose a new one.',
@@ -641,6 +653,12 @@ export const he: Translations = {
     signOut: 'התנתקות',
     checkYourEmailTitle: 'בדקו את תיבת המייל',
     checkYourEmailMessage: 'נשלח קישור אישור אל {email}. פתחו אותו כדי להשלים את יצירת הארכיון.',
+    signupCheckEmailTitle: 'בדקי את המייל שלך',
+    signupCheckEmailBody: 'אם זו הפעם הראשונה שלך ב-DARE, יישלח אלייך קישור לאישור החשבון.',
+    signupCheckEmailBodyNext: 'כבר יש לך חשבון? התחברי או אפסי סיסמה.',
+    signupCheckEmailSignIn: 'התחברות',
+    signupCheckEmailForgot: 'שכחתי סיסמה',
+    signupCheckEmailDifferent: 'שימוש במייל אחר',
     forgotPassword: 'שכחת סיסמה?',
     resetRequestTitle: 'איפוס הסיסמה שלך',
     resetRequestTagline: 'הזינו את כתובת האימייל שלכם ונשלח לכם קישור לבחירת סיסמה חדשה.',
