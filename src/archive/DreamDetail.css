@@ -363,6 +363,19 @@ html[lang='he'] .dd-eyebrow {
   background: rgba(244, 240, 232, 0.3);
 }
 
+/* Below desktop, including landscape phones (the project's existing
+   900px / short-viewport idioms): clear breathing room between the
+   breadcrumb row and the image, and the image's soft 8px corner. */
+@media (max-width: 900px), (max-height: 500px) {
+  .dd-image-wrap {
+    margin-top: clamp(16px, 2.4vw, 20px);
+  }
+
+  .dd-image {
+    border-radius: 8px;
+  }
+}
+
 @media (max-width: 640px) {
   .dd-column {
     padding: 14vh 7vw 8vh;
@@ -375,6 +388,14 @@ html[lang='he'] .dd-eyebrow {
 
   .dd-end-divider {
     display: none;
+  }
+}
+
+/* Landscape phones: vh-based top padding shrinks with the viewport height
+   and would let the breadcrumb collide with the fixed back link above it. */
+@media (max-height: 500px) {
+  .dd-column {
+    padding-top: max(12vh, 4.5rem);
   }
 }
 

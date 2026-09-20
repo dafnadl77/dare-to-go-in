@@ -553,8 +553,12 @@ html[dir='rtl'] .ar-insights-button:hover .ar-insights-chevron {
 }
 
 @media (max-width: 900px) {
+  /* `align-items: flex-start` (needed for the desktop sidebar row) would,
+     in a column, make .ar-main shrink-wrap to its widest content instead of
+     the viewport — the cause of the overflow below desktop. */
   .ar-shell-body {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .ar-sidenav {
@@ -567,6 +571,29 @@ html[dir='rtl'] .ar-insights-button:hover .ar-insights-chevron {
 
   .ar-nav-item {
     flex: none;
+    width: auto;
+  }
+
+  .ar-hero-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Centered, proportionate primary action — a fluid share of the content
+     width with a sensible cap so it never balloons at landscape/tablet
+     widths; min-width keeps its nowrap label from being squeezed. */
+  .ar-new-dream {
+    align-self: center;
+    width: 56%;
+    min-width: max-content;
+    max-width: 15rem;
+  }
+
+  .ar-insights-word,
+  .ar-insights-dreams,
+  .ar-settings-value {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -580,15 +607,6 @@ html[dir='rtl'] .ar-insights-button:hover .ar-insights-chevron {
 
   .ar-account-email {
     display: none;
-  }
-
-  .ar-hero-row {
-    align-items: flex-start;
-  }
-
-  .ar-new-dream {
-    width: 100%;
-    justify-content: center;
   }
 }
 

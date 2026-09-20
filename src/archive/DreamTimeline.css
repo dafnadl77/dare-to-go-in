@@ -244,6 +244,40 @@ html[dir='rtl'] .dt-card:focus-visible .dt-card-chevron {
   box-shadow: 0 0 0 3px var(--dream-btn-glow);
 }
 
+/* Below the archive's desktop breakpoint (same 900px as DreamArchive.css):
+   fluid card — the thumbnail scales with the viewport, and every text
+   element may shrink and wrap instead of forcing the card wider than its
+   container. Nothing is truncated: title and excerpt wrap fully. */
+@media (max-width: 900px) {
+  .dt-card-thumb {
+    width: clamp(64px, 24vw, 96px);
+    height: clamp(64px, 24vw, 96px);
+  }
+
+  .dt-card-top {
+    flex-wrap: wrap;
+    row-gap: 0.15rem;
+  }
+
+  .dt-card-title {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+  }
+
+  .dt-card-excerpt {
+    display: block;
+    overflow: visible;
+    -webkit-line-clamp: unset;
+    overflow-wrap: anywhere;
+  }
+
+  .dt-card-keywords {
+    overflow-wrap: anywhere;
+  }
+}
+
 @media (max-width: 640px) {
   /* Touch devices have no hover — the toggle must be visible without one,
      at a comfortable minimum touch target. */
@@ -259,17 +293,14 @@ html[dir='rtl'] .dt-card:focus-visible .dt-card-chevron {
     padding: 0.75rem;
   }
 
-  .dt-card-thumb {
-    width: 72px;
-    height: 72px;
-  }
-
-  .dt-card-excerpt {
-    -webkit-line-clamp: 2;
-  }
-
   .dt-card-chevron {
     display: none;
+  }
+
+  /* The favorite toggle is always visible here and sits over the card's
+     end-top corner — keep the first text row clear of it. */
+  .dt-card-top {
+    padding-inline-end: 2.2rem;
   }
 }
 
