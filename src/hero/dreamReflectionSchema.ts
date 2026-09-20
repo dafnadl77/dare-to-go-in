@@ -1,4 +1,5 @@
 import type { AppLanguage } from './appLanguage.js';
+import { buildLanguageIntegrityInstruction } from './languageIntegrity.js';
 
 /**
  * A single grounded reflection on one real dream — never dream-dictionary
@@ -107,6 +108,8 @@ Build the reflection from exactly these layers:
    If a lens genuinely doesn't apply, set it to null rather than forcing one in. Do not use NLP framing. Do not use CBT as a dream-symbol interpretation framework — CBT belongs to later coping/action work for recurring nightmares, never to "what this dream means."
 
 ${languageParagraph}
+
+${buildLanguageIntegrityInstruction(language)}
 
 Scientific discipline: never use generic internet dream-dictionary meanings (e.g. "water = emotion", "teeth = anxiety", "snake = sexuality"). Ground everything primarily in the dream's own context and the dreamer's own stated words — never a symbol lookup table. Never invent an event, detail, or feeling that is not in the dream or in the dreamer's own response.
 

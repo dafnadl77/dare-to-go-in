@@ -13,6 +13,8 @@
  * produces a translated string for DISPLAY, requested fresh each time
  * (the caller is responsible for caching — see dreamTranslationEngine.ts).
  */
+import { buildLanguageIntegrityInstruction } from '../hero/languageIntegrity.js';
+
 export type TranslationErrorReason =
   | 'not_configured'
   | 'invalid_response'
@@ -34,7 +36,9 @@ Rules:
 - Read the ACTUAL TEXT of each numbered item and translate it faithfully into natural, fluent English. Preserve the original meaning, tone, and level of detail — this is a translation, not a summary or condensation. A full sentence stays a full sentence; a short phrase stays a short phrase.
 - If an item is already in English, return it unchanged (correct only obvious typos, do not rephrase or paraphrase it).
 - Never invent detail that is not in the input. Never add commentary, notes, or explanation.
-- Output exactly one translation per input item, in the exact same order, as a JSON array of strings the same length as the numbered list.`;
+- Output exactly one translation per input item, in the exact same order, as a JSON array of strings the same length as the numbered list.
+
+${buildLanguageIntegrityInstruction('en')}`;
 
 export function validateTranslations(candidate: unknown, expectedLength: number): string[] | null {
   if (typeof candidate !== 'object' || candidate === null) return null;

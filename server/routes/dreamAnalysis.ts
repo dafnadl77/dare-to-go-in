@@ -2,6 +2,8 @@ import OpenAI from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
 import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpResult.js';
 import { DREAM_EXTRACTION_SYSTEM_PROMPT, DREAM_ANALYSIS_JSON_SCHEMA, validateDreamAnalysis } from '../../src/hero/dreamAnalysisSchema.js';
+import { collectStrings } from '../../src/hero/languageIntegrity.js';
+import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
 import { createDreamAttempt, deleteDreamAttempt } from '../dreamAttempts.js';
 
@@ -54,38 +56,47 @@ export async function handleDreamAnalysis(rawBody: unknown, requestHeaders: Requ
   }
 
   try {
-    const response = await client.responses.create({
-      model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
-      instructions: DREAM_EXTRACTION_SYSTEM_PROMPT,
-      input: sourceText,
-      text: {
-        format: {
-          type: 'json_schema',
-          name: 'dream_analysis',
-          schema: DREAM_ANALYSIS_JSON_SCHEMA,
-          strict: true,
-        },
+    const outcome = await runWithLanguageIntegrity(
+      async (retryNote) => {
+        const response = await client.responses.create({
+          model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+          instructions: DREAM_EXTRACTION_SYSTEM_PROMPT + retryNote,
+          input: sourceText,
+          text: {
+            format: {
+              type: 'json_schema',
+              name: 'dream_analysis',
+              schema: DREAM_ANALYSIS_JSON_SCHEMA,
+              strict: true,
+            },
+          },
+        });
+        try {
+          return validateDreamAnalysis(JSON.parse(response.output_text));
+        } catch {
+          return null;
+        }
       },
-    });
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(response.output_text);
-    } catch {
-      await deleteDreamAttempt(attemptId);
-      return withHeaders(errorResult(502, 'invalid_response', 'The AI response was not valid JSON.'), cookieHeaders);
-    }
-
-    const validated = validateDreamAnalysis(parsed);
-    if (!validated) {
+      (analysis) => collectStrings(analysis),
+      // Dream analysis mirrors the dream's own language (no single "active
+      // language"), so only the dream's own scripts are excused.
+      { route: 'dream-analysis', language: null, context: sourceText },
+    );
+    if (outcome.status !== 'ok') {
       await deleteDreamAttempt(attemptId);
       return withHeaders(
-        errorResult(502, 'invalid_response', 'The AI response did not match the expected DreamAnalysis schema.'),
+        errorResult(
+          502,
+          'invalid_response',
+          outcome.status === 'language_intrusion'
+            ? 'The AI response did not stay in the dream\'s language.'
+            : 'The AI response was not valid JSON matching the expected DreamAnalysis schema.',
+        ),
         cookieHeaders,
       );
     }
 
-    return withHeaders(okResult({ ...validated, attemptId }), cookieHeaders);
+    return withHeaders(okResult({ ...outcome.value, attemptId }), cookieHeaders);
   } catch (err) {
     await deleteDreamAttempt(attemptId);
     if (err instanceof OpenAI.APIError) {

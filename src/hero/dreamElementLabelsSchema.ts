@@ -1,4 +1,5 @@
 import type { AppLanguage } from './appLanguage.js';
+import { buildLanguageIntegrityInstruction } from './languageIntegrity.js';
 
 /**
  * Short display labels for the real dream elements a user can choose
@@ -52,7 +53,9 @@ Worked example — if given this numbered list:
 The correct output is exactly:
 ${workedExampleOutput}
 
-Notice each label is a real translation of that specific numbered item's actual content — never a placeholder, never unrelated to the input.`;
+Notice each label is a real translation of that specific numbered item's actual content — never a placeholder, never unrelated to the input.
+
+${buildLanguageIntegrityInstruction(language)}`;
 }
 
 export function validateElementLabels(candidate: unknown, expectedLength: number): string[] | null {

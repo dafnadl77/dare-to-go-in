@@ -10,6 +10,8 @@
  * no DOM APIs) so this module can be imported unchanged by both the
  * frontend and the local Node backend.
  */
+import { buildSourceLanguageIntegrityInstruction } from './languageIntegrity.js';
+
 export interface DreamPerson {
   nameOrRole: string;
   description: string | null;
@@ -127,6 +129,8 @@ Distinguish explicit statements from cautious inference. Mark every extracted el
 If information is absent, leave it absent — do not fill gaps with plausible-sounding detail.
 
 Your task is reconstruction, not interpretation. Do not provide dream-dictionary meanings, psychological interpretation (Freudian, Jungian, or otherwise), symbolic claims ("water means emotions"), diagnosis, or advice.
+
+${buildSourceLanguageIntegrityInstruction()}
 
 Respond with only the DreamAnalysis JSON object matching the provided schema — no prose outside it.`;
 

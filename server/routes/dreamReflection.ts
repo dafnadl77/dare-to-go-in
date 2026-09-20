@@ -9,6 +9,8 @@ import {
   validateDreamReflectionResult,
 } from '../../src/hero/dreamReflectionSchema.js';
 import type { AppLanguage } from '../../src/hero/appLanguage.js';
+import { collectStrings } from '../../src/hero/languageIntegrity.js';
+import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
 import { reserveReflectionAttempt, refundReflectionAttempt } from '../dreamAttempts.js';
 
@@ -103,37 +105,52 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
 
   const input = buildReflectionInput(dreamAnalysis, selectedElement, reflectionResponse, reconstructionCorrections);
 
+  // Everything the dreamer themselves wrote — quoting it in another script
+  // is legitimate, so it's the context the language-integrity check excuses.
+  const dreamerText = [dreamAnalysis.sourceText, selectedElement, reflectionResponse, ...reconstructionCorrections].join('\n');
+  const instructions = buildDreamReflectionSystemPrompt(language);
+
   try {
-    const response = await client.responses.create({
-      model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
-      instructions: buildDreamReflectionSystemPrompt(language),
-      input,
-      text: {
-        format: {
-          type: 'json_schema',
-          name: 'dream_reflection',
-          schema: DREAM_REFLECTION_JSON_SCHEMA,
-          strict: true,
-        },
+    const outcome = await runWithLanguageIntegrity(
+      async (retryNote) => {
+        const response = await client.responses.create({
+          model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+          instructions: instructions + retryNote,
+          input,
+          text: {
+            format: {
+              type: 'json_schema',
+              name: 'dream_reflection',
+              schema: DREAM_REFLECTION_JSON_SCHEMA,
+              strict: true,
+            },
+          },
+        });
+        try {
+          return validateDreamReflectionResult(JSON.parse(response.output_text));
+        } catch {
+          return null;
+        }
       },
-    });
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(response.output_text);
-    } catch {
-      await refundReflectionAttempt(attemptId);
-      return withHeaders(errorResult(502, 'invalid_response', 'The AI response was not valid JSON.'), cookieHeaders);
-    }
-
-    const validated = validateDreamReflectionResult(parsed);
-    if (!validated) {
+      // groundingStatement is overwritten by the server below, so it isn't
+      // model prose worth checking.
+      (result) => collectStrings({ ...result, groundingStatement: '' }),
+      { route: 'dream-reflection', language, context: dreamerText },
+    );
+    if (outcome.status !== 'ok') {
       await refundReflectionAttempt(attemptId);
       return withHeaders(
-        errorResult(502, 'invalid_response', 'The AI response did not match the expected DreamReflectionResult schema.'),
+        errorResult(
+          502,
+          'invalid_response',
+          outcome.status === 'language_intrusion'
+            ? 'The AI response did not stay in the required language.'
+            : 'The AI response was not valid JSON matching the expected DreamReflectionResult schema.',
+        ),
         cookieHeaders,
       );
     }
+    const validated = outcome.value;
 
     // The grounding line's exact wording/tone is safety-relevant — always
     // enforced by the server, never left to the model's own phrasing.

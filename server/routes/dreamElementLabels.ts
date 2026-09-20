@@ -7,6 +7,7 @@ import {
   validateElementLabels,
 } from '../../src/hero/dreamElementLabelsSchema.js';
 import type { AppLanguage } from '../../src/hero/appLanguage.js';
+import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
@@ -39,34 +40,47 @@ export async function handleDreamElementLabels(rawBody: unknown, requestHeaders:
 ELEMENTS TO LABEL, IN ORDER:
 ${elements.map((e, i) => `${i + 1}. ${e}`).join('\n')}`;
 
+  const instructions = buildDreamElementLabelSystemPrompt(language);
+
   try {
-    const response = await client.responses.create({
-      model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
-      instructions: buildDreamElementLabelSystemPrompt(language),
-      input,
-      text: {
-        format: {
-          type: 'json_schema',
-          name: 'dream_element_labels',
-          schema: DREAM_ELEMENT_LABELS_JSON_SCHEMA,
-          strict: true,
-        },
+    const outcome = await runWithLanguageIntegrity(
+      async (retryNote) => {
+        const response = await client.responses.create({
+          model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+          instructions: instructions + retryNote,
+          input,
+          text: {
+            format: {
+              type: 'json_schema',
+              name: 'dream_element_labels',
+              schema: DREAM_ELEMENT_LABELS_JSON_SCHEMA,
+              strict: true,
+            },
+          },
+        });
+        try {
+          return validateElementLabels(JSON.parse(response.output_text), elements.length);
+        } catch {
+          return null;
+        }
       },
-    });
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(response.output_text);
-    } catch {
-      return withHeaders(errorResult(502, 'invalid_response', 'The AI response was not valid JSON.'), cookieHeaders);
+      (labels) => labels,
+      { route: 'dream-element-labels', language, context: [sourceText, ...elements].join('\n') },
+    );
+    if (outcome.status !== 'ok') {
+      return withHeaders(
+        errorResult(
+          502,
+          'invalid_response',
+          outcome.status === 'language_intrusion'
+            ? 'The AI response did not stay in the required language.'
+            : 'The AI response was not valid JSON matching the expected labels schema.',
+        ),
+        cookieHeaders,
+      );
     }
 
-    const labels = validateElementLabels(parsed, elements.length);
-    if (!labels) {
-      return withHeaders(errorResult(502, 'invalid_response', 'The AI response did not match the expected labels schema.'), cookieHeaders);
-    }
-
-    return withHeaders(okResult({ labels }), cookieHeaders);
+    return withHeaders(okResult({ labels: outcome.value }), cookieHeaders);
   } catch (err) {
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {

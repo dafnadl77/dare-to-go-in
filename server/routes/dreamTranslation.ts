@@ -6,6 +6,7 @@ import {
   DREAM_TRANSLATION_JSON_SCHEMA,
   validateTranslations,
 } from '../../src/archive/dreamTranslationSchema.js';
+import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
@@ -41,33 +42,43 @@ export async function handleDreamTranslation(rawBody: unknown, requestHeaders: R
 ${texts.map((t, i) => `${i + 1}. ${t}`).join('\n')}`;
 
   try {
-    const response = await client.responses.create({
-      model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
-      instructions: DREAM_TRANSLATION_SYSTEM_PROMPT,
-      input,
-      text: {
-        format: {
-          type: 'json_schema',
-          name: 'dream_translations',
-          schema: DREAM_TRANSLATION_JSON_SCHEMA,
-          strict: true,
-        },
+    const outcome = await runWithLanguageIntegrity(
+      async (retryNote) => {
+        const response = await client.responses.create({
+          model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+          instructions: DREAM_TRANSLATION_SYSTEM_PROMPT + retryNote,
+          input,
+          text: {
+            format: {
+              type: 'json_schema',
+              name: 'dream_translations',
+              schema: DREAM_TRANSLATION_JSON_SCHEMA,
+              strict: true,
+            },
+          },
+        });
+        try {
+          return validateTranslations(JSON.parse(response.output_text), texts.length);
+        } catch {
+          return null;
+        }
       },
-    });
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(response.output_text);
-    } catch {
-      return errorResult(502, 'invalid_response', 'The AI response was not valid JSON.');
+      (translations) => translations,
+      // English output; the source passages are the dreamer's own text, so
+      // scripts they use are excused (only unrelated ones are intrusions).
+      { route: 'dream-translation', language: 'en', context: texts.join('\n') },
+    );
+    if (outcome.status !== 'ok') {
+      return errorResult(
+        502,
+        'invalid_response',
+        outcome.status === 'language_intrusion'
+          ? 'The AI response did not stay in the required language.'
+          : 'The AI response was not valid JSON matching the expected translations schema.',
+      );
     }
 
-    const translations = validateTranslations(parsed, texts.length);
-    if (!translations) {
-      return errorResult(502, 'invalid_response', 'The AI response did not match the expected translations schema.');
-    }
-
-    return okResult({ translations });
+    return okResult({ translations: outcome.value });
   } catch (err) {
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {
