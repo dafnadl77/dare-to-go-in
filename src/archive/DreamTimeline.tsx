@@ -2,6 +2,7 @@ import type { ArchiveEntry } from './archiveData';
 import { formatEntryDayMonth, formatEntryMonth, formatEntryYear } from './archiveData';
 import { useDreamImageSrc } from './useDreamImageSrc';
 import { useLanguage } from '../i18n/LanguageContext';
+import type { AppLanguage } from '../hero/appLanguage';
 import './DreamTimeline.css';
 
 interface DreamTimelineProps {
@@ -25,12 +26,12 @@ interface MonthGroup {
     only clusters consecutive entries that share a year/month, and marks
     the first group of a new year so the year heading only appears once
     per year. */
-function groupByMonth(entries: ArchiveEntry[]): MonthGroup[] {
+function groupByMonth(entries: ArchiveEntry[], language: AppLanguage): MonthGroup[] {
   const groups: MonthGroup[] = [];
   let lastYear: string | null = null;
   for (const entry of entries) {
     const year = formatEntryYear(entry.date);
-    const month = formatEntryMonth(entry.date);
+    const month = formatEntryMonth(entry.date, language);
     const last = groups[groups.length - 1];
     if (last && last.year === year && last.month === month) {
       last.items.push(entry);
@@ -51,7 +52,7 @@ function DreamCard({
   onOpen: () => void;
   onToggleFavorite?: (id: string) => void;
 }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const imageSrc = useDreamImageSrc(entry);
   return (
     <span className="dt-card-wrap">
@@ -62,7 +63,7 @@ function DreamCard({
         <span className="dt-card-body">
           <span className="dt-card-top">
             <span className="dt-card-title">{entry.title}</span>
-            <span className="dt-card-date">{formatEntryDayMonth(entry.date)}</span>
+            <span className="dt-card-date">{formatEntryDayMonth(entry.date, language)}</span>
           </span>
           <span className="dt-card-excerpt">{entry.excerpt}</span>
           {entry.keywords.length > 0 && <span className="dt-card-keywords">{entry.keywords.join(' · ')}</span>}
@@ -109,7 +110,8 @@ function DreamCard({
  * place automatically, nothing here is sized for exactly N items.
  */
 export default function DreamTimeline({ entries, onOpenEntry, onToggleFavorite }: DreamTimelineProps) {
-  const groups = groupByMonth(entries);
+  const { language } = useLanguage();
+  const groups = groupByMonth(entries, language);
 
   return (
     <div className="dt-timeline">
