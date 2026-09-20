@@ -296,7 +296,9 @@ button:disabled {
 :root[dir='rtl'] .crumb-home,
 :root[dir='rtl'] .crumb-home *,
 :root[dir='rtl'] .auth-back,
-:root[dir='rtl'] .auth-back * {
+:root[dir='rtl'] .auth-back *,
+:root[dir='rtl'] .dare-home-lockup,
+:root[dir='rtl'] .dare-home-lockup * {
   font-family: 'Fraunces', Georgia, serif !important;
   letter-spacing: 0.01em !important;
 }

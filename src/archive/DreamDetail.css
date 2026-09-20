@@ -371,15 +371,10 @@ html[lang='he'] .dd-eyebrow {
   }
 }
 
-/* The blurred .dd-image-glow bleeds 22% of the box's height above it, so
-   with a bright image its haze fills any smaller gap and reads as the
-   image touching the breadcrumb. A percentage margin resolves against the
-   wrap's own width (16:9 => that bleed is 12.375% of it), so this pushes
-   the glow's edge ~24px below the breadcrumb at every width — the image
-   itself visibly starts lower, with real empty space above it. */
+/* Plain, fixed breathing room between the breadcrumb row and the image. */
 @media (max-width: 899px) {
   .dd-image-wrap {
-    margin-top: calc(12.375% + 2px);
+    margin-top: 20px;
   }
 }
 

@@ -374,7 +374,11 @@
     left: auto;
     right: auto;
     bottom: auto;
-    margin: 3vh 16px 0;
+    /* The fixed top header row (lockup top-left + nav top-right, both
+       pinned near the top edge) ends ~32px below its top offset; +20px of
+       real empty space so the image visibly starts under it, never
+       touching it. Plain px, independent of viewport height. */
+    margin: calc(max(20px, env(safe-area-inset-top)) + 52px) 16px 0;
     width: auto;
     height: auto;
   }

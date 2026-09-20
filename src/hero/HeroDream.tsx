@@ -674,7 +674,21 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
           return from. */}
       {isReconstructing && (
         <button type="button" className="dare-home" dir="ltr" data-cursor-hover onClick={handleGoHome} aria-label={t('archive.backToDare')}>
-          DARE
+          <span className="dare-home-text">DARE</span>
+          {/* Below desktop: the real brand lockup (approved D favicon +
+              word-flow wordmark) — the same structure as DreamAuth.tsx's
+              .auth-back / DreamArchive.tsx's .ar-brand — instead of the
+              bare "DARE" text. Hidden via CSS at desktop widths. */}
+          <span className="dare-home-lockup font-editorial-display" aria-hidden="true">
+            <img className="dare-home-icon" src="/apple-touch-icon.png" alt="" />
+            <span className="editorial-word-flow">
+              {['DARE', 'TO', 'GO', 'IN'].map((word) => (
+                <span className="editorial-word" key={word}>
+                  {word}
+                </span>
+              ))}
+            </span>
+          </span>
         </button>
       )}
 
