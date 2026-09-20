@@ -56,6 +56,8 @@ export function useReflectionDisplay(result: DreamReflectionResult | null): (tex
     // Translation needs a signed-in account; without one nothing is requested
     // and show() returns the original text.
     if (!signedIn) return;
+    // A fresh switch (or a new reflection) is a fresh attempt, like Dream Detail.
+    failed.current.clear();
     const pending = reflectionTexts(result).filter((text) => {
       const key = keyOf(language, text);
       return needsTranslation(text, language) && !getCachedReflectionText(text, language) && !inFlight.has(key) && !failed.current.has(key);
