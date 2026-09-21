@@ -8,12 +8,13 @@ import {
   type ArchiveEntry,
   type RecurringMotif,
 } from './archiveData';
-import { getDreamsRemote, toggleFavoriteRemote } from '../hero/dreamRemoteStorage';
+import { getDreamsRemote, toggleFavoriteRemote, deleteDreamRemote } from '../hero/dreamRemoteStorage';
 import type { SavedDream } from '../hero/dreamStorage';
 import { containsHebrew } from '../hero/appLanguage';
 import { translateTexts } from './dreamTranslationEngine';
 import { useTranslatedCards } from './dreamTitleTranslation';
 import DreamTimeline from './DreamTimeline';
+import DeleteDreamDialog from './DeleteDreamDialog';
 import LocalDreamImportPrompt from './LocalDreamImportPrompt';
 import { conceptLabel } from '../hero/conceptTaxonomy';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -209,6 +210,52 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
     });
   };
 
+  // Permanent deletion from a card's trash button (DeleteDreamDialog). The
+  // deletion itself — owner-scoped DB delete, local/pending cleanup, safe Storage
+  // cleanup — is deleteDreamRemote's; this only drives the UI around it. Success:
+  // the card is removed at once, the dialog closes, we stay right here, and the
+  // list is reconciled from Supabase (Insights follow from the remaining dreams).
+  // Failure: the dream stays, the dialog stays open with a retryable error.
+  const [deleteTarget, setDeleteTarget] = useState<SavedDream | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteFailed, setDeleteFailed] = useState(false);
+  const deleteInFlight = useRef(false);
+
+  const handleRequestDelete = (entry: ArchiveEntry) => {
+    if (entry.kind !== 'real') return;
+    setDeleteFailed(false);
+    setDeleteTarget(entry.savedDream);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!user || !deleteTarget || deleteInFlight.current) return;
+    const target = deleteTarget;
+    deleteInFlight.current = true;
+    setDeleting(true);
+    setDeleteFailed(false);
+    try {
+      await deleteDreamRemote(target.id, target.dreamImagePath);
+    } catch (err) {
+      console.error('Failed to delete dream:', err);
+      deleteInFlight.current = false;
+      setDeleting(false);
+      setDeleteFailed(true);
+      return;
+    }
+    const remaining = dreams.filter((d) => d.id !== target.id);
+    setDreams(remaining);
+    // An open recurring-motif view is a snapshot: refresh it from what remains,
+    // or step back to the overview if it no longer recurs.
+    const fresh = getRecurringInsights(getArchiveEntries(remaining, language)) ?? [];
+    setOpenMotif((prev) => (prev ? (fresh.find((m) => m.key === prev.key) ?? null) : null));
+    setDeleteTarget(null);
+    deleteInFlight.current = false;
+    setDeleting(false);
+    getDreamsRemote(user.id)
+      .then(setDreams)
+      .catch((err) => console.error('Failed to reload dreams after deletion:', err));
+  };
+
   // Restores the scroll position left behind before opening a dream's
   // detail view (see DreamDetail.tsx's "← BACK TO MY DREAMS") — behavior
   // only, no change to the list's own layout/visuals.
@@ -391,7 +438,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
                   </p>
                 </div>
               ) : (
-                <DreamTimeline entries={visibleEntries} onOpenEntry={handleOpenEntry} onToggleFavorite={handleToggleFavorite} />
+                <DreamTimeline entries={visibleEntries} onOpenEntry={handleOpenEntry} onToggleFavorite={handleToggleFavorite} onDeleteEntry={handleRequestDelete} />
               )}
             </>
           )}
@@ -432,7 +479,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
                   </button>
                 </div>
               ) : (
-                <DreamTimeline entries={motifEntries} onOpenEntry={handleOpenEntry} onToggleFavorite={handleToggleFavorite} />
+                <DreamTimeline entries={motifEntries} onOpenEntry={handleOpenEntry} onToggleFavorite={handleToggleFavorite} onDeleteEntry={handleRequestDelete} />
               )}
             </div>
           )}
@@ -519,6 +566,10 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
       </div>
 
       <AppFooter onNavigate={onOpenLegal} />
+
+      {deleteTarget && (
+        <DeleteDreamDialog busy={deleting} failed={deleteFailed} onCancel={() => setDeleteTarget(null)} onConfirm={handleConfirmDelete} />
+      )}
     </div>
   );
 }

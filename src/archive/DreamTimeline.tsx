@@ -13,6 +13,9 @@ interface DreamTimelineProps {
       no favoriting UI yet (there is none currently) doesn't need to fake
       one. */
   onToggleFavorite?: (id: string) => void;
+  /** Opens the delete confirmation for one real saved dream (see
+      DreamArchive). Omitted → no trash button is rendered. */
+  onDeleteEntry?: (entry: ArchiveEntry) => void;
 }
 
 interface MonthGroup {
@@ -47,15 +50,17 @@ function DreamCard({
   entry,
   onOpen,
   onToggleFavorite,
+  onDeleteEntry,
 }: {
   entry: ArchiveEntry;
   onOpen: () => void;
   onToggleFavorite?: (id: string) => void;
+  onDeleteEntry?: (entry: ArchiveEntry) => void;
 }) {
   const { t, language } = useLanguage();
   const imageSrc = useDreamImageSrc(entry);
   return (
-    <span className="dt-card-wrap">
+    <span className={`dt-card-wrap${entry.kind === 'real' && onDeleteEntry ? ' dt-card-wrap--deletable' : ''}`}>
       <button type="button" className="dt-card" data-cursor-hover onClick={onOpen} aria-label={`${t('archive.openEntry')} ${entry.title}`}>
         <span className="dt-card-thumb">
           <img className="dt-card-image" src={imageSrc} alt="" loading="lazy" />
@@ -96,6 +101,32 @@ function DreamCard({
           </svg>
         </button>
       )}
+      {/* The card's delete action: a sibling of .dt-card (like the heart), so a
+          click here can never open the dream or toggle its favorite. Real
+          saved dreams only — a sample dream has nothing to delete. It takes
+          focus itself before opening the dialog so cancelling always returns
+          focus to this exact button (some browsers don't focus a button on
+          click). */}
+      {entry.kind === 'real' && onDeleteEntry && (
+        <button
+          type="button"
+          className="dt-card-delete"
+          data-cursor-hover
+          onClick={(e) => {
+            e.currentTarget.focus();
+            onDeleteEntry(entry);
+          }}
+          aria-label={t('archive.deleteDreamAria')}
+          title={t('archive.deleteDreamAria')}
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 7h14" />
+            <path d="M10 4.2h4" />
+            <path d="M7 7l.75 11.1a1.6 1.6 0 0 0 1.6 1.5h5.3a1.6 1.6 0 0 0 1.6-1.5L17 7" />
+            <path d="M10.2 10.6v5.6M13.8 10.6v5.6" />
+          </svg>
+        </button>
+      )}
     </span>
   );
 }
@@ -109,7 +140,7 @@ function DreamCard({
  * archiveData.ts): adding a real saved dream inserts it in the right
  * place automatically, nothing here is sized for exactly N items.
  */
-export default function DreamTimeline({ entries, onOpenEntry, onToggleFavorite }: DreamTimelineProps) {
+export default function DreamTimeline({ entries, onOpenEntry, onToggleFavorite, onDeleteEntry }: DreamTimelineProps) {
   const { language } = useLanguage();
   const groups = groupByMonth(entries, language);
 
@@ -122,7 +153,7 @@ export default function DreamTimeline({ entries, onOpenEntry, onToggleFavorite }
           </p>
           <div className="dt-card-list">
             {group.items.map((entry) => (
-              <DreamCard key={entry.id} entry={entry} onOpen={() => onOpenEntry(entry)} onToggleFavorite={onToggleFavorite} />
+              <DreamCard key={entry.id} entry={entry} onOpen={() => onOpenEntry(entry)} onToggleFavorite={onToggleFavorite} onDeleteEntry={onDeleteEntry} />
             ))}
           </div>
         </div>

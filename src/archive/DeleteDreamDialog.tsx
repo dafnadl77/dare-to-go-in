@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../i18n/LanguageContext';
+import './DeleteDreamDialog.css';
 
 interface DeleteDreamDialogProps {
   /** A deletion is in flight: actions are inert and the dialog can't be dismissed. */
@@ -15,7 +16,7 @@ interface DeleteDreamDialogProps {
  * Confirmation for permanently deleting a saved dream. A real alert dialog:
  * focus starts on Cancel (the safe choice), Tab is trapped inside, Escape
  * closes ONLY this dialog (it is handled in the capture phase and stopped, so
- * Dream Detail's own Escape-to-go-back never sees it), clicking the backdrop
+ * no other Escape handler behind it (e.g. a screen's own Escape-to-go-back) ever sees it), clicking the backdrop
  * cancels, and focus returns to whatever opened it. While deleting, nothing
  * dismisses it and the actions ignore clicks (aria-disabled rather than
  * `disabled`, so keyboard focus is never dropped mid-request).
@@ -87,14 +88,14 @@ export default function DeleteDreamDialog({ busy, failed, onCancel, onConfirm }:
         aria-busy={busy}
       >
         <h2 id={titleId} className="dd-dialog-title">
-          {t('dreamDetail.deleteDialogTitle')}
+          {t('archive.deleteDialogTitle')}
         </h2>
         <p id={bodyId} className="dd-dialog-body">
-          {t('dreamDetail.deleteDialogBody')}
+          {t('archive.deleteDialogBody')}
         </p>
         {failed && !busy && (
           <p id={errorId} className="dd-dialog-error" role="alert">
-            {t('dreamDetail.deleteFailed')}
+            {t('archive.deleteFailed')}
           </p>
         )}
         <div className="dd-dialog-actions">
@@ -107,7 +108,7 @@ export default function DeleteDreamDialog({ busy, failed, onCancel, onConfirm }:
               if (!busy) onCancel();
             }}
           >
-            {t('dreamDetail.deleteCancel')}
+            {t('archive.deleteCancel')}
           </button>
           <button
             ref={confirmRef}
@@ -119,7 +120,7 @@ export default function DeleteDreamDialog({ busy, failed, onCancel, onConfirm }:
             }}
           >
             {busy && <span className="btn-spinner" aria-hidden="true" />}
-            {busy ? t('dreamDetail.deleteInProgress') : t('dreamDetail.deleteConfirm')}
+            {busy ? t('archive.deleteInProgress') : t('archive.deleteConfirm')}
           </button>
         </div>
       </div>

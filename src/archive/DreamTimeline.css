@@ -206,7 +206,8 @@ html[dir='rtl'] .dt-card:focus-visible .dt-card-chevron {
    Same transparent/white-outline button language as the rest of the app;
    filled with currentColor only for the heart glyph itself when active,
    never a colored background. */
-.dt-card-favorite {
+.dt-card-favorite,
+.dt-card-delete {
   position: absolute;
   top: 0.6rem;
   inset-inline-end: 0.6rem;
@@ -234,14 +235,53 @@ html[dir='rtl'] .dt-card:focus-visible .dt-card-chevron {
 }
 
 .dt-card-favorite:hover,
-.dt-card-favorite:focus-visible {
+.dt-card-favorite:focus-visible,
+.dt-card-delete:hover,
+.dt-card-delete:focus-visible {
   border-color: rgba(244, 240, 232, 0.9);
   background: rgba(6, 8, 14, 0.75);
 }
 
-.dt-card-favorite:focus-visible {
+.dt-card-favorite:focus-visible,
+.dt-card-delete:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px var(--dream-btn-glow);
+}
+
+/* Delete (trash) — the heart's neighbour in the same card-action corner, same
+   size and outline language, sitting just inside it (toward the card's
+   start). Visually secondary: a faint, dimmer outline and glyph that is always
+   visible (a delete action must be discoverable, and touch/tablet screens have
+   no hover), and comes up to the heart's full strength on hover/focus. A
+   little extra hit area (the ::after) makes the target comfortable without
+   changing how it looks. */
+.dt-card-delete {
+  inset-inline-end: calc(0.6rem + 30px + 0.4rem);
+  color: var(--dream-warm-neutral);
+  border-color: rgba(244, 240, 232, 0.28);
+  opacity: 0.7;
+  transform: none;
+}
+
+.dt-card-delete::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+}
+
+.dt-card-wrap:hover .dt-card-delete,
+.dt-card-delete:hover,
+.dt-card-delete:focus-visible {
+  opacity: 1;
+  color: var(--dream-white);
+}
+
+/* A card with a trash button keeps its first text row clear of the two
+   corner controls (the trash is always visible, so this holds on desktop too). */
+.dt-card-wrap--deletable .dt-card-top {
+  padding-inline-end: calc(0.6rem + 30px + 0.4rem + 30px - 1rem);
+  /* ...and tall enough that the excerpt below always starts under them. */
+  min-height: 1.9rem;
 }
 
 /* Below the archive's desktop breakpoint (same 900px as DreamArchive.css):
@@ -288,6 +328,12 @@ html[dir='rtl'] .dt-card:focus-visible .dt-card-chevron {
     height: 34px;
   }
 
+  .dt-card-delete {
+    width: 34px;
+    height: 34px;
+    inset-inline-end: calc(0.6rem + 34px + 0.5rem);
+  }
+
   .dt-card {
     gap: 0.85rem;
     padding: 0.75rem;
@@ -302,13 +348,19 @@ html[dir='rtl'] .dt-card:focus-visible .dt-card-chevron {
   .dt-card-top {
     padding-inline-end: 2.2rem;
   }
+
+  .dt-card-wrap--deletable .dt-card-top {
+    padding-inline-end: calc(0.6rem + 34px + 0.5rem + 34px - 0.75rem);
+    min-height: 2.4rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .dt-card,
   .dt-card-image,
   .dt-card-chevron,
-  .dt-card-favorite {
+  .dt-card-favorite,
+  .dt-card-delete {
     transition-duration: 0.01s !important;
   }
 }

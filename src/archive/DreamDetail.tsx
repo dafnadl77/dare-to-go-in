@@ -10,7 +10,6 @@ import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
 import Breadcrumb from '../ui/Breadcrumb';
 import EditorialTitle from '../ui/EditorialTitle';
-import DeleteDreamDialog from './DeleteDreamDialog';
 import './DreamDetail.css';
 
 interface DreamDetailProps {
@@ -20,10 +19,6 @@ interface DreamDetailProps {
       to the main DARE room (the same place HeroDream starts). */
   onGoHome: () => void;
   onOpenLegal: (key: LegalKey) => void;
-  /** Permanently deletes this dream. Resolves once it is really gone (the
-      caller then leaves this screen); rejects if it was NOT deleted. Only
-      passed for a real saved dream — a sample dream has nothing to delete. */
-  onDelete?: () => Promise<void>;
 }
 
 /** THE DREAM / WHAT STOOD OUT / YOUR ASSOCIATION needed a REAL translation
@@ -68,7 +63,7 @@ type TranslationState = 'idle' | 'loading' | 'ready' | 'error';
  * whatever language it was actually generated in. A mock dream has no
  * such saved reflection, so it falls back to a placeholder note.
  */
-export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal, onDelete }: DreamDetailProps) {
+export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: DreamDetailProps) {
   const { t, language } = useLanguage();
   const imageSrc = useDreamImageSrc(entry);
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -76,38 +71,13 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal, onDe
     bgVideoRef.current?.play().catch(() => {});
   }, []);
 
-  // Permanent deletion: confirm → delete → (caller leaves this screen). On
-  // failure the dialog stays open with a retryable error; the dream is untouched.
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [deleteFailed, setDeleteFailed] = useState(false);
-  // A ref (not just the state) so rapid clicks in the same tick — before React
-  // has re-rendered the dialog as busy — can never start a second deletion.
-  const deleteInFlight = useRef(false);
-  const handleConfirmDelete = async () => {
-    if (!onDelete || deleteInFlight.current) return;
-    deleteInFlight.current = true;
-    setDeleting(true);
-    setDeleteFailed(false);
-    try {
-      await onDelete();
-      // Success: the caller has already navigated away and this screen is unmounting.
-    } catch (err) {
-      console.error('Failed to delete dream:', err);
-      deleteInFlight.current = false;
-      setDeleting(false);
-      setDeleteFailed(true);
-    }
-  };
-
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      // While the delete dialog is open, Escape belongs to the dialog alone.
-      if (e.key === 'Escape' && !deleteOpen) onBack();
+      if (e.key === 'Escape') onBack();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onBack, deleteOpen]);
+  }, [onBack]);
 
   const reflection = entry.kind === 'real' ? entry.savedDream.dreamReflection : null;
   const sourceTextRaw = entry.kind === 'real' ? entry.savedDream.sourceText : null;
@@ -350,28 +320,9 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal, onDe
             </button>
           </nav>
 
-          {onDelete && entry.kind === 'real' && (
-            <div className="dd-delete-row">
-              <button
-                type="button"
-                className="dd-end-link dd-delete-link"
-                onClick={() => {
-                  setDeleteFailed(false);
-                  setDeleteOpen(true);
-                }}
-              >
-                {t('dreamDetail.deleteDream')}
-              </button>
-            </div>
-          )}
-
           <AppFooter onNavigate={onOpenLegal} />
         </div>
       </div>
-
-      {deleteOpen && (
-        <DeleteDreamDialog busy={deleting} failed={deleteFailed} onCancel={() => setDeleteOpen(false)} onConfirm={handleConfirmDelete} />
-      )}
     </div>
   );
 }

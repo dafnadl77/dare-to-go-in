@@ -116,6 +116,13 @@ export interface Translations {
     openEntry: string;
     favoriteAdd: string;
     favoriteRemove: string;
+    deleteDreamAria: string;
+    deleteDialogTitle: string;
+    deleteDialogBody: string;
+    deleteCancel: string;
+    deleteConfirm: string;
+    deleteInProgress: string;
+    deleteFailed: string;
     emptyFavoritesTitle: string;
     emptyFavoritesBody: string;
     emptyAllDreamsTitle: string;
@@ -136,13 +143,6 @@ export interface Translations {
     backToArchive: string;
     detailNav: string;
     returnToTheRoom: string;
-    deleteDream: string;
-    deleteDialogTitle: string;
-    deleteDialogBody: string;
-    deleteCancel: string;
-    deleteConfirm: string;
-    deleteInProgress: string;
-    deleteFailed: string;
     theDream: string;
     whatStoodOut: string;
     yourAssociation: string;
@@ -356,6 +356,13 @@ export const en: Translations = {
     openEntry: 'Open',
     favoriteAdd: 'Add to favorites',
     favoriteRemove: 'Remove from favorites',
+    deleteDreamAria: 'Delete dream',
+    deleteDialogTitle: 'Delete this dream?',
+    deleteDialogBody: 'This action cannot be undone.',
+    deleteCancel: 'Cancel',
+    deleteConfirm: 'Delete',
+    deleteInProgress: 'Deleting…',
+    deleteFailed: "We couldn't delete this dream. Please try again.",
     emptyFavoritesTitle: 'No favorites yet',
     emptyFavoritesBody: 'Mark a dream as a favorite to see it here.',
     emptyAllDreamsTitle: 'No dreams saved yet',
@@ -376,13 +383,6 @@ export const en: Translations = {
     backToArchive: 'BACK TO MY DREAM ARCHIVE',
     detailNav: 'Dream detail navigation',
     returnToTheRoom: 'RETURN TO THE ROOM',
-    deleteDream: 'Delete dream',
-    deleteDialogTitle: 'Delete this dream?',
-    deleteDialogBody: 'This action cannot be undone.',
-    deleteCancel: 'Cancel',
-    deleteConfirm: 'Delete',
-    deleteInProgress: 'Deleting…',
-    deleteFailed: "We couldn't delete this dream. Please try again.",
     theDream: 'The Dream',
     whatStoodOut: 'What Stood Out',
     yourAssociation: 'Your Association',
@@ -605,6 +605,13 @@ export const he: Translations = {
     openEntry: 'פתחו',
     favoriteAdd: 'הוספה למועדפים',
     favoriteRemove: 'הסרה מהמועדפים',
+    deleteDreamAria: 'מחקי את החלום',
+    deleteDialogTitle: 'למחוק את החלום?',
+    deleteDialogBody: 'לא ניתן לבטל את הפעולה.',
+    deleteCancel: 'ביטול',
+    deleteConfirm: 'מחיקה',
+    deleteInProgress: 'מוחק…',
+    deleteFailed: 'לא הצלחנו למחוק את החלום. אפשר לנסות שוב.',
     emptyFavoritesTitle: 'אין עדיין מועדפים',
     emptyFavoritesBody: 'סמנו חלום כמועדף כדי לראות אותו כאן.',
     emptyAllDreamsTitle: 'עדיין לא נשמרו חלומות',
@@ -625,13 +632,6 @@ export const he: Translations = {
     backToArchive: 'חזרה לארכיון החלומות שלי',
     detailNav: 'ניווט בפרטי החלום',
     returnToTheRoom: 'חזרה לחדר',
-    deleteDream: 'מחיקת החלום',
-    deleteDialogTitle: 'למחוק את החלום?',
-    deleteDialogBody: 'לא ניתן לבטל את הפעולה.',
-    deleteCancel: 'ביטול',
-    deleteConfirm: 'מחיקה',
-    deleteInProgress: 'מוחק…',
-    deleteFailed: 'לא הצלחנו למחוק את החלום. אפשר לנסות שוב.',
     theDream: 'החלום',
     whatStoodOut: 'מה שבלט',
     yourAssociation: 'האסוציאציה שלך',
