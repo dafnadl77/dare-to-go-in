@@ -3,7 +3,7 @@ import DreamStageBackground from '../hero/DreamStageBackground';
 import {
   getArchiveEntries,
   getLastArchiveScrollTop,
-  getRecurringMotifs,
+  getRecurringInsights,
   setLastArchiveScrollTop,
   type ArchiveEntry,
   type RecurringMotif,
@@ -15,6 +15,7 @@ import { translateTexts } from './dreamTranslationEngine';
 import { useTranslatedCards } from './dreamTitleTranslation';
 import DreamTimeline from './DreamTimeline';
 import LocalDreamImportPrompt from './LocalDreamImportPrompt';
+import { conceptLabel } from '../hero/conceptTaxonomy';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
 import AppFooter from '../legal/AppFooter';
@@ -137,7 +138,9 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
     () => (activeSection === 'favorites' ? entries.filter((e) => e.kind === 'real' && e.favorite) : entries),
     [entries, activeSection],
   );
-  const recurringMotifs = useMemo(() => getRecurringMotifs(entries), [entries]);
+  // One coherent list: the literal recurring motifs plus semantic concepts (see
+  // getRecurringInsights) — both open the same way, into the dreams they came from.
+  const recurringMotifs = useMemo(() => getRecurringInsights(entries), [entries]);
   // Re-matched against the LIVE entries list (not the possibly-stale
   // `openMotif.dreams` snapshot from when it was opened) by id, exactly
   // like DreamTimeline's own dream cards — so a language switch mid-view
@@ -163,7 +166,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
   useEffect(() => {
     if (!recurringMotifs) return;
     const pending = recurringMotifs.filter(
-      (m) => motifLabelNeedsLocalization(m.label, language) && !(`${language}:${m.key}` in motifTranslations),
+      (m) => !m.conceptId && motifLabelNeedsLocalization(m.label, language) && !(`${language}:${m.key}` in motifTranslations),
     );
     if (pending.length === 0) return;
     let cancelled = false;
@@ -189,7 +192,8 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
       (translation still pending, failed, or simply not needed). Never
       returns anything other than a real label — an Insight is never
       hidden for language reasons (see the effect above). */
-  const motifDisplayLabel = (m: RecurringMotif): string => motifTranslations[`${language}:${m.key}`] ?? m.label;
+  const motifDisplayLabel = (m: RecurringMotif): string =>
+    m.conceptId ? conceptLabel(m.conceptId, language) : (motifTranslations[`${language}:${m.key}`] ?? m.label);
 
   const handleToggleFavorite = (id: string) => {
     if (!user) return;

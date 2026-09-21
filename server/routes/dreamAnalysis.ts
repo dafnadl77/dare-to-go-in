@@ -1,13 +1,17 @@
 import OpenAI from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
 import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpResult.js';
-import { DREAM_EXTRACTION_SYSTEM_PROMPT, DREAM_ANALYSIS_JSON_SCHEMA, validateDreamAnalysis } from '../../src/hero/dreamAnalysisSchema.js';
+import {
+  DREAM_EXTRACTION_SYSTEM_PROMPT,
+  DREAM_ANALYSIS_JSON_SCHEMA,
+  validateDreamAnalysis,
+  finalizeDreamAnalysis,
+} from '../../src/hero/dreamAnalysisSchema.js';
+import { resolveAnalysisModel } from '../analysisModel.js';
 import { collectStrings } from '../../src/hero/languageIntegrity.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
 import { createDreamAttempt, deleteDreamAttempt } from '../dreamAttempts.js';
-
-const DEFAULT_MODEL = 'gpt-4o-mini';
 
 /**
  * Core POST /api/dream-analysis logic — framework-agnostic (no Express
@@ -59,7 +63,7 @@ export async function handleDreamAnalysis(rawBody: unknown, requestHeaders: Requ
     const outcome = await runWithLanguageIntegrity(
       async (retryNote) => {
         const response = await client.responses.create({
-          model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+          model: resolveAnalysisModel(),
           instructions: DREAM_EXTRACTION_SYSTEM_PROMPT + retryNote,
           input: sourceText,
           text: {
@@ -72,7 +76,11 @@ export async function handleDreamAnalysis(rawBody: unknown, requestHeaders: Requ
           },
         });
         try {
-          return validateDreamAnalysis(JSON.parse(response.output_text));
+          const validated = validateDreamAnalysis(JSON.parse(response.output_text));
+          // Drops the temporary explicit-elements notes, normalizes the concepts
+          // (enum-checked, deduped, capped at 4) and stamps conceptVersion; every
+          // other analysis field is returned exactly as before.
+          return validated ? finalizeDreamAnalysis(validated) : null;
         } catch {
           return null;
         }

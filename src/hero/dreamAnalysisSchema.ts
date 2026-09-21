@@ -11,6 +11,7 @@
  * frontend and the local Node backend.
  */
 import { buildSourceLanguageIntegrityInstruction } from './languageIntegrity.js';
+import { CONCEPT_IDS, CONCEPT_TAXONOMY_VERSION, buildConceptPromptSection, normalizeConcepts, type ConceptId } from './conceptTaxonomy.js';
 
 export interface DreamPerson {
   nameOrRole: string;
@@ -95,6 +96,13 @@ export interface DreamAnalysis {
   unresolvedDetails: string[];
   emotionalTone: string | null;
   reconstruction: ReconstructionFoundation;
+  /** Semantic concepts (see conceptTaxonomy.ts): language-independent IDs from a
+      closed vocabulary, at most 4, most important first. Optional so every dream
+      saved before concepts existed stays valid — undefined means "not classified
+      yet", an empty array means "classified, nothing applies". */
+  concepts?: ConceptId[];
+  /** The taxonomy version the concepts were classified under. */
+  conceptVersion?: number;
 }
 
 export type AnalysisErrorReason =
@@ -131,6 +139,8 @@ If information is absent, leave it absent — do not fill gaps with plausible-so
 Your task is reconstruction, not interpretation. Do not provide dream-dictionary meanings, psychological interpretation (Freudian, Jungian, or otherwise), symbolic claims ("water means emotions"), diagnosis, or advice.
 
 ${buildSourceLanguageIntegrityInstruction()}
+
+${buildConceptPromptSection()}
 
 Respond with only the DreamAnalysis JSON object matching the provided schema — no prose outside it.`;
 
@@ -223,6 +233,11 @@ export const DREAM_ANALYSIS_JSON_SCHEMA = {
     'unresolvedDetails',
     'emotionalTone',
     'reconstruction',
+    // Last, and in this order: the model states what actually happens BEFORE it
+    // maps that to concepts. explicitElementsEvents is working notes only — the
+    // server drops it (see finalizeDreamAnalysis); it is never stored or shown.
+    'explicitElementsEvents',
+    'concepts',
   ],
   properties: {
     sourceText: { type: 'string' },
@@ -304,5 +319,19 @@ export const DREAM_ANALYSIS_JSON_SCHEMA = {
       },
       ['primarySetting', 'keyPeople', 'keyObjects', 'keyActions', 'visualAtmosphere', 'emotionalAtmosphere'],
     ),
+    explicitElementsEvents: stringArray,
+    concepts: { type: 'array', items: { type: 'string', enum: [...CONCEPT_IDS] } },
   },
 } as const;
+
+/**
+ * Turns the model's raw (validated) analysis into what is actually kept:
+ * drops the temporary explicit-elements scaffolding, normalizes the concepts
+ * (unknown IDs filtered, duplicates removed, capped at 4) and stamps the
+ * taxonomy version. Every other analysis field passes through untouched.
+ */
+export function finalizeDreamAnalysis(analysis: DreamAnalysis): DreamAnalysis {
+  const { explicitElementsEvents: _scaffolding, ...rest } = analysis as DreamAnalysis & { explicitElementsEvents?: unknown };
+  void _scaffolding;
+  return { ...rest, concepts: normalizeConcepts(analysis.concepts), conceptVersion: CONCEPT_TAXONOMY_VERSION };
+}

@@ -2,6 +2,7 @@ import type { SavedDream } from '../hero/dreamStorage';
 import { containsHebrew, getAppLanguage, type AppLanguage } from '../hero/appLanguage';
 import { dateLocale } from '../i18n/locale';
 import type { MockDream } from './mockDreams';
+import { CONCEPTS, conceptsOfDream, type ConceptId } from '../hero/conceptTaxonomy';
 
 /**
  * One entry in the MY DREAM ARCHIVE timeline — either a real dream this
@@ -287,6 +288,10 @@ export interface RecurringMotif {
   label: string;
   count: number;
   dreams: RecurringMotifDream[];
+  /** Set only on a semantic-concept row (see getRecurringInsights): the row's
+      label then comes from the concept taxonomy in the UI language, not from
+      `label` (which holds the English label as a language-neutral fallback). */
+  conceptId?: ConceptId;
 }
 
 /** Generic/pronoun words too vague to mean anything as a "recurring
@@ -508,6 +513,84 @@ export function getRecurringMotifs(entries: ArchiveEntry[]): RecurringMotif[] | 
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
     .slice(0, 12);
   return recurring;
+}
+
+/** Newest-first, the same ordering every recurring row uses for its dreams. */
+const byDateDesc = (a: RecurringMotifDream, b: RecurringMotifDream) => b.date.getTime() - a.date.getTime();
+
+/** Comparison form for the exact-duplicate check below: case-insensitive,
+    outer whitespace and punctuation ignored — nothing fuzzier than that. */
+const labelForm = (text: string) => text.trim().toLowerCase().replace(/^["'.,:;!?()\-–—\s]+|["'.,:;!?()\-–—\s]+$/g, '');
+
+const MAX_INSIGHT_ROWS = 24;
+
+/**
+ * The one list Insights shows: the literal recurring motifs (getRecurringMotifs,
+ * unchanged) PLUS semantic recurring concepts (animals, water, family, …).
+ *
+ * A concept recurs when it is stored on >= 2 DISTINCT dreams of THIS dreamer
+ * (each dream counts once). Concept IDs are language-independent, so a Hebrew
+ * dream and an English dream can both contribute to the same concept; the UI
+ * label comes from the taxonomy per UI language. A dream saved before concepts
+ * existed simply has none and contributes nothing here.
+ *
+ * Nothing is folded or hidden heuristically. The only merge is the obvious,
+ * deterministic one: a literal motif whose text is EXACTLY a concept's label
+ * (in either language) is the same recurrence displayed twice, so the two are
+ * shown as one row covering the union of their dreams. Every other motif stays
+ * its own row exactly as before.
+ *
+ * Only ever called with THIS dreamer's own entries (the archive is loaded per
+ * owner), so no dream content or concept ever crosses accounts.
+ */
+export function getRecurringInsights(entries: ArchiveEntry[]): RecurringMotif[] | null {
+  const motifs = getRecurringMotifs(entries);
+  if (motifs === null) return null;
+
+  const real = entries.filter((e): e is Extract<ArchiveEntry, { kind: 'real' }> => e.kind === 'real');
+  const byConcept = new Map<ConceptId, RecurringMotifDream[]>();
+  for (const entry of real) {
+    for (const id of conceptsOfDream(entry.savedDream.dreamAnalysis)) {
+      const dreams = byConcept.get(id) ?? [];
+      dreams.push({ id: entry.id, title: entry.title, date: entry.date });
+      byConcept.set(id, dreams);
+    }
+  }
+
+  const conceptRows: RecurringMotif[] = [];
+  for (const [id, dreams] of byConcept) {
+    if (dreams.length < 2) continue;
+    conceptRows.push({ key: `concept:${id}`, label: CONCEPTS[id].en, conceptId: id, count: dreams.length, dreams: [...dreams].sort(byDateDesc) });
+  }
+
+  const conceptByLabel = new Map<string, RecurringMotif>();
+  for (const row of conceptRows) {
+    const info = CONCEPTS[row.conceptId as ConceptId];
+    conceptByLabel.set(labelForm(info.en), row);
+    conceptByLabel.set(labelForm(info.he), row);
+  }
+
+  const motifRows: RecurringMotif[] = [];
+  for (const motif of motifs) {
+    const twin = conceptByLabel.get(labelForm(motif.label));
+    if (!twin) {
+      motifRows.push(motif);
+      continue;
+    }
+    const known = new Set(twin.dreams.map((d) => d.id));
+    for (const d of motif.dreams) {
+      if (!known.has(d.id)) {
+        twin.dreams.push(d);
+        known.add(d.id);
+      }
+    }
+    twin.dreams.sort(byDateDesc);
+    twin.count = twin.dreams.length;
+  }
+
+  return [...conceptRows, ...motifRows]
+    .sort((a, b) => b.count - a.count || Number(!!b.conceptId) - Number(!!a.conceptId) || a.key.localeCompare(b.key))
+    .slice(0, MAX_INSIGHT_ROWS);
 }
 
 /**
