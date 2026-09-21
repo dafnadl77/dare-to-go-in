@@ -1,3 +1,4 @@
+import { paidFetch } from '../auth/paidFetch';
 import { validateElementLabels, type ElementLabelsResult, type ElementLabelErrorReason } from './dreamElementLabelsSchema';
 import { getAppLanguage, type AppLanguage } from './appLanguage';
 import { getAuthHeader } from '../auth/getAccessToken';
@@ -21,7 +22,7 @@ const KNOWN_REASONS: ElementLabelErrorReason[] = [
 export async function getElementLabelsInLanguage(sourceText: string, elements: string[], language: AppLanguage): Promise<ElementLabelsResult> {
   try {
     const authHeader = await getAuthHeader();
-    const res = await fetch('/api/dream-element-labels', {
+    const res = await paidFetch('/api/dream-element-labels', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify({ sourceText, elements, language }),

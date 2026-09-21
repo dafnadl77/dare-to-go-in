@@ -1,3 +1,4 @@
+import { paidFetch } from '../auth/paidFetch';
 import { getAuthHeader } from '../auth/getAccessToken';
 
 /**
@@ -82,7 +83,7 @@ export async function transcribeDreamAudio(
 
   try {
     const authHeader = await getAuthHeader();
-    const res = await fetch('/api/dream-transcription', {
+    const res = await paidFetch('/api/dream-transcription', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify({ audioBase64, mimeType: audioBlob.type || 'audio/webm', language }),

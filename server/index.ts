@@ -7,6 +7,7 @@ import { handleDreamElementLabels } from './routes/dreamElementLabels.js';
 import { handleDreamTranslation } from './routes/dreamTranslation.js';
 import { handleDreamTranscription } from './routes/dreamTranscription.js';
 import { handleClaimTrial } from './routes/claimTrial.js';
+import { handleTrialSession } from './routes/trialSession.js';
 import type { HandlerResult } from './httpResult.js';
 import type { RequestHeaders } from './callerIdentity.js';
 
@@ -50,6 +51,10 @@ app.post('/api/dream-translation', async (req, res) => {
 
 app.post('/api/dream-transcription', async (req, res) => {
   send(res, await handleDreamTranscription(req.body, requestHeaders(req)));
+});
+
+app.post('/api/trial-session', async (req, res) => {
+  send(res, await handleTrialSession(requestHeaders(req)));
 });
 
 app.post('/api/claim-trial', async (req, res) => {

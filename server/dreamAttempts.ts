@@ -1,5 +1,6 @@
 import { getSupabaseServiceClient } from './supabaseServiceClient.js';
 import type { CallerIdentity } from './callerIdentity.js';
+import { createAttemptWithinSafetyValve, type AttemptStore, type CreateAttemptResult, type TrialMintStore } from './anonymousSafetyValves.js';
 
 const MAX_IMAGE_ATTEMPTS = 3;
 const MAX_REFLECTION_ATTEMPTS = 3;
@@ -48,6 +49,38 @@ export async function createDreamAttempt(identity: CallerIdentity): Promise<stri
   const { data, error } = await client.from('dream_attempts').insert(row).select('id').single();
   if (error || !data) return null;
   return data.id as string;
+}
+
+/** The real, Supabase-backed stores the safety valves count against (existing columns only). */
+const attemptStore: AttemptStore = {
+  insertAttempt: createDreamAttempt,
+  async countTrialAttemptsSince(trialId, sinceIso) {
+    const client = getSupabaseServiceClient();
+    if (!client) return null;
+    const { count, error } = await client
+      .from('dream_attempts')
+      .select('id', { count: 'exact', head: true })
+      .eq('trial_id', trialId)
+      .gte('created_at', sinceIso);
+    return error || count === null ? null : count;
+  },
+  async deleteAttempt(attemptId) {
+    await deleteDreamAttempt(attemptId);
+  },
+};
+
+export const trialMintStore: TrialMintStore = {
+  async countTrialsSince(sinceIso) {
+    const client = getSupabaseServiceClient();
+    if (!client) return null;
+    const { count, error } = await client.from('trial_identities').select('id', { count: 'exact', head: true }).gte('created_at', sinceIso);
+    return error || count === null ? null : count;
+  },
+};
+
+/** dream-analysis's attempt creation, behind the anonymous safety valve (see anonymousSafetyValves.ts). */
+export function createDreamAttemptWithinValve(identity: CallerIdentity, limitPerDay: number): Promise<CreateAttemptResult> {
+  return createAttemptWithinSafetyValve(attemptStore, identity, limitPerDay);
 }
 
 /** Deletes an attempt row outright — used only to compensate a genuine

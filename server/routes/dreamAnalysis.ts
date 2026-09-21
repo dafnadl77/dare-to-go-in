@@ -11,7 +11,8 @@ import { resolveAnalysisModel } from '../analysisModel.js';
 import { collectStrings } from '../../src/hero/languageIntegrity.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
-import { createDreamAttempt, deleteDreamAttempt } from '../dreamAttempts.js';
+import { createDreamAttemptWithinValve, deleteDreamAttempt } from '../dreamAttempts.js';
+import { trialAnalysesPerDay } from '../anonymousSafetyValves.js';
 
 /**
  * Core POST /api/dream-analysis logic — framework-agnostic (no Express
@@ -54,10 +55,16 @@ export async function handleDreamAnalysis(rawBody: unknown, requestHeaders: Requ
   // lifetime-quota counting unit (never enforced yet — see the approved
   // architecture). Deleted below if the OpenAI call itself then fails, so
   // a dream that never actually produced anything never occupies a slot.
-  const attemptId = await createDreamAttempt(resolved.identity);
-  if (!attemptId) {
-    return withHeaders(errorResult(503, 'not_configured', 'Could not start a new dream attempt.'), cookieHeaders);
+  // Anonymous callers only: a technical safety valve on attempts per rolling 24h
+  // (see anonymousSafetyValves.ts) — checked here, before any model call; a refused
+  // request leaves no attempt row behind. Signed-in accounts are not restricted here.
+  const created = await createDreamAttemptWithinValve(resolved.identity, trialAnalysesPerDay());
+  if (!created.ok) {
+    return created.reason === 'limit_reached'
+      ? withHeaders(errorResult(429, 'limit_reached', 'Too many dreams were started from this browser recently. Please try again later.'), cookieHeaders)
+      : withHeaders(errorResult(503, 'not_configured', 'Could not start a new dream attempt.'), cookieHeaders);
   }
+  const attemptId = created.attemptId;
 
   try {
     const outcome = await runWithLanguageIntegrity(

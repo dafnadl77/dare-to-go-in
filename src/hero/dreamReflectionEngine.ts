@@ -1,3 +1,4 @@
+import { paidFetch } from '../auth/paidFetch';
 import type { DreamAnalysis } from './dreamAnalysisSchema';
 import { validateDreamReflectionResult, type ReflectionResult, type ReflectionErrorReason } from './dreamReflectionSchema';
 import { getAppLanguage } from './appLanguage';
@@ -33,7 +34,7 @@ export interface DreamReflectionRequest {
 export async function getDreamReflection(request: DreamReflectionRequest): Promise<ReflectionResult> {
   try {
     const authHeader = await getAuthHeader();
-    const res = await fetch('/api/dream-reflection', {
+    const res = await paidFetch('/api/dream-reflection', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify({ ...request, language: getAppLanguage() }),

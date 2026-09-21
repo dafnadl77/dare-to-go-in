@@ -1,3 +1,4 @@
+import { paidFetch } from '../auth/paidFetch';
 import { dreamInputSourceText, type DreamInput } from './dreamInput';
 import { validateDreamAnalysis, type AnalysisResult } from './dreamAnalysisSchema';
 import { getAuthHeader } from '../auth/getAccessToken';
@@ -37,7 +38,7 @@ export async function analyzeDream(dreamInput: DreamInput): Promise<AnalysisResu
 
   try {
     const authHeader = await getAuthHeader();
-    const res = await fetch('/api/dream-analysis', {
+    const res = await paidFetch('/api/dream-analysis', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify({ sourceText, inputMode: dreamInput.inputMode }),

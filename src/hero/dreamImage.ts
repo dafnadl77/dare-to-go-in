@@ -1,3 +1,4 @@
+import { paidFetch } from '../auth/paidFetch';
 import type { ReconstructionBrief } from './reconstructionBrief';
 import { getAuthHeader } from '../auth/getAccessToken';
 
@@ -37,7 +38,7 @@ const KNOWN_REASONS: ImageErrorReason[] = [
 export async function generateDreamImage(brief: ReconstructionBrief, attemptId: string): Promise<ImageResult> {
   try {
     const authHeader = await getAuthHeader();
-    const res = await fetch('/api/dream-image', {
+    const res = await paidFetch('/api/dream-image', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify({ reconstructionBrief: brief, attemptId }),
