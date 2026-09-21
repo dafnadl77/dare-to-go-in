@@ -68,3 +68,19 @@ export function clearPendingDreamSave(): void {
     // Best-effort — see setPendingDreamSave above.
   }
 }
+
+/** Clears the pending-save record ONLY if it holds exactly this dream id —
+    used when that dream has just been permanently deleted, so a stale pending
+    save can never write it back. A pending save of any other dream is left
+    untouched. */
+export function clearPendingDreamSaveIfId(dreamId: string): void {
+  try {
+    const raw = localStorage.getItem(PENDING_SAVE_KEY);
+    if (!raw) return;
+    const parsed: unknown = JSON.parse(raw);
+    const pendingId = parsed && typeof parsed === 'object' ? (parsed as Partial<PendingSaveRecord>).dream?.id : undefined;
+    if (pendingId === dreamId) clearPendingDreamSave();
+  } catch {
+    // Best-effort, like every other localStorage access here.
+  }
+}

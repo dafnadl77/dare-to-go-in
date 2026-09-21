@@ -136,6 +136,13 @@ export interface Translations {
     backToArchive: string;
     detailNav: string;
     returnToTheRoom: string;
+    deleteDream: string;
+    deleteDialogTitle: string;
+    deleteDialogBody: string;
+    deleteCancel: string;
+    deleteConfirm: string;
+    deleteInProgress: string;
+    deleteFailed: string;
     theDream: string;
     whatStoodOut: string;
     yourAssociation: string;
@@ -369,6 +376,13 @@ export const en: Translations = {
     backToArchive: 'BACK TO MY DREAM ARCHIVE',
     detailNav: 'Dream detail navigation',
     returnToTheRoom: 'RETURN TO THE ROOM',
+    deleteDream: 'Delete dream',
+    deleteDialogTitle: 'Delete this dream?',
+    deleteDialogBody: 'This action cannot be undone.',
+    deleteCancel: 'Cancel',
+    deleteConfirm: 'Delete',
+    deleteInProgress: 'Deleting…',
+    deleteFailed: "We couldn't delete this dream. Please try again.",
     theDream: 'The Dream',
     whatStoodOut: 'What Stood Out',
     yourAssociation: 'Your Association',
@@ -611,6 +625,13 @@ export const he: Translations = {
     backToArchive: 'חזרה לארכיון החלומות שלי',
     detailNav: 'ניווט בפרטי החלום',
     returnToTheRoom: 'חזרה לחדר',
+    deleteDream: 'מחיקת החלום',
+    deleteDialogTitle: 'למחוק את החלום?',
+    deleteDialogBody: 'לא ניתן לבטל את הפעולה.',
+    deleteCancel: 'ביטול',
+    deleteConfirm: 'מחיקה',
+    deleteInProgress: 'מוחק…',
+    deleteFailed: 'לא הצלחנו למחוק את החלום. אפשר לנסות שוב.',
     theDream: 'החלום',
     whatStoodOut: 'מה שבלט',
     yourAssociation: 'האסוציאציה שלך',

@@ -1,4 +1,5 @@
 import { supabase } from '../auth/supabaseClient';
+import { dreamImagePathFor } from './dreamImagePath';
 
 /**
  * Phase 2 — Supabase Storage-backed dream images. Every call here goes
@@ -19,9 +20,7 @@ const BUCKET = 'dream-images';
     one place this shape is decided. `{owner_id}/{dream_id}.jpg` makes
     ownership derivable from the path alone (the first segment), which is
     what the bucket's RLS policies check via storage.foldername(name)[1]. */
-export function dreamImagePathFor(ownerId: string, dreamId: string): string {
-  return `${ownerId}/${dreamId}.jpg`;
-}
+export { dreamImagePathFor };
 
 interface DecodedDataUrl {
   bytes: Uint8Array;
@@ -92,6 +91,20 @@ export async function deleteDreamImage(path: string): Promise<void> {
  * archive/useDreamImageSrc.ts, the one caller, which keeps it only in
  * React state for as long as the component showing it is mounted.
  */
+/** Removes one dream image and reports whether it worked — for permanent dream
+    deletion (see dreamDeletion.ts), which retries once and reports a failure
+    safely. The caller must only pass a path proven to be the conventional
+    `{user id}/{dream id}.jpg` of the dream being deleted (ownedDreamImagePath);
+    Storage's own RLS independently re-checks the owner folder. Never throws. */
+export async function removeDreamImage(path: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.storage.from(BUCKET).remove([path]);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 export async function getSignedDreamImageUrl(path: string, ttlSeconds = 3600): Promise<string | null> {
   const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, ttlSeconds);
   if (error || !data) return null;

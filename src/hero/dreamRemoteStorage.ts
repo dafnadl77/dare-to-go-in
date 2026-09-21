@@ -1,6 +1,9 @@
 import { supabase } from '../auth/supabaseClient';
 import type { SavedDream } from './dreamStorage';
-import { uploadDreamImage, deleteDreamImage } from './dreamImageStorage';
+import { uploadDreamImage, deleteDreamImage, removeDreamImage } from './dreamImageStorage';
+import { deleteDream as deleteLocalDream } from './dreamStorage';
+import { clearPendingDreamSaveIfId } from './pendingDreamSave';
+import { deleteSavedDream, type DeletedRow, type ImageCleanup } from './dreamDeletion';
 
 /**
  * Supabase-backed dream persistence for AUTHENTICATED users only — the
@@ -124,4 +127,48 @@ export async function importDreamsRemote(dreams: SavedDream[], ownerId: string):
   const rows = dreams.map((dream) => savedDreamToRow(dream, ownerId));
   const { error } = await supabase.from('dreams').upsert(rows, { onConflict: 'id', ignoreDuplicates: true });
   if (error) throw error;
+}
+
+/**
+ * Permanently deletes one of THIS user's saved dreams (see dreamDeletion.ts
+ * for the ordering and failure rules). Runs entirely through the browser's
+ * authenticated Supabase client: the row delete is constrained by the dream
+ * id AND the verified session user's id (never an id from UI state), and both
+ * the `dreams` and `dream-images` RLS policies independently enforce
+ * ownership — no service role, no endpoint. Throws DreamDeletionError (or a
+ * database error) when the dream was NOT deleted; resolves once it is gone.
+ */
+export async function deleteDreamRemote(dreamId: string, knownImagePath?: string | null): Promise<{ imageCleanup: ImageCleanup }> {
+  return deleteSavedDream(
+    {
+      async getAuthenticatedUserId() {
+        const { data, error } = await supabase.auth.getUser();
+        return error ? null : (data.user?.id ?? null);
+      },
+      async deleteOwnedRow(id, ownerId): Promise<DeletedRow[]> {
+        const { data, error } = await supabase
+          .from('dreams')
+          .delete()
+          .eq('id', id)
+          .eq('owner_id', ownerId)
+          .select('id, image_path:payload->>dreamImagePath');
+        if (error) throw error;
+        return (data ?? []).map((row) => ({ id: row.id as string, imagePath: (row.image_path as string | null) ?? null }));
+      },
+      async ownedRowExists(id, ownerId) {
+        const { data, error } = await supabase.from('dreams').select('id').eq('id', id).eq('owner_id', ownerId).maybeSingle();
+        if (error) throw error;
+        return data !== null;
+      },
+      removeLocalCopy: deleteLocalDream,
+      clearPendingSave: clearPendingDreamSaveIfId,
+      removeImage: removeDreamImage,
+      reportImageCleanupFailure() {
+        // Deliberately path-free: enough to find in logs, nothing sensitive.
+        console.error('[dream-delete] The dream was deleted but its image could not be removed from Storage.');
+      },
+    },
+    dreamId,
+    knownImagePath,
+  );
 }

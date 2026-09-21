@@ -5,7 +5,7 @@ import DreamArchive from './archive/DreamArchive';
 import DreamDetail from './archive/DreamDetail';
 import type { ArchiveEntry } from './archive/archiveData';
 import type { SavedDream } from './hero/dreamStorage';
-import { saveDreamRemote } from './hero/dreamRemoteStorage';
+import { saveDreamRemote, deleteDreamRemote } from './hero/dreamRemoteStorage';
 import { getPendingDreamSave, setPendingDreamSave, clearPendingDreamSave } from './hero/pendingDreamSave';
 import LanguageSwitcher from './i18n/LanguageSwitcher';
 import ResetPassword from './archive/ResetPassword';
@@ -134,6 +134,17 @@ function App() {
   const [view, setViewState] = useState<AppView>(() => getInitialView());
   const [authMode, setAuthMode] = useState<AuthMode>('signup');
   const [openEntry, setOpenEntry] = useState<ArchiveEntry | null>(null);
+
+  // Permanent deletion of the dream open in DreamDetail. Resolves only once it
+  // is really gone (deleteDreamRemote throws otherwise, and DreamDetail then
+  // keeps the dream and shows a retryable error); then back to MY DREAMS,
+  // which reloads its dreams — and so its Insights — from what remains.
+  const handleDeleteOpenDream = async () => {
+    if (!openEntry || openEntry.kind !== 'real') return;
+    await deleteDreamRemote(openEntry.savedDream.id, openEntry.savedDream.dreamImagePath);
+    setOpenEntry(null);
+    setView('archive');
+  };
   // SAVE THIS DREAM, chosen while signed OUT (see HeroDream.tsx's
   // handleSaveDream): 'none' the rest of the time; 'awaiting-auth' once a
   // dream is pending and DreamAuth is showing (view === 'auth' already
@@ -325,6 +336,7 @@ function App() {
         onBack={() => setView('archive')}
         onGoHome={() => setView('dream')}
         onOpenLegal={handleOpenLegal}
+        onDelete={openEntry.kind === 'real' ? handleDeleteOpenDream : undefined}
       />
     );
   } else if (view === 'archive' && user) {
