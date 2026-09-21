@@ -6,6 +6,7 @@ import {
   DREAM_ELEMENT_LABELS_JSON_SCHEMA,
   validateElementLabels,
 } from '../../src/hero/dreamElementLabelsSchema.js';
+import { buildLabelRepairNote, findLabelProblems, normalizeLabel } from '../../src/hero/dreamElementLabelQuality.js';
 import type { AppLanguage } from '../../src/hero/appLanguage.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
@@ -45,24 +46,46 @@ ${elements.map((e, i) => `${i + 1}. ${e}`).join('\n')}`;
   try {
     const outcome = await runWithLanguageIntegrity(
       async (retryNote) => {
-        const response = await client.responses.create({
-          model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
-          instructions: instructions + retryNote,
-          input,
-          text: {
-            format: {
-              type: 'json_schema',
-              name: 'dream_element_labels',
-              schema: DREAM_ELEMENT_LABELS_JSON_SCHEMA,
-              strict: true,
+        const generate = async (note: string): Promise<string[] | null> => {
+          const response = await client.responses.create({
+            model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+            instructions: instructions + retryNote + note,
+            input,
+            text: {
+              format: {
+                type: 'json_schema',
+                name: 'dream_element_labels',
+                schema: DREAM_ELEMENT_LABELS_JSON_SCHEMA,
+                strict: true,
+              },
             },
-          },
+          });
+          try {
+            const labels = validateElementLabels(JSON.parse(response.output_text), elements.length);
+            return labels ? labels.map((l, i) => normalizeLabel(l) || elements[i]) : null;
+          } catch {
+            return null;
+          }
+        };
+
+        const first = await generate('');
+        if (!first) return null;
+        const rejected = first
+          .map((label, i) => ({ position: i + 1, index: i, phrase: elements[i], label, problems: findLabelProblems(label, language) }))
+          .filter((r) => r.problems.length > 0);
+        if (rejected.length === 0) return first;
+
+        // One repair pass for just the rejected labels. Whatever is still
+        // unacceptable after it is not shown as a non-label: a wrong-script
+        // label falls back to the dream's own phrase; anything else keeps the
+        // repaired wording.
+        const second = await generate(buildLabelRepairNote(rejected, language));
+        return first.map((label, i) => {
+          if (!rejected.some((r) => r.index === i)) return label;
+          const candidate = second?.[i] ?? label;
+          const problems = findLabelProblems(candidate, language);
+          return problems.includes('wrong_script') ? elements[i] : candidate;
         });
-        try {
-          return validateElementLabels(JSON.parse(response.output_text), elements.length);
-        } catch {
-          return null;
-        }
       },
       (labels) => labels,
       { route: 'dream-element-labels', language, context: [sourceText, ...elements].join('\n') },

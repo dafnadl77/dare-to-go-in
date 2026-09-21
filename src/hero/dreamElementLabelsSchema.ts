@@ -21,6 +21,23 @@ export type ElementLabelErrorReason =
 export type ElementLabelsResult = { status: 'ok'; labels: string[] } | { status: 'error'; reason: ElementLabelErrorReason; message: string };
 
 /**
+ * These labels are shown as selectable "angles" under the generated dream,
+ * so each one has to be understood at a glance by a native speaker. The
+ * model's failure mode (seen live: a Hebrew label that was a made-up
+ * "-יאני" adjective) is to keep a foreign or unusual word and bend it into
+ * the target language's grammar. These rules close that off in general —
+ * no per-word replacements — while leaving established loanwords and real
+ * names alone.
+ */
+function buildNaturalLabelRules(targetLanguageName: string): string {
+  return `- Every label must read as natural, everyday ${targetLanguageName} that a native speaker would recognise instantly and could say aloud — a short noun phrase, not a coined word.
+- NEVER transliterate a foreign or unusual word into ${targetLanguageName}, and NEVER invent an adjective, noun or verb form by attaching ${targetLanguageName} endings or prefixes to a foreign stem. If a word has no common ${targetLanguageName} equivalent that people really use, say what it means with plain, common words instead (a noun plus "of"/"in the style of"/"related to" in ${targetLanguageName}, or a short description).
+- Established loanwords that ${targetLanguageName} speakers really use, and the names of real people, places and brands, may be written in their normal ${targetLanguageName} spelling. Everything else must be plain ${targetLanguageName}.
+- Prefer the simple, common word over the rare or academic one. If you are not sure a word is genuinely used in ${targetLanguageName}, choose a plainer phrasing.
+- A label is a perspective the dreamer can pick: keep it neutral and concrete (what it is), never a judgement, diagnosis or interpretation.`;
+}
+
+/**
  * A function of the requested display language rather than a fixed
  * English-only constant — kept as close as possible to the original
  * English prompt (per "don't rewrite prompts unless necessary"): only the
@@ -41,6 +58,7 @@ Rules:
 - Read the ACTUAL TEXT of each numbered item. Never output a generic placeholder like "first element", "second item", or "the element" — always output a real label describing what that specific phrase actually says.
 - Always output ${targetLanguageName}, regardless of the input language.
 - Keep each label SHORT — a concept label, not a full sentence. Prefer 2-5 words.
+${buildNaturalLabelRules(targetLanguageName)}
 - Preserve the actual meaning faithfully. Do not invent detail that is not in the input phrase, and do not add commentary or interpretation.
 - No trailing punctuation.
 - Output exactly one label per input item, in the exact same order, as a JSON array of strings the same length as the numbered list.

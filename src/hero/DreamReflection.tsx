@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { buildReflectionQuestion } from './dreamElements';
 import { usePointerParallax } from './usePointerParallax';
 import { useReflectionDisplay } from './useReflectionDisplay';
+import { useScrollCue } from './useScrollCue';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
 import type { InsideStep } from './DreamReconstruction';
@@ -121,6 +122,7 @@ export default function DreamReflection({
   const [lensesVisible, setLensesVisible] = useState(false);
   const fieldRef = useRef<HTMLDivElement>(null);
   const sequenceRef = useRef<HTMLDivElement>(null);
+  const continueWrapRef = useRef<HTMLDivElement>(null);
   usePointerParallax(fieldRef, 16, CHOICE_STEPS.has(step));
   usePointerParallax(sequenceRef, 10, step === 'reflection');
   const accent = accentColor ?? FALLBACK_ACCENT;
@@ -144,6 +146,11 @@ export default function DreamReflection({
     const t = setTimeout(() => setStage((s) => s + 1), STAGE_HOLD_MS[stage - 1]);
     return () => clearTimeout(t);
   }, [stage]);
+
+  // Mobile-only orientation cue: the interpretation can end near the bottom
+  // of the screen with CONTINUE just below the fold — this only tells the
+  // reader more is there. Never moves or pins anything (see useScrollCue).
+  const showScrollCue = useScrollCue(step === 'reflection' && stage >= 4, continueWrapRef);
 
   const questionText = QUESTION_STEPS.has(step) && selectedElement ? buildReflectionQuestion(selectedElement, t) : null;
   const showAnchor = selectedElement && (step === 'interpreting' || step === 'reflection');
@@ -249,6 +256,12 @@ export default function DreamReflection({
 
       {showAnchor && <p className="dr-anchor">{selectedElement}</p>}
 
+      <div className={`dr-scroll-cue${showScrollCue ? ' is-visible' : ''}`} aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M6 9.5l6 6 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+
       {step === 'interpreting' && !reflectionErrored && <p className="dr-interpreting">{t('reflection.reflecting')}</p>}
 
       {step === 'interpreting' && reflectionErrored && (
@@ -321,7 +334,7 @@ export default function DreamReflection({
           {stage >= 4 && <p className="dr-grounding">{reflectionResult.groundingStatement}</p>}
 
           {stage >= 4 && (
-            <div className={`dr-continue-wrap${continueVisible ? ' is-visible' : ''}`}>
+            <div ref={continueWrapRef} className={`dr-continue-wrap${continueVisible ? ' is-visible' : ''}`}>
               <button type="button" className="dr-choice dr-choice--yes" data-cursor-hover onClick={onContinue}>
                 {t('reflection.continue')}
               </button>

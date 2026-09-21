@@ -1133,6 +1133,19 @@
     height: auto;
     min-height: 100%;
     overflow: visible;
+    /* This screen's decorative layers (each choice's aura, orbiting trace
+       lights, sparkle, pulse — see .da-choice-*) deliberately bleed past
+       their words. With the desktop `overflow: hidden` gone (above), that
+       bleed became real scrollable overflow: on a phone it widened the
+       layout viewport by a few px (more with longer labels), and because
+       .hero-dream is a fixed-width (100vw) box, an RTL page then sat
+       pushed to the right of that wider viewport — the whole title /
+       instruction / choices group looked shifted, not centered. `clip` on
+       the horizontal axis alone stops the bleed from ever creating
+       overflow while leaving vertical overflow visible, so the page still
+       scrolls as ONE region (unlike overflow-x:hidden, which would turn
+       this into a nested scroll box). */
+    overflow-x: clip;
     justify-content: flex-start;
     align-items: stretch;
     padding: 3vh 6vw calc(5vh + env(safe-area-inset-bottom, 0px));
@@ -1352,6 +1365,64 @@
 
   .dream-reflection[data-step='reflection'] .dr-node-path {
     top: 2.2rem;
+  }
+}
+
+/* ---- Scroll cue (mobile only): a small chevron pinned near the bottom of
+   the viewport while the interpretation has more content below the fold
+   (see useScrollCue). Orientation only — pointer-events:none, fixed, so it
+   never takes space, moves anything or intercepts a tap. Hidden entirely
+   wherever this screen doesn't scroll (desktop / non-scrolling widths). ---- */
+.dr-scroll-cue {
+  display: none;
+}
+
+@media (max-width: 640px), (max-height: 500px) {
+  .dr-scroll-cue {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 26px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+    /* A soft dark fade behind the chevron so it reads over any line of text
+       scrolling beneath it, without covering that text (it stays legible). */
+    background: linear-gradient(to top, rgba(4, 5, 4, 0.55), rgba(4, 5, 4, 0));
+    z-index: 4;
+    justify-content: center;
+    pointer-events: none;
+    color: rgba(var(--accent-rgb), 0.9);
+    filter: drop-shadow(0 0 0.6rem rgba(var(--accent-rgb), 0.55)) drop-shadow(0 0.05em 0.5em rgba(0, 0, 0, 0.7));
+    opacity: 0;
+    transition: opacity 0.5s var(--ease-memory);
+  }
+
+  .dr-scroll-cue.is-visible {
+    opacity: 0.85;
+  }
+
+  .dr-scroll-cue svg {
+    width: 28px;
+    height: 28px;
+    animation: dr-scroll-cue-bob 2.2s ease-in-out infinite;
+  }
+}
+
+@keyframes dr-scroll-cue-bob {
+  0%,
+  100% {
+    transform: translateY(-3px);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(4px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dr-scroll-cue svg {
+    animation: none;
   }
 }
 
