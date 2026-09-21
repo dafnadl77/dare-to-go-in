@@ -89,6 +89,8 @@ interface DreamReconstructionProps {
   onRetryReflection: () => void;
   onContinueFromReflection: () => void;
   onSaveDream: () => void;
+  /** The last SAVE attempt failed — DreamClosing shows a retryable error. */
+  saveFailed: boolean;
   onLetGo: () => void;
   onReturnToRoom: () => void;
   /** DREAM SAVED.'s quiet second invitation — passthrough only, see DreamClosing.tsx. */
@@ -126,6 +128,7 @@ export default function DreamReconstruction({
   onRetryReflection,
   onContinueFromReflection,
   onSaveDream,
+  saveFailed,
   onLetGo,
   onReturnToRoom,
   onGoToArchive,
@@ -411,6 +414,7 @@ export default function DreamReconstruction({
           reflectionResult={reflectionResult}
           accentColor={accentColor}
           onSave={onSaveDream}
+          saveFailed={saveFailed}
           onLetGo={onLetGo}
           onReturnToRoom={onReturnToRoom}
           onGoToArchive={onGoToArchive}

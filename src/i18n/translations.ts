@@ -97,6 +97,8 @@ export interface Translations {
     keepThisDream: string;
     letItGo: string;
     theChoiceIsYours: string;
+    saveFailed: string;
+    saveRetry: string;
     dreamSaved: string;
     returnToTheRoom: string;
     goToMyDreamArchive: string;
@@ -337,6 +339,8 @@ export const en: Translations = {
     keepThisDream: 'KEEP THIS\nDREAM',
     letItGo: 'LET IT GO',
     theChoiceIsYours: 'THE CHOICE IS YOURS.',
+    saveFailed: "We couldn't save your dream. It's still here — you can try again.",
+    saveRetry: 'Try again',
     dreamSaved: 'DREAM SAVED.',
     returnToTheRoom: 'RETURN TO THE ROOM',
     goToMyDreamArchive: 'go to my dream archive',
@@ -586,6 +590,8 @@ export const he: Translations = {
     keepThisDream: 'לשמור\nעל החלום',
     letItGo: 'שחררו אותו',
     theChoiceIsYours: 'הבחירה בידך.',
+    saveFailed: 'לא הצלחנו לשמור את החלום. הוא עדיין כאן — אפשר לנסות שוב.',
+    saveRetry: 'לנסות שוב',
     dreamSaved: 'החלום נשמר.',
     returnToTheRoom: 'חזרה לחדר',
     goToMyDreamArchive: 'מעבר לארכיון החלומות שלי',

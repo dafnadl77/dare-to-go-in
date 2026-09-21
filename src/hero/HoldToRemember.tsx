@@ -448,6 +448,39 @@ export default function HoldToRemember({
     setCentralMode('hold');
   }, [centralMode, recorder, holdRef, onTypedTranscriptChange, setCentralMode, setMicUnavailable, livePreview]);
 
+  // Returning to the capture state from ANY other step (Back, LET IT GO, RETURN
+  // TO THE ROOM — HeroDream.handleGoHome just sets centralMode to 'hold' while
+  // this component stays mounted) must leave the press-and-hold ritual usable
+  // again. ROOT CAUSE of "the circle stops working after a completed voice
+  // dream": committedRef (and finishingRef / isListening / the recorder's own
+  // 'finished' state) were only cleared by handleBack/handleClose — never on
+  // the path through DONE → journey → home — so beginHold's
+  // `committedRef.current` early-return swallowed every later press and the
+  // label stayed on LISTENING. Keyed on the mode TRANSITION, so it can't
+  // interfere with a hold that is in progress (centralMode stays 'hold' then).
+  const previousModeRef = useRef(centralMode);
+  useEffect(() => {
+    const previous = previousModeRef.current;
+    previousModeRef.current = centralMode;
+    if (centralMode !== 'hold' || previous === 'hold') return;
+    committedRef.current = false;
+    finishingRef.current = false;
+    clearTimeout(listenTimerRef.current);
+    clearTimeout(micTimeoutRef.current);
+    clearTimeout(recordingMaxDurationTimeoutRef.current);
+    if (holdRef.current) {
+      holdRef.current.active = false;
+      holdRef.current.listening = false;
+      holdRef.current.progress = 0;
+      holdRef.current.audioLevel = 0;
+    }
+    setFinishing(false);
+    setIsListening(false);
+    setIsHolding(false);
+    if (recorder.recordingState !== 'idle') recorder.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [centralMode]);
+
   useEffect(() => {
     if (centralMode !== 'recording' && centralMode !== 'transcribing' && centralMode !== 'typing') return;
     const onKeyDown = (e: globalThis.KeyboardEvent) => {

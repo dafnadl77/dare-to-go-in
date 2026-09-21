@@ -151,6 +151,18 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // a double-click (or any re-render) can never persist the same dream twice.
   const [continueVisible, setContinueVisible] = useState(false);
   const dreamSavedRef = useRef(false);
+  // Save-failure UX. The record is built ONCE per finished dream and reused by
+  // every retry, so a retry after a save that may actually have reached the
+  // server (the request failed on the way back) writes the SAME id — the
+  // upsert in saveDreamRemote is idempotent on it, so a retry can never create
+  // a second copy. saveFailed drives the visible error + Retry in DreamClosing.
+  // saveTokenRef/saveTimerRef keep a late result or the "saving" minimum-
+  // duration timer from touching a journey the dreamer has already left.
+  const savedRecordRef = useRef<SavedDream | null>(null);
+  const saveTokenRef = useRef(0);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [saveFailed, setSaveFailed] = useState(false);
+  useEffect(() => () => clearTimeout(saveTimerRef.current), []);
 
   const startReflectionEngine = useCallback((token: string, request: DreamReflectionRequest) => {
     if (reflectionTokenRef.current === token) return;
@@ -457,16 +469,18 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     if (analysisResult?.status !== 'ok' || !selectedElement || !reflectionResponse) return;
     if (reflectionEngineResult?.status !== 'ok') return;
     dreamSavedRef.current = true;
-    const record = buildSavedDream({
-      sourceText: analysisResult.analysis.sourceText,
-      inputMode: dreamInputRef.current?.inputMode ?? 'text',
-      dreamAnalysis: analysisResult.analysis,
-      dreamImageDataUrl: displayedImageUrl,
-      selectedElement,
-      reflectionResponse,
-      dreamReflection: reflectionEngineResult.reflection,
-      corrections,
-    });
+    const record =
+      savedRecordRef.current ??
+      (savedRecordRef.current = buildSavedDream({
+        sourceText: analysisResult.analysis.sourceText,
+        inputMode: dreamInputRef.current?.inputMode ?? 'text',
+        dreamAnalysis: analysisResult.analysis,
+        dreamImageDataUrl: displayedImageUrl,
+        selectedElement,
+        reflectionResponse,
+        dreamReflection: reflectionEngineResult.reflection,
+        corrections,
+      }));
     if (!user) {
       // Signed OUT — a dream must belong to a real account, never the
       // anonymous localStorage archive by default (see App.tsx's
@@ -488,16 +502,24 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     // holds "saving" longer, and a failed save reverts to the KEEP THIS
     // DREAM / LET IT GO choice with dreamSavedRef reset, so the dreamer
     // can retry with the exact same record.
+    setSaveFailed(false);
     setInsideStep('saving');
     const startedAt = Date.now();
+    const token = ++saveTokenRef.current;
+    clearTimeout(saveTimerRef.current);
     saveDreamRemote(record, user.id).then(
       () => {
+        if (token !== saveTokenRef.current) return; // the dreamer already left this journey
         const remaining = Math.max(SAVE_LOCK_MS - (Date.now() - startedAt), 0);
-        setTimeout(() => setInsideStep('saved'), remaining);
+        saveTimerRef.current = setTimeout(() => setInsideStep('saved'), remaining);
       },
       (err) => {
         console.error('Failed to save dream to Supabase:', err);
+        if (token !== saveTokenRef.current) return;
+        // Never fail silently: back to the KEEP / LET IT GO choice, WITH a
+        // visible error and a Retry — the finished dream (record above) is kept.
         dreamSavedRef.current = false;
+        setSaveFailed(true);
         setInsideStep('closing');
       },
     );
@@ -592,6 +614,11 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     correctionCountRef.current = 0;
     reflectionRetryCountRef.current = 0;
     dreamSavedRef.current = false;
+    // A new journey starts clean: no stale save timer/result, no kept record, no error.
+    saveTokenRef.current += 1;
+    clearTimeout(saveTimerRef.current);
+    savedRecordRef.current = null;
+    setSaveFailed(false);
   };
 
   const isReconstructing = reconstructionPhase !== 'none';
@@ -717,6 +744,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         onRetryReflection={handleRetryReflection}
         onContinueFromReflection={handleContinueFromReflection}
         onSaveDream={handleSaveDream}
+        saveFailed={saveFailed}
         onLetGo={handleLetGo}
         onReturnToRoom={handleReturnToRoom}
         onGoToArchive={onGoToArchive}

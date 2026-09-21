@@ -12,6 +12,8 @@ interface DreamClosingProps {
   reflectionResult: DreamReflectionResult;
   accentColor: AccentColor | null;
   onSave: () => void;
+  /** The last SAVE attempt failed: the finished dream is kept, an error is shown and SAVE can be retried. */
+  saveFailed: boolean;
   onLetGo: () => void;
   onReturnToRoom: () => void;
   /** DREAM SAVED.'s quiet second invitation — deeper into the new Dream
@@ -49,7 +51,7 @@ const SPARK_COUNT = 10;
  * photographic-memory flash before 'saved'; 'letting-go'/'gone' are the
  * dissolve outcome of LET IT GO.
  */
-export default function DreamClosing({ step, reflectionResult, accentColor, onSave, onLetGo, onReturnToRoom, onGoToArchive }: DreamClosingProps) {
+export default function DreamClosing({ step, reflectionResult, accentColor, onSave, saveFailed, onLetGo, onReturnToRoom, onGoToArchive }: DreamClosingProps) {
   const { t, language } = useLanguage();
   const accent = accentColor ?? FALLBACK_ACCENT;
   const accentVars = { '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties;
@@ -121,6 +123,14 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
                 </span>
               </button>
             </div>
+            {saveFailed && (
+              <div className="dc-save-error" role="alert">
+                <p className="dc-save-error-text">{t('closing.saveFailed')}</p>
+                <button type="button" className="dr-choice dc-save-retry" data-cursor-hover onClick={onSave}>
+                  {t('closing.saveRetry')}
+                </button>
+              </div>
+            )}
             <p className="dc-choice-hint">{t('closing.theChoiceIsYours')}</p>
           </div>
         </>

@@ -349,9 +349,13 @@ html[dir='rtl'] .dt-card:focus-visible .dt-card-chevron {
     padding-inline-end: 2.2rem;
   }
 
+  /* Phones: the two corner controls get their OWN strip above the text instead
+     of taking width from the title (which broke words in the middle at 320-375px).
+     The title/date row starts below them and keeps the whole body width. */
   .dt-card-wrap--deletable .dt-card-top {
-    padding-inline-end: calc(0.6rem + 34px + 0.5rem + 34px - 0.75rem);
-    min-height: 2.4rem;
+    padding-inline-end: 0;
+    padding-top: calc(0.6rem + 34px + 0.3rem - 0.75rem);
+    min-height: 0;
   }
 }
 

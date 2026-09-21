@@ -1,11 +1,12 @@
-import { useCallback, useRef, useState, type RefObject } from 'react';
+import { useEffect, useState, type RefObject } from 'react';
+import {
+  DreamRecorderController,
+  browserRecorderEnv,
+  type AudioLevelState,
+  type RecordingState,
+} from './dreamRecorderController';
 
-export type RecordingState = 'idle' | 'requesting-permission' | 'recording' | 'paused' | 'finished' | 'error';
-
-export interface AudioLevelState {
-  /** Smoothed 0..1 amplitude of the live microphone input. */
-  level: number;
-}
+export type { AudioLevelState, RecordingState };
 
 interface DreamRecorderApi {
   recordingState: RecordingState;
@@ -41,184 +42,44 @@ interface DreamRecorderApi {
   reset: () => void;
 }
 
-// onstart fires essentially immediately after MediaRecorder.start() on a
-// genuinely working recorder — this only bounds the pathological case
-// where it never fires at all, so that case fails the same way any other
-// real failure does (reject the promise) rather than hanging forever.
-const RECORDER_ONSTART_TIMEOUT_MS = 4000;
-
-function getAudioContextCtor(): typeof AudioContext | null {
-  const w = window as typeof window & { webkitAudioContext?: typeof AudioContext };
-  return w.AudioContext ?? w.webkitAudioContext ?? null;
-}
-
+/**
+ * React wrapper around DreamRecorderController (see it for the actual
+ * microphone handling). The owner of this hook owns the microphone: when the
+ * component using it unmounts — for any reason — the controller is disposed,
+ * which stops the recorder, every MediaStream track and the AudioContext, so
+ * the browser's recording indicator can never be left on.
+ */
 export function useDreamRecorder(): DreamRecorderApi {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [error, setError] = useState<string | null>(null);
-  const errorRef = useRef<string | null>(null);
-  const setErrorBoth = useCallback((value: string | null) => {
-    errorRef.current = value;
-    setError(value);
-  }, []);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [durationMs, setDurationMs] = useState(0);
 
-  const audioLevelRef = useRef<AudioLevelState>({ level: 0 });
-  const streamRef = useRef<MediaStream | null>(null);
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const analyserDataRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
-  const rafRef = useRef(0);
-  const startTimeRef = useRef(0);
+  const [controller] = useState(
+    () =>
+      new DreamRecorderController(browserRecorderEnv(), {
+        onState: setRecordingState,
+        onError: setError,
+        onBlob: setAudioBlob,
+        onDuration: setDurationMs,
+      }),
+  );
 
-  const teardown = useCallback(() => {
-    cancelAnimationFrame(rafRef.current);
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
-    if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
-      audioCtxRef.current.close().catch(() => {});
-    }
-    audioCtxRef.current = null;
-    analyserRef.current = null;
-    recorderRef.current = null;
-  }, []);
+  useEffect(() => {
+    controller.revive();
+    return () => controller.dispose();
+  }, [controller]);
 
-  const primeAudio = useCallback(() => {
-    const AudioCtxCtor = getAudioContextCtor();
-    if (!AudioCtxCtor) return;
-    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-      audioCtxRef.current = new AudioCtxCtor();
-    }
-    if (audioCtxRef.current.state === 'suspended') {
-      audioCtxRef.current.resume().catch(() => {});
-    }
-  }, []);
-
-  const runAnalyserLoop = useCallback(() => {
-    function frame() {
-      const analyser = analyserRef.current;
-      const data = analyserDataRef.current;
-      if (analyser && data) {
-        analyser.getByteTimeDomainData(data);
-        let sumSquares = 0;
-        for (let i = 0; i < data.length; i++) {
-          const v = (data[i] - 128) / 128;
-          sumSquares += v * v;
-        }
-        const rms = Math.sqrt(sumSquares / data.length);
-        const target = Math.min(1, rms * 4.2);
-        const prev = audioLevelRef.current.level;
-        audioLevelRef.current.level = prev + (target - prev) * 0.18;
-      }
-      rafRef.current = requestAnimationFrame(frame);
-    }
-    rafRef.current = requestAnimationFrame(frame);
-  }, []);
-
-  const start = useCallback(async (): Promise<boolean> => {
-    setErrorBoth(null);
-    setRecordingState('requesting-permission');
-
-    const AudioCtxCtor = getAudioContextCtor();
-    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined' || !AudioCtxCtor) {
-      setErrorBoth('unsupported');
-      setRecordingState('error');
-      return false;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-
-      if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-        audioCtxRef.current = new AudioCtxCtor();
-      }
-      const audioCtx = audioCtxRef.current;
-      if (audioCtx.state === 'suspended') {
-        await audioCtx.resume().catch(() => {});
-      }
-      const source = audioCtx.createMediaStreamSource(stream);
-      const analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.6;
-      source.connect(analyser);
-      analyserRef.current = analyser;
-      analyserDataRef.current = new Uint8Array(analyser.frequencyBinCount);
-
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm')
-        ? 'audio/webm'
-        : MediaRecorder.isTypeSupported('audio/mp4')
-          ? 'audio/mp4'
-          : '';
-      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-      chunksRef.current = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
-      };
-      recorder.onstop = () => {
-        setAudioBlob(new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' }));
-      };
-      recorderRef.current = recorder;
-
-      // The UI only shows "I'M LISTENING." once this resolves true (see
-      // HoldToRemember.tsx's commitToListening) — so this must not resolve
-      // on the strength of calling recorder.start() alone. onstart is the
-      // browser's own confirmation that capture genuinely began; a real
-      // recorder confirms it almost immediately, so a bounded wait treats
-      // "it never fires" the same as any other real failure to start,
-      // rather than the UI trusting an assumption that turned out false.
-      const reallyStarted = await new Promise<boolean>((resolve) => {
-        let settled = false;
-        const settle = (ok: boolean) => {
-          if (settled) return;
-          settled = true;
-          resolve(ok);
-        };
-        recorder.onstart = () => settle(true);
-        recorder.onerror = () => settle(false);
-        setTimeout(() => settle(false), RECORDER_ONSTART_TIMEOUT_MS);
-        recorder.start();
-      });
-
-      if (!reallyStarted) {
-        teardown();
-        setErrorBoth('start-not-confirmed');
-        setRecordingState('error');
-        return false;
-      }
-
-      startTimeRef.current = performance.now();
-      runAnalyserLoop();
-      setRecordingState('recording');
-      return true;
-    } catch (err) {
-      teardown();
-      setErrorBoth(err instanceof Error ? err.name : 'unknown');
-      setRecordingState('error');
-      return false;
-    }
-  }, [runAnalyserLoop, teardown, setErrorBoth]);
-
-  const finish = useCallback(() => {
-    if (recorderRef.current && recorderRef.current.state !== 'inactive') {
-      recorderRef.current.stop();
-    }
-    setDurationMs(performance.now() - startTimeRef.current);
-    teardown();
-    setRecordingState('finished');
-  }, [teardown]);
-
-  const reset = useCallback(() => {
-    teardown();
-    chunksRef.current = [];
-    audioLevelRef.current.level = 0;
-    setAudioBlob(null);
-    setDurationMs(0);
-    setErrorBoth(null);
-    setRecordingState('idle');
-  }, [teardown, setErrorBoth]);
-
-  return { recordingState, error, errorRef, audioLevelRef, durationMs, audioBlob, primeAudio, start, finish, reset };
+  return {
+    recordingState,
+    error,
+    errorRef: controller.errorRef,
+    audioLevelRef: controller.audioLevelRef,
+    durationMs,
+    audioBlob,
+    primeAudio: controller.primeAudio,
+    start: controller.start,
+    finish: controller.finish,
+    reset: controller.reset,
+  };
 }
