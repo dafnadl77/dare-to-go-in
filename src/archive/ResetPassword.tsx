@@ -118,16 +118,6 @@ export default function ResetPassword({ onBack, onDone, onRequestNewLink, onOpen
   return (
     <div className="dream-auth">
       <DreamStageBackground ref={bgVideoRef} active />
-      <button type="button" className="auth-back" dir="ltr" data-cursor-hover onClick={onBack} aria-label={t('auth.backToDare')}>
-        <img className="auth-back-icon" src="/apple-touch-icon.png" alt="" aria-hidden="true" />
-        <span className="editorial-word-flow">
-          {['DARE', 'TO', 'GO', 'IN'].map((word) => (
-            <span className="editorial-word" key={word}>
-              {word}
-            </span>
-          ))}
-        </span>
-      </button>
 
       <div className="auth-content">
         <Breadcrumb ariaLabel={t('breadcrumb.ariaLabel')} onHome={onBack} items={[{ label: t('auth.setNewPasswordTitle') }]} />

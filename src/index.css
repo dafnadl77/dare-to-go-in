@@ -176,7 +176,7 @@ button:disabled {
 .ar-title,
 .ar-brand,
 .crumb-home,
-.auth-back,
+.gh-brand,
 .da-title,
 .dr-question,
 .dc-title,
@@ -296,8 +296,8 @@ button:disabled {
 :root[dir='rtl'] .ar-brand *,
 :root[dir='rtl'] .crumb-home,
 :root[dir='rtl'] .crumb-home *,
-:root[dir='rtl'] .auth-back,
-:root[dir='rtl'] .auth-back *,
+:root[dir='rtl'] .gh-brand,
+:root[dir='rtl'] .gh-brand *,
 :root[dir='rtl'] .dare-home-lockup,
 :root[dir='rtl'] .dare-home-lockup * {
   font-family: 'Fraunces', Georgia, serif !important;

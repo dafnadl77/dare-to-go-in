@@ -23,31 +23,10 @@
   }
 }
 
-.legal-back {
-  position: fixed;
-  top: max(20px, env(safe-area-inset-top));
-  left: max(20px, env(safe-area-inset-left));
-  z-index: 50;
-  margin: 0;
-  padding: 0.4em 0.3em;
-  background: none;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.24em;
-  color: var(--dream-white);
-  opacity: 0.55;
-  transition: opacity 0.4s var(--ease-soft), letter-spacing 0.4s var(--ease-soft);
-}
-
-.legal-back:hover,
-.legal-back:focus-visible {
-  opacity: 0.95;
-  letter-spacing: 0.3em;
-}
+/* .legal-back (the fixed top-left "DARE" text button) used to live here —
+   this page now gets its brand mark from the shared, app-wide
+   GlobalHeader (src/ui/GlobalHeader.tsx/.css) like every other public
+   screen, instead of a plain-text one-off. */
 
 .legal-scroll {
   position: absolute;
@@ -180,7 +159,7 @@ html[lang='he'] .legal-return {
 @media (max-width: 640px) {
   /* Near-full width with safe padding, not a narrow centered column —
      the vw padding already does this; only the top offset shrinks to
-     make room for the fixed DARE button above it. */
+     make room for the fixed GlobalHeader brand mark above it. */
   .legal-column {
     padding: 14vh 6vw 8vh;
   }

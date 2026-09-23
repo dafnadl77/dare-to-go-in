@@ -40,10 +40,6 @@ export default function LegalPage({ documentKey, onBack }: LegalPageProps) {
 
   return (
     <div className="legal-page">
-      <button type="button" className="legal-back" dir="ltr" data-cursor-hover onClick={onBack} aria-label={t('archive.backToDare')}>
-        DARE
-      </button>
-
       <div className="legal-scroll">
         <article className="legal-column">
           <Breadcrumb ariaLabel={t('breadcrumb.ariaLabel')} onHome={onBack} items={[{ label: doc.title }]} />

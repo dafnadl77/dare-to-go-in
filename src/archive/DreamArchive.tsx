@@ -23,6 +23,7 @@ import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
 import Breadcrumb from '../ui/Breadcrumb';
 import EditorialTitle from '../ui/EditorialTitle';
+import { BrandMark, GlobalNavLinks } from '../ui/GlobalHeader';
 import './DreamArchive.css';
 
 type ArchiveSection = 'all' | 'favorites' | 'insights' | 'settings';
@@ -43,6 +44,14 @@ interface DreamArchiveProps {
   onBack: () => void;
   onOpenEntry: (entry: ArchiveEntry) => void;
   onOpenLegal: (key: LegalKey) => void;
+  /** The SAME global-nav destinations every other screen's GlobalHeader
+      uses (App.tsx owns the one `handleMyDreamsNav`/setView calls) —
+      Archive embeds GlobalNavLinks directly in its own in-flow header
+      instead of GlobalHeader's fixed one (see GlobalHeader.tsx's own
+      comment on why), but the destinations must stay identical. */
+  onMyDreams: () => void;
+  onPackages: () => void;
+  onAbout: () => void;
 }
 
 /**
@@ -70,7 +79,7 @@ interface DreamArchiveProps {
  * - Settings: the account email already known from auth, the language
  *   switcher already in the header, and sign out — nothing invented.
  */
-export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: DreamArchiveProps) {
+export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onMyDreams, onPackages, onAbout }: DreamArchiveProps) {
   const { t, language, setLanguage } = useLanguage();
   const { user, signOut } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -307,36 +316,18 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
           the page scrolls (it isn't fixed, it simply isn't there to
           overlap anything once scrolled past). */}
       <header className="ar-shell-header">
-        <button type="button" className="ar-brand" dir="ltr" data-cursor-hover onClick={onBack} aria-label={t('archive.backToDare')}>
-          {/* The brand mark is never translated and must always keep the
-              logo's word-flow treatment, even under a Hebrew UI — unlike
-              every other heading, so this can't go through the
-              language-gated EditorialTitle (src/ui/EditorialTitle.tsx),
-              which intentionally falls back to plain text for non-English.
-              Applies the same shared .editorial-word-flow/.editorial-word
-              classes (src/index.css) directly, since the text itself is a
-              static literal, not translatable content. The approved D
-              favicon (public/apple-touch-icon.png — not regenerated, not
-              altered) sits before the wordmark in DOM order, which combined
-              with this button's own dir="ltr" keeps it visually first in
-              both languages. */}
-          <img className="ar-brand-icon" src="/apple-touch-icon.png" alt="" aria-hidden="true" />
-          <span className="editorial-word-flow">
-            {['DARE', 'TO', 'GO', 'IN'].map((word) => (
-              <span className="editorial-word" key={word}>
-                {word}
-              </span>
-            ))}
-          </span>
-        </button>
-        {user && (
-          <div className="ar-account">
-            {user.email && <span className="ar-account-email">{user.email}</span>}
-            <button type="button" className="ar-account-signout btn btn-secondary" data-cursor-hover onClick={() => signOut()}>
-              {t('auth.signOut')}
-            </button>
-          </div>
-        )}
+        <BrandMark className="ar-brand" iconClassName="ar-brand-icon" onHome={onBack} />
+        <div className="ar-header-right">
+          <GlobalNavLinks active="myDreams" onMyDreams={onMyDreams} onPackages={onPackages} onAbout={onAbout} />
+          {user && (
+            <div className="ar-account">
+              {user.email && <span className="ar-account-email">{user.email}</span>}
+              <button type="button" className="ar-account-signout btn btn-secondary" data-cursor-hover onClick={() => signOut()}>
+                {t('auth.signOut')}
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       {user && (

@@ -7,7 +7,6 @@ import type { ArchiveEntry } from './archive/archiveData';
 import type { SavedDream } from './hero/dreamStorage';
 import { saveDreamRemote } from './hero/dreamRemoteStorage';
 import { getPendingDreamSave, setPendingDreamSave, clearPendingDreamSave } from './hero/pendingDreamSave';
-import LanguageSwitcher from './i18n/LanguageSwitcher';
 import ResetPassword from './archive/ResetPassword';
 import { useAuth, POST_AUTH_REDIRECT_PARAM, POST_AUTH_REDIRECT_VALUE, RESET_PASSWORD_VIEW_VALUE } from './auth/AuthContext';
 import { useLanguage } from './i18n/LanguageContext';
@@ -16,6 +15,7 @@ import type { LegalKey } from './legal/legalContent';
 import AboutPage from './about/AboutPage';
 import PricingPage from './pricing/PricingPage';
 import AccessibilityControl from './a11y/AccessibilityControl';
+import GlobalHeader, { type GlobalNavKey } from './ui/GlobalHeader';
 
 /** Which top-level experience is mounted. No router is introduced for
     this first pass (the whole app is already a single state machine —
@@ -133,7 +133,6 @@ function AuthLoadingScreen({ messageKey = 'auth.checkingSession', onRetry }: { m
 
 function App() {
   const { user, loading, isPasswordRecovery } = useAuth();
-  const { t } = useLanguage();
   const [view, setViewState] = useState<AppView>(() => getInitialView());
   const [authMode, setAuthMode] = useState<AuthMode>('signup');
   const [openEntry, setOpenEntry] = useState<ArchiveEntry | null>(null);
@@ -262,6 +261,12 @@ function App() {
   }, [loading, user, view, isPasswordRecovery]);
 
   let screen: ReactNode;
+  // Archive renders the shared brand/nav content itself, embedded in its
+  // own in-flow sticky header (.ar-shell-header) — never GlobalHeader's
+  // fixed overlay, which would otherwise sit on top of it. Set only in
+  // the branch that actually renders DreamArchive below, so this can
+  // never drift out of sync with which screen is really on-screen.
+  let usesEmbeddedHeader = false;
 
   if (pendingSaveState === 'resuming' || pendingSaveState === 'error') {
     // Takes priority over `view` entirely — the pending dream is only
@@ -335,6 +340,7 @@ function App() {
       />
     );
   } else if (view === 'archive' && user) {
+    usesEmbeddedHeader = true;
     screen = (
       <DreamArchive
         onBack={() => setView('dream')}
@@ -343,6 +349,9 @@ function App() {
           setView('detail');
         }}
         onOpenLegal={handleOpenLegal}
+        onMyDreams={handleMyDreamsNav}
+        onPackages={() => setView('pricing')}
+        onAbout={() => setView('about')}
       />
     );
   } else {
@@ -355,45 +364,31 @@ function App() {
     );
   }
 
+  // ONE consistent global header everywhere except Archive (which embeds
+  // the same shared brand/nav content itself — see usesEmbeddedHeader
+  // above). showBrand is false only on the Hero (view === 'dream', which
+  // already has its own home identity — see GlobalHeader.tsx's own
+  // comment) and on Dream Detail (to avoid a corner collision with its
+  // own differently-purposed .dd-back control); every other screen shows
+  // the full brand + nav. `active` marks which nav link (if any)
+  // represents the screen currently on-screen, per this task's own
+  // "subtle active state" requirement.
+  const showBrand = view !== 'dream' && view !== 'detail';
+  const activeNav: GlobalNavKey = view === 'pricing' ? 'packages' : view === 'about' ? 'about' : view === 'archive' || view === 'detail' ? 'myDreams' : null;
+
   return (
     <>
       {screen}
-      <div className="top-right-nav">
-        {/* Hero-only — DreamAuth/DreamArchive/DreamDetail already have
-            their own way back or are the archive itself, so a second
-            "go to my dreams" link there would be redundant at best. */}
-        {(view === 'dream' || view === 'about' || view === 'pricing') && (
-          <>
-            <button type="button" className="trn-archive-link" data-cursor-hover onClick={handleMyDreamsNav}>
-              {t('hero.myDreamsNav')}
-            </button>
-            <span className="trn-divider" aria-hidden="true">
-              |
-            </span>
-          </>
-        )}
-        {view === 'dream' && (
-          <>
-            <button type="button" className="trn-archive-link" data-cursor-hover onClick={() => setView('pricing')}>
-              {t('hero.packagesNav')}
-            </button>
-            <span className="trn-divider" aria-hidden="true">
-              |
-            </span>
-          </>
-        )}
-        {view === 'dream' && (
-          <>
-            <button type="button" className="trn-archive-link" data-cursor-hover onClick={() => setView('about')}>
-              {t('hero.aboutNav')}
-            </button>
-            <span className="trn-divider" aria-hidden="true">
-              |
-            </span>
-          </>
-        )}
-        <LanguageSwitcher />
-      </div>
+      {!usesEmbeddedHeader && (
+        <GlobalHeader
+          onHome={() => setView('dream')}
+          onMyDreams={handleMyDreamsNav}
+          onPackages={() => setView('pricing')}
+          onAbout={() => setView('about')}
+          active={activeNav}
+          showBrand={showBrand}
+        />
+      )}
       <AccessibilityControl />
     </>
   );

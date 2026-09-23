@@ -94,30 +94,17 @@
 }
 
 /* ---- Header — real document flow, sticky (not fixed): it scrolls with
-   the page like an ordinary product header, staying reachable, but is
-   never absolutely positioned and therefore never fights the global
-   language switcher (App.tsx's .top-right-nav, fixed top-right on every
-   screen) for the same literal pixels. The two coexist the same way
-   Hero's own centered content already does: this header keeps a
-   guaranteed-clear reserved margin on its end side (see padding below)
-   — a deliberate, documented, named reservation for the switcher's own
-   known footprint, not a blind "top:37px" style coordinate, and it holds
-   at every viewport width because it's a real padding value in normal
-   flow, not a manual offset chasing a fixed element's position. ---- */
-/* The reserved gap below is deliberately a PHYSICAL padding-right, never
-   padding-inline-end/a dir-flipped value — the language switcher
-   (LanguageSwitcher.css's .language-switcher) is a persistent utility
-   control that intentionally never mirrors, always sitting at the
-   physical top-right corner in every language (see its own comment on
-   why: "easier to find again when it never moves"). Meanwhile THIS row
-   is a normal flex row that DOES mirror under RTL, so whichever child
-   (brand in LTR, account in RTL — flex-direction: row reverses under
-   dir="rtl") lands on the physical right changes per language. Reserving
-   physical right space unconditionally is what actually keeps either of
-   them clear of the switcher in both directions — an RTL-specific
-   left-side reservation was tried first and produced a real collision
-   between the brand button and the switcher under Hebrew, confirmed
-   live, because it protected the wrong physical corner. */
+   the page like an ordinary product header, staying reachable. It used to
+   reserve a large physical padding-right so its own content would stay
+   clear of App.tsx's separate fixed top-right language switcher/nav —
+   that reservation is gone now that this header embeds the SAME shared
+   nav content itself (BrandMark + GlobalNavLinks, see DreamArchive.tsx),
+   so there is no second, competing fixed element on this screen at all
+   (App.tsx skips mounting GlobalHeader whenever Archive is what's
+   actually on screen — see its own `usesEmbeddedHeader`). Plain
+   symmetric padding-inline is correct again since both children of this
+   row now mirror together under RTL — there is no longer a fixed-vs-flow
+   mismatch to guard against. ---- */
 .ar-shell-header {
   position: sticky;
   top: 0;
@@ -129,11 +116,22 @@
   gap: 0.8rem;
   padding-top: max(1.1rem, env(safe-area-inset-top));
   padding-bottom: 1.1rem;
-  padding-left: max(1.5rem, env(safe-area-inset-left));
-  padding-right: max(2rem, 9rem);
+  padding-inline: max(1.5rem, env(safe-area-inset-left));
   background: linear-gradient(to bottom, rgba(3, 6, 12, 0.88) 0%, rgba(3, 6, 12, 0.7) 70%, transparent 100%);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+}
+
+/* The nav links + account block, grouped together so .ar-shell-header
+   still has exactly two top-level children for justify-content:
+   space-between (brand on one end, this cluster on the other) — wraps
+   as one unit at narrow widths rather than the account block and the nav
+   links wrapping independently. */
+.ar-header-right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.4rem;
 }
 
 /* font-family/weight/style/stretch/optical-sizing/letter-spacing come
