@@ -161,6 +161,26 @@ function App() {
     writeViewToUrl(next);
   };
 
+  // The Hero/Dream Journey's OWN safe "go home" reset (HeroDream.tsx's
+  // handleGoHome — resets every in-progress phase and, via the
+  // centralMode/insideStep transitions it triggers, releases the
+  // microphone), registered by HeroDream itself while it's mounted (view
+  // stays 'dream' through recording/reconstruction/reflection/closing —
+  // those are its own internal sub-phases, not separate views, so a plain
+  // setView('dream') alone would be a no-op that skips all of that reset).
+  // The shared GlobalHeader's brand mark always calls this ref (a no-op
+  // function when Hero isn't mounted) before its own setView('dream'), so
+  // one click both resets the journey AND navigates, and the header itself
+  // never needs to know this is happening.
+  const heroHomeHandlerRef = useRef<(() => void) | null>(null);
+  const registerHeroHomeHandler = useCallback((handler: (() => void) | null) => {
+    heroHomeHandlerRef.current = handler;
+  }, []);
+  const goHome = () => {
+    heroHomeHandlerRef.current?.();
+    setView('dream');
+  };
+
   // The one place a pending dream is actually written to Supabase — used
   // both by the effect below (every automatic trigger: ordinary sign-in/
   // up, and a fresh page load already authenticated after a Google/email
@@ -261,12 +281,6 @@ function App() {
   }, [loading, user, view, isPasswordRecovery]);
 
   let screen: ReactNode;
-  // Archive renders the shared brand/nav content itself, embedded in its
-  // own in-flow sticky header (.ar-shell-header) — never GlobalHeader's
-  // fixed overlay, which would otherwise sit on top of it. Set only in
-  // the branch that actually renders DreamArchive below, so this can
-  // never drift out of sync with which screen is really on-screen.
-  let usesEmbeddedHeader = false;
 
   if (pendingSaveState === 'resuming' || pendingSaveState === 'error') {
     // Takes priority over `view` entirely — the pending dream is only
@@ -340,7 +354,6 @@ function App() {
       />
     );
   } else if (view === 'archive' && user) {
-    usesEmbeddedHeader = true;
     screen = (
       <DreamArchive
         onBack={() => setView('dream')}
@@ -349,9 +362,6 @@ function App() {
           setView('detail');
         }}
         onOpenLegal={handleOpenLegal}
-        onMyDreams={handleMyDreamsNav}
-        onPackages={() => setView('pricing')}
-        onAbout={() => setView('about')}
       />
     );
   } else {
@@ -360,35 +370,29 @@ function App() {
         onGoToArchive={() => setView(user ? 'archive' : 'auth')}
         onRequireAuthForSave={handleRequireAuthForSave}
         onOpenLegal={handleOpenLegal}
+        onRegisterHomeHandler={registerHeroHomeHandler}
       />
     );
   }
 
-  // ONE consistent global header everywhere except Archive (which embeds
-  // the same shared brand/nav content itself — see usesEmbeddedHeader
-  // above). showBrand is false only on the Hero (view === 'dream', which
-  // already has its own home identity — see GlobalHeader.tsx's own
-  // comment) and on Dream Detail (to avoid a corner collision with its
-  // own differently-purposed .dd-back control); every other screen shows
-  // the full brand + nav. `active` marks which nav link (if any)
-  // represents the screen currently on-screen, per this task's own
-  // "subtle active state" requirement.
-  const showBrand = view !== 'dream' && view !== 'detail';
+  // ONE consistent global header on EVERY screen, no exceptions, no
+  // per-screen visual variants — see GlobalHeader.tsx's own header
+  // comment. `active` marks which nav link (if any) represents the
+  // screen currently on-screen, per this task's own "subtle active
+  // state" requirement; Dream Detail counts as MY DREAMS since it's
+  // reached only from there.
   const activeNav: GlobalNavKey = view === 'pricing' ? 'packages' : view === 'about' ? 'about' : view === 'archive' || view === 'detail' ? 'myDreams' : null;
 
   return (
     <>
       {screen}
-      {!usesEmbeddedHeader && (
-        <GlobalHeader
-          onHome={() => setView('dream')}
-          onMyDreams={handleMyDreamsNav}
-          onPackages={() => setView('pricing')}
-          onAbout={() => setView('about')}
-          active={activeNav}
-          showBrand={showBrand}
-        />
-      )}
+      <GlobalHeader
+        onHome={goHome}
+        onMyDreams={handleMyDreamsNav}
+        onPackages={() => setView('pricing')}
+        onAbout={() => setView('about')}
+        active={activeNav}
+      />
       <AccessibilityControl />
     </>
   );

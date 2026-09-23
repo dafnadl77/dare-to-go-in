@@ -28,7 +28,6 @@ import { buildSavedDream, type SavedDream } from './dreamStorage';
 import { saveDreamRemote } from './dreamRemoteStorage';
 import { extractAccentColor, extractDreamPalette, isImageCenterLight, type AccentColor } from './dreamAccentColor';
 import type { CentralMode } from './centralMode';
-import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
@@ -88,10 +87,18 @@ interface HeroDreamProps {
       pendingDreamSave.ts. */
   onRequireAuthForSave: (dream: SavedDream) => void;
   onOpenLegal: (key: LegalKey) => void;
+  /** Registers this journey's own safe "go home" reset (see handleGoHome
+      below — full internal-state reset, releases the mic via the
+      centralMode/insideStep transitions it triggers) with App.tsx, so the
+      shared GlobalHeader's brand mark can call it instead of a generic
+      setView('dream') no-op (view is already 'dream' the whole time this
+      component is mounted — recording/reconstruction/reflection/closing
+      are all internal sub-phases of this one screen). Called with `null`
+      on unmount so App.tsx never holds a stale reference. */
+  onRegisterHomeHandler: (handler: (() => void) | null) => void;
 }
 
-export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal }: HeroDreamProps) {
-  const { t } = useLanguage();
+export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal, onRegisterHomeHandler }: HeroDreamProps) {
   const { user } = useAuth();
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
@@ -621,6 +628,16 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     setSaveFailed(false);
   };
 
+  // Keeps App.tsx's ref to the CURRENT handleGoHome closure up to date
+  // (it captures this render's state, so a stale one from an earlier
+  // render would reset to the wrong values) and clears it on unmount so
+  // GlobalHeader's brand mark falls back to a plain "go home" navigation
+  // once this screen isn't the one mounted.
+  useEffect(() => {
+    onRegisterHomeHandler(handleGoHome);
+    return () => onRegisterHomeHandler(null);
+  });
+
   const isReconstructing = reconstructionPhase !== 'none';
 
   // Once a recording has genuinely begun, the title/prompt settle into the
@@ -696,28 +713,11 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         </div>
       </div>
 
-      {/* The only way back once inside the immersive experience — minimal,
-          never a navbar. Only shown once there's actually somewhere to
-          return from. */}
-      {isReconstructing && (
-        <button type="button" className="dare-home" dir="ltr" data-cursor-hover onClick={handleGoHome} aria-label={t('archive.backToDare')}>
-          <span className="dare-home-text">DARE</span>
-          {/* Below desktop: the real brand lockup (approved D favicon +
-              word-flow wordmark) — the same structure as DreamAuth.tsx's
-              .auth-back / DreamArchive.tsx's .ar-brand — instead of the
-              bare "DARE" text. Hidden via CSS at desktop widths. */}
-          <span className="dare-home-lockup font-editorial-display" aria-hidden="true">
-            <img className="dare-home-icon" src="/apple-touch-icon.png" alt="" />
-            <span className="editorial-word-flow">
-              {['DARE', 'TO', 'GO', 'IN'].map((word) => (
-                <span className="editorial-word" key={word}>
-                  {word}
-                </span>
-              ))}
-            </span>
-          </span>
-        </button>
-      )}
+      {/* The way back once inside the immersive experience used to be a
+          conditional .dare-home button here — now it's the shared
+          GlobalHeader's own persistent brand mark (App.tsx), wired to
+          handleGoHome via onRegisterHomeHandler above, so there's no
+          second "go home" control duplicating it in the same corner. */}
 
       <DreamReconstruction
         phase={reconstructionPhase}

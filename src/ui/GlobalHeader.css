@@ -1,20 +1,20 @@
 /* =====================================================================
-   THE global DARE header — brand (start) + MY DREAMS/PACKAGES/ABOUT/
-   language (end), one flex row so both sides are structurally guaranteed
-   to sit on the same line (see GlobalHeader.tsx's own header comment for
-   why that matters — it's the fix for the reported Pricing misalignment).
+   THE global DARE header — mounted on EVERY screen (App.tsx), no
+   exceptions. Brand (start) + MY DREAMS/PACKAGES/ABOUT/language (end),
+   one flex row so both sides are structurally guaranteed to sit on the
+   same line (see GlobalHeader.tsx's own header comment for why that
+   matters — it's the fix for the reported Pricing misalignment).
    Consolidates what used to be six independent hand-rolled brand-mark
    implementations (.crumb-home, .auth-back, .ar-brand, .dare-home,
    .legal-back, plus this file's own former .top-right-nav) into one
    place; `.trn-archive-link`/`.trn-divider`/`.top-right-nav` used to live
    in LanguageSwitcher.css — moved here since they're this header's
-   content, not the language switcher's own. `.ar-brand`/`.ar-brand-icon`
-   (DreamArchive.css) are deliberately NOT merged in here — Archive keeps
-   its own larger, in-flow (not fixed) header treatment on purpose, see
-   DreamArchive.css's own comment — BrandMark/GlobalNavLinks (this
-   component) are just mounted directly into that markup instead, sharing
-   behavior without sharing position. Class prefix `gh-`, plus the bare
-   `.global-header` root. ===================================================================== */
+   content, not the language switcher's own. Screens with their own
+   page-specific control in the same corner (Dream Detail's "back to
+   archive"; Archive's own account/sign-out row) keep that control as
+   separate, repositioned page content — this header itself never varies.
+   Class prefix `gh-`, plus the bare `.global-header` root.
+   ===================================================================== */
 .global-header {
   position: fixed;
   top: max(20px, env(safe-area-inset-top));

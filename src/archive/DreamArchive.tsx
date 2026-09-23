@@ -23,7 +23,6 @@ import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
 import Breadcrumb from '../ui/Breadcrumb';
 import EditorialTitle from '../ui/EditorialTitle';
-import { BrandMark, GlobalNavLinks } from '../ui/GlobalHeader';
 import './DreamArchive.css';
 
 type ArchiveSection = 'all' | 'favorites' | 'insights' | 'settings';
@@ -44,14 +43,6 @@ interface DreamArchiveProps {
   onBack: () => void;
   onOpenEntry: (entry: ArchiveEntry) => void;
   onOpenLegal: (key: LegalKey) => void;
-  /** The SAME global-nav destinations every other screen's GlobalHeader
-      uses (App.tsx owns the one `handleMyDreamsNav`/setView calls) —
-      Archive embeds GlobalNavLinks directly in its own in-flow header
-      instead of GlobalHeader's fixed one (see GlobalHeader.tsx's own
-      comment on why), but the destinations must stay identical. */
-  onMyDreams: () => void;
-  onPackages: () => void;
-  onAbout: () => void;
 }
 
 /**
@@ -79,7 +70,7 @@ interface DreamArchiveProps {
  * - Settings: the account email already known from auth, the language
  *   switcher already in the header, and sign out — nothing invented.
  */
-export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onMyDreams, onPackages, onAbout }: DreamArchiveProps) {
+export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: DreamArchiveProps) {
   const { t, language, setLanguage } = useLanguage();
   const { user, signOut } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -307,28 +298,23 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onMyDre
         ))}
       </div>
 
-      {/* A real, non-fixed page header — brand on one side, account on the
-          other, wrapping/stacking on its own at narrow widths instead of
-          ever fighting App.tsx's own fixed top-right language switcher
-          for the same corner. No magic-number positioning: this is a
-          normal flex row in normal document flow, at the very top of the
-          scrolling page, so there is nothing for it to collide with as
-          the page scrolls (it isn't fixed, it simply isn't there to
-          overlap anything once scrolled past). */}
-      <header className="ar-shell-header">
-        <BrandMark className="ar-brand" iconClassName="ar-brand-icon" onHome={onBack} />
-        <div className="ar-header-right">
-          <GlobalNavLinks active="myDreams" onMyDreams={onMyDreams} onPackages={onPackages} onAbout={onAbout} />
-          {user && (
-            <div className="ar-account">
-              {user.email && <span className="ar-account-email">{user.email}</span>}
-              <button type="button" className="ar-account-signout btn btn-secondary" data-cursor-hover onClick={() => signOut()}>
-                {t('auth.signOut')}
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
+      {/* Archive's own page-specific structure (per this task's explicit
+          allowance): the account row, real document flow, sticky (not
+          fixed) so it scrolls with the page like an ordinary product
+          header without ever fighting the shared, fixed GlobalHeader
+          (App.tsx) for the same corner. The brand/MY DREAMS/PACKAGES/
+          ABOUT/language row itself comes entirely from GlobalHeader now —
+          this is account info only, not a second header. */}
+      {user && (
+        <header className="ar-shell-header">
+          <div className="ar-account">
+            {user.email && <span className="ar-account-email">{user.email}</span>}
+            <button type="button" className="ar-account-signout btn btn-secondary" data-cursor-hover onClick={() => signOut()}>
+              {t('auth.signOut')}
+            </button>
+          </div>
+        </header>
+      )}
 
       {user && (
         <div className="ar-import-banner-row">

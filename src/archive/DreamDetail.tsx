@@ -210,23 +210,27 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
       <DreamStageBackground ref={bgVideoRef} active />
       <div className="dd-night-tint" aria-hidden="true" />
 
-      <button type="button" className="dd-back" onClick={onBack} aria-label={t('dreamDetail.backToArchive')}>
-        <span className="dd-back-arrow" aria-hidden="true">
-          ←
-        </span>
-        {t('dreamDetail.backToArchive')}
-      </button>
-
       {/* The entrance animation lives here, deliberately NOT on
           .dream-detail itself — see DreamDetail.css for why: a CSS
           animation resolving `filter: none` still interpolates to
           blur(0px) at rest, which still creates a containing block for
-          position:fixed descendants (the fixed cloud background and the
-          fixed back button), trapping them against this element's own
-          scrolling box instead of the true viewport. Keeping the
-          animation on a sibling of both fixes it structurally. */}
+          position:fixed descendants (the fixed cloud background),
+          trapping it against this element's own scrolling box instead of
+          the true viewport. Keeping the animation on a sibling of it
+          fixes that structurally. .dd-back moved in-flow below (no
+          longer fixed) once the shared GlobalHeader (App.tsx) started
+          occupying the same top-start corner on every screen — it's
+          unaffected by the containing-block issue since it was never the
+          thing at risk here (that was always about position:fixed
+          descendants specifically). */}
       <div className="dd-scene">
         <div className="dd-column">
+          <button type="button" className="dd-back" onClick={onBack} aria-label={t('dreamDetail.backToArchive')}>
+            <span className="dd-back-arrow" aria-hidden="true">
+              ←
+            </span>
+            {t('dreamDetail.backToArchive')}
+          </button>
           <Breadcrumb
             ariaLabel={t('breadcrumb.ariaLabel')}
             onHome={onGoHome}

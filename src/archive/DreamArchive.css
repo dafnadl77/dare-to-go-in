@@ -94,88 +94,24 @@
 }
 
 /* ---- Header — real document flow, sticky (not fixed): it scrolls with
-   the page like an ordinary product header, staying reachable. It used to
-   reserve a large physical padding-right so its own content would stay
-   clear of App.tsx's separate fixed top-right language switcher/nav —
-   that reservation is gone now that this header embeds the SAME shared
-   nav content itself (BrandMark + GlobalNavLinks, see DreamArchive.tsx),
-   so there is no second, competing fixed element on this screen at all
-   (App.tsx skips mounting GlobalHeader whenever Archive is what's
-   actually on screen — see its own `usesEmbeddedHeader`). Plain
-   symmetric padding-inline is correct again since both children of this
-   row now mirror together under RTL — there is no longer a fixed-vs-flow
-   mismatch to guard against. ---- */
+   the page like an ordinary product header, staying reachable. Account
+   info only now — the brand/MY DREAMS/PACKAGES/ABOUT/language row comes
+   from the shared, fixed GlobalHeader (App.tsx, mounted on every screen
+   including this one), so padding-top here only needs to clear ITS
+   height, not reserve space for a second competing corner control. ---- */
 .ar-shell-header {
   position: sticky;
   top: 0;
   z-index: 30;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.8rem;
-  padding-top: max(1.1rem, env(safe-area-inset-top));
+  justify-content: flex-end;
+  padding-top: max(5rem, env(safe-area-inset-top));
   padding-bottom: 1.1rem;
   padding-inline: max(1.5rem, env(safe-area-inset-left));
   background: linear-gradient(to bottom, rgba(3, 6, 12, 0.88) 0%, rgba(3, 6, 12, 0.7) 70%, transparent 100%);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-}
-
-/* The nav links + account block, grouped together so .ar-shell-header
-   still has exactly two top-level children for justify-content:
-   space-between (brand on one end, this cluster on the other) — wraps
-   as one unit at narrow widths rather than the account block and the nav
-   links wrapping independently. */
-.ar-header-right {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.8rem 1.4rem;
-}
-
-/* font-family/weight/style/stretch/optical-sizing/letter-spacing come
-   from .font-editorial-display's shared rule (src/index.css) — this is
-   the SAME brand mark as .memory-title (the HOME logo), just much
-   smaller, so it needs that rule's fixed-opsz correction too (a plain
-   `auto` at this size renders visibly different, sturdier glyphs — see
-   that rule's own comment). Stays Fraunces in Hebrew via the existing
-   RTL exemption for .ar-brand alongside .memory-title, further below. */
-.ar-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4em;
-  margin: 0;
-  padding: 0.3em 0;
-  background: none;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  font-size: clamp(1rem, 2vw, 1.3rem);
-  color: var(--dream-white);
-  opacity: 0.92;
-  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
-  transition: opacity 0.4s var(--ease-soft);
-}
-
-/* The approved D favicon, small and elegant next to the wordmark — never
-   a large app-icon look. The source PNG is a flat opaque square (no
-   alpha channel) with the rounded shape baked into the artwork itself;
-   this CSS clip reproduces that shape at display size without touching
-   the favicon file. No added background/border/glow. Sized ~26% larger
-   than its original 1.15em per explicit request — wordmark/typography/
-   spacing/alignment untouched. */
-.ar-brand-icon {
-  width: 1.45em;
-  height: 1.45em;
-  border-radius: 22%;
-  flex: none;
-  object-fit: cover;
-}
-
-.ar-brand:hover,
-.ar-brand:focus-visible {
-  opacity: 1;
 }
 
 .ar-account {
@@ -236,7 +172,11 @@
   flex-direction: column;
   gap: 0.3rem;
   position: sticky;
-  top: 6rem;
+  /* Clears .ar-shell-header's own sticky height (now taller — its
+     padding-top alone reserves space for the fixed GlobalHeader above
+     it, see .ar-shell-header's own comment) so the two never overlap
+     once both are stuck during scroll. */
+  top: 9rem;
 }
 
 /* All four sections (All Dreams / Favorites / Insights / Settings) are

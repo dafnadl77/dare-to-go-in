@@ -117,79 +117,8 @@
   }
 }
 
-/* Minimal, persistent way back once inside the immersive experience — a
-   brand mark, never a navbar. Readable over both the original room and any
-   generated dream image. */
-.dare-home {
-  position: fixed;
-  top: max(20px, env(safe-area-inset-top));
-  left: max(20px, env(safe-area-inset-left));
-  z-index: 50;
-  margin: 0;
-  padding: 0.4em 0.3em;
-  background: none;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.24em;
-  color: var(--dream-white);
-  opacity: 0.55;
-  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
-  transition:
-    opacity 0.4s var(--ease-soft),
-    letter-spacing 0.4s var(--ease-soft);
-}
-
-.dare-home:hover,
-.dare-home:focus-visible {
-  opacity: 0.95;
-  letter-spacing: 0.3em;
-}
-
-/* The brand lockup is only for widths below the desktop breakpoint (900px);
-   at desktop the plain "DARE" text above is unchanged. */
-.dare-home-lockup {
-  display: none;
-}
-
-.dare-home-icon {
-  width: 1.65em;
-  height: 1.65em;
-  border-radius: 22%;
-  flex: none;
-  object-fit: cover;
-}
-
-@media (max-width: 899px) {
-  .dare-home-text {
-    display: none;
-  }
-
-  .dare-home-lockup {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35em;
-  }
-
-  .dare-home-lockup .editorial-word-flow {
-    flex-wrap: nowrap;
-  }
-}
-
-/* The English top-right nav is wider than the Hebrew one and would run
-   into the full wordmark on very narrow phones — keep just the D mark
-   there so the two never collide. */
-@media (max-width: 359px) {
-  html:not([lang='he']) .dare-home-lockup .editorial-word-flow {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dare-home {
-    transition-duration: 0.01s;
-  }
-}
+/* .dare-home (the fixed top-left "way back" during reconstruction) used
+   to live here — the shared GlobalHeader (src/ui/GlobalHeader.tsx/.css)
+   now provides that persistent brand mark on every screen, including
+   this one at every phase, wired to this journey's own handleGoHome via
+   HeroDream.tsx's onRegisterHomeHandler. */

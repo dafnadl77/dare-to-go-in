@@ -12,8 +12,8 @@
   overflow-x: hidden;
   /* Deliberately NO opacity/filter/animation here — see the comment on
      .dd-scene below for why. This element is the ancestor of the fixed
-     cloud background AND the fixed back button; either needs to escape
-     all the way to the true viewport regardless of scroll depth. */
+     cloud background, which needs to escape all the way to the true
+     viewport regardless of scroll depth. */
 }
 
 .dream-detail .dream-stage-bg-layer {
@@ -37,18 +37,16 @@
 }
 
 /* ---- BACK TO MY DREAM ARCHIVE — larger and clearer than a caption,
-   still bare text (no pill/rectangle), pinned so it survives scrolling
-   (fixed, sibling of the scrolling content, never affected by the
-   containing-block issue explained on .dd-scene below). ---- */
+   still bare text (no pill/rectangle). In-flow now (not fixed): the
+   shared GlobalHeader (App.tsx) occupies the same top-start corner on
+   every screen now, so this moved into .dd-column, above the Breadcrumb,
+   as ordinary page content instead of competing for that corner. ---- */
 .dd-back {
-  position: fixed;
-  top: max(24px, env(safe-area-inset-top));
-  left: max(24px, env(safe-area-inset-left));
-  z-index: 20;
   display: inline-flex;
+  align-self: flex-start;
   align-items: center;
   gap: 0.55em;
-  margin: 0;
+  margin: 0 0 1.2rem;
   padding: 0.5em 0.4em;
   background: none;
   border: none;

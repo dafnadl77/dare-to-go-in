@@ -174,7 +174,6 @@ button:disabled {
    keeps auto-adjusting exactly as it already did. */
 .font-editorial-display,
 .ar-title,
-.ar-brand,
 .crumb-home,
 .gh-brand,
 .da-title,
@@ -271,35 +270,27 @@ button:disabled {
    font-family normally, but the blanket rule targets every element
    directly, so the restore has to as well, not just the parent).
 
-   .ar-brand is the SAME brand mark, re-rendered as the archive header's
-   logo (DreamArchive.tsx/.css) — it has its own `dir="ltr"` for the same
-   bidi reason but was never added to this exemption, so it had exactly
-   the same "silently renders in Heebo under Hebrew" bug, just never
-   diagnosed until now. Same fix, same reasoning. Its fixed-opsz
-   correction (unlike .memory-title, which deliberately keeps `auto`)
-   comes from the .font-editorial-display group above, which .ar-brand is
-   also a member of — that value isn't touched by this RTL block, so it
-   already survives into Hebrew with no extra rule needed here.
-
    .crumb-home is the SAME brand mark again — the small "DARE TO GO IN"
    the shared Breadcrumb (Breadcrumb.tsx) renders at the top of every
    navigable page except Home. Its icon+wordmark lockup (see Breadcrumb.css)
-   needs the `*` form like .memory-title, not just the bare class like
-   .ar-brand: its children are the same .editorial-word spans, and without
-   this the blanket rule above would still force them to Heebo/normal
-   individually even with the parent exempted, since font-family/
-   letter-spacing here are being forced directly on every element, not
-   just inherited from an exempted ancestor. */
+   needs the `*` form like .memory-title, not just the bare class: its
+   children are the same .editorial-word spans, and without this the
+   blanket rule above would still force them to Heebo/normal individually
+   even with the parent exempted, since font-family/letter-spacing here
+   are being forced directly on every element, not just inherited from an
+   exempted ancestor.
+
+   .gh-brand is the shared GlobalHeader's own brand mark (src/ui/
+   GlobalHeader.tsx) — every other per-screen brand implementation
+   (.ar-brand, .auth-back, .legal-back, .dare-home-lockup) was
+   consolidated into it; it needed the exact same exemption those used to
+   carry. */
 :root[dir='rtl'] .memory-title,
 :root[dir='rtl'] .memory-title *,
-:root[dir='rtl'] .ar-brand,
-:root[dir='rtl'] .ar-brand *,
 :root[dir='rtl'] .crumb-home,
 :root[dir='rtl'] .crumb-home *,
 :root[dir='rtl'] .gh-brand,
-:root[dir='rtl'] .gh-brand *,
-:root[dir='rtl'] .dare-home-lockup,
-:root[dir='rtl'] .dare-home-lockup * {
+:root[dir='rtl'] .gh-brand * {
   font-family: 'Fraunces', Georgia, serif !important;
   letter-spacing: 0.01em !important;
 }
