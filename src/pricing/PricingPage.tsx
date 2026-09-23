@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
 import Breadcrumb from '../ui/Breadcrumb';
 import EditorialTitle from '../ui/EditorialTitle';
@@ -26,13 +26,34 @@ const PACKAGE_COPY_KEY: Record<PackageId, 'firstDream' | 'goDeeper' | 'explore' 
   dive_in_25: 'diveIn',
 };
 
-const STAR_COUNT = 14;
+/** One real dream-scene photograph per package — cropped from the approved
+    reference's own four-panel visual set, not a stock/invented substitute
+    (see PricingPage.css's header comment for the asset's provenance). Pure
+    presentation, so it lives here rather than in packages.ts's own,
+    payment-relevant data. */
+const PACKAGE_SCENE_IMAGE: Record<PackageId, string> = {
+  first_dream: '/dream-assets/pricing-scene-first-dream.jpg',
+  go_deeper_3: '/dream-assets/pricing-scene-go-deeper.jpg',
+  explore_10: '/dream-assets/pricing-scene-explore.jpg',
+  dive_in_25: '/dream-assets/pricing-scene-dive-in.jpg',
+};
+
+/** The composition role each package plays — quiet / hero / premium — drives
+    layout (column width, elevation, image scale) in PricingPage.css. EXPLORE
+    is the one hero package; FIRST DREAM and GO DEEPER stay visually quiet;
+    DIVE IN reads as premium without competing with EXPLORE for attention. */
+const PACKAGE_ROLE: Record<PackageId, 'quiet' | 'hero' | 'premium'> = {
+  first_dream: 'quiet',
+  go_deeper_3: 'quiet',
+  explore_10: 'hero',
+  dive_in_25: 'premium',
+};
 
 /** A thin, unfilled checkmark — the same line-art icon language as the
     archive's favorite heart (DreamTimeline.tsx: stroke, no fill, currentColor). */
 function CheckIcon() {
   return (
-    <svg className="pr-check" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+    <svg className="pr-check" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
       <path d="M5 12.5l4.5 4.5L19 7" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
@@ -48,53 +69,66 @@ interface PackageCardProps {
 function PackageCard({ pkg, onStartFree, onSelectPaid, showComingSoon }: PackageCardProps) {
   const { t } = useLanguage();
   const copyKey = PACKAGE_COPY_KEY[pkg.id];
+  const role = PACKAGE_ROLE[pkg.id];
+  const scene = PACKAGE_SCENE_IMAGE[pkg.id];
 
   return (
-    <article className={`pr-card${pkg.featured ? ' pr-card--featured' : ''}`}>
-      {pkg.featured && <span className="pr-card-badge">{t('pricing.mostPopular')}</span>}
+    <div className={`pr-card-slot pr-card-slot--${role}`}>
+      <article className={`pr-card pr-card--${role}`}>
+        {pkg.featured && <span className="pr-card-badge">{t('pricing.mostPopular')}</span>}
 
-      <p className="pr-card-eyebrow">{t(`pricing.packages.${copyKey}.name`)}</p>
+        <div className="pr-card-scene">
+          <img className="pr-card-scene-img" src={scene} alt="" aria-hidden="true" loading="lazy" />
+          <div className="pr-card-scene-fade" aria-hidden="true" />
+        </div>
 
-      <p className="pr-card-price-big">
-        {pkg.priceIls === null ? t('pricing.freeLabel') : t('pricing.dreamsCountLabel').replace('{count}', String(pkg.dreamCount))}
-      </p>
-      {/* Reserves its row even when empty (the free tier) so every card's
-          description/divider/features start at the same vertical position —
-          see PricingPage.css's min-height on this class. */}
-      <p className="pr-card-price-sub">{pkg.priceIls !== null ? `₪${pkg.priceIls}` : ''}</p>
+        <div className="pr-card-body">
+          <p className="pr-card-eyebrow">{t(`pricing.packages.${copyKey}.name`)}</p>
 
-      <p className="pr-card-description">{t(`pricing.packages.${copyKey}.description`)}</p>
+          <p className="pr-card-price-big">
+            {pkg.priceIls === null ? t('pricing.freeLabel') : t('pricing.dreamsCountLabel').replace('{count}', String(pkg.dreamCount))}
+          </p>
+          {/* Reserves its row even when empty (the free tier) so every card's
+              description starts at the same vertical position within its role group. */}
+          <p className="pr-card-price-sub">{pkg.priceIls !== null ? `₪${pkg.priceIls}` : ''}</p>
 
-      <hr className="pr-card-divider" />
+          <p className="pr-card-description">{t(`pricing.packages.${copyKey}.description`)}</p>
 
-      <ul className="pr-card-features">
-        {pkg.features.map((feature) => (
-          <li className="pr-card-feature" key={feature}>
-            <CheckIcon />
-            <span>{t(`pricing.features.${feature}`)}</span>
-          </li>
-        ))}
-      </ul>
+          <ul className="pr-card-features">
+            {pkg.features.map((feature) => (
+              <li className="pr-card-feature" key={feature}>
+                <CheckIcon />
+                <span>{t(`pricing.features.${feature}`)}</span>
+              </li>
+            ))}
+          </ul>
 
-      <div className="pr-card-cta-wrap">
-        {pkg.priceIls === null ? (
-          <button type="button" className="btn btn-primary pr-card-cta" data-cursor-hover onClick={onStartFree}>
-            {t('pricing.packages.firstDream.cta')}
-          </button>
-        ) : (
-          <>
-            <button type="button" className="btn btn-primary pr-card-cta" data-cursor-hover onClick={() => onSelectPaid(pkg.id)}>
-              {t(`pricing.packages.${copyKey}.cta`)}
-            </button>
-            {showComingSoon && (
-              <p className="pr-card-note" role="status">
-                {t('pricing.comingSoonNote')}
-              </p>
+          <div className="pr-card-cta-wrap">
+            {pkg.priceIls === null ? (
+              <button type="button" className="btn btn-primary pr-card-cta" data-cursor-hover onClick={onStartFree}>
+                {t('pricing.packages.firstDream.cta')}
+              </button>
+            ) : (
+              <>
+                <button type="button" className="btn btn-primary pr-card-cta" data-cursor-hover onClick={() => onSelectPaid(pkg.id)}>
+                  {t(`pricing.packages.${copyKey}.cta`)}
+                </button>
+                {showComingSoon && (
+                  <p className="pr-card-note" role="status">
+                    {t('pricing.comingSoonNote')}
+                  </p>
+                )}
+              </>
             )}
-          </>
-        )}
-      </div>
-    </article>
+          </div>
+        </div>
+      </article>
+
+      {/* A faint, blurred, vertically-flipped echo of the SAME scene photo
+          directly beneath the card — the "reflected on water" read from the
+          reference, built from the real asset rather than a fabricated one. */}
+      <div className="pr-card-reflection" style={{ backgroundImage: `url(${scene})` }} aria-hidden="true" />
+    </div>
   );
 }
 
@@ -148,19 +182,12 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal }: Pricin
 
   return (
     <div className="pricing-page">
-      {/* Purely decorative atmosphere — every word of real content is real
-          text below, so this carries no information a screen reader needs. */}
+      {/* The room itself — full-bleed, only lightly dimmed (unlike the first
+          pass) so it reads as a real environment the cards float inside,
+          not a black page with a photo hint behind it. */}
       <img className="pr-backdrop" src="/dream-assets/about-portal.jpg" alt="" aria-hidden="true" />
       <div className="pr-backdrop-veil" aria-hidden="true" />
-      <div className="pr-stars" aria-hidden="true">
-        {Array.from({ length: STAR_COUNT }).map((_, i) => (
-          <span
-            key={i}
-            className="pr-star"
-            style={{ '--si': i, left: `${(i * 7.1 + 3) % 100}%`, top: `${(i * 11.3 + 4) % 60}%` } as CSSProperties}
-          />
-        ))}
-      </div>
+      <div className="pr-backdrop-glow" aria-hidden="true" />
 
       <div className="pr-scroll">
         <div className="pr-column">
