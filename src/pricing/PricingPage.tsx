@@ -26,27 +26,17 @@ const PACKAGE_COPY_KEY: Record<PackageId, 'firstDream' | 'goDeeper' | 'explore' 
   dive_in_25: 'diveIn',
 };
 
-/** One real dream-scene photograph per package — cropped from the approved
-    reference's own four-panel visual set, not a stock/invented substitute
-    (see PricingPage.css's header comment for the asset's provenance). Pure
-    presentation, so it lives here rather than in packages.ts's own,
-    payment-relevant data. */
-const PACKAGE_SCENE_IMAGE: Record<PackageId, string> = {
-  first_dream: '/dream-assets/pricing-scene-first-dream.jpg',
+/** One real dream-scene photograph per PAID package — cropped from the
+    approved reference's own four-panel visual set, not a stock/invented
+    substitute (see PricingPage.css's header comment for the asset's
+    provenance). Pure presentation, so it lives here rather than in
+    packages.ts's own, payment-relevant data. FIRST DREAM is deliberately
+    not a pricing card (see PricingPage's own header comment) — its scene
+    asset stays unused in the repo rather than being wired up here. */
+const PACKAGE_SCENE_IMAGE: Record<Exclude<PackageId, 'first_dream'>, string> = {
   go_deeper_3: '/dream-assets/pricing-scene-go-deeper.jpg',
   explore_10: '/dream-assets/pricing-scene-explore.jpg',
   dive_in_25: '/dream-assets/pricing-scene-dive-in.jpg',
-};
-
-/** The composition role each package plays — quiet / hero / premium — drives
-    layout (column width, elevation, image scale) in PricingPage.css. EXPLORE
-    is the one hero package; FIRST DREAM and GO DEEPER stay visually quiet;
-    DIVE IN reads as premium without competing with EXPLORE for attention. */
-const PACKAGE_ROLE: Record<PackageId, 'quiet' | 'hero' | 'premium'> = {
-  first_dream: 'quiet',
-  go_deeper_3: 'quiet',
-  explore_10: 'hero',
-  dive_in_25: 'premium',
 };
 
 /** A thin, unfilled checkmark — the same line-art icon language as the
@@ -61,20 +51,23 @@ function CheckIcon() {
 
 interface PackageCardProps {
   pkg: DreamPackageDef;
-  onStartFree: () => void;
   onSelectPaid: (id: PackageId) => void;
   showComingSoon: boolean;
 }
 
-function PackageCard({ pkg, onStartFree, onSelectPaid, showComingSoon }: PackageCardProps) {
+/** Only ever called with a paid package (see the .filter in the grid below),
+    so pkg.priceIls is never null here and every card gets the same shape —
+    that's what gives the three cards their equal height/baseline; EXPLORE's
+    emphasis comes only from .pr-card--hero's border/glow/width, never from
+    extra height or a vertical offset. */
+function PackageCard({ pkg, onSelectPaid, showComingSoon }: PackageCardProps) {
   const { t } = useLanguage();
   const copyKey = PACKAGE_COPY_KEY[pkg.id];
-  const role = PACKAGE_ROLE[pkg.id];
-  const scene = PACKAGE_SCENE_IMAGE[pkg.id];
+  const scene = PACKAGE_SCENE_IMAGE[pkg.id as Exclude<PackageId, 'first_dream'>];
 
   return (
-    <div className={`pr-card-slot pr-card-slot--${role}`}>
-      <article className={`pr-card pr-card--${role}`}>
+    <div className="pr-card-slot">
+      <article className={`pr-card${pkg.featured ? ' pr-card--hero' : ''}`}>
         {pkg.featured && <span className="pr-card-badge">{t('pricing.mostPopular')}</span>}
 
         <div className="pr-card-scene">
@@ -85,12 +78,8 @@ function PackageCard({ pkg, onStartFree, onSelectPaid, showComingSoon }: Package
         <div className="pr-card-body">
           <p className="pr-card-eyebrow">{t(`pricing.packages.${copyKey}.name`)}</p>
 
-          <p className="pr-card-price-big">
-            {pkg.priceIls === null ? t('pricing.freeLabel') : t('pricing.dreamsCountLabel').replace('{count}', String(pkg.dreamCount))}
-          </p>
-          {/* Reserves its row even when empty (the free tier) so every card's
-              description starts at the same vertical position within its role group. */}
-          <p className="pr-card-price-sub">{pkg.priceIls !== null ? `₪${pkg.priceIls}` : ''}</p>
+          <p className="pr-card-price-big">{t('pricing.dreamsCountLabel').replace('{count}', String(pkg.dreamCount))}</p>
+          <p className="pr-card-price-sub">₪{pkg.priceIls}</p>
 
           <p className="pr-card-description">{t(`pricing.packages.${copyKey}.description`)}</p>
 
@@ -104,21 +93,13 @@ function PackageCard({ pkg, onStartFree, onSelectPaid, showComingSoon }: Package
           </ul>
 
           <div className="pr-card-cta-wrap">
-            {pkg.priceIls === null ? (
-              <button type="button" className="btn btn-primary pr-card-cta" data-cursor-hover onClick={onStartFree}>
-                {t('pricing.packages.firstDream.cta')}
-              </button>
-            ) : (
-              <>
-                <button type="button" className="btn btn-primary pr-card-cta" data-cursor-hover onClick={() => onSelectPaid(pkg.id)}>
-                  {t(`pricing.packages.${copyKey}.cta`)}
-                </button>
-                {showComingSoon && (
-                  <p className="pr-card-note" role="status">
-                    {t('pricing.comingSoonNote')}
-                  </p>
-                )}
-              </>
+            <button type="button" className="btn btn-primary pr-card-cta" data-cursor-hover onClick={() => onSelectPaid(pkg.id)}>
+              {t(`pricing.packages.${copyKey}.cta`)}
+            </button>
+            {showComingSoon && (
+              <p className="pr-card-note" role="status">
+                {t('pricing.comingSoonNote')}
+              </p>
             )}
           </div>
         </div>
@@ -131,6 +112,12 @@ function PackageCard({ pkg, onStartFree, onSelectPaid, showComingSoon }: Package
     </div>
   );
 }
+
+/** The three PAID packages, in price order — FIRST DREAM/FREE is onboarding,
+    not a pricing card (see the pr-free-note block below it renders into),
+    so it's filtered out here rather than removed from packages.ts, which
+    stays the single source of truth for every package DARE has, paid or not. */
+const PAID_PACKAGES = DREAM_PACKAGES.filter((pkg): pkg is DreamPackageDef & { priceIls: number } => pkg.priceIls !== null);
 
 /**
  * DREAM PACKAGES — the pricing/packages page. Public, unauthenticated,
@@ -205,15 +192,26 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal }: Pricin
             <p className="pr-subtitle">{t('pricing.subtitle')}</p>
           </div>
 
+          {/* FIRST DREAM/FREE — deliberately not a pricing card (per the
+              approved direction, it's onboarding, not a purchase decision).
+              A subtle line outside the card grid, reusing the SAME
+              pricing.packages.firstDream copy the card used to show, with
+              its CTA wired to the same real, already-ungated Hero flow —
+              no new entitlement/payment logic, just a different placement. */}
+          <div className="pr-free-note">
+            <p className="pr-free-note-text">
+              <strong>{t('pricing.packages.firstDream.name')}</strong>
+              {' — '}
+              {t('pricing.freeLabel')}. {t('pricing.packages.firstDream.description')}
+            </p>
+            <button type="button" className="btn btn-secondary pr-free-note-cta" data-cursor-hover onClick={onStartFree}>
+              {t('pricing.packages.firstDream.cta')}
+            </button>
+          </div>
+
           <div className="pr-grid">
-            {DREAM_PACKAGES.map((pkg) => (
-              <PackageCard
-                key={pkg.id}
-                pkg={pkg}
-                onStartFree={onStartFree}
-                onSelectPaid={handleSelectPaidPackage}
-                showComingSoon={comingSoonFor === pkg.id}
-              />
+            {PAID_PACKAGES.map((pkg) => (
+              <PackageCard key={pkg.id} pkg={pkg} onSelectPaid={handleSelectPaidPackage} showComingSoon={comingSoonFor === pkg.id} />
             ))}
           </div>
 

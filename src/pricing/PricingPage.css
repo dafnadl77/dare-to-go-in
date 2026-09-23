@@ -1,27 +1,26 @@
 /* =====================================================================
-   DREAM PACKAGES — visual redesign (round 2). Round 1 read as four dark
-   SaaS rectangles on a near-black page; this version rebuilds the page as
-   a real cinematic ROOM the cards float inside, per the approved reference.
+   DREAM PACKAGES — visual redesign (round 3). Round 2 introduced a real
+   cinematic environment but composed FOUR packages as an editorial
+   staircase (EXPLORE floated ~36px above the others). The approved
+   correction: only the three PAID packages are pricing cards at all —
+   FIRST DREAM/FREE is onboarding, not a purchase decision, and renders as
+   a plain line (.pr-free-note) outside the grid, not a card. The three
+   paid cards share the SAME height and sit on the SAME top/bottom
+   baseline — no staircase, no translateY. EXPLORE's emphasis comes only
+   from .pr-card--hero's border/glow/badge/width, never from extra height
+   or a vertical offset.
 
    ASSETS (all real photographs, none invented):
-   - `about-portal.jpg` — the full-bleed environment. Same asset About
-     already uses; here it is shown MUCH less dimmed than round 1 so the
-     arch/moon/room stays legible, matching the reference's own legible
-     environment.
-   - `pricing-scene-{first-dream,go-deeper,explore,dive-in}.jpg` — one
-     real "dream scene" vignette per package, cropped directly from the
-     approved 4-panel reference image the user supplied (not generated or
-     substituted). Each card shows its own.
+   - `about-portal.jpg` — the full-bleed environment (About's own asset),
+     lightly dimmed so the room stays legible.
+   - `pricing-scene-{go-deeper,explore,dive-in}.jpg` — one real "dream
+     scene" vignette per PAID package, cropped from the approved 4-panel
+     reference image. `pricing-scene-first-dream.jpg` stays in the repo
+     unused now that FIRST DREAM isn't a card (see PricingPage.tsx).
 
-   COMPOSITION: asymmetric, editorial — not a 4-up comparison table.
-   EXPLORE (role="hero") is visually largest and elevated; FIRST DREAM and
-   GO DEEPER (role="quiet") are smaller and grounded; DIVE IN
-   (role="premium") sits between the two in scale. See .pr-grid and the
-   .pr-card-slot--* / .pr-card--* rules. Buttons stay the app's existing
-   transparent-bordered .btn system (never a filled accent color — see
-   ui/buttons.css's own header comment); EXPLORE's emphasis instead comes
-   from scale, elevation, its own ivory glow, and a subtler badge — not a
-   loud SaaS pill, per the approved direction. Class prefix `pr-`.
+   Buttons stay the app's existing transparent-bordered .btn system (never
+   a filled accent color — see ui/buttons.css's own header comment).
+   Class prefix `pr-`.
    ===================================================================== */
 .pricing-page {
   position: fixed;
@@ -64,9 +63,9 @@
   }
 }
 
-/* Much lighter than round 1's veil — grounds the text without crushing
-   the room into flat black. Slightly heavier at the very top (behind the
-   headline) and toward the floor (where the cards' reflections dissolve). */
+/* Grounds the text without crushing the room into flat black. Slightly
+   heavier at the very top (behind the headline) and toward the floor
+   (where the cards' reflections dissolve). */
 .pr-backdrop-veil {
   position: fixed;
   inset: 0;
@@ -94,7 +93,7 @@
 .pr-column {
   position: relative;
   z-index: 1;
-  max-width: min(1680px, 94vw);
+  max-width: min(1520px, 94vw);
   margin: 0 auto;
   padding: 12vh 6vw 8vh;
 }
@@ -104,7 +103,7 @@
 .pr-hero {
   text-align: center;
   max-width: 720px;
-  margin: 0 auto clamp(3.2rem, 6vw, 4.6rem);
+  margin: 0 auto clamp(2.4rem, 4.6vw, 3.2rem);
 }
 
 .pr-eyebrow {
@@ -148,12 +147,51 @@ html[lang='he'] .pr-subtitle {
   text-transform: none;
 }
 
-/* ---- The composition. Mobile: one quiet column, still cinematic (each
-   card keeps a real scene image, never shrunk to an icon). Tablet: two
-   columns. Desktop (>=900px): four UNEQUAL columns — EXPLORE's own column
-   is deliberately wider, and .pr-card-slot--hero/--premium lift their
-   card above the shared "floor" via transform, which is what gives the
-   composition its editorial, non-tabular feel. ---- */
+/* ---- FIRST DREAM/FREE — a subtle line, not a card: the free first dream
+   is onboarding, not a pricing decision. Reuses the .btn-secondary
+   (quieter) button, same real onStartFree handler the card used to call. ---- */
+.pr-free-note {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: 640px;
+  margin: 0 auto clamp(2.6rem, 5vw, 3.6rem);
+  text-align: center;
+}
+
+@media (min-width: 641px) {
+  .pr-free-note {
+    flex-direction: row;
+    justify-content: center;
+    gap: 1.4rem;
+    text-align: start;
+  }
+}
+
+.pr-free-note-text {
+  margin: 0;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--dream-warm-neutral);
+  opacity: 0.92;
+  text-shadow: 0 0.1em 0.6em rgba(0, 0, 0, 0.5);
+}
+
+.pr-free-note-text strong {
+  color: var(--dream-white);
+  font-weight: 700;
+}
+
+.pr-free-note-cta {
+  flex: none;
+}
+
+/* ---- The composition. Mobile/tablet: one column, still cinematic (each
+   card keeps a real scene image). Desktop (>=900px): three columns, EQUAL
+   height via grid's own row-stretch — EXPLORE's column is only slightly
+   wider, never taller, and nothing is lifted via transform. ---- */
 .pr-grid {
   display: flex;
   flex-direction: column;
@@ -164,22 +202,37 @@ html[lang='he'] .pr-subtitle {
   .pr-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 3.2rem 1.8rem;
-    align-items: end;
+    gap: 2.4rem 1.8rem;
+    align-items: stretch;
+  }
+
+  /* Three items in a two-column grid would otherwise leave DIVE IN
+     spanning awkwardly; let it sit alone on its own full-width row
+     instead of stretching to fill it. */
+  .pr-card-slot:last-child {
+    grid-column: 1 / -1;
+    max-width: calc(50% - 0.9rem);
+    margin: 0 auto;
   }
 }
 
 @media (min-width: 900px) {
   .pr-grid {
-    grid-template-columns: 0.86fr 0.86fr 1.3fr 1.05fr;
-    gap: 1.3rem;
-    align-items: end;
+    grid-template-columns: 1fr 1.14fr 1fr;
+    gap: 1.6rem;
+    align-items: stretch;
+  }
+
+  .pr-card-slot:last-child {
+    grid-column: auto;
+    max-width: none;
+    margin: 0;
   }
 }
 
 @media (min-width: 1280px) {
   .pr-grid {
-    gap: 1.7rem;
+    gap: 2rem;
   }
 }
 
@@ -189,25 +242,15 @@ html[lang='he'] .pr-subtitle {
   min-width: 0;
 }
 
-@media (min-width: 900px) {
-  .pr-card-slot--hero {
-    z-index: 2;
-    transform: translateY(-36px);
-  }
-
-  .pr-card-slot--premium {
-    z-index: 1;
-    transform: translateY(-14px);
-  }
-}
-
 /* ---- One package card — the dark-blue glass surface DreamTimeline.css's
    .dt-card already established, now built around real photographic depth
-   instead of standing alone on black. ---- */
+   instead of standing alone on black. All three cards share this same
+   structure/sizing; only .pr-card--hero's border/glow/badge differ. ---- */
 .pr-card {
   position: relative;
   display: flex;
   flex-direction: column;
+  height: 100%;
   overflow: hidden;
   border-radius: 22px;
   background: linear-gradient(135deg, rgba(12, 18, 32, 0.78), rgba(8, 12, 22, 0.86));
@@ -223,12 +266,8 @@ html[lang='he'] .pr-subtitle {
   box-shadow: 0 0 3.2rem var(--dream-btn-glow), 0 1.8rem 3.4rem rgba(0, 0, 0, 0.5);
 }
 
-.pr-card--premium {
-  border-color: rgba(199, 178, 138, 0.3);
-}
-
 /* A quiet, floating label rather than a boxed SaaS pill — de-emphasized on
-   purpose; EXPLORE's real emphasis comes from its scale/elevation/glow. */
+   purpose; EXPLORE's real emphasis comes from its border/glow/width. */
 .pr-card-badge {
   position: absolute;
   top: 1rem;
@@ -256,23 +295,12 @@ html[lang='he'] .pr-card-badge {
 }
 
 /* The scene photograph — occupies real, meaningful space (per the
-   reference), not a token thumbnail. Height scales by role below. */
+   reference), the SAME height on all three cards. */
 .pr-card-scene {
   position: relative;
   width: 100%;
+  height: clamp(180px, 19vw, 230px);
   overflow: hidden;
-}
-
-.pr-card--quiet .pr-card-scene {
-  height: clamp(150px, 17vw, 200px);
-}
-
-.pr-card--hero .pr-card-scene {
-  height: clamp(220px, 25vw, 320px);
-}
-
-.pr-card--premium .pr-card-scene {
-  height: clamp(190px, 20vw, 250px);
 }
 
 .pr-card-scene-img {
@@ -296,10 +324,6 @@ html[lang='he'] .pr-card-badge {
   flex-direction: column;
   flex: 1;
   padding: 1.5rem 1.5rem 1.6rem;
-}
-
-.pr-card--hero .pr-card-body {
-  padding: 1.7rem 1.7rem 1.8rem;
 }
 
 .pr-card-eyebrow {
@@ -326,22 +350,15 @@ html[lang='he'] .pr-card-eyebrow {
   color: var(--dream-white);
 }
 
-.pr-card--hero .pr-card-price-big {
-  font-size: clamp(1.9rem, 2.7vw, 2.4rem);
-}
-
-/* Reserves its row even when empty (the free tier has no secondary price
-   line) so every card's description starts at a consistent position. */
 .pr-card-price-sub {
   margin: 0.15rem 0 0;
-  min-height: 1.3em;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 600;
   font-size: 1rem;
   color: var(--dream-warm-neutral);
   opacity: 0.9;
-  /* Numerals (prices) always read left-to-right even inside a right-to-left
-     sentence — the same behavior the archive's own dates already rely on. */
+  /* Prices always read left-to-right even inside a right-to-left sentence —
+     the same behavior the archive's own dates already rely on. */
 }
 
 /* The emotional proposition — given more room and weight than the
@@ -350,15 +367,11 @@ html[lang='he'] .pr-card-eyebrow {
 .pr-card-description {
   margin: 0.85rem 0 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.98rem;
+  font-size: 0.94rem;
   font-weight: 300;
   line-height: 1.6;
   color: var(--dream-white);
   opacity: 0.94;
-}
-
-.pr-card--hero .pr-card-description {
-  font-size: 1.05rem;
 }
 
 /* De-emphasized on purpose: smaller, dimmer, generously spaced — reads as
@@ -411,9 +424,10 @@ html[lang='he'] .pr-card-eyebrow {
 
 /* A faint, blurred echo of the same scene photo directly beneath the card —
    the "reflected on water" read from the reference, built from the real
-   asset rather than a fabricated one. Purely decorative. */
+   asset rather than a fabricated one. Purely decorative, same size on all
+   three cards (no card reads as more important just because it's taller). */
 .pr-card-reflection {
-  height: clamp(46px, 7vw, 96px);
+  height: clamp(46px, 7vw, 90px);
   margin-top: -4px;
   border-radius: 0 0 18px 18px;
   overflow: hidden;
@@ -425,12 +439,6 @@ html[lang='he'] .pr-card-eyebrow {
   -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, transparent 88%);
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, transparent 88%);
   pointer-events: none;
-}
-
-@media (min-width: 900px) {
-  .pr-card--hero ~ .pr-card-reflection {
-    height: clamp(60px, 8vw, 120px);
-  }
 }
 
 .pr-reassurance {
@@ -453,16 +461,8 @@ html[lang='he'] .pr-card-eyebrow {
     background: radial-gradient(ellipse 130% 55% at 50% 2%, rgba(6, 7, 6, 0.58) 0%, rgba(6, 7, 6, 0.34) 42%, rgba(6, 7, 6, 0.44) 68%, rgba(6, 7, 6, 0.66) 100%);
   }
 
-  .pr-card--quiet .pr-card-scene {
-    height: clamp(150px, 45vw, 200px);
-  }
-
-  .pr-card--hero .pr-card-scene {
-    height: clamp(190px, 52vw, 240px);
-  }
-
-  .pr-card--premium .pr-card-scene {
-    height: clamp(170px, 48vw, 210px);
+  .pr-card-scene {
+    height: clamp(160px, 48vw, 220px);
   }
 }
 
