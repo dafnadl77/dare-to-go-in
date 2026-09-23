@@ -183,7 +183,8 @@ button:disabled {
 .dd-title,
 .dr-thought-label,
 .dd-eyebrow,
-.about-headline {
+.about-headline,
+.pr-headline {
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 400;
   font-style: normal;

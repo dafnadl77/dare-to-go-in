@@ -1,0 +1,381 @@
+/* =====================================================================
+   DREAM PACKAGES — a public, unauthenticated page. Same shell convention as
+   AboutPage.css/LegalPage.css (fixed full-bleed root, its own absolute
+   scroll container, the shared Breadcrumb) rather than a second page
+   pattern. Atmosphere reuses the approved about-portal.jpg photograph
+   full-bleed and dimmed (the same "cinematic dream bedroom" world the
+   reference direction asked for), not a new generated image. Card surfaces
+   reuse DreamTimeline.css's own glass-card language (background gradient,
+   border, backdrop-filter) — the archive's existing "personal area, still
+   legible over cinematic art" surface — rather than inventing a second
+   card style. No new colors: every accent here is the existing ivory glow
+   token (--dream-btn-glow) already used by every other emphasized/focused
+   control in the app; the filled-gold "most popular" treatment in the
+   visual reference was deliberately NOT reproduced (this app's button
+   system is explicitly border-only, never a filled accent color — see
+   ui/buttons.css's own header comment). Class prefix `pr-` — not reused
+   anywhere else. ===================================================================== */
+.pricing-page {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--dream-black);
+  opacity: 0;
+  animation: pr-page-in 1s var(--ease-memory) forwards;
+}
+
+@keyframes pr-page-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* The photograph — fixed to the viewport, full-bleed, heavily dimmed: this
+   is ambience for a page dense with real UI (four cards' worth of pricing/
+   feature text), not a picture competing with it — the same reasoning
+   LegalPage.css documents for why IT avoids the cinematic video entirely,
+   applied here as "keep the photo but calm it down" instead of "drop it". */
+.pr-backdrop {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  filter: brightness(0.38) saturate(0.75);
+  animation: pr-backdrop-drift 60s ease-in-out infinite alternate;
+}
+
+@keyframes pr-backdrop-drift {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.04);
+  }
+}
+
+/* The dark veil on top — darkest where the card grid sits, a touch lighter
+   at the very top so the headline still reads over real light/depth (the
+   same radial-dimming technique DreamArchive.css's own .ar-night-tint uses
+   on the cloud video). */
+.pr-backdrop-veil {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 90% 65% at 50% 0%, rgba(6, 7, 6, 0.42) 0%, rgba(6, 7, 6, 0.86) 55%, var(--dream-black) 100%);
+  pointer-events: none;
+}
+
+.pr-stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pr-star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0.35rem 0.04rem rgba(255, 255, 255, 0.7);
+  opacity: 0;
+  animation: pr-star-twinkle calc(5.5s + var(--si) * 0.8s) ease-in-out infinite;
+  animation-delay: calc(var(--si) * -1.2s);
+}
+
+@keyframes pr-star-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.15);
+  }
+}
+
+.pr-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.pr-column {
+  position: relative;
+  z-index: 1;
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 12vh 6vw 8vh;
+}
+
+/* ---- Hero header: brand eyebrow, headline, supporting line — centered,
+   same restrained rhythm as About's own eyebrow/headline/divider stack. ---- */
+.pr-hero {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto clamp(2.6rem, 5vw, 3.6rem);
+}
+
+.pr-eyebrow {
+  margin: 0;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral);
+  opacity: 0.75;
+}
+
+.pr-headline {
+  margin: 0.7rem 0 0;
+  font-size: clamp(2.2rem, 4.6vw, 3.4rem);
+  line-height: 1.15;
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.9em rgba(0, 0, 0, 0.6);
+  text-wrap: balance;
+}
+
+html[lang='he'] .pr-headline {
+  font-weight: 700;
+}
+
+.pr-subtitle {
+  margin: 0.9rem 0 0;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral);
+  opacity: 0.85;
+}
+
+html[lang='he'] .pr-subtitle {
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+/* ---- The card grid: one column (stacked) by default, two columns from a
+   comfortable tablet width, four across only once there's genuinely room
+   for four real cards side by side. CSS Grid's own row-stretch (the
+   default align-items) is what keeps every card in a row the same height,
+   so each card's own CTA can align to the bottom via margin-top: auto
+   below — no fixed heights anywhere. ---- */
+.pr-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 641px) {
+  .pr-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.7rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .pr-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.4rem;
+  }
+}
+
+/* ---- One package — the same dark-blue glass surface DreamTimeline.css's
+   .dt-card already established for this "personal area" product context. ---- */
+.pr-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.9rem 1.6rem 1.7rem;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(12, 18, 32, 0.76), rgba(8, 12, 22, 0.72));
+  border: 1px solid rgba(148, 178, 220, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-align: start;
+}
+
+/* The one emphasized tier — an ivory glow (the exact same token every
+   focused/hovered button in the app already uses), never a new color, plus
+   a quiet lift once cards sit side by side (never while stacked — see the
+   media query below). */
+.pr-card--featured {
+  border-color: rgba(244, 240, 232, 0.55);
+  box-shadow: 0 0 2.6rem var(--dream-btn-glow), 0 1.4rem 3rem rgba(0, 0, 0, 0.4);
+}
+
+@media (min-width: 641px) {
+  .pr-card--featured {
+    transform: translateY(-14px);
+  }
+}
+
+.pr-card-badge {
+  position: absolute;
+  top: -0.85rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.35em 1em;
+  border-radius: 999px;
+  background: var(--dream-black);
+  border: 1px solid var(--dream-btn-border-strong);
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dream-white);
+  white-space: nowrap;
+}
+
+html[lang='he'] .pr-card-badge {
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.pr-card-eyebrow {
+  margin: 0.2rem 0 0;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dream-warm-neutral);
+  opacity: 0.85;
+}
+
+html[lang='he'] .pr-card-eyebrow {
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.pr-card-price-big {
+  margin: 0.5rem 0 0;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.7rem, 2.4vw, 2.05rem);
+  color: var(--dream-white);
+  /* Numerals (dream counts, prices) always read left-to-right, even inside
+     a right-to-left sentence — the same behavior the archive's own dates
+     already rely on (see DreamTimeline.css's .dt-card-date, unguarded for
+     the same reason); no direction override needed here either. */
+}
+
+/* Reserves its row even when empty (the free tier has no secondary price
+   line) so every card's description/divider/features start at the same
+   vertical position across a row. */
+.pr-card-price-sub {
+  margin: 0.15rem 0 0;
+  min-height: 1.35em;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--dream-warm-neutral);
+  opacity: 0.9;
+}
+
+.pr-card-description {
+  margin: 0.9rem 0 0;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--dream-warm-neutral);
+  opacity: 0.92;
+}
+
+.pr-card-divider {
+  align-self: stretch;
+  width: auto;
+  margin: 1.3rem 0;
+  border: none;
+  border-top: 1px solid rgba(244, 240, 232, 0.14);
+}
+
+.pr-card-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin: 0 0 1.6rem;
+  padding: 0;
+  list-style: none;
+}
+
+.pr-card-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6em;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: var(--dream-white);
+  opacity: 0.92;
+}
+
+.pr-check {
+  flex: none;
+  margin-top: 0.15em;
+  color: var(--dream-warm-neutral);
+  opacity: 0.9;
+}
+
+/* Pushes the CTA to the bottom of the card regardless of how much copy sits
+   above it — combined with the grid's own row-stretch, every CTA in a row
+   lands on the same baseline. */
+.pr-card-cta-wrap {
+  margin-top: auto;
+}
+
+.pr-card-cta {
+  width: 100%;
+}
+
+.pr-card-note {
+  margin: 0.7rem 0 0;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--dream-warm-neutral);
+  opacity: 0.85;
+}
+
+.pr-reassurance {
+  margin: clamp(2.6rem, 5vw, 3.6rem) 0 0;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  text-align: center;
+  color: var(--dream-warm-neutral);
+  opacity: 0.9;
+}
+
+@media (max-width: 640px) {
+  .pr-column {
+    padding: 13vh 6vw 8vh;
+  }
+
+  .pr-card {
+    padding: 1.7rem 1.4rem 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pricing-page {
+    animation-duration: 0.01s !important;
+  }
+  .pr-backdrop {
+    animation: none !important;
+  }
+  .pr-star {
+    animation: none !important;
+    opacity: 0.35 !important;
+  }
+}

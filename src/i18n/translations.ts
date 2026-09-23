@@ -26,11 +26,13 @@ export interface Translations {
     ariaLabel: string;
     signIn: string;
     about: string;
+    packages: string;
   };
   hero: {
     dreamPrompt: string;
     myDreamsNav: string;
     aboutNav: string;
+    packagesNav: string;
   };
   hold: {
     holdToTellMe: string;
@@ -261,6 +263,31 @@ export interface Translations {
     credit: string;
     privacyLink: string;
   };
+  pricing: {
+    pageTitle: string;
+    pageDescription: string;
+    headline: string;
+    subtitle: string;
+    mostPopular: string;
+    freeLabel: string;
+    /** "{count} Dreams" — {count} is replaced with the package's real dream count. */
+    dreamsCountLabel: string;
+    comingSoonNote: string;
+    packages: {
+      firstDream: { name: string; description: string; cta: string };
+      goDeeper: { name: string; description: string; cta: string };
+      explore: { name: string; description: string; cta: string };
+      diveIn: { name: string; description: string; cta: string };
+    };
+    features: {
+      fullJourney: string;
+      guidedReflection: string;
+      dreamImage: string;
+      saveArchive: string;
+      trackThemes: string;
+      bilingual: string;
+    };
+  };
 }
 
 export const en: Translations = {
@@ -268,11 +295,13 @@ export const en: Translations = {
     ariaLabel: 'Breadcrumb',
     signIn: 'Sign In',
     about: 'About',
+    packages: 'Dream Packages',
   },
   hero: {
     dreamPrompt: 'WHAT DO YOU REMEMBER FROM YOUR DREAM?',
     myDreamsNav: 'MY DREAMS',
     aboutNav: 'ABOUT',
+    packagesNav: 'PACKAGES',
   },
   hold: {
     holdToTellMe: 'HOLD TO TELL ME',
@@ -506,6 +535,47 @@ export const en: Translations = {
     credit: 'Concept, design & development by Dafna Dalmeida.',
     privacyLink: 'Privacy Policy',
   },
+  pricing: {
+    pageTitle: 'Dream Packages | DARE TO GO IN',
+    pageDescription:
+      "Choose how many dreams you'd like to explore with DARE TO GO IN — more dreams, deeper insights, a more you.",
+    headline: 'Choose Your Journey',
+    subtitle: 'MORE DREAMS. DEEPER INSIGHTS. A MORE YOU.',
+    mostPopular: 'Most Popular',
+    freeLabel: 'Free',
+    dreamsCountLabel: '{count} Dreams',
+    comingSoonNote: 'Payments are coming soon — thank you for your patience.',
+    packages: {
+      firstDream: {
+        name: 'First Dream',
+        description: 'A first step into your inner world.',
+        cta: 'Start for Free',
+      },
+      goDeeper: {
+        name: 'Go Deeper',
+        description: 'Three dreams. Room to notice what returns.',
+        cta: 'Choose Go Deeper',
+      },
+      explore: {
+        name: 'Explore',
+        description: 'Go deeper. See more. Discover patterns.',
+        cta: 'Choose Explore',
+      },
+      diveIn: {
+        name: 'Dive In',
+        description: 'For the curious, the committed, the dreamers.',
+        cta: 'Choose Dive In',
+      },
+    },
+    features: {
+      fullJourney: 'A complete Dream Journey',
+      guidedReflection: 'A guided reflection',
+      dreamImage: 'A generated dream image',
+      saveArchive: 'Saved to your Dream Archive',
+      trackThemes: 'Track recurring themes',
+      bilingual: 'Hebrew & English',
+    },
+  },
 };
 
 /**
@@ -519,11 +589,13 @@ export const he: Translations = {
     ariaLabel: 'ניווט מיקום',
     signIn: 'כניסה',
     about: 'אודות',
+    packages: 'חבילות חלומות',
   },
   hero: {
     dreamPrompt: 'מה זכור לך מהחלום?',
     myDreamsNav: 'החלומות שלי',
     aboutNav: 'אודות',
+    packagesNav: 'חבילות',
   },
   hold: {
     holdToTellMe: 'לחצי והחזיקי כדי לספר',
@@ -755,5 +827,45 @@ export const he: Translations = {
     emphasis: 'החלומות שלכם נשארים שלכם.',
     credit: 'קונספט, עיצוב ופיתוח: דפנה דלמדה',
     privacyLink: 'מדיניות פרטיות',
+  },
+  pricing: {
+    pageTitle: 'חבילות חלומות | DARE TO GO IN',
+    pageDescription: 'בחרו כמה חלומות תרצו לחקור עם DARE TO GO IN — יותר חלומות, תובנות עמוקות יותר, הכרות עמוקה יותר עם עצמכם.',
+    headline: 'בחרו את המסע שלכם',
+    subtitle: 'יותר חלומות. תובנות עמוקות יותר. הכרות עמוקה יותר עם עצמכם.',
+    mostPopular: 'הכי פופולרי',
+    freeLabel: 'חינם',
+    dreamsCountLabel: '{count} חלומות',
+    comingSoonNote: 'אפשרות התשלום תהיה זמינה בקרוב — תודה על הסבלנות.',
+    packages: {
+      firstDream: {
+        name: 'החלום הראשון',
+        description: 'צעד ראשון אל העולם הפנימי שלכם.',
+        cta: 'להתחיל בחינם',
+      },
+      goDeeper: {
+        name: 'להעמיק',
+        description: 'שלושה חלומות. מקום לשים לב למה שחוזר.',
+        cta: 'לבחור ב״להעמיק״',
+      },
+      explore: {
+        name: 'לחקור',
+        description: 'להעמיק. לראות יותר. לגלות דפוסים.',
+        cta: 'לבחור ב״לחקור״',
+      },
+      diveIn: {
+        name: 'לצלול פנימה',
+        description: 'לסקרנים, למחויבים, לחולמים.',
+        cta: 'לבחור ב״לצלול פנימה״',
+      },
+    },
+    features: {
+      fullJourney: 'מסע חלום מלא',
+      guidedReflection: 'התבוננות מודרכת',
+      dreamImage: 'תמונת חלום ייחודית',
+      saveArchive: 'שמירה בארכיון החלומות שלכם',
+      trackThemes: 'מעקב אחרי דפוסים חוזרים',
+      bilingual: 'עברית ואנגלית',
+    },
   },
 };

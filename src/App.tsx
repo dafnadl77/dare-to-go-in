@@ -14,6 +14,7 @@ import { useLanguage } from './i18n/LanguageContext';
 import LegalPage from './legal/LegalPage';
 import type { LegalKey } from './legal/legalContent';
 import AboutPage from './about/AboutPage';
+import PricingPage from './pricing/PricingPage';
 import AccessibilityControl from './a11y/AccessibilityControl';
 
 /** Which top-level experience is mounted. No router is introduced for
@@ -26,8 +27,9 @@ import AccessibilityControl from './a11y/AccessibilityControl';
     else, matching "clicking a dream opens it; leaving it returns to MY
     DREAM ARCHIVE" from the brief. 'privacy' | 'accessibility' | 'terms'
     are the legal pages (see src/legal) — public, unguarded, reachable
-    from every screen's own footer. */
-type AppView = 'dream' | 'auth' | 'archive' | 'detail' | 'reset-password' | 'about' | LegalKey;
+    from every screen's own footer. 'pricing' (src/pricing/PricingPage.tsx)
+    is the same kind of public, unguarded page as 'about'. */
+type AppView = 'dream' | 'auth' | 'archive' | 'detail' | 'reset-password' | 'about' | 'pricing' | LegalKey;
 
 const LEGAL_VIEWS: LegalKey[] = ['privacy', 'accessibility', 'terms'];
 
@@ -55,6 +57,7 @@ function getInitialView(): AppView {
   // client later cleans its params out of the URL.
   if (value === RESET_PASSWORD_VIEW_VALUE) return 'reset-password';
   if (value === 'about') return 'about';
+  if (value === 'pricing') return 'pricing';
   if (value && (LEGAL_VIEWS as string[]).includes(value)) return value as LegalKey;
   return 'dream';
 }
@@ -282,6 +285,10 @@ function App() {
     screen = <LegalPage documentKey={view as LegalKey} onBack={() => setView('dream')} />;
   } else if (view === 'about') {
     screen = <AboutPage onBack={() => setView('dream')} onOpenLegal={handleOpenLegal} />;
+  } else if (view === 'pricing') {
+    screen = (
+      <PricingPage onBack={() => setView('dream')} onStartFree={() => setView('dream')} onOpenLegal={handleOpenLegal} />
+    );
   } else if (view === 'auth') {
     screen = (
       <DreamAuth
@@ -355,10 +362,20 @@ function App() {
         {/* Hero-only — DreamAuth/DreamArchive/DreamDetail already have
             their own way back or are the archive itself, so a second
             "go to my dreams" link there would be redundant at best. */}
-        {(view === 'dream' || view === 'about') && (
+        {(view === 'dream' || view === 'about' || view === 'pricing') && (
           <>
             <button type="button" className="trn-archive-link" data-cursor-hover onClick={handleMyDreamsNav}>
               {t('hero.myDreamsNav')}
+            </button>
+            <span className="trn-divider" aria-hidden="true">
+              |
+            </span>
+          </>
+        )}
+        {view === 'dream' && (
+          <>
+            <button type="button" className="trn-archive-link" data-cursor-hover onClick={() => setView('pricing')}>
+              {t('hero.packagesNav')}
             </button>
             <span className="trn-divider" aria-hidden="true">
               |
