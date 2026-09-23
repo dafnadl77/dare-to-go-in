@@ -49,9 +49,11 @@
 /* ---- Brand. font-size drives both the wordmark text AND the icon
    together (.gh-brand-icon is sized in `em`, relative to this), so a
    single value keeps them scaling proportionally — this is the ONE
-   place to resize the whole lockup. Bumped 0.68rem → 0.884rem (×1.3,
-   +30%) per explicit request; nothing else here changed, so the increase
-   is exactly the icon+wordmark growing together, not extra padding. ---- */
+   place to resize the whole lockup. History: 0.68rem (original) →
+   0.884rem (×1.3) → 1.326rem (×1.5 from THAT, per explicit "still too
+   small" follow-up request — ×1.95 total from the original). Nothing
+   else here changed, so each increase was exactly the icon+wordmark
+   growing together, never extra padding/position. ---- */
 .gh-brand {
   display: inline-flex;
   align-items: center;
@@ -62,7 +64,7 @@
   border: none;
   outline: none;
   cursor: pointer;
-  font-size: 0.884rem;
+  font-size: 1.326rem;
   color: var(--dream-white);
   opacity: 0.55;
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
