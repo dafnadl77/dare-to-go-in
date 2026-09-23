@@ -46,18 +46,15 @@
   justify-content: flex-end;
 }
 
-/* ---- Brand. font-size drives both the wordmark text AND the icon
-   together (.gh-brand-icon is sized in `em`, relative to this), so a
-   single value keeps them scaling proportionally — this is the ONE
-   place to resize the whole lockup. History: 0.68rem (original) →
-   0.884rem (×1.3) → 1.326rem (×1.5 from THAT, per explicit "still too
-   small" follow-up request — ×1.95 total from the original). Nothing
-   else here changed, so each increase was exactly the icon+wordmark
-   growing together, never extra padding/position. ---- */
+/* ---- Brand — text only, no icon/mark (the small "D" was removed per
+   explicit request: it "did not look good"; not replaced with anything
+   else). font-size drives the wordmark's size — the one place to resize
+   it. History: 0.68rem (original) → 0.884rem (×1.3) → 1.326rem (×1.5
+   from THAT, per an earlier "still too small" request) — kept as-is
+   here; removing the icon didn't change the text size. ---- */
 .gh-brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.35em;
   margin: 0;
   padding: 0.4em 0.3em;
   background: none;
@@ -69,14 +66,6 @@
   opacity: 0.55;
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
   transition: opacity 0.4s var(--ease-soft);
-}
-
-.gh-brand-icon {
-  width: 1.65em;
-  height: 1.65em;
-  border-radius: 22%;
-  flex: none;
-  object-fit: cover;
 }
 
 .gh-brand:hover,
@@ -149,20 +138,6 @@ html:not([lang='he']) .gh-link:focus-visible {
   .gh-link {
     font-size: 0.62rem;
     padding: 0.35em 0.25em;
-  }
-}
-
-/* Below this width, brand+nav sharing one line gets tight (four nav items
-   plus a full wordmark) — the wordmark drops to just the icon; still a
-   clear, tappable "go home" affordance (the aria-label carries the full
-   name regardless), not a functional loss. */
-@media (max-width: 480px) {
-  .gh-brand .editorial-word-flow {
-    display: none;
-  }
-
-  .gh-brand {
-    padding: 0.4em;
   }
 }
 

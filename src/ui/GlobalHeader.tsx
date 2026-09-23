@@ -7,18 +7,18 @@ import './GlobalHeader.css';
     never a bright conventional tab. */
 export type GlobalNavKey = 'myDreams' | 'packages' | 'about' | null;
 
-/** The icon+"DARE TO GO IN" wordmark — always navigates Home. Replaces six
-    previous independent hand-rolled copies of this exact markup
-    (.crumb-home, .auth-back, .ar-brand, .dare-home-lockup, .legal-back,
-    plus this file's own former .top-right-nav — see this task's own
-    header-consolidation audit). Never translated — the brand mark is
-    always literally English in both languages, per translations.ts's own
-    top-comment rule. */
+/** The "DARE TO GO IN" wordmark — always navigates Home. Text only, no
+    icon/mark (deliberately removed per explicit request — see
+    GlobalHeader.css's own comment). Replaces six previous independent
+    hand-rolled copies of this exact markup (.crumb-home, .auth-back,
+    .ar-brand, .dare-home-lockup, .legal-back, plus this file's own former
+    .top-right-nav — see this task's own header-consolidation audit).
+    Never translated — the brand mark is always literally English in both
+    languages, per translations.ts's own top-comment rule. */
 function BrandMark({ onHome }: { onHome: () => void }) {
   const { t } = useLanguage();
   return (
     <button type="button" className="gh-brand" dir="ltr" data-cursor-hover onClick={onHome} aria-label={t('archive.backToDare')}>
-      <img className="gh-brand-icon" src="/apple-touch-icon.png" alt="" aria-hidden="true" />
       <span className="editorial-word-flow">
         {['DARE', 'TO', 'GO', 'IN'].map((word) => (
           <span className="editorial-word" key={word}>
