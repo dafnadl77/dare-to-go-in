@@ -22,16 +22,21 @@
    a filled accent color — see ui/buttons.css's own header comment).
    Class prefix `pr-`.
 
-   TYPOGRAPHY PASS (readability): every text color in this file that used
-   to read `var(--dream-warm-neutral)` (a muted beige, #cabfa9 — fine
-   elsewhere in the app but too low-contrast against these cards) is now
-   a literal white/near-white — #fff for primary content (price, title,
-   description), rgba(255,255,255,0.88) for secondary/supporting text
-   (eyebrows, sub-price, features, notes) — a deliberate, page-scoped
-   departure from the shared --dream-white/--dream-warm-neutral tokens,
-   not a change to those tokens themselves. Sizes bumped alongside (see
-   each rule), with clamp() so nothing shrinks back down on mobile.
-   Layout/spacing/composition/card design untouched. ===================================================================== */
+   TYPOGRAPHY PASS (readability, round 2 — round 1's rgba(255,255,255,.88)/
+   clamp() pass read as too subtle in production): every text color this
+   file used to set via `var(--dream-warm-neutral)` (a muted beige,
+   #cabfa9) OR the softer rgba(255,255,255,.88) is now literal `#fff` —
+   no rgba, no beige, anywhere in the card body/intro text. Hierarchy
+   comes from SIZE/WEIGHT now, not from dimming secondary text. Sizes are
+   plain rem values (not clamp()) with an explicit mobile floor in the
+   `max-width: 640px` block below, so both ends are exact, deliberate
+   numbers — not fluid interpolation. `.pr-card-price-big` (the large
+   "10 Dreams" per-card title) is deliberately UNCHANGED — it already had
+   enough presence; this pass is about the smaller supporting text around
+   it. Layout/spacing/composition/card design/images/borders untouched;
+   `.pr-card-cta`'s override is font-size/weight/color only — the shared
+   .btn/.btn-primary system (ui/buttons.css) itself is never touched.
+   ===================================================================== */
 .pricing-page {
   position: fixed;
   inset: 0;
@@ -143,11 +148,12 @@ html[lang='he'] .pr-headline {
 .pr-subtitle {
   margin: 0.9rem 0 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: clamp(1.0625rem, 1.3vw, 1.125rem);
+  font-size: 1.1875rem;
+  line-height: 1.6;
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.88);
+  color: #fff;
   text-shadow: 0 0.1em 0.6em rgba(0, 0, 0, 0.6);
 }
 
@@ -181,9 +187,9 @@ html[lang='he'] .pr-subtitle {
 .pr-free-note-text {
   margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: clamp(1rem, 1.2vw, 1.0625rem);
+  font-size: 1.1875rem;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.88);
+  color: #fff;
   text-shadow: 0 0.1em 0.6em rgba(0, 0, 0, 0.5);
 }
 
@@ -337,11 +343,11 @@ html[lang='he'] .pr-card-badge {
 .pr-card-eyebrow {
   margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: clamp(1rem, 1.1vw, 1.0625rem);
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.88);
+  color: #fff;
 }
 
 html[lang='he'] .pr-card-eyebrow {
@@ -361,8 +367,8 @@ html[lang='he'] .pr-card-eyebrow {
   margin: 0.15rem 0 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 600;
-  font-size: clamp(1.0625rem, 1.4vw, 1.1875rem);
-  color: rgba(255, 255, 255, 0.88);
+  font-size: 1.1875rem;
+  color: #fff;
   /* Prices always read left-to-right even inside a right-to-left sentence —
      the same behavior the archive's own dates already rely on. */
 }
@@ -373,7 +379,7 @@ html[lang='he'] .pr-card-eyebrow {
 .pr-card-description {
   margin: 0.85rem 0 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: clamp(1.0625rem, 1.3vw, 1.125rem);
+  font-size: 1.1875rem;
   font-weight: 300;
   line-height: 1.6;
   color: #fff;
@@ -398,16 +404,16 @@ html[lang='he'] .pr-card-eyebrow {
   align-items: flex-start;
   gap: 0.55em;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: clamp(1rem, 1.1vw, 1.0625rem);
+  font-size: 1.125rem;
   font-weight: 400;
-  line-height: 1.75;
-  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.8;
+  color: #fff;
 }
 
 .pr-check {
   flex: none;
   margin-top: 0.15em;
-  color: rgba(255, 255, 255, 0.88);
+  color: #fff;
 }
 
 .pr-card-cta-wrap {
@@ -420,7 +426,8 @@ html[lang='he'] .pr-card-eyebrow {
    the same typography-only scope as everything else in this pass. */
 .pr-card-cta {
   width: 100%;
-  font-size: clamp(1.0625rem, 1.3vw, 1.125rem);
+  font-size: 1.125rem;
+  font-weight: 600;
   color: #fff;
 }
 
@@ -473,6 +480,29 @@ html[lang='he'] .pr-card-eyebrow {
 
   .pr-card-scene {
     height: clamp(160px, 48vw, 220px);
+  }
+
+  /* Mobile floors for the typography pass above — explicit values, not a
+     smaller end of a fluid clamp(), so what's on a 375px phone is exactly
+     as deliberate/verifiable as the desktop numbers. */
+  .pr-subtitle,
+  .pr-free-note-text {
+    font-size: 1.0625rem; /* 17px */
+  }
+
+  .pr-card-eyebrow,
+  .pr-card-price-sub,
+  .pr-card-description {
+    font-size: 1.125rem; /* 18px */
+  }
+
+  .pr-card-feature {
+    font-size: 1.0625rem; /* 17px */
+    line-height: 1.75;
+  }
+
+  .pr-card-cta {
+    font-size: 1.0625rem; /* 17px */
   }
 }
 
