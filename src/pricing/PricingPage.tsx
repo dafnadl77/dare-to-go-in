@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
-import Breadcrumb from '../ui/Breadcrumb';
 import EditorialTitle from '../ui/EditorialTitle';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
@@ -121,9 +120,9 @@ const PAID_PACKAGES = DREAM_PACKAGES.filter((pkg): pkg is DreamPackageDef & { pr
 
 /**
  * DREAM PACKAGES — the pricing/packages page. Public, unauthenticated,
- * reached from the Hero's own top-right nav (see App.tsx) — same shell
- * convention as About/Legal (fixed full-bleed root, its own scroll
- * container, the shared Breadcrumb, no second AppFooter mount elsewhere).
+ * reached from the shared GlobalHeader's PACKAGES link (see App.tsx) —
+ * same shell convention as About/Legal (fixed full-bleed root, its own
+ * scroll container, no second AppFooter mount elsewhere).
  *
  * Card content is entirely data-driven from packages.ts; this file only
  * renders it and owns the ONE deliberately isolated payment placeholder
@@ -178,8 +177,6 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal }: Pricin
 
       <div className="pr-scroll">
         <div className="pr-column">
-          <Breadcrumb ariaLabel={t('breadcrumb.ariaLabel')} onHome={onBack} items={[{ label: t('breadcrumb.packages') }]} />
-
           <div className="pr-hero">
             {/* The brand mark — never translated, always literally English
                 (see translations.ts's own header comment on this rule). */}

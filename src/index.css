@@ -174,7 +174,6 @@ button:disabled {
    keeps auto-adjusting exactly as it already did. */
 .font-editorial-display,
 .ar-title,
-.crumb-home,
 .gh-brand,
 .da-title,
 .dr-question,
@@ -270,25 +269,19 @@ button:disabled {
    font-family normally, but the blanket rule targets every element
    directly, so the restore has to as well, not just the parent).
 
-   .crumb-home is the SAME brand mark again — the small "DARE TO GO IN"
-   the shared Breadcrumb (Breadcrumb.tsx) renders at the top of every
-   navigable page except Home. Its icon+wordmark lockup (see Breadcrumb.css)
-   needs the `*` form like .memory-title, not just the bare class: its
-   children are the same .editorial-word spans, and without this the
-   blanket rule above would still force them to Heebo/normal individually
-   even with the parent exempted, since font-family/letter-spacing here
-   are being forced directly on every element, not just inherited from an
-   exempted ancestor.
-
    .gh-brand is the shared GlobalHeader's own brand mark (src/ui/
    GlobalHeader.tsx) — every other per-screen brand implementation
-   (.ar-brand, .auth-back, .legal-back, .dare-home-lockup) was
-   consolidated into it; it needed the exact same exemption those used to
-   carry. */
+   (.ar-brand, .auth-back, .legal-back, .dare-home-lockup, and the
+   shared Breadcrumb's own former .crumb-home) was consolidated into it;
+   it needed the exact same exemption those used to carry. It needs the
+   `*` form like .memory-title, not just the bare class: its children
+   are the same .editorial-word spans, and without this the blanket rule
+   above would still force them to Heebo/normal individually even with
+   the parent exempted, since font-family/letter-spacing here are being
+   forced directly on every element, not just inherited from an exempted
+   ancestor. */
 :root[dir='rtl'] .memory-title,
 :root[dir='rtl'] .memory-title *,
-:root[dir='rtl'] .crumb-home,
-:root[dir='rtl'] .crumb-home *,
 :root[dir='rtl'] .gh-brand,
 :root[dir='rtl'] .gh-brand * {
   font-family: 'Fraunces', Georgia, serif !important;

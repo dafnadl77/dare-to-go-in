@@ -24,9 +24,6 @@
 export interface Translations {
   breadcrumb: {
     ariaLabel: string;
-    signIn: string;
-    about: string;
-    packages: string;
   };
   hero: {
     dreamPrompt: string;
@@ -293,9 +290,6 @@ export interface Translations {
 export const en: Translations = {
   breadcrumb: {
     ariaLabel: 'Breadcrumb',
-    signIn: 'Sign In',
-    about: 'About',
-    packages: 'Dream Packages',
   },
   hero: {
     dreamPrompt: 'WHAT DO YOU REMEMBER FROM YOUR DREAM?',
@@ -587,9 +581,6 @@ export const en: Translations = {
 export const he: Translations = {
   breadcrumb: {
     ariaLabel: 'ניווט מיקום',
-    signIn: 'כניסה',
-    about: 'אודות',
-    packages: 'חבילות חלומות',
   },
   hero: {
     dreamPrompt: 'מה זכור לך מהחלום?',

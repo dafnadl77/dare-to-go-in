@@ -5,7 +5,6 @@ import { useAuth } from '../auth/AuthContext';
 import { describeAuthError } from '../auth/authErrors';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
-import Breadcrumb from '../ui/Breadcrumb';
 import './DreamAuth.css';
 
 export type AuthMode = 'signup' | 'signin' | 'forgot';
@@ -13,6 +12,14 @@ export type AuthMode = 'signup' | 'signin' | 'forgot';
 interface DreamAuthProps {
   mode: AuthMode;
   onSwitchMode: (mode: AuthMode) => void;
+  /** No longer called by anything in THIS component (its own "way back" —
+      .auth-back, then the Breadcrumb — was removed in favor of the
+      shared GlobalHeader's brand mark, which App.tsx wires to a plain
+      home navigation, not this callback). Left in App.tsx's own call
+      site untouched — App.tsx's onBack for this screen also clears a
+      pending dream save, which is now unreachable from here; kept as-is
+      since fixing that is out of this task's scope (visual cleanup
+      only) — see this task's own final report. */
   onBack: () => void;
   /** Fired only once a real Supabase session actually exists — either
       email/password sign-in/sign-up resolved successfully, or (for
@@ -67,7 +74,7 @@ function looksLikeEmail(value: string): boolean {
  * wired to real Supabase Auth (see AuthContext.tsx): email/password and
  * Google both create/resume a genuine session, never a bypass.
  */
-export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated, onOpenLegal }: DreamAuthProps) {
+export default function DreamAuth({ mode, onSwitchMode, onBack: _onBack, onAuthenticated, onOpenLegal }: DreamAuthProps) {
   const { t } = useLanguage();
   const { signInWithPassword, signUpWithPassword, signInWithGoogle, resetPasswordForEmail } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -191,7 +198,6 @@ export default function DreamAuth({ mode, onSwitchMode, onBack, onAuthenticated,
       <DreamStageBackground ref={bgVideoRef} active />
 
       <div className="auth-content">
-        <Breadcrumb ariaLabel={t('breadcrumb.ariaLabel')} onHome={onBack} items={[{ label: t('breadcrumb.signIn') }]} />
         {awaitingConfirmationFor ? (
           <>
             <h1 className="auth-eyebrow-title">{t('auth.signupCheckEmailTitle')}</h1>

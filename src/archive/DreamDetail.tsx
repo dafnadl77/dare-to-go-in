@@ -233,7 +233,6 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
           </button>
           <Breadcrumb
             ariaLabel={t('breadcrumb.ariaLabel')}
-            onHome={onGoHome}
             items={[{ label: t('archive.pageHeading'), onClick: onBack }, { label: displayTitle }]}
           />
           <div className="dd-hero">

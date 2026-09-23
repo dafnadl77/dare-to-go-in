@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { getLegalDocument, type LegalKey } from './legalContent';
-import Breadcrumb from '../ui/Breadcrumb';
 import './LegalPage.css';
 
 interface LegalPageProps {
@@ -42,8 +41,6 @@ export default function LegalPage({ documentKey, onBack }: LegalPageProps) {
     <div className="legal-page">
       <div className="legal-scroll">
         <article className="legal-column">
-          <Breadcrumb ariaLabel={t('breadcrumb.ariaLabel')} onHome={onBack} items={[{ label: doc.title }]} />
-
           <h1 className="legal-title">{doc.title}</h1>
           <p className="legal-updated">{doc.updated}</p>
           <p className="legal-intro">{doc.intro}</p>

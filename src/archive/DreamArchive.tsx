@@ -361,7 +361,6 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
         <main className="ar-main">
           <Breadcrumb
             ariaLabel={t('breadcrumb.ariaLabel')}
-            onHome={onBack}
             items={
               activeSection === 'all'
                 ? [{ label: t('archive.pageHeading') }]

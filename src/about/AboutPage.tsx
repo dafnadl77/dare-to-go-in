@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
-import Breadcrumb from '../ui/Breadcrumb';
 import EditorialTitle from '../ui/EditorialTitle';
 import type { LegalKey } from '../legal/legalContent';
 import './AboutPage.css';
@@ -86,8 +85,6 @@ export default function AboutPage({ onBack, onOpenLegal }: AboutPageProps) {
 
       <div className="about-scroll">
         <div className="about-column">
-          <Breadcrumb ariaLabel={t('breadcrumb.ariaLabel')} onHome={onBack} items={[{ label: t('breadcrumb.about') }]} />
-
           <p className="about-eyebrow">{t('about.eyebrow')}</p>
           <h1 className="about-headline">
             <EditorialTitle text={t('about.headline')} />

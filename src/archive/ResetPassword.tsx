@@ -5,13 +5,14 @@ import { useAuth } from '../auth/AuthContext';
 import { describeAuthError } from '../auth/authErrors';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
-import Breadcrumb from '../ui/Breadcrumb';
 import './DreamAuth.css';
 
 interface ResetPasswordProps {
-  /** The brand lockup's own "leave" affordance — same as DreamAuth's,
-      back to Home. Available in every state, including the invalid-link
-      one, so a dreamer is never stuck here with no way out. */
+  /** No longer called by anything in THIS component — its own "way back"
+      (.auth-back, then the Breadcrumb) was removed in favor of the
+      shared GlobalHeader's brand mark, available in every state
+      including the invalid-link one. Left in App.tsx's own call site
+      untouched; see DreamAuth.tsx's identical note. */
   onBack: () => void;
   /** Fired only once updatePassword() has actually succeeded and the
       dreamer explicitly continues — never automatic (see the success
@@ -53,7 +54,7 @@ const LINK_CHECK_TIMEOUT_MS = 6000;
  * 3. Ready — a real recovery session exists (AuthContext's
  *    isPasswordRecovery), so the actual new-password form renders.
  */
-export default function ResetPassword({ onBack, onDone, onRequestNewLink, onOpenLegal }: ResetPasswordProps) {
+export default function ResetPassword({ onBack: _onBack, onDone, onRequestNewLink, onOpenLegal }: ResetPasswordProps) {
   const { t } = useLanguage();
   const { isPasswordRecovery, updatePassword } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -120,8 +121,6 @@ export default function ResetPassword({ onBack, onDone, onRequestNewLink, onOpen
       <DreamStageBackground ref={bgVideoRef} active />
 
       <div className="auth-content">
-        <Breadcrumb ariaLabel={t('breadcrumb.ariaLabel')} onHome={onBack} items={[{ label: t('auth.setNewPasswordTitle') }]} />
-
         {succeeded ? (
           <>
             <h1 className="auth-eyebrow-title">{t('auth.passwordUpdatedTitle')}</h1>

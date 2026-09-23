@@ -13,7 +13,10 @@
   font-size: 0.76rem;
 }
 
-.crumb-home,
+/* .crumb-home/.crumb-home-icon/.crumb-home-words (the row's own leading
+   brand icon+wordmark) used to live here — removed along with
+   Breadcrumb.tsx's own brand segment now that the shared GlobalHeader
+   provides it on every screen; see Breadcrumb.tsx's own header comment. */
 .crumb-link {
   background: none;
   border: none;
@@ -21,72 +24,28 @@
   margin: 0;
   padding: 0.2em;
   cursor: pointer;
-  /* font-size only, deliberately NOT the `font` shorthand — that resets
-     font-family/weight/style too, which would silently override
-     .crumb-home's own Fraunces (from the shared .font-editorial-display
-     group in index.css) back to this row's inherited Heebo. .crumb-link
-     still wants the full inherited font below, since it's plain nav
-     chrome, not the brand mark. */
   font-size: inherit;
+  font-family: inherit;
+  font-weight: 500;
   color: var(--dream-white);
   opacity: 0.82;
   text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.5);
-  transition:
-    opacity 0.2s var(--ease-soft),
-    color 0.2s var(--ease-soft);
-}
-
-/* The brand lockup: the approved D favicon immediately beside the
-   wordmark, vertically centered, a modest gap between them — never a
-   background/border/badge around it, just the icon and the type. Font
-   family/weight/opsz/letter-spacing come from the shared
-   .font-editorial-display group (src/index.css, .crumb-home is a member)
-   rather than being redeclared here — this used to set its own
-   font-weight/letter-spacing for an uppercase-Heebo look; both are gone
-   now that this renders in the same serif as the logo instead. */
-.crumb-home {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4em;
-}
-
-.crumb-home-icon {
-  width: 1.3em;
-  height: 1.3em;
-  border-radius: 22%;
-  flex: none;
-  /* The source PNG is a fully opaque square (no alpha) with the rounded
-     shape baked into the artwork itself — this clips the display to
-     match it cleanly against whatever sits behind the header, without
-     touching the favicon file. */
-  object-fit: cover;
-}
-
-.crumb-home-words {
-  /* .editorial-word-flow (index.css) is built for centered display
-     headings (justify-content: center); this is a small, left-aligned
-     inline wordmark instead. */
-  justify-content: flex-start;
-}
-
-.crumb-link {
-  font-family: inherit;
-  font-weight: 500;
   /* The crumb's own label renders in its natural script direction
      regardless of the row's fixed dir="ltr" — a Hebrew dream title or
      nav label still reads correctly right-to-left within this one
      segment. */
   unicode-bidi: isolate;
+  transition:
+    opacity 0.2s var(--ease-soft),
+    color 0.2s var(--ease-soft);
 }
 
-.crumb-home:hover,
 .crumb-link:hover {
   opacity: 1;
   text-decoration: underline;
   text-underline-offset: 0.22em;
 }
 
-.crumb-home:focus-visible,
 .crumb-link:focus-visible {
   opacity: 1;
   outline: 2px solid var(--dream-btn-border-strong);
