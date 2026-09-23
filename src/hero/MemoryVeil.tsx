@@ -10,6 +10,7 @@ import type { PointerState } from './usePointerRef';
 import type { HoldState } from './HoldState';
 import type { EchoState } from './EchoState';
 import { createVideoLoopController, drawVideoLoopFrame } from './videoLoopController';
+import { isValidViewportSize } from './viewportGuard';
 import './MemoryVeil.css';
 
 interface MemoryVeilProps {
@@ -220,8 +221,14 @@ export default function MemoryVeil({
     let cachedComposite: EventComposite | null = null;
 
     function resize() {
-      vw = window.innerWidth;
-      vh = window.innerHeight;
+      const newVw = window.innerWidth;
+      const newVh = window.innerHeight;
+      // See isValidViewportSize's own comment: ignore an invalid transient
+      // reading and keep the last valid dimensions instead of resizing the
+      // canvases to 0x0.
+      if (!isValidViewportSize(newVw, newVh)) return;
+      vw = newVw;
+      vh = newVh;
       dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
       canvas!.width = Math.round(vw * dpr);
       canvas!.height = Math.round(vh * dpr);
