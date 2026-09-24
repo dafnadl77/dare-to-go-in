@@ -19,7 +19,7 @@ import DreamAnalysisDevView from './DreamAnalysisDevView';
 import DreamReconstruction, { type ReconstructionPhase, type InsideStep } from './DreamReconstruction';
 import { buildReconstructionBrief, type ReconstructionBrief } from './reconstructionBrief';
 import { pickMemoryFragments } from './memoryFragments';
-import { deriveDreamElements } from './dreamElements';
+import { deriveDreamElements, wholeDreamReference } from './dreamElements';
 import { getDisplayLabels } from './dreamElementLabels';
 import { generateDreamImage, type ImageResult } from './dreamImage';
 import { getDreamReflection, type DreamReflectionRequest } from './dreamReflectionEngine';
@@ -149,6 +149,11 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // (never invented, never hardcoded per-dream) — see dreamElements.ts.
   const [dreamElements, setDreamElements] = useState<string[]>([]);
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
+  // True once the candidate elements have been finalised for this dream —
+  // immediately when there were none to label, otherwise once the labels
+  // request settled (ok or raw fallback). It is what lets the Dream Stage tell
+  // "still loading" apart from "genuinely nothing to choose from".
+  const [elementsResolved, setElementsResolved] = useState(false);
   const [reflectionResponse, setReflectionResponse] = useState<string | null>(null);
 
   // The one grounded reflection engine call — real OpenAI, idempotent per
@@ -212,6 +217,11 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   const correctionCountRef = useRef(0);
   const reconstructingEnteredAtRef = useRef(0);
 
+  // Why the last regeneration did not replace the image (null = nothing to say).
+  // The previous successful image is ALWAYS kept in that case; 'limit' also
+  // removes NOT QUITE, since another regeneration could never succeed.
+  const [regenNotice, setRegenNotice] = useState<'failed' | 'rejected' | 'limit' | null>(null);
+
   const startImageGeneration = useCallback((token: string, briefToUse: ReconstructionBrief, attemptId: string) => {
     if (generationTokenRef.current === token) return;
     generationTokenRef.current = token;
@@ -272,6 +282,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     const rawFragments = pickMemoryFragments(analysis);
     const rawElements = deriveDreamElements(analysis);
     const combined = [...rawFragments, ...rawElements];
+    setElementsResolved(false);
     if (combined.length > 0) {
       getDisplayLabels(analysis.sourceText, combined, analysisResult.attemptId).then((result) => {
         if (result.status === 'ok') {
@@ -281,7 +292,10 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
           setFragments(rawFragments);
           setDreamElements(rawElements);
         }
+        setElementsResolved(true);
       });
+    } else {
+      setElementsResolved(true);
     }
 
     startImageGeneration('initial', newBrief, analysisResult.attemptId);
@@ -345,10 +359,21 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     if (imageResult.status === 'ok') {
       setIncomingImageUrl(imageResult.imageDataUrl);
       setReconstructionPhase('imaging');
+    } else if (displayedImageUrl && analysisResult?.status === 'ok') {
+      // A failed regeneration must never cost the dreamer their dream: keep
+      // the last successful image, undo the correction that produced no
+      // image, and return to the normal reveal on the SAME attempt.
+      const restored = corrections.slice(0, -1);
+      setCorrections(restored);
+      setBrief(buildReconstructionBrief(analysisResult.analysis, restored));
+      setRegenNotice(
+        imageResult.reason === 'limit_reached' ? 'limit' : imageResult.reason === 'content_rejected' ? 'rejected' : 'failed',
+      );
+      setReconstructionPhase('reveal');
     } else {
       setReconstructionPhase('image-error');
     }
-  }, [reconstructionPhase, imagePending, imageResult]);
+  }, [reconstructionPhase, imagePending, imageResult, displayedImageUrl, analysisResult, corrections]);
 
   // 'imaging': the real cross-dissolve/organic-mask reveal (CSS-driven).
   // Once it's had time to fully play out, commit the new image as the
@@ -377,7 +402,10 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     img.src = displayedImageUrl;
   }, [displayedImageUrl]);
 
-  const handleNotQuite = () => setReconstructionPhase('correcting');
+  const handleNotQuite = () => {
+    setRegenNotice(null);
+    setReconstructionPhase('correcting');
+  };
 
   const handleCorrectionSubmit = (text: string) => {
     if (analysisResult?.status !== 'ok') return;
@@ -390,7 +418,10 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     startImageGeneration(`correction-${correctionCountRef.current}`, newBrief, analysisResult.attemptId);
   };
 
-  const handleYes = () => setReconstructionPhase('entering');
+  const handleYes = () => {
+    setRegenNotice(null);
+    setReconstructionPhase('entering');
+  };
 
   // 'entering': the reveal UI dissolves (CSS-driven) while the real dream
   // portal (WebGL vortex, see DreamPortalTransition) plays out over the
@@ -414,6 +445,15 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       const t = setTimeout(() => setInsideStep('choices'), PROMPT_TO_CHOICES_MS);
       return () => clearTimeout(t);
     }
+    // Safety net: derivation finished (fallback included) and there is truly
+    // nothing to choose from. Never sit on "choose the moment" with zero
+    // choices, and never invent a fake element — continue straight to the
+    // reflection question about the dream as a whole, on the SAME attempt.
+    if (insideStep === 'prompt' && elementsResolved && dreamElements.length === 0 && analysisResult?.status === 'ok') {
+      setSelectedElement(wholeDreamReference(analysisResult.analysis));
+      setInsideStep('reflecting');
+      return;
+    }
     // 'choices' waits for the user to click one — no timer.
     // 'selected': the other choices fade, then the reflection question takes over.
     if (insideStep === 'selected') {
@@ -421,7 +461,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       return () => clearTimeout(t);
     }
     // 'reflecting' waits for CONTINUE — no timer. 'stored' is terminal.
-  }, [reconstructionPhase, insideStep, dreamElements]);
+  }, [reconstructionPhase, insideStep, dreamElements, elementsResolved, analysisResult]);
 
   const handleSelectElement = (element: string) => {
     if (selectedElement) return;
@@ -610,6 +650,8 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     setFragments([]);
     setDreamElements([]);
     setSelectedElement(null);
+    setElementsResolved(false);
+    setRegenNotice(null);
     setReflectionResponse(null);
     setCorrections([]);
     setDisplayedImageUrl(null);
@@ -744,6 +786,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         accentColor={accentColor}
         dreamPalette={dreamPalette}
         revealTextOnLight={revealTextOnLight}
+        regenNotice={regenNotice}
         onNotQuite={handleNotQuite}
         onCorrectionSubmit={handleCorrectionSubmit}
         onYes={handleYes}

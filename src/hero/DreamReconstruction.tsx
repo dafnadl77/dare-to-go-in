@@ -80,6 +80,8 @@ interface DreamReconstructionProps {
   dreamPalette: AccentColor[] | null;
   /** Whether the settled image reads as light behind THIS IS WHAT I FOUND — flips that screen's text dark for readability. */
   revealTextOnLight: boolean;
+  /** Why the last NOT QUITE regeneration kept the previous image — null when there is nothing to say. 'limit' removes NOT QUITE. */
+  regenNotice: 'failed' | 'rejected' | 'limit' | null;
   onNotQuite: () => void;
   onCorrectionSubmit: (text: string) => void;
   onYes: () => void;
@@ -119,6 +121,7 @@ export default function DreamReconstruction({
   accentColor,
   dreamPalette,
   revealTextOnLight,
+  regenNotice,
   onNotQuite,
   onCorrectionSubmit,
   onYes,
@@ -357,13 +360,20 @@ export default function DreamReconstruction({
         <div className="dr-reveal" data-light-bg={revealTextOnLight ? 'true' : 'false'}>
           <p className="dr-line dr-line--found">{t('reconstruction.thisIsWhatIFound')}</p>
           <p className="dr-line dr-line--felt">{t('reconstruction.isThisHowItFelt')}</p>
+          {regenNotice && (
+            <p className="dr-regen-notice" role="status">
+              {t(regenNotice === 'limit' ? 'reconstruction.regenLimit' : regenNotice === 'rejected' ? 'reconstruction.regenRejected' : 'reconstruction.regenFailed')}
+            </p>
+          )}
           <div className="dr-choices">
             <button type="button" className="dr-choice dr-choice--yes" data-cursor-hover onClick={onYes}>
               {t('reconstruction.yesTakeMeIn')}
             </button>
-            <button type="button" className="dr-choice dr-choice--no" data-cursor-hover onClick={onNotQuite}>
-              {t('reconstruction.notQuite')}
-            </button>
+            {regenNotice !== 'limit' && (
+              <button type="button" className="dr-choice dr-choice--no" data-cursor-hover onClick={onNotQuite}>
+                {t('reconstruction.notQuite')}
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -119,9 +119,14 @@ export async function handleDreamImage(rawBody: unknown, requestHeaders: Request
         return withHeaders(errorResult(402, 'billing_issue', 'The OpenAI account has a billing or quota issue.'), cookieHeaders);
       }
       if (typeof err.message === 'string' && /safety|moderation|content policy/i.test(err.message)) {
-        // NOT refunded — content moderation is a real, evaluated outcome
-        // of the reservation actually being used, not an infra fault.
-        return withHeaders(errorResult(422, 'invalid_response', 'The image request was rejected by content moderation.'), cookieHeaders);
+        // Deliberately NOT refunded (concrete abuse reason): there is no
+        // server-side counter of rejections, so refunding would let a caller
+        // probe the provider's safety system an unbounded number of times per
+        // attempt (each probe counts against OUR provider account). The slot
+        // is the price of a real, evaluated request. The client is told via a
+        // distinct 'content_rejected' reason so the dreamer keeps their
+        // existing image and can rephrase (see HeroDream regeneration).
+        return withHeaders(errorResult(422, 'content_rejected', 'The image request was rejected by content moderation.'), cookieHeaders);
       }
       await refundImageAttempt(attemptId);
       return withHeaders(errorResult(502, 'request_failed', 'The image generation request failed.'), cookieHeaders);

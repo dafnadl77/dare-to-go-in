@@ -70,6 +70,9 @@ export interface Translations {
     whatDidIGetWrong: string;
     correctionPlaceholder: string;
     tryAgain: string;
+    regenFailed: string;
+    regenRejected: string;
+    regenLimit: string;
   };
   reflection: {
     thisIsYourDream: string;
@@ -349,6 +352,9 @@ export const en: Translations = {
     whatDidIGetWrong: 'WHAT DID I GET WRONG?',
     correctionPlaceholder: 'Tell me what to change...',
     tryAgain: 'TRY AGAIN',
+    regenFailed: 'I couldn’t create a new image this time. Your current image is still here.',
+    regenRejected: 'That change couldn’t be turned into an image. Try describing it differently — your current image is still here.',
+    regenLimit: 'This dream has reached its limit of new images. You can continue with the one you have.',
   },
   reflection: {
     thisIsYourDream: 'THIS IS YOUR DREAM',
@@ -653,6 +659,9 @@ export const he: Translations = {
     whatDidIGetWrong: 'במה טעיתי?',
     correctionPlaceholder: 'ספרו מה לשנות...',
     tryAgain: 'נסו שוב',
+    regenFailed: 'לא הצלחתי ליצור תמונה חדשה הפעם. התמונה הנוכחית עדיין כאן.',
+    regenRejected: 'לא הצלחתי להפוך את השינוי הזה לתמונה. נסו לנסח אותו אחרת — התמונה הנוכחית עדיין כאן.',
+    regenLimit: 'החלום הזה הגיע למגבלת התמונות החדשות. אפשר להמשיך עם התמונה הקיימת.',
   },
   reflection: {
     thisIsYourDream: 'זהו החלום שלך',

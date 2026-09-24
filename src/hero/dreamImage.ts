@@ -9,7 +9,8 @@ export type ImageErrorReason =
   | 'rate_limited'
   | 'billing_issue'
   | 'not_authenticated'
-  | 'limit_reached';
+  | 'limit_reached'
+  | 'content_rejected';
 
 export type ImageResult =
   | { status: 'ok'; imageDataUrl: string }
@@ -23,6 +24,7 @@ const KNOWN_REASONS: ImageErrorReason[] = [
   'billing_issue',
   'not_authenticated',
   'limit_reached',
+  'content_rejected',
 ];
 
 /**
