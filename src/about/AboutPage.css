@@ -163,11 +163,58 @@ html[lang='he'] .about-divider {
   color: var(--dream-white);
 }
 
+/* Privacy link + design/development credit share ONE row on desktop with
+   generous spacing between them; they wrap (and center on mobile) rather
+   than ever overflow at intermediate widths. */
+.about-footer-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: clamp(1.75rem, 3vw, 2.5rem);
+  row-gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+/* Desktop split only: the copy column's right padding is empty space, so the
+   row borrows most of it — that is what lets the credit sit on the same row as
+   the Privacy link instead of dropping under it. A physical margin, like the
+   column's own (the split is never mirrored for RTL). Below the split
+   (max-width 860px) the row is centered and wraps instead. */
+@media (min-width: 861px) {
+  .about-footer-row {
+    margin-right: -5vw;
+    /* Never drops below the Privacy link on desktop: when the column is too
+       narrow for one line, the credit itself wraps to two lines beside it. */
+    flex-wrap: nowrap;
+  }
+
+  .about-privacy-link {
+    flex: none;
+    white-space: nowrap;
+  }
+
+  .about-credit {
+    min-width: 0;
+  }
+}
+
 .about-credit {
-  margin: 0.6rem 0 0;
+  margin: 0;
+  padding: 0.3em 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.85rem;
-  color: var(--dream-warm-neutral-dim);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  text-decoration-color: rgba(255, 255, 255, 0.45);
+  transition: text-decoration-color 0.4s var(--ease-soft);
+}
+
+.about-credit:hover,
+.about-credit:focus-visible {
+  text-decoration-color: #fff;
 }
 
 .about-privacy-link {
@@ -277,9 +324,9 @@ html[lang='he'] .about-privacy-link {
     align-self: center;
   }
 
-  .about-privacy-link,
-  html[lang='he'] .about-privacy-link {
-    align-self: center;
+  .about-footer-row {
+    justify-content: center;
+    text-align: center;
   }
 }
 
@@ -309,5 +356,26 @@ html[lang='he'] .about-privacy-link {
   }
   .about-visual {
     animation: none !important;
+  }
+}
+
+/* Inside the shared row the privacy link centers vertically with the credit
+   (its column-layout align-self would otherwise pin it to the top). */
+html .about-footer-row .about-privacy-link,
+html[lang='he'] .about-footer-row .about-privacy-link {
+  align-self: center;
+}
+
+/* Hebrew: the credit is short enough that the row needs no extra width, and
+   the group keeps the same physical-left position the Privacy link (and the
+   divider) already had in this column. */
+html[lang='he'] .about-footer-row {
+  margin-right: 0;
+  justify-content: flex-end;
+}
+
+@media (max-width: 860px) {
+  html[lang='he'] .about-footer-row {
+    justify-content: center;
   }
 }

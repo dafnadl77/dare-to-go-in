@@ -105,6 +105,19 @@ html[lang='he'] .legal-updated {
   color: var(--dream-warm-neutral);
 }
 
+.legal-email-link {
+  color: var(--dream-white);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  text-decoration-color: rgba(244, 240, 232, 0.5);
+  unicode-bidi: isolate;
+}
+
+.legal-email-link:hover,
+.legal-email-link:focus-visible {
+  text-decoration-color: var(--dream-white);
+}
+
 .legal-body:last-child {
   margin-bottom: 0;
 }

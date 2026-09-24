@@ -103,13 +103,23 @@ export default function AboutPage({ onBack, onOpenLegal }: AboutPageProps) {
           <p className="about-emphasis">{t('about.emphasis')}</p>
           <hr className="about-divider" />
 
-          <p className="about-credit">{t('about.credit')}</p>
-          <button type="button" className="about-privacy-link" data-cursor-hover onClick={() => onOpenLegal('privacy')}>
-            {t('about.privacyLink')}
-            <span aria-hidden="true" className="about-privacy-arrow">
-              {language === 'he' ? '←' : '→'}
-            </span>
-          </button>
+          <div className="about-footer-row">
+            <button type="button" className="about-privacy-link" data-cursor-hover onClick={() => onOpenLegal('privacy')}>
+              {t('about.privacyLink')}
+              <span aria-hidden="true" className="about-privacy-arrow">
+                {language === 'he' ? '←' : '→'}
+              </span>
+            </button>
+            <a
+              className="about-credit"
+              href="https://dafnadl.co.il/"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-cursor-hover
+            >
+              {t('about.credit')}
+            </a>
+          </div>
         </div>
       </div>
     </div>

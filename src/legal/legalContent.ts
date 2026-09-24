@@ -83,7 +83,7 @@ const en: LegalContent = {
       },
       {
         heading: 'Contact',
-        body: 'Questions about this policy, or a request about your data, can be sent to dafnadl77@gmail.com.',
+        body: 'Questions about this policy, or a request about your data, can be sent to daretogoin@gmail.com.',
       },
     ],
     draftNotice:
@@ -224,7 +224,7 @@ const he: LegalContent = {
       },
       {
         heading: 'יצירת קשר',
-        body: 'שאלות לגבי מדיניות זו, או בקשה בנוגע למידע האישי, ניתן לשלוח אל dafnadl77@gmail.com.',
+        body: 'שאלות לגבי מדיניות זו, או בקשה בנוגע למידע האישי, ניתן לשלוח אל daretogoin@gmail.com.',
       },
     ],
     draftNotice:

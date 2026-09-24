@@ -1,7 +1,22 @@
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { getLegalDocument, type LegalKey } from './legalContent';
 import './LegalPage.css';
+
+const EMAIL_PATTERN = /([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g;
+
+/** Plain legal text with any email address made a real mailto: link — the text itself stays untouched plain strings. */
+function linkifyEmails(text: string): ReactNode[] {
+  return text.split(EMAIL_PATTERN).map((part, i) =>
+    i % 2 === 1 ? (
+      <a key={i} className="legal-email-link" href={`mailto:${part}`} dir="ltr">
+        {part}
+      </a>
+    ) : (
+      part
+    ),
+  );
+}
 
 interface LegalPageProps {
   documentKey: LegalKey;
@@ -50,7 +65,7 @@ export default function LegalPage({ documentKey, onBack }: LegalPageProps) {
               <h2 className="legal-heading">{section.heading}</h2>
               {section.body.split('\n\n').map((paragraph, i) => (
                 <p className="legal-body" key={i}>
-                  {paragraph}
+                  {linkifyEmails(paragraph)}
                 </p>
               ))}
             </section>
