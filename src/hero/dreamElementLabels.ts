@@ -19,13 +19,13 @@ const KNOWN_REASONS: ElementLabelErrorReason[] = [
  * content — a failure returns a controlled error result so the caller can
  * fall back to the raw elements rather than block.
  */
-export async function getElementLabelsInLanguage(sourceText: string, elements: string[], language: AppLanguage): Promise<ElementLabelsResult> {
+export async function getElementLabelsInLanguage(sourceText: string, elements: string[], language: AppLanguage, attemptId?: string): Promise<ElementLabelsResult> {
   try {
     const authHeader = await getAuthHeader();
     const res = await paidFetch('/api/dream-element-labels', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeader },
-      body: JSON.stringify({ sourceText, elements, language }),
+      body: JSON.stringify({ sourceText, elements, language, attemptId }),
     });
 
     const data: unknown = await res.json().catch(() => null);
@@ -67,6 +67,6 @@ export async function getElementLabelsInLanguage(sourceText: string, elements: s
  * via HeroDream) keeps calling this one function unchanged; only this
  * function needs to know appLanguage exists at all.
  */
-export async function getDisplayLabels(sourceText: string, phrases: string[]): Promise<ElementLabelsResult> {
-  return getElementLabelsInLanguage(sourceText, phrases, getAppLanguage());
+export async function getDisplayLabels(sourceText: string, phrases: string[], attemptId?: string): Promise<ElementLabelsResult> {
+  return getElementLabelsInLanguage(sourceText, phrases, getAppLanguage(), attemptId);
 }

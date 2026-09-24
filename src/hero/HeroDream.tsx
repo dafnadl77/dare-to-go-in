@@ -96,9 +96,14 @@ interface HeroDreamProps {
       are all internal sub-phases of this one screen). Called with `null`
       on unmount so App.tsx never holds a stale reference. */
   onRegisterHomeHandler: (handler: (() => void) | null) => void;
+  /** The server said this anonymous browser's ONE free dream is already
+      complete (typed `free_dream_used` on dream-analysis). App.tsx maps it to
+      the existing sign-in / create-account screen with the friendly notice —
+      no new flow, and nothing client-side decides it. */
+  onFreeDreamUsed: () => void;
 }
 
-export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal, onRegisterHomeHandler }: HeroDreamProps) {
+export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal, onRegisterHomeHandler, onFreeDreamUsed }: HeroDreamProps) {
   const { user } = useAuth();
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
@@ -223,6 +228,10 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     setAnalysisResult(null);
     analyzeDream(input)
       .then((result) => {
+        if (result.status === 'error' && result.reason === 'free_dream_used') {
+          onFreeDreamUsed();
+          return;
+        }
         setAnalysisResult(result);
       })
       .finally(() => {
@@ -264,7 +273,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     const rawElements = deriveDreamElements(analysis);
     const combined = [...rawFragments, ...rawElements];
     if (combined.length > 0) {
-      getDisplayLabels(analysis.sourceText, combined).then((result) => {
+      getDisplayLabels(analysis.sourceText, combined, analysisResult.attemptId).then((result) => {
         if (result.status === 'ok') {
           setFragments(result.labels.slice(0, rawFragments.length));
           setDreamElements(result.labels.slice(rawFragments.length));

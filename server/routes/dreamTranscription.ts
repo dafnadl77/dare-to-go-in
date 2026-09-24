@@ -2,6 +2,8 @@ import OpenAI, { toFile } from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
 import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpResult.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
+import { reserveTrialTranscription, refundTrialTranscription } from '../dreamAttempts.js';
+import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 
 // Was gpt-4o-mini-transcribe. Root-caused a real production report of a
 // Hebrew recording ("חלמתי שאני סופרוומן ועפתי מעל העיר.") coming back as
@@ -130,6 +132,29 @@ export async function handleDreamTranscription(rawBody: unknown, requestHeaders:
     return withHeaders(errorResult(503, 'not_configured', 'The Dream Transcription backend is missing OPENAI_API_KEY.'), cookieHeaders);
   }
 
+  // Recording happens BEFORE a dream attempt exists, so an anonymous trial's
+  // transcriptions are metered against the trial identity itself: a small
+  // lifetime allowance, closed once its ONE free dream is complete, refunded
+  // when a transcription genuinely fails. Signed-in callers are unchanged
+  // here (their entitlements are a separate task).
+  let reservedTranscription = false;
+  if (resolved.identity.kind === 'trial') {
+    const reservation = await reserveTrialTranscription(resolved.identity.trialId);
+    if (reservation === null) {
+      return withHeaders(errorResult(503, 'not_configured', 'Transcription usage tracking is not configured.'), cookieHeaders);
+    }
+    if (reservation === 'consumed') {
+      return withHeaders(errorResult(403, 'free_dream_used', FREE_DREAM_USED_MESSAGE), cookieHeaders);
+    }
+    if (reservation === 'limit') {
+      return withHeaders(errorResult(403, 'limit_reached', 'This browser has used all of its voice recordings.'), cookieHeaders);
+    }
+    reservedTranscription = true;
+  }
+  const refundTranscription = async () => {
+    if (reservedTranscription && resolved.identity.kind === 'trial') await refundTrialTranscription(resolved.identity.trialId);
+  };
+
   try {
     const file = await toFile(buffer, `dream.${extensionFor(mimeType)}`, { type: mimeType });
 
@@ -142,11 +167,13 @@ export async function handleDreamTranscription(rawBody: unknown, requestHeaders:
 
     const transcript = typeof response.text === 'string' ? response.text.trim() : '';
     if (!transcript) {
+      await refundTranscription();
       return withHeaders(errorResult(502, 'invalid_response', 'The transcription provider returned no text.'), cookieHeaders);
     }
 
     return withHeaders(okResult({ transcript }), cookieHeaders);
   } catch (err) {
+    await refundTranscription();
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {
         return withHeaders(errorResult(502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.'), cookieHeaders);

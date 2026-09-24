@@ -13,7 +13,8 @@ import { collectStrings } from '../../src/hero/languageIntegrity.js';
 import { normalizeAddressPreference, type AddressPreference } from '../../src/hero/addressPreference.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { resolveCallerIdentity, type RequestHeaders, type CallerIdentity } from '../callerIdentity.js';
-import { reserveReflectionAttempt, refundReflectionAttempt } from '../dreamAttempts.js';
+import { reserveReflectionAttempt, refundReflectionAttempt, getTrialAttemptState, completeTrialAttempt } from '../dreamAttempts.js';
+import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 import { getSupabaseUserScopedClient } from '../supabaseUserScopedClient.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
@@ -115,6 +116,16 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
     return withHeaders(errorResult(503, 'not_configured', 'The Dream Reflection backend is missing OPENAI_API_KEY.'), cookieHeaders);
   }
 
+  if (resolved.identity.kind === 'trial') {
+    const state = await getTrialAttemptState(attemptId, resolved.identity.trialId);
+    if (state === null) {
+      return withHeaders(errorResult(503, 'not_configured', 'Reflection usage tracking is not configured.'), cookieHeaders);
+    }
+    if (state === 'consumed_elsewhere') {
+      return withHeaders(errorResult(403, 'free_dream_used', FREE_DREAM_USED_MESSAGE), cookieHeaders);
+    }
+  }
+
   const reservation = await reserveReflectionAttempt(attemptId, resolved.identity);
   if (reservation === null) {
     return withHeaders(errorResult(503, 'not_configured', 'Reflection usage tracking is not configured.'), cookieHeaders);
@@ -179,6 +190,21 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
     // The grounding line's exact wording/tone is safety-relevant — always
     // enforced by the server, never left to the model's own phrasing.
     validated.groundingStatement = getGroundingStatement(language);
+
+    // THE completion point of an anonymous dreamer's ONE free dream: the
+    // grounded reflection is generated and about to be delivered. Marked
+    // atomically server-side BEFORE it is returned; if a concurrent attempt
+    // (another tab) already completed the free dream, this one is discarded.
+    // Fails closed: if completion can't be recorded, nothing is delivered.
+    if (resolved.identity.kind === 'trial') {
+      const completion = await completeTrialAttempt(attemptId, resolved.identity.trialId);
+      if (completion !== 'completed') {
+        await refundReflectionAttempt(attemptId);
+        return completion === 'consumed'
+          ? withHeaders(errorResult(403, 'free_dream_used', FREE_DREAM_USED_MESSAGE), cookieHeaders)
+          : withHeaders(errorResult(503, 'not_configured', 'Reflection usage tracking is not configured.'), cookieHeaders);
+      }
+    }
 
     return withHeaders(okResult(validated), cookieHeaders);
   } catch (err) {

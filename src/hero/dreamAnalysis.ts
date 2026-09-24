@@ -58,6 +58,8 @@ export async function analyzeDream(dreamInput: DreamInput): Promise<AnalysisResu
           'billing_issue',
           'not_authenticated',
           'limit_reached',
+          'free_dream_used',
+          'temporarily_unavailable',
         ];
         const reason = typeof errData.reason === 'string' && knownReasons.includes(errData.reason) ? errData.reason : 'request_failed';
         return {

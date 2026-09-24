@@ -10,6 +10,8 @@ import { buildLabelRepairNote, findLabelProblems, normalizeLabel } from '../../s
 import type { AppLanguage } from '../../src/hero/appLanguage.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
+import { reserveLabelsAttempt, refundLabelsAttempt, getTrialAttemptState } from '../dreamAttempts.js';
+import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
 
@@ -20,7 +22,7 @@ export async function handleDreamElementLabels(rawBody: unknown, requestHeaders:
   }
   const cookieHeaders = resolved.setCookieHeader ? { 'Set-Cookie': resolved.setCookieHeader } : undefined;
 
-  const body = (rawBody ?? {}) as { sourceText?: unknown; elements?: unknown; language?: unknown };
+  const body = (rawBody ?? {}) as { sourceText?: unknown; elements?: unknown; language?: unknown; attemptId?: unknown };
   const sourceText = typeof body.sourceText === 'string' ? body.sourceText : '';
   const elements = Array.isArray(body.elements) ? body.elements.filter((e): e is string => typeof e === 'string' && e.trim().length > 0) : [];
   // Defaults to English for any caller that doesn't send it (e.g. an
@@ -34,6 +36,34 @@ export async function handleDreamElementLabels(rawBody: unknown, requestHeaders:
   const client = getOpenAIClient();
   if (!client) {
     return withHeaders(errorResult(503, 'not_configured', 'The Dream Element Labels backend is missing OPENAI_API_KEY.'), cookieHeaders);
+  }
+
+  // An anonymous trial can only ask for labels for a dream it has really
+  // started: the call must name its own attempt, the attempt's free dream must
+  // still be open, and each attempt gets a small fixed number of label calls —
+  // this is never an independently callable, unlimited AI endpoint. Signed-in
+  // callers are unchanged here (their entitlements are a separate task).
+  const attemptId = typeof body.attemptId === 'string' ? body.attemptId : '';
+  let reservedLabels = false;
+  if (resolved.identity.kind === 'trial') {
+    if (!attemptId) {
+      return withHeaders(errorResult(400, 'invalid_response', 'attemptId is required.'), cookieHeaders);
+    }
+    const state = await getTrialAttemptState(attemptId, resolved.identity.trialId);
+    if (state === null) {
+      return withHeaders(errorResult(503, 'not_configured', 'Label usage tracking is not configured.'), cookieHeaders);
+    }
+    if (state === 'consumed_elsewhere') {
+      return withHeaders(errorResult(403, 'free_dream_used', FREE_DREAM_USED_MESSAGE), cookieHeaders);
+    }
+    const reservation = await reserveLabelsAttempt(attemptId, resolved.identity);
+    if (reservation === null) {
+      return withHeaders(errorResult(503, 'not_configured', 'Label usage tracking is not configured.'), cookieHeaders);
+    }
+    if (reservation === 'rejected') {
+      return withHeaders(errorResult(403, 'limit_reached', 'This dream has already used its label requests, or the attempt is invalid.'), cookieHeaders);
+    }
+    reservedLabels = true;
   }
 
   const input = `DREAM CONTEXT (for disambiguation only — do not label this line itself): ${sourceText || '(not provided)'}
@@ -91,6 +121,7 @@ ${elements.map((e, i) => `${i + 1}. ${e}`).join('\n')}`;
       { route: 'dream-element-labels', language, context: [sourceText, ...elements].join('\n') },
     );
     if (outcome.status !== 'ok') {
+      if (reservedLabels) await refundLabelsAttempt(attemptId);
       return withHeaders(
         errorResult(
           502,
@@ -105,6 +136,7 @@ ${elements.map((e, i) => `${i + 1}. ${e}`).join('\n')}`;
 
     return withHeaders(okResult({ labels: outcome.value }), cookieHeaders);
   } catch (err) {
+    if (reservedLabels) await refundLabelsAttempt(attemptId);
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {
         return withHeaders(errorResult(502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.'), cookieHeaders);

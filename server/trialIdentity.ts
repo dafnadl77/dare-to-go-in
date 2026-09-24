@@ -29,29 +29,48 @@ interface TrialTokenPayload {
   iat: number;
 }
 
-/** Falls back to deriving a secret from OPENAI_API_KEY (already required
-    in every environment this app runs in) so this protection is live
-    immediately on deploy without a new mandatory dashboard step — a
-    dedicated DARE_TRIAL_COOKIE_SECRET can be added later for defense in
-    depth without any code change (this reads it first if present). */
-function getSigningSecret(): string {
-  return process.env.DARE_TRIAL_COOKIE_SECRET || process.env.OPENAI_API_KEY || 'dare-trial-cookie-fallback-secret';
+const MIN_SECRET_LENGTH = 32;
+
+// Local development only: a random per-process secret so `npm run server`
+// works without configuration (cookies simply stop verifying when the dev
+// server restarts). Never used when running on Vercel or with NODE_ENV=production.
+let devOnlySecret: string | null = null;
+
+function isProductionLike(env: Record<string, string | undefined>): boolean {
+  return Boolean(env.VERCEL) || env.NODE_ENV === 'production';
 }
 
-function sign(payloadJson: string): string {
-  return createHmac('sha256', getSigningSecret()).update(payloadJson).digest('base64url');
+/**
+ * The signing secret is ONLY the dedicated DARE_TRIAL_COOKIE_SECRET — never
+ * derived from another credential (OPENAI_API_KEY) and never a hardcoded
+ * string. If it is missing (or too short to be a real secret) in a
+ * production-like environment this returns null, and the callers FAIL
+ * CLOSED: no trial identity can be minted and no cookie verifies, rather
+ * than silently signing with something else.
+ */
+export function getSigningSecret(env: Record<string, string | undefined> = process.env): string | null {
+  const configured = env.DARE_TRIAL_COOKIE_SECRET;
+  if (configured && configured.length >= MIN_SECRET_LENGTH) return configured;
+  if (isProductionLike(env)) return null;
+  if (!devOnlySecret) devOnlySecret = randomUUID() + randomUUID();
+  return devOnlySecret;
 }
 
-function encodeToken(payload: TrialTokenPayload): string {
+function sign(payloadJson: string, secret: string): string {
+  return createHmac('sha256', secret).update(payloadJson).digest('base64url');
+}
+
+function encodeToken(payload: TrialTokenPayload, secret: string): string {
   const payloadJson = JSON.stringify(payload);
   const payloadB64 = Buffer.from(payloadJson).toString('base64url');
-  return `${payloadB64}.${sign(payloadJson)}`;
+  return `${payloadB64}.${sign(payloadJson, secret)}`;
 }
 
 /** Verifies a token's signature and returns its trialId, or null for
     anything missing/malformed/tampered/expired — the safe default is
     always "treat as no existing trial", never a guess. */
-function decodeToken(token: string): string | null {
+function decodeToken(token: string, secret: string | null = getSigningSecret()): string | null {
+  if (!secret) return null;
   const dot = token.indexOf('.');
   if (dot <= 0) return null;
   const payloadB64 = token.slice(0, dot);
@@ -65,7 +84,7 @@ function decodeToken(token: string): string | null {
     return null;
   }
 
-  const expectedSignature = sign(payloadJson);
+  const expectedSignature = sign(payloadJson, secret);
   const provided = Buffer.from(signature);
   const expected = Buffer.from(expectedSignature);
   if (provided.length !== expected.length || !timingSafeEqual(provided, expected)) return null;
@@ -102,19 +121,25 @@ export function readCookie(cookieHeader: string | undefined | null, name: string
 
 /** Reads and verifies the trial cookie from a raw Cookie request header —
     returns the verified trialId, or null if absent/invalid/expired. */
-export function readTrialIdFromCookieHeader(cookieHeader: string | undefined | null): string | null {
+export function readTrialIdFromCookieHeader(
+  cookieHeader: string | undefined | null,
+  env: Record<string, string | undefined> = process.env,
+): string | null {
   const raw = readCookie(cookieHeader, TRIAL_COOKIE_NAME);
   if (!raw) return null;
-  return decodeToken(raw);
+  return decodeToken(raw, getSigningSecret(env));
 }
 
 /** Mints a brand-new signed trial identity and the Set-Cookie header
-    value for it. Does not touch the database itself — the caller
-    (dreamAttempts.ts) is responsible for creating the matching
-    trial_identities row. */
-export function mintTrialCookie(): { trialId: string; setCookieHeader: string } {
+    value for it, or null when no valid dedicated signing secret is
+    configured (fail closed — see getSigningSecret). Does not touch the
+    database itself — the caller (dreamAttempts.ts) is responsible for
+    creating the matching trial_identities row. */
+export function mintTrialCookie(env: Record<string, string | undefined> = process.env): { trialId: string; setCookieHeader: string } | null {
+  const secret = getSigningSecret(env);
+  if (!secret) return null;
   const trialId = randomUUID();
-  const token = encodeToken({ id: trialId, iat: Date.now() });
+  const token = encodeToken({ id: trialId, iat: Date.now() }, secret);
   const setCookieHeader = [
     `${TRIAL_COOKIE_NAME}=${encodeURIComponent(token)}`,
     'Path=/',

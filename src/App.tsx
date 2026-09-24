@@ -135,6 +135,10 @@ function App() {
   const { user, loading, isPasswordRecovery } = useAuth();
   const [view, setViewState] = useState<AppView>(() => getInitialView());
   const [authMode, setAuthMode] = useState<AuthMode>('signup');
+  // True only when the server told this anonymous browser its ONE free dream
+  // is already used — DreamAuth then leads with the friendly "your first dream
+  // was free" notice. Cleared as soon as the dreamer leaves the auth screen.
+  const [authFreeDreamNotice, setAuthFreeDreamNotice] = useState(false);
   const [openEntry, setOpenEntry] = useState<ArchiveEntry | null>(null);
   // SAVE THIS DREAM, chosen while signed OUT (see HeroDream.tsx's
   // handleSaveDream): 'none' the rest of the time; 'awaiting-auth' once a
@@ -157,6 +161,7 @@ function App() {
   const isResumingSaveRef = useRef(false);
 
   const setView = (next: AppView) => {
+    if (next !== 'auth') setAuthFreeDreamNotice(false);
     setViewState(next);
     writeViewToUrl(next);
   };
@@ -311,6 +316,7 @@ function App() {
   } else if (view === 'auth') {
     screen = (
       <DreamAuth
+        freeDreamNotice={authFreeDreamNotice}
         mode={authMode}
         onSwitchMode={setAuthMode}
         onBack={() => {
@@ -371,6 +377,11 @@ function App() {
         onRequireAuthForSave={handleRequireAuthForSave}
         onOpenLegal={handleOpenLegal}
         onRegisterHomeHandler={registerHeroHomeHandler}
+        onFreeDreamUsed={() => {
+          setAuthMode('signup');
+          setAuthFreeDreamNotice(true);
+          setView('auth');
+        }}
       />
     );
   }

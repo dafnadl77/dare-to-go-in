@@ -1,6 +1,18 @@
 import { getSupabaseServiceClient } from './supabaseServiceClient.js';
 import type { CallerIdentity } from './callerIdentity.js';
-import { createAttemptWithinSafetyValve, type AttemptStore, type CreateAttemptResult, type TrialMintStore } from './anonymousSafetyValves.js';
+import type { TrialMintStore } from './anonymousSafetyValves.js';
+import {
+  anonAttemptsPerDay,
+  decideTrialAttempt,
+  maxTrialAttempts,
+  maxTrialTranscriptions,
+  MAX_LABEL_CALLS_PER_ATTEMPT,
+  readTrialAttemptState,
+  readTrialCompletion,
+  type TrialAttemptDecision,
+  type TrialAttemptState,
+  type TrialCompletionResult,
+} from './trialAllowance.js';
 
 const MAX_IMAGE_ATTEMPTS = 3;
 const MAX_REFLECTION_ATTEMPTS = 3;
@@ -51,24 +63,6 @@ export async function createDreamAttempt(identity: CallerIdentity): Promise<stri
   return data.id as string;
 }
 
-/** The real, Supabase-backed stores the safety valves count against (existing columns only). */
-const attemptStore: AttemptStore = {
-  insertAttempt: createDreamAttempt,
-  async countTrialAttemptsSince(trialId, sinceIso) {
-    const client = getSupabaseServiceClient();
-    if (!client) return null;
-    const { count, error } = await client
-      .from('dream_attempts')
-      .select('id', { count: 'exact', head: true })
-      .eq('trial_id', trialId)
-      .gte('created_at', sinceIso);
-    return error || count === null ? null : count;
-  },
-  async deleteAttempt(attemptId) {
-    await deleteDreamAttempt(attemptId);
-  },
-};
-
 export const trialMintStore: TrialMintStore = {
   async countTrialsSince(sinceIso) {
     const client = getSupabaseServiceClient();
@@ -78,9 +72,84 @@ export const trialMintStore: TrialMintStore = {
   },
 };
 
-/** dream-analysis's attempt creation, behind the anonymous safety valve (see anonymousSafetyValves.ts). */
-export function createDreamAttemptWithinValve(identity: CallerIdentity, limitPerDay: number): Promise<CreateAttemptResult> {
-  return createAttemptWithinSafetyValve(attemptStore, identity, limitPerDay);
+/**
+ * dream-analysis's attempt creation. A signed-in account is the plain insert
+ * (its limits belong to the entitlement work). An anonymous trial goes through
+ * the create_trial_attempt SQL function, which — serialized per trial identity
+ * by an advisory lock — refuses once the identity's ONE free dream is complete
+ * (or the identity was claimed by an account), refuses beyond the lifetime cap
+ * of technical attempts, and refuses when the global anonymous-spend breaker
+ * is open. Nothing here trusts any client-side flag.
+ */
+export async function createAttemptForIdentity(identity: CallerIdentity): Promise<TrialAttemptDecision> {
+  if (identity.kind === 'user') {
+    const id = await createDreamAttempt(identity);
+    return id ? { ok: true, attemptId: id } : { ok: false, reason: 'not_configured' };
+  }
+  const client = getSupabaseServiceClient();
+  if (!client) return { ok: false, reason: 'not_configured' };
+  const { data, error } = await client.rpc('create_trial_attempt', {
+    p_trial_id: identity.trialId,
+    p_max_attempts: maxTrialAttempts(),
+    p_global_limit: anonAttemptsPerDay(),
+  });
+  if (error) return { ok: false, reason: 'not_configured' };
+  return decideTrialAttempt(data);
+}
+
+/** For a trial's attempt: is the free dream still open, already delivered by THIS attempt, or consumed by another? null = could not be determined (callers fail closed). */
+export async function getTrialAttemptState(attemptId: string, trialId: string): Promise<TrialAttemptState | null> {
+  const client = getSupabaseServiceClient();
+  if (!client) return null;
+  const { data, error } = await client.rpc('trial_attempt_state', { p_attempt_id: attemptId, p_trial_id: trialId });
+  return error ? null : readTrialAttemptState(data);
+}
+
+/** Atomically marks the trial's free dream as completed by this attempt (idempotent for the same attempt; 'consumed' if another attempt already completed it). */
+export async function completeTrialAttempt(attemptId: string, trialId: string): Promise<TrialCompletionResult | null> {
+  const client = getSupabaseServiceClient();
+  if (!client) return null;
+  const { data, error } = await client.rpc('complete_trial_attempt', { p_attempt_id: attemptId, p_trial_id: trialId });
+  return error ? null : readTrialCompletion(data);
+}
+
+export async function reserveTrialTranscription(trialId: string): Promise<'reserved' | 'consumed' | 'limit' | null> {
+  const client = getSupabaseServiceClient();
+  if (!client) return null;
+  const { data, error } = await client.rpc('reserve_trial_transcription', { p_trial_id: trialId, p_max: maxTrialTranscriptions() });
+  if (error) return null;
+  return data === 'reserved' || data === 'consumed' || data === 'limit' ? data : null;
+}
+
+export function refundTrialTranscription(trialId: string): Promise<void> {
+  return callVoidRpc('refund_trial_transcription', { p_trial_id: trialId });
+}
+
+/** Bounded element-label calls per attempt (owner/trial-checked in SQL, like images/reflections). */
+export async function reserveLabelsAttempt(attemptId: string, identity: CallerIdentity): Promise<'reserved' | 'rejected' | null> {
+  const client = getSupabaseServiceClient();
+  if (!client) return null;
+  const { data, error } = await client.rpc('reserve_labels_attempt', {
+    p_attempt_id: attemptId,
+    p_owner_id: identity.kind === 'user' ? identity.userId : null,
+    p_trial_id: identity.kind === 'trial' ? identity.trialId : null,
+    p_max: MAX_LABEL_CALLS_PER_ATTEMPT,
+  });
+  if (error) return null;
+  return typeof data === 'number' ? 'reserved' : 'rejected';
+}
+
+export function refundLabelsAttempt(attemptId: string): Promise<void> {
+  return callVoidRpc('refund_labels_attempt', { p_attempt_id: attemptId });
+}
+
+async function callVoidRpc(fnName: string, args: Record<string, unknown>): Promise<void> {
+  const client = getSupabaseServiceClient();
+  if (!client) return;
+  await client.rpc(fnName, args).then(
+    () => {},
+    () => {},
+  );
 }
 
 /** Deletes an attempt row outright — used only to compensate a genuine

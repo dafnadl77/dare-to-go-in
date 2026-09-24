@@ -170,6 +170,7 @@ export interface Translations {
     backToDare: string;
     keepYourDreams: string;
     createArchiveTagline: string;
+    freeDreamUsedNotice: string;
     welcomeBack: string;
     continueWithGoogle: string;
     or: string;
@@ -448,6 +449,7 @@ export const en: Translations = {
     backToDare: 'Back to DARE',
     keepYourDreams: 'KEEP YOUR DREAMS',
     createArchiveTagline: 'Create your private dream archive.',
+    freeDreamUsedNotice: 'Your first dream was free. To continue with more dreams, sign in or create an account.',
     welcomeBack: 'WELCOME BACK, DREAMER.',
     continueWithGoogle: 'Continue with Google',
     or: 'OR',
@@ -751,6 +753,7 @@ export const he: Translations = {
     backToDare: 'חזרה ל-DARE',
     keepYourDreams: 'שמרו את החלומות שלכם',
     createArchiveTagline: 'צרו את ארכיון החלומות הפרטי שלכם.',
+    freeDreamUsedNotice: 'החלום הראשון שלך היה במתנה. כדי להמשיך לחלומות נוספים, יש להתחבר או ליצור חשבון.',
     welcomeBack: 'ברוכים השבים, חולמים.',
     continueWithGoogle: 'המשך עם Google',
     or: 'או',

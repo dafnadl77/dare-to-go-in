@@ -11,8 +11,8 @@ import { resolveAnalysisModel } from '../analysisModel.js';
 import { collectStrings } from '../../src/hero/languageIntegrity.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
-import { createDreamAttemptWithinValve, deleteDreamAttempt } from '../dreamAttempts.js';
-import { trialAnalysesPerDay } from '../anonymousSafetyValves.js';
+import { createAttemptForIdentity, deleteDreamAttempt } from '../dreamAttempts.js';
+import { FREE_DREAM_USED_MESSAGE, TEMPORARILY_UNAVAILABLE_MESSAGE } from '../trialAllowance.js';
 
 /**
  * Core POST /api/dream-analysis logic — framework-agnostic (no Express
@@ -55,14 +55,21 @@ export async function handleDreamAnalysis(rawBody: unknown, requestHeaders: Requ
   // lifetime-quota counting unit (never enforced yet — see the approved
   // architecture). Deleted below if the OpenAI call itself then fails, so
   // a dream that never actually produced anything never occupies a slot.
-  // Anonymous callers only: a technical safety valve on attempts per rolling 24h
-  // (see anonymousSafetyValves.ts) — checked here, before any model call; a refused
-  // request leaves no attempt row behind. Signed-in accounts are not restricted here.
-  const created = await createDreamAttemptWithinValve(resolved.identity, trialAnalysesPerDay());
+  // Anonymous callers: ONE completed free dream per trial identity, for life,
+  // plus a bounded number of technical attempts before it completes and a
+  // global anonymous-spend breaker — all decided atomically in the database
+  // (see trialAllowance.ts / createAttemptForIdentity), before any model call;
+  // a refused request leaves no attempt row behind. Signed-in accounts are
+  // not restricted here.
+  const created = await createAttemptForIdentity(resolved.identity);
   if (!created.ok) {
-    return created.reason === 'limit_reached'
-      ? withHeaders(errorResult(429, 'limit_reached', 'Too many dreams were started from this browser recently. Please try again later.'), cookieHeaders)
-      : withHeaders(errorResult(503, 'not_configured', 'Could not start a new dream attempt.'), cookieHeaders);
+    if (created.reason === 'free_dream_used') {
+      return withHeaders(errorResult(403, 'free_dream_used', FREE_DREAM_USED_MESSAGE), cookieHeaders);
+    }
+    if (created.reason === 'temporarily_unavailable') {
+      return withHeaders(errorResult(503, 'temporarily_unavailable', TEMPORARILY_UNAVAILABLE_MESSAGE), cookieHeaders);
+    }
+    return withHeaders(errorResult(503, 'not_configured', 'Could not start a new dream attempt.'), cookieHeaders);
   }
   const attemptId = created.attemptId;
 

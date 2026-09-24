@@ -10,6 +10,11 @@ import './DreamAuth.css';
 export type AuthMode = 'signup' | 'signin' | 'forgot';
 
 interface DreamAuthProps {
+  /** Set by App.tsx only when the server reported this anonymous browser's
+      ONE free dream as already used: the tagline then carries the friendly
+      "your first dream was free" message (the existing tagline slot — no new
+      layout). */
+  freeDreamNotice?: boolean;
   mode: AuthMode;
   onSwitchMode: (mode: AuthMode) => void;
   /** No longer called by anything in THIS component (its own "way back" —
@@ -74,7 +79,7 @@ function looksLikeEmail(value: string): boolean {
  * wired to real Supabase Auth (see AuthContext.tsx): email/password and
  * Google both create/resume a genuine session, never a bypass.
  */
-export default function DreamAuth({ mode, onSwitchMode, onBack: _onBack, onAuthenticated, onOpenLegal }: DreamAuthProps) {
+export default function DreamAuth({ freeDreamNotice = false, mode, onSwitchMode, onBack: _onBack, onAuthenticated, onOpenLegal }: DreamAuthProps) {
   const { t } = useLanguage();
   const { signInWithPassword, signUpWithPassword, signInWithGoogle, resetPasswordForEmail } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -232,12 +237,12 @@ export default function DreamAuth({ mode, onSwitchMode, onBack: _onBack, onAuthe
         ) : isSignUp ? (
           <>
             <h1 className="auth-eyebrow-title">{t('auth.keepYourDreams')}</h1>
-            <p className="auth-tagline">{t('auth.createArchiveTagline')}</p>
+            <p className="auth-tagline">{freeDreamNotice ? t('auth.freeDreamUsedNotice') : t('auth.createArchiveTagline')}</p>
           </>
         ) : (
           <>
             <h1 className="auth-eyebrow-title">{t('auth.welcomeBack')}</h1>
-            <p className="auth-tagline">&nbsp;</p>
+            <p className="auth-tagline">{freeDreamNotice ? t('auth.freeDreamUsedNotice') : <>&nbsp;</>}</p>
           </>
         )}
 

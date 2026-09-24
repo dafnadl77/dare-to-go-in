@@ -113,7 +113,9 @@ export type AnalysisErrorReason =
   | 'rate_limited'
   | 'billing_issue'
   | 'not_authenticated'
-  | 'limit_reached';
+  | 'limit_reached'
+  | 'free_dream_used'
+  | 'temporarily_unavailable';
 
 export type AnalysisResult =
   | { status: 'ok'; analysis: DreamAnalysis; attemptId: string }

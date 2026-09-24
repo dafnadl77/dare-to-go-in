@@ -49,7 +49,7 @@ export interface IdentityDeps {
   verifyBearer: (authorizationHeader: string) => Promise<VerifyBearerResult>;
   readTrialId: (cookieHeader: string | undefined | null) => string | null;
   ensureTrial: (trialId: string) => Promise<boolean>;
-  mintCookie: () => { trialId: string; setCookieHeader: string };
+  mintCookie: () => { trialId: string; setCookieHeader: string } | null;
   createTrial: (trialId: string) => Promise<boolean>;
 }
 
@@ -107,7 +107,13 @@ export async function resolveCallerIdentity(headers: RequestHeaders, deps: Ident
 /** Mints a brand-new anonymous trial identity (cookie + DB row). ONLY for
     /api/trial-session, after its own throttle — never called from a paid route. */
 export async function mintTrialIdentity(deps: IdentityDeps = realDeps): Promise<ResolveCallerResult> {
-  const { trialId, setCookieHeader } = deps.mintCookie();
+  const minted = deps.mintCookie();
+  if (!minted) {
+    // No valid dedicated DARE_TRIAL_COOKIE_SECRET in a production-like
+    // environment (see trialIdentity.ts): fail closed, never mint.
+    return { ok: false, status: 503, reason: 'not_configured', message: 'Could not start a trial session.' };
+  }
+  const { trialId, setCookieHeader } = minted;
   const created = await deps.createTrial(trialId);
   if (!created) {
     return { ok: false, status: 503, reason: 'not_configured', message: 'Could not start a trial session.' };

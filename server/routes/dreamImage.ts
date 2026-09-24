@@ -3,7 +3,8 @@ import { getOpenAIClient } from '../openaiClient.js';
 import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpResult.js';
 import type { ReconstructionBrief } from '../../src/hero/reconstructionBrief.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
-import { reserveImageAttempt, refundImageAttempt } from '../dreamAttempts.js';
+import { reserveImageAttempt, refundImageAttempt, getTrialAttemptState } from '../dreamAttempts.js';
+import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 
 const IMAGE_MODEL = 'gpt-image-1';
 
@@ -51,6 +52,18 @@ export async function handleDreamImage(rawBody: unknown, requestHeaders: Request
   const client = getOpenAIClient();
   if (!client) {
     return withHeaders(errorResult(503, 'not_configured', 'The Dream Image backend is missing OPENAI_API_KEY.'), cookieHeaders);
+  }
+
+  // An anonymous trial whose ONE free dream was already completed (by another
+  // attempt/tab) gets no further paid work on its leftover attempts.
+  if (resolved.identity.kind === 'trial') {
+    const state = await getTrialAttemptState(attemptId, resolved.identity.trialId);
+    if (state === null) {
+      return withHeaders(errorResult(503, 'not_configured', 'Image usage tracking is not configured.'), cookieHeaders);
+    }
+    if (state === 'consumed_elsewhere') {
+      return withHeaders(errorResult(403, 'free_dream_used', FREE_DREAM_USED_MESSAGE), cookieHeaders);
+    }
   }
 
   // Atomically checks ownership of attemptId AND the max-3 cap AND reserves
