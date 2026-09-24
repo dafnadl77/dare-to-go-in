@@ -194,7 +194,7 @@ test('element-labels is bound to a real attempt for trials: attemptId required, 
   assert.ok((src.match(/refundLabelsAttempt\(/g) ?? []).length >= 2, 'refunded on both failure paths');
   // the client actually sends it
   assert.ok(read('src/hero/dreamElementLabels.ts').includes('attemptId'));
-  assert.ok(read('src/hero/HeroDream.tsx').includes('analysisResult.attemptId).then('));
+  assert.ok(read('src/hero/HeroDream.tsx').includes('getDisplayLabels(analysis.sourceText, combined, analysisResult.attemptId, journeyLanguage)'));
 });
 
 test('transcription is metered per trial identity (before the model call), closed after the free dream, refunded on failure', () => {

@@ -15,6 +15,7 @@ import { translateTexts } from './dreamTranslationEngine';
 import { useTranslatedCards } from './dreamTitleTranslation';
 import DreamTimeline from './DreamTimeline';
 import DeleteDreamDialog from './DeleteDreamDialog';
+import { archiveDisplay, statusWhenFetchStarts, statusWhenFetchFails, type ArchiveLoadStatus } from './archiveLoad';
 import DeleteAccountDialog from './DeleteAccountDialog';
 import { requestAccountDeletion, finishAccountDeletionLocally } from '../auth/deleteAccount';
 import LocalDreamImportPrompt from './LocalDreamImportPrompt';
@@ -102,23 +103,37 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
   // local dreams into this list; handleToggleFavorite updates it directly
   // (optimistic, reverted on failure) rather than re-fetching everything.
   const [dreams, setDreams] = useState<SavedDream[]>([]);
+  // Explicit load lifecycle (see archiveLoad.ts): while loading, and after a FAILED load, the
+  // list area shows a loading / error-with-Retry state, never the "no dreams yet" empty state,
+  // which is reserved for a successful fetch that returned zero dreams.
+  const [loadStatus, setLoadStatus] = useState<ArchiveLoadStatus>('loading');
+  const [reloadTick, setReloadTick] = useState(0);
   useEffect(() => {
     if (!user) {
       setDreams([]);
+      setLoadStatus('loading');
       return;
     }
     let cancelled = false;
+    setLoadStatus(statusWhenFetchStarts);
     getDreamsRemote(user.id)
       .then((remote) => {
-        if (!cancelled) setDreams(remote);
+        if (cancelled) return;
+        setDreams(remote);
+        setLoadStatus('ready');
       })
       .catch((err) => {
         console.error('Failed to load dreams from Supabase:', err);
+        if (!cancelled) setLoadStatus(statusWhenFetchFails);
       });
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, reloadTick]);
+  const retryLoad = () => {
+    setLoadStatus('loading');
+    setReloadTick((n) => n + 1);
+  };
 
   const handleImported = (imported: SavedDream[]) => {
     setDreams((prev) => {
@@ -167,6 +182,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
     () => (activeSection === 'favorites' ? entries.filter((e) => e.kind === 'real' && e.favorite) : entries),
     [entries, activeSection],
   );
+  const display = archiveDisplay(loadStatus, visibleEntries.length);
   // One coherent list: the literal recurring motifs plus semantic concepts (see
   // getRecurringInsights) — both open the same way, into the dreams they came from.
   const recurringMotifs = useMemo(() => getRecurringInsights(entries), [entries]);
@@ -542,7 +558,19 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
                 </button>
               </div>
 
-              {visibleEntries.length === 0 ? (
+              {display === 'loading' ? (
+                <p className="ar-panel-note" role="status">
+                  {t('archive.loading')}
+                </p>
+              ) : display === 'error' ? (
+                <div className="ar-empty-state" role="alert">
+                  <p className="ar-empty-title">{t('archive.loadErrorTitle')}</p>
+                  <p className="ar-empty-body">{t('archive.loadErrorBody')}</p>
+                  <button type="button" className="btn btn-secondary" data-cursor-hover onClick={retryLoad}>
+                    {t('archive.loadRetry')}
+                  </button>
+                </div>
+              ) : display === 'empty' ? (
                 <div className="ar-empty-state">
                   <p className="ar-empty-title">
                     {activeSection === 'favorites' ? t('archive.emptyFavoritesTitle') : t('archive.emptyAllDreamsTitle')}
@@ -637,7 +665,19 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
                 <EditorialTitle text={t('archive.navInsights')} />
               </h1>
               <p className="ar-subtitle">{t('archive.insightsSubtitle')}</p>
-              {recurringMotifs === null ? (
+              {display === 'loading' ? (
+                <p className="ar-panel-note" role="status">
+                  {t('archive.loading')}
+                </p>
+              ) : display === 'error' ? (
+                <div className="ar-empty-state" role="alert">
+                  <p className="ar-empty-title">{t('archive.loadErrorTitle')}</p>
+                  <p className="ar-empty-body">{t('archive.loadErrorBody')}</p>
+                  <button type="button" className="btn btn-secondary" data-cursor-hover onClick={retryLoad}>
+                    {t('archive.loadRetry')}
+                  </button>
+                </div>
+              ) : recurringMotifs === null ? (
                 <p className="ar-panel-note">{t('archive.insightsNotEnough')}</p>
               ) : recurringMotifs.length === 0 ? (
                 <p className="ar-panel-note">{t('archive.insightsEmpty')}</p>

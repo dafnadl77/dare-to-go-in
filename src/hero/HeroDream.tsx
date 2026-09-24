@@ -13,7 +13,11 @@ import { createEchoState } from './EchoState';
 import { createDreamEventState } from './dreamEventState';
 import { createLampState } from './lampState';
 import { useUnifiedDreamSequence } from './useUnifiedDreamSequence';
-import type { DreamInput } from './dreamInput';
+import { dreamInputSourceText, type DreamInput } from './dreamInput';
+import { createJourneyEpoch, runInJourney } from './journeyEpoch';
+import { hasUnsavedDream } from './unsavedJourney';
+import { classifyFirstImageFailure, recoveryForFirstImageFailure } from './firstImageRecovery';
+import { getAppLanguage, type AppLanguage } from './appLanguage';
 import { analyzeDream, type AnalysisResult } from './dreamAnalysis';
 import DreamAnalysisDevView from './DreamAnalysisDevView';
 import DreamReconstruction, { type ReconstructionPhase, type InsideStep } from './DreamReconstruction';
@@ -103,9 +107,11 @@ interface HeroDreamProps {
   onFreeDreamUsed: () => void;
   /** A signed-in account with no dream credit tried to start a dream — the app sends them to Pricing. */
   onCreditsRequired: () => void;
+  /** Reports whether a meaningfully UNSAVED dream is on screen (analyzed, not saved, not let go), so App can guard refresh and in-app navigation. Called with false when this screen unmounts. */
+  onUnsavedDreamChange: (unsaved: boolean) => void;
 }
 
-export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal, onRegisterHomeHandler, onFreeDreamUsed, onCreditsRequired }: HeroDreamProps) {
+export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal, onRegisterHomeHandler, onFreeDreamUsed, onCreditsRequired, onUnsavedDreamChange }: HeroDreamProps) {
   const { user } = useAuth();
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
@@ -158,6 +164,27 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   const [elementsResolved, setElementsResolved] = useState(false);
   const [reflectionResponse, setReflectionResponse] = useState<string | null>(null);
 
+  // JOURNEY EPOCH — see journeyEpoch.ts. Every async result below is applied only if it
+  // still belongs to the journey that started it. Bumped when the journey is abandoned
+  // (handleGoHome) or this screen unmounts, so a late response can never populate a new dream.
+  const [epoch] = useState(createJourneyEpoch);
+  useEffect(
+    () => () => {
+      epoch.invalidate();
+    },
+    [epoch],
+  );
+  // The journey's language, locked when its first language-dependent generation starts
+  // (element labels) and used for labels, the reflection and the saved dream's stamp, so
+  // switching the interface language mid-journey can never leave a saved dream stamped
+  // with a language different from the content that was generated for it.
+  const journeyLanguageRef = useRef<AppLanguage | null>(null);
+  // Orders analyses within one journey (TRY AGAIN / EDIT re-submits): only the latest applies.
+  const analysisSeqRef = useRef(0);
+  // Image requests fired before the FIRST image succeeded (see firstImageRecovery.ts).
+  const firstImageTriesRef = useRef(0);
+  const imageEverSucceededRef = useRef(false);
+
   // The one grounded reflection engine call — real OpenAI, idempotent per
   // token exactly like image generation, never re-fired by rerenders.
   const [reflectionPending, setReflectionPending] = useState(false);
@@ -188,11 +215,16 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     reflectionTokenRef.current = token;
     setReflectionPending(true);
     setReflectionEngineResult(null);
-    getDreamReflection(request).then((result) => {
-      setReflectionEngineResult(result);
-      setReflectionPending(false);
-    });
-  }, []);
+    runInJourney(
+      epoch,
+      () => getDreamReflection({ ...request, language: journeyLanguageRef.current ?? getAppLanguage() }),
+      (result) => {
+        if (reflectionTokenRef.current !== token) return; // superseded by a newer request in this journey
+        setReflectionEngineResult(result);
+        setReflectionPending(false);
+      },
+    );
+  }, [epoch]);
 
   // Real image generation. `displayedImageUrl` is the last fully-settled
   // image; `incomingImageUrl` is a freshly generated one mid-reveal during
@@ -229,17 +261,31 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     generationTokenRef.current = token;
     setImagePending(true);
     setImageResult(null);
-    generateDreamImage(briefToUse, attemptId).then((result) => {
-      setImageResult(result);
-      setImagePending(false);
-    });
-  }, []);
+    if (!imageEverSucceededRef.current) firstImageTriesRef.current += 1;
+    runInJourney(
+      epoch,
+      () => generateDreamImage(briefToUse, attemptId),
+      (result) => {
+        if (generationTokenRef.current !== token) return; // superseded by a newer request in this journey
+        if (result.status === 'ok') imageEverSucceededRef.current = true;
+        setImageResult(result);
+        setImagePending(false);
+      },
+    );
+  }, [epoch]);
 
   const runAnalysis = (input: DreamInput) => {
+    const seq = ++analysisSeqRef.current;
     setAnalysisPending(true);
     setAnalysisResult(null);
-    analyzeDream(input)
-      .then((result) => {
+    // Applied only if this journey is still the active one AND no newer analysis (TRY AGAIN /
+    // EDIT) has started since; an abandoned analysis can never resurrect an old journey.
+    runInJourney(
+      epoch,
+      () => analyzeDream(input),
+      (result) => {
+        if (seq !== analysisSeqRef.current) return;
+        setAnalysisPending(false);
         if (result.status === 'error' && result.reason === 'free_dream_used') {
           onFreeDreamUsed();
           return;
@@ -249,10 +295,8 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
           return;
         }
         setAnalysisResult(result);
-      })
-      .finally(() => {
-        setAnalysisPending(false);
-      });
+      },
+    );
   };
 
   const handleDreamCapture = (input: DreamInput) => {
@@ -290,16 +334,23 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     const combined = [...rawFragments, ...rawElements];
     setElementsResolved(false);
     if (combined.length > 0) {
-      getDisplayLabels(analysis.sourceText, combined, analysisResult.attemptId).then((result) => {
-        if (result.status === 'ok') {
-          setFragments(result.labels.slice(0, rawFragments.length));
-          setDreamElements(result.labels.slice(rawFragments.length));
-        } else {
-          setFragments(rawFragments);
-          setDreamElements(rawElements);
-        }
-        setElementsResolved(true);
-      });
+      // First language-dependent generation: the journey's language is fixed here.
+      if (journeyLanguageRef.current === null) journeyLanguageRef.current = getAppLanguage();
+      const journeyLanguage = journeyLanguageRef.current;
+      runInJourney(
+        epoch,
+        () => getDisplayLabels(analysis.sourceText, combined, analysisResult.attemptId, journeyLanguage),
+        (result) => {
+          if (result.status === 'ok') {
+            setFragments(result.labels.slice(0, rawFragments.length));
+            setDreamElements(result.labels.slice(rawFragments.length));
+          } else {
+            setFragments(rawFragments);
+            setDreamElements(rawElements);
+          }
+          setElementsResolved(true);
+        },
+      );
     } else {
       setElementsResolved(true);
     }
@@ -307,7 +358,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     startImageGeneration('initial', newBrief, analysisResult.attemptId);
     const t = setTimeout(() => setReconstructionPhase('dissolving'), SETTLE_PAUSE_MS);
     return () => clearTimeout(t);
-  }, [analysisResult, reconstructionPhase, startImageGeneration]);
+  }, [analysisResult, reconstructionPhase, startImageGeneration, epoch]);
 
   // Timer-driven phase progression for the room's own dissolve. User
   // choices (NOT QUITE / YES) take over from 'reveal' onward.
@@ -542,6 +593,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         reflectionResponse,
         dreamReflection: reflectionEngineResult.reflection,
         corrections,
+        appLanguage: journeyLanguageRef.current ?? undefined,
       }));
     if (!user) {
       // Signed OUT — a dream must belong to a real account, never the
@@ -606,6 +658,34 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
 
   const handleReturnToRoom = () => handleGoHome();
 
+  // FIRST-IMAGE FAILURE RECOVERY (see firstImageRecovery.ts). Only ever offered in 'image-error',
+  // i.e. before any image exists. Every path reuses the dream's own attemptId and brief: analysis
+  // is never re-run and nothing is spent client-side; the server's per-attempt image slots and
+  // refunds remain the only accounting.
+  const firstImageFailureKind = classifyFirstImageFailure(imageResult?.status === 'error' ? imageResult.reason : null);
+  const firstImageRecovery = recoveryForFirstImageFailure(firstImageFailureKind, firstImageTriesRef.current);
+
+  const handleRetryFirstImage = () => {
+    if (reconstructionPhase !== 'image-error' || analysisResult?.status !== 'ok' || !brief) return;
+    if (firstImageRecovery.action !== 'retry') return;
+    setReconstructionPhase('reconstructing');
+    startImageGeneration(`initial-retry-${firstImageTriesRef.current}`, brief, analysisResult.attemptId);
+  };
+
+  // A content-moderation rejection is never resent verbatim: the dreamer describes the change
+  // through the existing correction path, which regenerates on the same attempt.
+  const handleRephraseFirstImage = () => {
+    if (reconstructionPhase !== 'image-error' || firstImageRecovery.action !== 'rephrase') return;
+    setReconstructionPhase('correcting');
+  };
+
+  // Tells App whether leaving right now would lose an analyzed, unsaved dream (see unsavedJourney.ts).
+  const unsavedDream = hasUnsavedDream({ analysisOk: analysisResult?.status === 'ok', insideStep });
+  useEffect(() => {
+    onUnsavedDreamChange(unsavedDream);
+  }, [unsavedDream, onUnsavedDreamChange]);
+  useEffect(() => () => onUnsavedDreamChange(false), [onUnsavedDreamChange]);
+
   // Debug-only QA hook (never part of the normal user journey, only present
   // with ?debug=1): lets a real already-generated image be dropped straight
   // into state so later phases (e.g. ENTER THE DREAM) can be verified
@@ -646,10 +726,15 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // Subtle DARE home control — the only way back once inside the immersive
   // reconstruction/dream/reflection experience. A full reset of everything
   // past the initial Hero; no confirmation needed yet (no history/accounts
-  // exist to lose). In-flight requests are left to resolve — their tokens
-  // simply won't match anything relevant once state is reset, so a late
-  // resolve is a harmless no-op.
+  // exist to lose). In-flight requests are left to resolve — the journey epoch is bumped
+  // below, so a late resolve is ignored (see journeyEpoch.ts).
   const handleGoHome = () => {
+    // The journey is over: every in-flight response of it is now stale and will be ignored.
+    epoch.invalidate();
+    analysisSeqRef.current += 1;
+    journeyLanguageRef.current = null;
+    firstImageTriesRef.current = 0;
+    imageEverSucceededRef.current = false;
     setReconstructionPhase('none');
     setInsideStep('prompt');
     setBrief(null);
@@ -766,6 +851,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
             reconstructing={isReconstructing}
             analysisFailed={analysisResult?.status === 'error'}
             onRetryAnalysis={handleRetryAnalysis}
+            capturedDreamText={dreamInputRef.current ? dreamInputSourceText(dreamInputRef.current) : ''}
           />
         </div>
       </div>
@@ -793,6 +879,9 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         dreamPalette={dreamPalette}
         revealTextOnLight={revealTextOnLight}
         regenNotice={regenNotice}
+        imageRecovery={firstImageRecovery.action}
+        onRetryImage={handleRetryFirstImage}
+        onRephraseImage={handleRephraseFirstImage}
         onNotQuite={handleNotQuite}
         onCorrectionSubmit={handleCorrectionSubmit}
         onYes={handleYes}

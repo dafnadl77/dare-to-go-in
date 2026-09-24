@@ -153,11 +153,14 @@ export function buildSavedDream(params: {
   reflectionResponse: string;
   dreamReflection: DreamReflectionResult;
   corrections: string[];
+  /** The language the journey's content was generated in; defaults to the current app language. */
+  appLanguage?: AppLanguage;
 }): SavedDream {
+  const { appLanguage, ...rest } = params;
   return {
     id: randomId(),
     createdAt: new Date().toISOString(),
-    appLanguage: getAppLanguage(),
-    ...params,
+    ...rest,
+    appLanguage: appLanguage ?? getAppLanguage(),
   };
 }

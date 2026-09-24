@@ -15,6 +15,8 @@ import type { LegalKey } from './legal/legalContent';
 import AboutPage from './about/AboutPage';
 import PricingPage from './pricing/PricingPage';
 import { fetchCreditBalance } from './credits/credits';
+import LeaveDreamDialog from './ui/LeaveDreamDialog';
+import { createLeaveGate, handleBeforeUnload } from './hero/unsavedJourney';
 import AccessibilityControl from './a11y/AccessibilityControl';
 import GlobalHeader, { type GlobalNavKey } from './ui/GlobalHeader';
 
@@ -190,6 +192,24 @@ function App() {
     heroHomeHandlerRef.current?.();
     setView('dream');
   };
+
+  // UNSAVED-DREAM PROTECTION. HeroDream reports whether an analyzed, unsaved dream is on screen.
+  // While it is: a refresh / tab close / leaving the site asks the browser to confirm
+  // (beforeunload), and every in-app navigation that would destroy the journey (brand/home,
+  // My Dreams, Packages, About) asks first through LeaveDreamDialog. Confirming discards the
+  // journey (bumping its epoch via the registered home handler) and then navigates; Stay
+  // changes nothing. With nothing meaningful unsaved, none of this ever interferes.
+  const [unsavedDream, setUnsavedDream] = useState(false);
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [leaveGate] = useState(() => createLeaveGate(() => heroHomeHandlerRef.current?.()));
+  const requestLeave = (action: () => void) => {
+    if (leaveGate.request(action, unsavedDream) === 'needs-confirmation') setLeaveDialogOpen(true);
+  };
+  useEffect(() => {
+    if (!unsavedDream) return;
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [unsavedDream]);
 
   // The one place a pending dream is actually written to Supabase — used
   // both by the effect below (every automatic trigger: ordinary sign-in/
@@ -419,6 +439,7 @@ function App() {
           setCreditsNotice(true);
           setView('pricing');
         }}
+        onUnsavedDreamChange={setUnsavedDream}
       />
     );
   }
@@ -435,12 +456,24 @@ function App() {
     <>
       {screen}
       <GlobalHeader
-        onHome={goHome}
-        onMyDreams={handleMyDreamsNav}
-        onPackages={() => setView('pricing')}
-        onAbout={() => setView('about')}
+        onHome={() => requestLeave(goHome)}
+        onMyDreams={() => requestLeave(handleMyDreamsNav)}
+        onPackages={() => requestLeave(() => setView('pricing'))}
+        onAbout={() => requestLeave(() => setView('about'))}
         active={activeNav}
       />
+      {leaveDialogOpen && (
+        <LeaveDreamDialog
+          onStay={() => {
+            leaveGate.cancel();
+            setLeaveDialogOpen(false);
+          }}
+          onLeave={() => {
+            leaveGate.confirm();
+            setLeaveDialogOpen(false);
+          }}
+        />
+      )}
       <AccessibilityControl />
     </>
   );

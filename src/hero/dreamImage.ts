@@ -1,6 +1,7 @@
 import { paidFetch } from '../auth/paidFetch';
 import type { ReconstructionBrief } from './reconstructionBrief';
 import { getAuthHeader } from '../auth/getAccessToken';
+import { IMAGE_TIMEOUT_MS } from './requestTimeouts';
 
 export type ImageErrorReason =
   | 'not_configured'
@@ -40,11 +41,16 @@ const KNOWN_REASONS: ImageErrorReason[] = [
 export async function generateDreamImage(brief: ReconstructionBrief, attemptId: string): Promise<ImageResult> {
   try {
     const authHeader = await getAuthHeader();
-    const res = await paidFetch('/api/dream-image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeader },
-      body: JSON.stringify({ reconstructionBrief: brief, attemptId }),
-    });
+    // A timeout aborts and lands in the catch below as an ordinary request_failed.
+    const res = await paidFetch(
+      '/api/dream-image',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeader },
+        body: JSON.stringify({ reconstructionBrief: brief, attemptId }),
+      },
+      { timeoutMs: IMAGE_TIMEOUT_MS },
+    );
 
     const data: unknown = await res.json().catch(() => null);
 

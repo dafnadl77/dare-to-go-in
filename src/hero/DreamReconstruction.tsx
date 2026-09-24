@@ -82,6 +82,10 @@ interface DreamReconstructionProps {
   revealTextOnLight: boolean;
   /** Why the last NOT QUITE regeneration kept the previous image — null when there is nothing to say. 'limit' removes NOT QUITE. */
   regenNotice: 'failed' | 'rejected' | 'limit' | null;
+  /** What the FIRST-image failure state offers: retry the image, rephrase (moderation), or only restart. */
+  imageRecovery: 'retry' | 'rephrase' | 'restart';
+  onRetryImage: () => void;
+  onRephraseImage: () => void;
   onNotQuite: () => void;
   onCorrectionSubmit: (text: string) => void;
   onYes: () => void;
@@ -122,6 +126,9 @@ export default function DreamReconstruction({
   dreamPalette,
   revealTextOnLight,
   regenNotice,
+  imageRecovery,
+  onRetryImage,
+  onRephraseImage,
   onNotQuite,
   onCorrectionSubmit,
   onYes,
@@ -342,14 +349,34 @@ export default function DreamReconstruction({
       {(phase === 'reconstructing' || phase === 'regenerating') && <p className="dr-remembering">{t('reconstruction.remembering')}</p>}
 
       {phase === 'image-error' && (
-        <div className="dr-image-error">
-          <p className="dr-line">{t('reconstruction.couldntSeeAllOfIt')}</p>
-          {/* A failed generation has nothing to retry from within this same
-              session — send the dreamer back to the very start rather than
-              re-firing the same request against the same brief. */}
-          <button type="button" className="dr-choice" data-cursor-hover onClick={onReturnToRoom}>
-            {t('reconstruction.restart')}
-          </button>
+        <div className="dr-image-error" role="alert">
+          {/* The FIRST image failed, so the analyzed dream is still here: retry on the same
+              attempt, or (after a content rejection) describe it differently. Restart is
+              always available and is the only option once the image attempts are used up. */}
+          <p className="dr-line">
+            {t(
+              imageRecovery === 'retry'
+                ? 'reconstruction.imageFailedRetry'
+                : imageRecovery === 'rephrase'
+                  ? 'reconstruction.imageRejected'
+                  : 'reconstruction.imageExhausted',
+            )}
+          </p>
+          <div className="dr-image-error-actions">
+            {imageRecovery === 'retry' && (
+              <button type="button" className="dr-choice" data-cursor-hover onClick={onRetryImage}>
+                {t('reconstruction.tryAgain')}
+              </button>
+            )}
+            {imageRecovery === 'rephrase' && (
+              <button type="button" className="dr-choice" data-cursor-hover onClick={onRephraseImage}>
+                {t('reconstruction.rephrase')}
+              </button>
+            )}
+            <button type="button" className="dr-choice" data-cursor-hover onClick={onReturnToRoom}>
+              {t('reconstruction.restart')}
+            </button>
+          </div>
         </div>
       )}
 
@@ -380,7 +407,7 @@ export default function DreamReconstruction({
 
       {phase === 'correcting' && (
         <div className="dr-correct">
-          <p className="dr-line">{t('reconstruction.whatDidIGetWrong')}</p>
+          <p className="dr-line">{t(displayedImageUrl ? 'reconstruction.whatDidIGetWrong' : 'reconstruction.howToDescribeDifferently')}</p>
           <textarea
             className="dr-correct-textarea"
             value={correctionText}

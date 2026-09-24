@@ -2,6 +2,7 @@ import { paidFetch } from '../auth/paidFetch';
 import { dreamInputSourceText, type DreamInput } from './dreamInput';
 import { validateDreamAnalysis, type AnalysisResult } from './dreamAnalysisSchema';
 import { getAuthHeader } from '../auth/getAccessToken';
+import { ANALYSIS_TIMEOUT_MS } from './requestTimeouts';
 
 export type {
   DreamPerson,
@@ -38,11 +39,17 @@ export async function analyzeDream(dreamInput: DreamInput): Promise<AnalysisResu
 
   try {
     const authHeader = await getAuthHeader();
-    const res = await paidFetch('/api/dream-analysis', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeader },
-      body: JSON.stringify({ sourceText, inputMode: dreamInput.inputMode }),
-    });
+    // A timeout aborts and lands in the catch below as an ordinary request_failed: the same
+    // recoverable TRY AGAIN / EDIT state. It is never retried automatically.
+    const res = await paidFetch(
+      '/api/dream-analysis',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeader },
+        body: JSON.stringify({ sourceText, inputMode: dreamInput.inputMode }),
+      },
+      { timeoutMs: ANALYSIS_TIMEOUT_MS },
+    );
 
     const data: unknown = await res.json().catch(() => null);
 

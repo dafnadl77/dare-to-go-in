@@ -59,6 +59,12 @@ export interface Translations {
     tryAgain: string;
     editDream: string;
   };
+  leaveDream: {
+    title: string;
+    body: string;
+    stay: string;
+    leave: string;
+  };
   reconstruction: {
     remembering: string;
     couldntSeeAllOfIt: string;
@@ -73,6 +79,11 @@ export interface Translations {
     regenFailed: string;
     regenRejected: string;
     regenLimit: string;
+    imageFailedRetry: string;
+    imageRejected: string;
+    imageExhausted: string;
+    rephrase: string;
+    howToDescribeDifferently: string;
   };
   reflection: {
     thisIsYourDream: string;
@@ -127,6 +138,10 @@ export interface Translations {
     deleteConfirm: string;
     deleteInProgress: string;
     deleteFailed: string;
+    loading: string;
+    loadErrorTitle: string;
+    loadErrorBody: string;
+    loadRetry: string;
     settingsDeleteHeading: string;
     settingsDeleteBody: string;
     settingsDeleteButton: string;
@@ -351,6 +366,12 @@ export const en: Translations = {
     tryAgain: 'TRY AGAIN',
     editDream: 'EDIT',
   },
+  leaveDream: {
+    title: 'Leave this dream?',
+    body: 'This dream hasn’t been saved yet. If you leave now, it will be lost, along with its image and reflection.',
+    stay: 'Stay',
+    leave: 'Leave without saving',
+  },
   reconstruction: {
     remembering: 'REMEMBERING…',
     couldntSeeAllOfIt: 'I COULDN’T SEE ALL OF IT.',
@@ -365,6 +386,11 @@ export const en: Translations = {
     regenFailed: 'I couldn’t create a new image this time. Your current image is still here.',
     regenRejected: 'That change couldn’t be turned into an image. Try describing it differently — your current image is still here.',
     regenLimit: 'This dream has reached its limit of new images. You can continue with the one you have.',
+    imageFailedRetry: 'I couldn’t create the image this time. Your dream is still here. Try again.',
+    imageRejected: 'This image couldn’t be created as described. You can describe it a little differently.',
+    imageExhausted: 'This dream has used all of its image attempts. You can start again with a new dream.',
+    rephrase: 'REPHRASE',
+    howToDescribeDifferently: 'HOW SHOULD I DESCRIBE IT DIFFERENTLY?',
   },
   reflection: {
     thisIsYourDream: 'THIS IS YOUR DREAM',
@@ -419,6 +445,10 @@ export const en: Translations = {
     deleteConfirm: 'Delete',
     deleteInProgress: 'Deleting…',
     deleteFailed: "We couldn't delete this dream. Please try again.",
+    loading: 'Gathering your dreams…',
+    loadErrorTitle: 'We couldn’t load your dreams.',
+    loadErrorBody: 'This doesn’t mean they’re gone. Check your connection and try again.',
+    loadRetry: 'Try again',
     settingsDeleteHeading: 'Delete account',
     settingsDeleteBody:
       'Permanently delete your account and everything in it: your saved dreams and their images, your reflections and patterns, and any dream credits you have left. This cannot be undone.',
@@ -670,6 +700,12 @@ export const he: Translations = {
     tryAgain: 'ניסיון נוסף',
     editDream: 'עריכה',
   },
+  leaveDream: {
+    title: 'לעזוב את החלום?',
+    body: 'החלום הזה עדיין לא נשמר. אם תעזבו עכשיו, הוא יאבד, יחד עם התמונה וההתבוננות שלו.',
+    stay: 'להישאר',
+    leave: 'לעזוב בלי לשמור',
+  },
   reconstruction: {
     remembering: 'היזכרות…',
     couldntSeeAllOfIt: 'לא הצלחתי לראות את הכל.',
@@ -684,6 +720,11 @@ export const he: Translations = {
     regenFailed: 'לא הצלחתי ליצור תמונה חדשה הפעם. התמונה הנוכחית עדיין כאן.',
     regenRejected: 'לא הצלחתי להפוך את השינוי הזה לתמונה. נסו לנסח אותו אחרת — התמונה הנוכחית עדיין כאן.',
     regenLimit: 'החלום הזה הגיע למגבלת התמונות החדשות. אפשר להמשיך עם התמונה הקיימת.',
+    imageFailedRetry: 'לא הצלחתי ליצור את התמונה הפעם. החלום שלך עדיין כאן. נסו שוב.',
+    imageRejected: 'אי אפשר ליצור את התמונה כפי שתוארה. אפשר לתאר אותה קצת אחרת.',
+    imageExhausted: 'לחלום הזה נגמרו ניסיונות התמונה. אפשר להתחיל מחדש עם חלום חדש.',
+    rephrase: 'ניסוח מחדש',
+    howToDescribeDifferently: 'איך לתאר את זה אחרת?',
   },
   reflection: {
     thisIsYourDream: 'זהו החלום שלך',
@@ -738,6 +779,10 @@ export const he: Translations = {
     deleteConfirm: 'מחיקה',
     deleteInProgress: 'מוחק…',
     deleteFailed: 'לא הצלחנו למחוק את החלום. אפשר לנסות שוב.',
+    loading: 'אוספים את החלומות שלך…',
+    loadErrorTitle: 'לא הצלחנו לטעון את החלומות שלך.',
+    loadErrorBody: 'זה לא אומר שהם נעלמו. כדאי לבדוק את החיבור ולנסות שוב.',
+    loadRetry: 'נסו שוב',
     settingsDeleteHeading: 'מחיקת חשבון',
     settingsDeleteBody:
       'מחיקה לצמיתות של החשבון וכל מה שבו: החלומות ששמרתם והתמונות שלהם, ההרהורים והדפוסים, וכל קרדיט חלום שנשאר לכם. אי אפשר לבטל את הפעולה.',

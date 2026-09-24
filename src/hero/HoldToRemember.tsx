@@ -45,6 +45,8 @@ interface HoldToRememberProps {
   /** Re-runs analysis for the exact same captured dream — see
       HeroDream.tsx's retryAnalysis. */
   onRetryAnalysis?: () => void;
+  /** The exact text the failed analysis was run on. EDIT puts it back into the typing field so the dreamer never has to retype it. */
+  capturedDreamText?: string;
 }
 
 const FILL_MS = 800;
@@ -106,6 +108,7 @@ export default function HoldToRemember({
   reconstructing = false,
   analysisFailed = false,
   onRetryAnalysis,
+  capturedDreamText = '',
 }: HoldToRememberProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const ringRef = useRef<SVGCircleElement>(null);
@@ -825,7 +828,13 @@ export default function HoldToRemember({
                 className="central-back"
                 data-cursor-hover
                 tabIndex={centralMode === 'settled' ? 0 : -1}
-                onClick={() => setCentralMode('typing')}
+                onClick={() => {
+                  // handleDoneTyping cleared the field when the dream was submitted; put the exact
+                  // captured text back so EDIT resumes from it instead of an empty box.
+                  setEntry(capturedDreamText);
+                  onTypedTranscriptChange(capturedDreamText);
+                  setCentralMode('typing');
+                }}
               >
                 {t('hold.editDream')}
               </button>

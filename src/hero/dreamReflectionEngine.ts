@@ -1,7 +1,8 @@
 import { paidFetch } from '../auth/paidFetch';
 import type { DreamAnalysis } from './dreamAnalysisSchema';
 import { validateDreamReflectionResult, type ReflectionResult, type ReflectionErrorReason } from './dreamReflectionSchema';
-import { getAppLanguage } from './appLanguage';
+import { getAppLanguage, type AppLanguage } from './appLanguage';
+import { REFLECTION_TIMEOUT_MS } from './requestTimeouts';
 import { getAuthHeader } from '../auth/getAccessToken';
 
 const KNOWN_REASONS: ReflectionErrorReason[] = [
@@ -23,6 +24,8 @@ export interface DreamReflectionRequest {
       server can enforce the max-3 reflection limit against the right
       dream (see server/routes/dreamReflection.ts). */
   attemptId: string;
+  /** The journey's own language, fixed once generation began, so a UI language switch mid-journey cannot change it. Falls back to the current app language when omitted. */
+  language?: AppLanguage;
 }
 
 /**
@@ -34,11 +37,16 @@ export interface DreamReflectionRequest {
 export async function getDreamReflection(request: DreamReflectionRequest): Promise<ReflectionResult> {
   try {
     const authHeader = await getAuthHeader();
-    const res = await paidFetch('/api/dream-reflection', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeader },
-      body: JSON.stringify({ ...request, language: getAppLanguage() }),
-    });
+    // A timeout aborts and lands in the catch below as an ordinary request_failed (the existing retry UX).
+    const res = await paidFetch(
+      '/api/dream-reflection',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeader },
+        body: JSON.stringify({ ...request, language: request.language ?? getAppLanguage() }),
+      },
+      { timeoutMs: REFLECTION_TIMEOUT_MS },
+    );
 
     const data: unknown = await res.json().catch(() => null);
 

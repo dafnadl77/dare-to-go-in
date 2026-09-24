@@ -2,6 +2,7 @@ import { paidFetch } from '../auth/paidFetch';
 import { validateElementLabels, type ElementLabelsResult, type ElementLabelErrorReason } from './dreamElementLabelsSchema';
 import { getAppLanguage, type AppLanguage } from './appLanguage';
 import { getAuthHeader } from '../auth/getAccessToken';
+import { LABELS_TIMEOUT_MS } from './requestTimeouts';
 
 const KNOWN_REASONS: ElementLabelErrorReason[] = [
   'not_configured',
@@ -22,11 +23,16 @@ const KNOWN_REASONS: ElementLabelErrorReason[] = [
 export async function getElementLabelsInLanguage(sourceText: string, elements: string[], language: AppLanguage, attemptId?: string): Promise<ElementLabelsResult> {
   try {
     const authHeader = await getAuthHeader();
-    const res = await paidFetch('/api/dream-element-labels', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeader },
-      body: JSON.stringify({ sourceText, elements, language, attemptId }),
-    });
+    // A timeout aborts and lands in the catch below as request_failed: the caller falls back to the raw elements.
+    const res = await paidFetch(
+      '/api/dream-element-labels',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeader },
+        body: JSON.stringify({ sourceText, elements, language, attemptId }),
+      },
+      { timeoutMs: LABELS_TIMEOUT_MS },
+    );
 
     const data: unknown = await res.json().catch(() => null);
 
@@ -67,6 +73,11 @@ export async function getElementLabelsInLanguage(sourceText: string, elements: s
  * via HeroDream) keeps calling this one function unchanged; only this
  * function needs to know appLanguage exists at all.
  */
-export async function getDisplayLabels(sourceText: string, phrases: string[], attemptId?: string): Promise<ElementLabelsResult> {
-  return getElementLabelsInLanguage(sourceText, phrases, getAppLanguage(), attemptId);
+export async function getDisplayLabels(
+  sourceText: string,
+  phrases: string[],
+  attemptId?: string,
+  language: AppLanguage = getAppLanguage(),
+): Promise<ElementLabelsResult> {
+  return getElementLabelsInLanguage(sourceText, phrases, language, attemptId);
 }

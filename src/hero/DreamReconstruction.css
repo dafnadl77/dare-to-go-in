@@ -1090,3 +1090,12 @@
   opacity: 0.8;
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
 }
+
+/* First-image failure: the recovery actions sit together and wrap on narrow screens. */
+.dr-image-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.9rem 1.4rem;
+  margin-top: 1.2rem;
+}
