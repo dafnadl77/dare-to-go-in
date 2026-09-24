@@ -5,6 +5,7 @@ import { handleDreamImage } from './routes/dreamImage.js';
 import { handleDreamReflection } from './routes/dreamReflection.js';
 import { handleDreamElementLabels } from './routes/dreamElementLabels.js';
 import { handleDreamTranslation } from './routes/dreamTranslation.js';
+import { handlePatternReflection } from './routes/patternReflection.js';
 import { handleDreamTranscription } from './routes/dreamTranscription.js';
 import { handleClaimTrial } from './routes/claimTrial.js';
 import { handleTrialSession } from './routes/trialSession.js';
@@ -47,6 +48,10 @@ app.post('/api/dream-element-labels', async (req, res) => {
 
 app.post('/api/dream-translation', async (req, res) => {
   send(res, await handleDreamTranslation(req.body, requestHeaders(req)));
+});
+
+app.post('/api/pattern-reflection', async (req, res) => {
+  send(res, await handlePatternReflection(req.body, requestHeaders(req)));
 });
 
 app.post('/api/dream-transcription', async (req, res) => {

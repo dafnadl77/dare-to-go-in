@@ -136,6 +136,12 @@ export interface Translations {
     insightsMotifGoneTitle: string;
     insightsMotifGoneBody: string;
     insightsBackToOverview: string;
+    reflectionWhatStandsOut: string;
+    reflectionPossibleThread: string;
+    reflectionQuestion: string;
+    reflectionLoading: string;
+    reflectionUnavailable: string;
+    reflectionDreamCountNote: string;
     settingsSubtitle: string;
     settingsEmailLabel: string;
     settingsLanguageLabel: string;
@@ -402,6 +408,12 @@ export const en: Translations = {
     insightsMotifGoneTitle: "These dreams aren't available anymore",
     insightsMotifGoneBody: 'This motif no longer matches any saved dream.',
     insightsBackToOverview: '← Back to Insights',
+    reflectionWhatStandsOut: 'What stands out',
+    reflectionPossibleThread: 'A possible thread',
+    reflectionQuestion: 'A question worth keeping',
+    reflectionLoading: 'Looking for a thread across these dreams…',
+    reflectionUnavailable: "A reflection isn't available for this pattern right now.",
+    reflectionDreamCountNote: 'Based on the {n} most recent of {total} dreams.',
     settingsSubtitle: 'Your account.',
     settingsEmailLabel: 'Signed in as',
     settingsLanguageLabel: 'Language',
@@ -693,6 +705,12 @@ export const he: Translations = {
     insightsMotifGoneTitle: 'החלומות האלה כבר לא זמינים',
     insightsMotifGoneBody: 'הנושא הזה כבר לא תואם אף חלום שמור.',
     insightsBackToOverview: 'חזרה לתובנות →',
+    reflectionWhatStandsOut: 'מה בולט',
+    reflectionPossibleThread: 'כיוון שכדאי לחקור',
+    reflectionQuestion: 'שאלה שכדאי לשמור',
+    reflectionLoading: 'מחפשים חוט מקשר בין החלומות…',
+    reflectionUnavailable: 'השתקפות לא זמינה כרגע עבור הדפוס הזה.',
+    reflectionDreamCountNote: 'בהתבסס על {n} מתוך {total} החלומות האחרונים.',
     settingsSubtitle: 'החשבון שלכם.',
     settingsEmailLabel: 'מחוברים בתור',
     settingsLanguageLabel: 'שפה',

@@ -16,7 +16,11 @@ import { useTranslatedCards } from './dreamTitleTranslation';
 import DreamTimeline from './DreamTimeline';
 import DeleteDreamDialog from './DeleteDreamDialog';
 import LocalDreamImportPrompt from './LocalDreamImportPrompt';
-import { conceptLabel } from '../hero/conceptTaxonomy';
+import { conceptLabel, CONCEPT_TAXONOMY_VERSION } from '../hero/conceptTaxonomy';
+import { buildDreamIdsKey } from './patternReflectionInput';
+import { getCachedPatternReflection } from './patternReflectionCache';
+import { fetchPatternReflection } from './patternReflectionEngine';
+import type { PatternReflectionResult } from './patternReflectionSchema';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
 import AppFooter from '../legal/AppFooter';
@@ -153,6 +157,79 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
     () => (openMotif ? entries.filter((e) => e.kind === 'real' && motifDreamIds.has(e.id)) : []),
     [entries, openMotif, motifDreamIds],
   );
+
+  // Pattern Reflection — ONLY for a semantic-concept row (openMotif.conceptId
+  // set; literal motifs never trigger this, see the approved v1 scope) and
+  // ONLY while the dreamer has this exact pattern explicitly open. Never
+  // runs on Insights page load, never for every recurring concept at once.
+  // Cache-first: a direct, RLS-protected read (patternReflectionCache.ts) is
+  // tried before ever calling the AI backend (patternReflectionEngine.ts),
+  // keyed on the exact relevant dream-id set (buildDreamIdsKey) + concept
+  // version + current UI language, so reopening the same pattern in the
+  // same language never re-generates. `cancelled` discards a stale response
+  // if the dreamer closes this pattern, opens another, or switches language
+  // mid-request — the same guard style as the two effects above.
+  //
+  // The effect's OWN dependencies are deliberately plain primitives
+  // (conceptId/dreamIdsKey/dreamCount strings+numbers, userId string), never
+  // `openMotif`/`user` by object reference: a real live-testing pass found
+  // that depending on those objects directly re-ran this effect roughly
+  // every ~1.5s indefinitely (each run's own setState-triggered re-render
+  // was enough to observe a "new" `openMotif`/`user` reference from
+  // upstream state on every pass), silently re-querying the cache in a
+  // loop. Deriving stable primitives up front and depending on those
+  // instead makes the effect run exactly once per actual change, matching
+  // every other data-fetching effect's real intent.
+  const openConceptId = openMotif?.conceptId ?? null;
+  const openDreamIdsKey = useMemo(() => (openMotif ? buildDreamIdsKey(openMotif.dreams.map((d) => d.id)) : null), [openMotif]);
+  const openDreamCount = openMotif?.dreams.length ?? 0;
+  const userId = user?.id ?? null;
+
+  type PatternReflectionState =
+    | { status: 'idle' }
+    | { status: 'loading' }
+    | { status: 'ok'; reflection: PatternReflectionResult; totalDreamCount: number; synthesizedDreamCount: number }
+    | { status: 'error' };
+  const [patternReflection, setPatternReflection] = useState<PatternReflectionState>({ status: 'idle' });
+  useEffect(() => {
+    if (!openConceptId || !userId || openDreamCount < 2 || !openDreamIdsKey) {
+      setPatternReflection({ status: 'idle' });
+      return;
+    }
+    const conceptId = openConceptId;
+    const dreamIdsKey = openDreamIdsKey;
+    // openMotif itself is intentionally NOT a dependency (see the comment
+    // above) — it's only read here for its current dream ids, which
+    // openDreamIdsKey already guarantees are in sync with this exact run.
+    const dreamIds = openMotif?.dreams.map((d) => d.id) ?? [];
+    let cancelled = false;
+    setPatternReflection({ status: 'loading' });
+    (async () => {
+      const cached = await getCachedPatternReflection({
+        ownerId: userId,
+        conceptId,
+        conceptVersion: CONCEPT_TAXONOMY_VERSION,
+        dreamIdsKey,
+        language,
+      });
+      if (cancelled) return;
+      if (cached) {
+        setPatternReflection({ status: 'ok', reflection: cached.reflection, totalDreamCount: cached.totalDreamCount, synthesizedDreamCount: cached.synthesizedDreamCount });
+        return;
+      }
+      const result = await fetchPatternReflection(conceptId, dreamIds, language);
+      if (cancelled) return;
+      if (result.status === 'ok') {
+        setPatternReflection({ status: 'ok', reflection: result.reflection, totalDreamCount: result.totalDreamCount, synthesizedDreamCount: result.synthesizedDreamCount });
+      } else {
+        setPatternReflection({ status: 'error' });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openConceptId, openDreamIdsKey, openDreamCount, userId, language]);
 
   // DISPLAY-ONLY localization for motif labels — never touches
   // getRecurringMotifs' own matching/counting (that stays keyed on the
@@ -446,6 +523,35 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
               <p className="ar-subtitle">
                 {t('archive.insightsAppearsInDreams').replace('{count}', String(openMotif.count))}
               </p>
+              {openMotif.conceptId && (
+                <div className="ar-reflection">
+                  {patternReflection.status === 'loading' && <p className="ar-reflection-loading">{t('archive.reflectionLoading')}</p>}
+                  {patternReflection.status === 'error' && <p className="ar-reflection-error">{t('archive.reflectionUnavailable')}</p>}
+                  {patternReflection.status === 'ok' && (
+                    <>
+                      <div className="ar-reflection-section">
+                        <p className="ar-reflection-label">{t('archive.reflectionWhatStandsOut')}</p>
+                        <p className="ar-reflection-text">{patternReflection.reflection.whatStandsOut}</p>
+                      </div>
+                      <div className="ar-reflection-section">
+                        <p className="ar-reflection-label">{t('archive.reflectionPossibleThread')}</p>
+                        <p className="ar-reflection-text">{patternReflection.reflection.possibleThread}</p>
+                      </div>
+                      <div className="ar-reflection-section">
+                        <p className="ar-reflection-label">{t('archive.reflectionQuestion')}</p>
+                        <p className="ar-reflection-text">{patternReflection.reflection.question}</p>
+                      </div>
+                      {patternReflection.synthesizedDreamCount < patternReflection.totalDreamCount && (
+                        <p className="ar-reflection-note">
+                          {t('archive.reflectionDreamCountNote')
+                            .replace('{n}', String(patternReflection.synthesizedDreamCount))
+                            .replace('{total}', String(patternReflection.totalDreamCount))}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
               {motifEntries.length === 0 ? (
                 <div className="ar-empty-state">
                   <p className="ar-empty-title">{t('archive.insightsMotifGoneTitle')}</p>
