@@ -15,6 +15,8 @@ import { translateTexts } from './dreamTranslationEngine';
 import { useTranslatedCards } from './dreamTitleTranslation';
 import DreamTimeline from './DreamTimeline';
 import DeleteDreamDialog from './DeleteDreamDialog';
+import DeleteAccountDialog from './DeleteAccountDialog';
+import { requestAccountDeletion, finishAccountDeletionLocally } from '../auth/deleteAccount';
 import LocalDreamImportPrompt from './LocalDreamImportPrompt';
 import { conceptLabel, CONCEPT_TAXONOMY_VERSION } from '../hero/conceptTaxonomy';
 import { buildDreamIdsKey } from './patternReflectionInput';
@@ -330,6 +332,32 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
   const [deleting, setDeleting] = useState(false);
   const [deleteFailed, setDeleteFailed] = useState(false);
   const deleteInFlight = useRef(false);
+
+  // PERMANENT ACCOUNT DELETION (Settings -> DeleteAccountDialog). Everything real
+  // happens on the server (POST /api/delete-account: ordered deletion, Auth user
+  // last). Only after the server confirms does the client clear local state, drop
+  // its session and reload onto the public home screen; on any failure the account
+  // is untouched as far as this UI knows, and the dialog offers a retry.
+  const [accountDialogOpen, setAccountDialogOpen] = useState(false);
+  const [accountDeleting, setAccountDeleting] = useState(false);
+  const [accountDeleteFailed, setAccountDeleteFailed] = useState(false);
+  const accountDeleteInFlight = useRef(false);
+
+  const handleConfirmAccountDeletion = async (confirmation: string) => {
+    if (accountDeleteInFlight.current) return;
+    accountDeleteInFlight.current = true;
+    setAccountDeleting(true);
+    setAccountDeleteFailed(false);
+    const result = await requestAccountDeletion(confirmation);
+    if (!result.ok) {
+      accountDeleteInFlight.current = false;
+      setAccountDeleting(false);
+      setAccountDeleteFailed(true);
+      return;
+    }
+    // Stays busy on purpose: the page reloads to the public home screen.
+    await finishAccountDeletionLocally();
+  };
 
   const handleRequestDelete = (entry: ArchiveEntry) => {
     if (entry.kind !== 'real') return;
@@ -696,12 +724,39 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
               <button type="button" className="ar-settings-signout btn btn-secondary" data-cursor-hover onClick={() => signOut()}>
                 {t('auth.signOut')}
               </button>
+
+              <section className="ar-settings-danger" aria-labelledby="ar-danger-heading">
+                <h2 id="ar-danger-heading" className="ar-settings-danger-heading">
+                  {t('archive.settingsDeleteHeading')}
+                </h2>
+                <p className="ar-settings-danger-body">{t('archive.settingsDeleteBody')}</p>
+                <button
+                  type="button"
+                  className="ar-settings-danger-btn btn"
+                  data-cursor-hover
+                  onClick={() => {
+                    setAccountDeleteFailed(false);
+                    setAccountDialogOpen(true);
+                  }}
+                >
+                  {t('archive.settingsDeleteButton')}
+                </button>
+              </section>
             </div>
           )}
         </main>
       </div>
 
       <AppFooter onNavigate={onOpenLegal} />
+
+      {accountDialogOpen && (
+        <DeleteAccountDialog
+          busy={accountDeleting}
+          failed={accountDeleteFailed}
+          onCancel={() => setAccountDialogOpen(false)}
+          onConfirm={handleConfirmAccountDeletion}
+        />
+      )}
 
       {deleteTarget && (
         <DeleteDreamDialog busy={deleting} failed={deleteFailed} onCancel={() => setDeleteTarget(null)} onConfirm={handleConfirmDelete} />

@@ -127,6 +127,15 @@ export interface Translations {
     deleteConfirm: string;
     deleteInProgress: string;
     deleteFailed: string;
+    settingsDeleteHeading: string;
+    settingsDeleteBody: string;
+    settingsDeleteButton: string;
+    deleteAccountTitle: string;
+    deleteAccountBody: string;
+    deleteAccountTypePrompt: string;
+    deleteAccountInputLabel: string;
+    deleteAccountConfirm: string;
+    deleteAccountFailed: string;
     emptyFavoritesTitle: string;
     emptyFavoritesBody: string;
     emptyAllDreamsTitle: string;
@@ -410,6 +419,17 @@ export const en: Translations = {
     deleteConfirm: 'Delete',
     deleteInProgress: 'Deleting…',
     deleteFailed: "We couldn't delete this dream. Please try again.",
+    settingsDeleteHeading: 'Delete account',
+    settingsDeleteBody:
+      'Permanently delete your account and everything in it: your saved dreams and their images, your reflections and patterns, and any dream credits you have left. This cannot be undone.',
+    settingsDeleteButton: 'Delete my account',
+    deleteAccountTitle: 'Delete your account permanently?',
+    deleteAccountBody:
+      'This permanently deletes your account, all your saved dreams and their images, your reflections and patterns, and any unused dream credits. It cannot be undone or recovered.',
+    deleteAccountTypePrompt: 'To confirm, type:',
+    deleteAccountInputLabel: 'Type the confirmation word',
+    deleteAccountConfirm: 'Delete permanently',
+    deleteAccountFailed: 'Your account could not be fully deleted. Nothing was reported as deleted. Please try again.',
     emptyFavoritesTitle: 'No favorites yet',
     emptyFavoritesBody: 'Mark a dream as a favorite to see it here.',
     emptyAllDreamsTitle: 'No dreams saved yet',
@@ -718,6 +738,17 @@ export const he: Translations = {
     deleteConfirm: 'מחיקה',
     deleteInProgress: 'מוחק…',
     deleteFailed: 'לא הצלחנו למחוק את החלום. אפשר לנסות שוב.',
+    settingsDeleteHeading: 'מחיקת חשבון',
+    settingsDeleteBody:
+      'מחיקה לצמיתות של החשבון וכל מה שבו: החלומות ששמרתם והתמונות שלהם, ההרהורים והדפוסים, וכל קרדיט חלום שנשאר לכם. אי אפשר לבטל את הפעולה.',
+    settingsDeleteButton: 'מחיקת החשבון שלי',
+    deleteAccountTitle: 'למחוק את החשבון לצמיתות?',
+    deleteAccountBody:
+      'הפעולה מוחקת לצמיתות את החשבון, את כל החלומות השמורים והתמונות שלהם, את ההרהורים והדפוסים, ואת כל קרדיט חלום שלא נוצל. אי אפשר לבטל או לשחזר.',
+    deleteAccountTypePrompt: 'כדי לאשר, הקלידו:',
+    deleteAccountInputLabel: 'הקלידו את מילת האישור',
+    deleteAccountConfirm: 'מחיקה לצמיתות',
+    deleteAccountFailed: 'לא הצלחנו למחוק את החשבון במלואו. לא דווח על מחיקה. אפשר לנסות שוב.',
     emptyFavoritesTitle: 'אין עדיין מועדפים',
     emptyFavoritesBody: 'סמנו חלום כמועדף כדי לראות אותו כאן.',
     emptyAllDreamsTitle: 'עדיין לא נשמרו חלומות',

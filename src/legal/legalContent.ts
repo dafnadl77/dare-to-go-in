@@ -71,7 +71,7 @@ const en: LegalContent = {
       },
       {
         heading: 'Your choices',
-        body: 'You can sign out at any time from your archive. To request deletion or an export of your account and dream data, use the contact details below — DARE does not yet have a fully self-service deletion/export tool built in, but will honor reasonable requests manually while that is being built.',
+        body: 'You can sign out at any time from your archive. You can also permanently delete your account yourself: in Settings, choose "Delete account" and confirm. This removes your account, all your saved dreams and their images, your reflections and patterns, and any unused dream credits from DARE\'s live database and storage, and it cannot be undone. A minimal record that the free first dream has already been used from a given browser is kept without any link to you, so that the one-free-dream limit cannot be bypassed by deleting an account; payment records, if any, are kept only without a link to your account. To request an export of your data, or if you cannot use Settings, use the contact details below.',
       },
       {
         heading: 'We do not sell your data',
@@ -121,7 +121,7 @@ const en: LegalContent = {
       },
       {
         heading: 'Contact us about accessibility',
-        body: 'If you hit a real barrier using DARE, or have a suggestion, please tell us at dafnadl77@gmail.com — genuine reports directly shape what gets fixed next.',
+        body: 'If you hit a real barrier using DARE, or have a suggestion, please tell us at daretogoin@gmail.com — genuine reports directly shape what gets fixed next.',
       },
     ],
     draftNotice:
@@ -171,7 +171,7 @@ const en: LegalContent = {
       },
       {
         heading: 'Contact',
-        body: 'Questions about these terms can be sent to dafnadl77@gmail.com.',
+        body: 'Questions about these terms can be sent to daretogoin@gmail.com.',
       },
     ],
     draftNotice:
@@ -212,7 +212,7 @@ const he: LegalContent = {
       },
       {
         heading: 'הבחירות שלכם',
-        body: 'ניתן להתנתק בכל עת מהארכיון. כדי לבקש מחיקה או ייצוא של החשבון ונתוני החלומות, יש להשתמש בפרטי הקשר למטה — עדיין אין ל-DARE כלי מחיקה/ייצוא עצמאי מלא, אך בקשות סבירות יטופלו באופן ידני בזמן שהכלי בפיתוח.',
+        body: 'ניתן להתנתק בכל עת מהארכיון. אפשר גם למחוק את החשבון בעצמכם לצמיתות: בהגדרות בוחרים ב"מחיקת חשבון" ומאשרים. הפעולה מסירה ממסד הנתונים ומהאחסון החיים של DARE את החשבון, את כל החלומות השמורים והתמונות שלהם, את ההרהורים והדפוסים ואת כל קרדיט חלום שלא נוצל, ואי אפשר לבטל אותה. נשמר רישום מינימלי, ללא כל קישור אליכם, על כך שהחלום הראשון החינמי כבר נוצל מדפדפן מסוים, כדי שלא יהיה אפשר לעקוף את מגבלת החלום החינמי באמצעות מחיקת חשבון; רישומי תשלום, אם יהיו, יישמרו רק ללא קישור לחשבון. לבקשת ייצוא של המידע, או אם אי אפשר להשתמש בהגדרות, יש להשתמש בפרטי הקשר למטה.',
       },
       {
         heading: 'אין מכירת מידע',
@@ -262,7 +262,7 @@ const he: LegalContent = {
       },
       {
         heading: 'יצירת קשר בנושא נגישות',
-        body: 'אם נתקלתם במחסום אמיתי בשימוש ב-DARE, או שיש לכם הצעה, אנא ספרו לנו ב-dafnadl77@gmail.com — דיווחים אמיתיים משפיעים ישירות על מה שמתוקן הלאה.',
+        body: 'אם נתקלתם במחסום אמיתי בשימוש ב-DARE, או שיש לכם הצעה, אנא ספרו לנו ב-daretogoin@gmail.com — דיווחים אמיתיים משפיעים ישירות על מה שמתוקן הלאה.',
       },
     ],
     draftNotice: 'הצהרה זו משקפת מצב כן ומתמשך, לא ביקורת שהושלמה או הוסמכה. בדיקת הנגישות באפליקציה נמשכת.',
@@ -311,7 +311,7 @@ const he: LegalContent = {
       },
       {
         heading: 'יצירת קשר',
-        body: 'שאלות לגבי תנאים אלו ניתן לשלוח אל dafnadl77@gmail.com.',
+        body: 'שאלות לגבי תנאים אלו ניתן לשלוח אל daretogoin@gmail.com.',
       },
     ],
     draftNotice:

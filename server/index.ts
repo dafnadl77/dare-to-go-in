@@ -9,6 +9,7 @@ import { handlePatternReflection } from './routes/patternReflection.js';
 import { handleDreamTranscription } from './routes/dreamTranscription.js';
 import { handleClaimTrial } from './routes/claimTrial.js';
 import { handleCredits } from './routes/credits.js';
+import { handleDeleteAccount } from './routes/deleteAccount.js';
 import { handleTrialSession } from './routes/trialSession.js';
 import type { HandlerResult } from './httpResult.js';
 import type { RequestHeaders } from './callerIdentity.js';
@@ -61,6 +62,10 @@ app.post('/api/dream-transcription', async (req, res) => {
 
 app.post('/api/trial-session', async (req, res) => {
   send(res, await handleTrialSession(requestHeaders(req)));
+});
+
+app.post('/api/delete-account', async (req, res) => {
+  send(res, await handleDeleteAccount(req.body, requestHeaders(req)));
 });
 
 app.get('/api/credits', async (req, res) => {
