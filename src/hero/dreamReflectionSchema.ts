@@ -1,5 +1,6 @@
 import type { AppLanguage } from './appLanguage.js';
 import { buildLanguageIntegrityInstruction } from './languageIntegrity.js';
+import { buildHebrewAddressInstruction, type AddressPreference } from './addressPreference.js';
 
 /**
  * A single grounded reflection on one real dream — never dream-dictionary
@@ -65,8 +66,14 @@ export function getGroundingStatement(language: AppLanguage): string {
  * dream-dictionary meanings, never diagnosis, never therapy, never
  * "symbol X always means Y") is untouched, byte-identical to before this
  * function existed, for the 'en' case.
+ *
+ * `addressPreference` (see addressPreference.ts) only matters for Hebrew —
+ * English second-person address has no grammatical gender. This is the
+ * SAME persisted preference and helper Pattern Reflection uses; grammatical-
+ * address consistency only, no change to this reflection's own meaning or
+ * structure.
  */
-export function buildDreamReflectionSystemPrompt(language: AppLanguage): string {
+export function buildDreamReflectionSystemPrompt(language: AppLanguage, addressPreference: AddressPreference): string {
   const languageParagraph =
     language === 'he'
       ? 'Language: always write your entire response — every field — in natural, fluent Hebrew, regardless of what language the dream was described in, what language the dreamer\'s own words are in, or what language the selected element\'s label is in. The dream itself and the dreamer\'s original words are never translated in storage, only your reflection output is always Hebrew.'
@@ -108,6 +115,8 @@ Build the reflection from exactly these layers:
    If a lens genuinely doesn't apply, set it to null rather than forcing one in. Do not use NLP framing. Do not use CBT as a dream-symbol interpretation framework — CBT belongs to later coping/action work for recurring nightmares, never to "what this dream means."
 
 ${languageParagraph}
+
+${language === 'he' ? buildHebrewAddressInstruction(addressPreference) : ''}
 
 ${buildLanguageIntegrityInstruction(language)}
 

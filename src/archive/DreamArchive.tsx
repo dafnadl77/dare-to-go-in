@@ -20,7 +20,8 @@ import { conceptLabel, CONCEPT_TAXONOMY_VERSION } from '../hero/conceptTaxonomy'
 import { buildDreamIdsKey } from './patternReflectionInput';
 import { getCachedPatternReflection } from './patternReflectionCache';
 import { fetchPatternReflection } from './patternReflectionEngine';
-import type { PatternReflectionResult } from './patternReflectionSchema';
+import { PATTERN_REFLECTION_PROMPT_VERSION, type PatternReflectionResult } from './patternReflectionSchema';
+import { addressPreferenceOfUser, type AddressPreference } from '../hero/addressPreference';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
 import AppFooter from '../legal/AppFooter';
@@ -42,6 +43,15 @@ function motifLabelNeedsLocalization(label: string, language: 'en' | 'he'): bool
   const hasHebrew = containsHebrew(label);
   return language === 'he' ? !hasHebrew : hasHebrew;
 }
+
+/** The three Settings options, in display order, each paired with its own
+    translation key — see translations.ts's own archive.settingsAddress*
+    keys. */
+const ADDRESS_PREFERENCE_OPTIONS: { value: AddressPreference; labelKey: string }[] = [
+  { value: 'feminine', labelKey: 'archive.settingsAddressFeminine' },
+  { value: 'masculine', labelKey: 'archive.settingsAddressMasculine' },
+  { value: 'neutral', labelKey: 'archive.settingsAddressNeutral' },
+];
 
 interface DreamArchiveProps {
   onBack: () => void;
@@ -76,7 +86,7 @@ interface DreamArchiveProps {
  */
 export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: DreamArchiveProps) {
   const { t, language, setLanguage } = useLanguage();
-  const { user, signOut } = useAuth();
+  const { user, signOut, updateAddressPreference } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     bgVideoRef.current?.play().catch(() => {});
@@ -113,6 +123,18 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
       const existingIds = new Set(prev.map((d) => d.id));
       return [...prev, ...imported.filter((d) => !existingIds.has(d.id))];
     });
+  };
+
+  // The dreamer's own real, stored choice (never the English-forced value
+  // used for Pattern Reflection's cache key above) — Settings always shows
+  // what is actually saved, regardless of which UI language is active.
+  const addressPreference = addressPreferenceOfUser(user);
+  const [addressPrefStatus, setAddressPrefStatus] = useState<'idle' | 'saving' | 'error'>('idle');
+  const handleAddressPreferenceChange = async (preference: AddressPreference) => {
+    if (preference === addressPreference || addressPrefStatus === 'saving') return;
+    setAddressPrefStatus('saving');
+    const result = await updateAddressPreference(preference);
+    setAddressPrefStatus(result.ok ? 'idle' : 'error');
   };
 
   // Set only while viewing one recurring motif's own filtered dream list
@@ -184,6 +206,15 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
   const openDreamIdsKey = useMemo(() => (openMotif ? buildDreamIdsKey(openMotif.dreams.map((d) => d.id)) : null), [openMotif]);
   const openDreamCount = openMotif?.dreams.length ?? 0;
   const userId = user?.id ?? null;
+  // English address has no grammatical gender, so this is force-normalized
+  // to 'neutral' for English regardless of the dreamer's actual choice —
+  // the SAME rule server-side (see patternReflectionCore.ts) — so this
+  // preference never fragments the English cache or changes a switch
+  // between languages into an unnecessary regeneration. Changing it WHILE
+  // viewing Hebrew, though, must invalidate the cache (see the dependency
+  // array below) so an old reflection generated under a different
+  // preference is never left showing.
+  const cacheAddressPreference: AddressPreference = language === 'he' ? addressPreferenceOfUser(user) : 'neutral';
 
   type PatternReflectionState =
     | { status: 'idle' }
@@ -209,6 +240,8 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
         ownerId: userId,
         conceptId,
         conceptVersion: CONCEPT_TAXONOMY_VERSION,
+        promptVersion: PATTERN_REFLECTION_PROMPT_VERSION,
+        addressPreference: cacheAddressPreference,
         dreamIdsKey,
         language,
       });
@@ -229,7 +262,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openConceptId, openDreamIdsKey, openDreamCount, userId, language]);
+  }, [openConceptId, openDreamIdsKey, openDreamCount, userId, language, cacheAddressPreference]);
 
   // DISPLAY-ONLY localization for motif labels — never touches
   // getRecurringMotifs' own matching/counting (that stays keyed on the
@@ -530,12 +563,16 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
                   {patternReflection.status === 'ok' && (
                     <>
                       <div className="ar-reflection-section">
-                        <p className="ar-reflection-label">{t('archive.reflectionWhatStandsOut')}</p>
-                        <p className="ar-reflection-text">{patternReflection.reflection.whatStandsOut}</p>
+                        <p className="ar-reflection-label">{t('archive.reflectionWhatRepeats')}</p>
+                        <p className="ar-reflection-text">{patternReflection.reflection.whatRepeats}</p>
                       </div>
                       <div className="ar-reflection-section">
-                        <p className="ar-reflection-label">{t('archive.reflectionPossibleThread')}</p>
-                        <p className="ar-reflection-text">{patternReflection.reflection.possibleThread}</p>
+                        <p className="ar-reflection-label">{t('archive.reflectionPossibleConnection')}</p>
+                        <p className="ar-reflection-text">{patternReflection.reflection.possibleConnection}</p>
+                      </div>
+                      <div className="ar-reflection-section">
+                        <p className="ar-reflection-label">{t('archive.reflectionDirectionToExplore')}</p>
+                        <p className="ar-reflection-text">{patternReflection.reflection.directionToExplore}</p>
                       </div>
                       <div className="ar-reflection-section">
                         <p className="ar-reflection-label">{t('archive.reflectionQuestion')}</p>
@@ -639,6 +676,23 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
                   </button>
                 </div>
               </div>
+              <div className="ar-settings-row">
+                <span className="ar-settings-label">{t('archive.settingsAddressLabel')}</span>
+                <div className="ar-settings-address-buttons">
+                  {ADDRESS_PREFERENCE_OPTIONS.map(({ value, labelKey }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className={`ar-settings-address-btn${addressPreference === value ? ' ar-settings-address-btn--active' : ''}`}
+                      disabled={addressPrefStatus === 'saving'}
+                      onClick={() => handleAddressPreferenceChange(value)}
+                    >
+                      {t(labelKey)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {addressPrefStatus === 'error' && <p className="ar-settings-address-error">{t('archive.settingsAddressError')}</p>}
               <button type="button" className="ar-settings-signout btn btn-secondary" data-cursor-hover onClick={() => signOut()}>
                 {t('auth.signOut')}
               </button>

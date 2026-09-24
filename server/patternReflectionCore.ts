@@ -2,7 +2,8 @@ import type { AppLanguage } from '../src/hero/appLanguage.js';
 import { isConceptId, conceptsOfDream, CONCEPT_TAXONOMY_VERSION, type ConceptId } from '../src/hero/conceptTaxonomy.js';
 import { buildDreamIdsKey, selectDreamsForSynthesis, MAX_SYNTHESIS_DREAMS } from '../src/archive/patternReflectionInput.js';
 import type { DreamAnalysis } from '../src/hero/dreamAnalysisSchema.js';
-import type { PatternReflectionResult } from '../src/archive/patternReflectionSchema.js';
+import { PATTERN_REFLECTION_PROMPT_VERSION, type PatternReflectionResult } from '../src/archive/patternReflectionSchema.js';
+import { normalizeAddressPreference, type AddressPreference } from '../src/hero/addressPreference.js';
 
 /**
  * The orchestration core of Pattern Reflection — pure aside from the
@@ -35,6 +36,18 @@ export interface PatternReflectionCacheKey {
   ownerId: string;
   conceptId: ConceptId;
   conceptVersion: number;
+  /** Round 2: the reflection prompt/schema's own version (see
+      patternReflectionSchema.ts) — part of the identity so a structurally
+      incompatible row from an older prompt version is never misread as
+      the current shape. Bumping this is what safely orphans old rows
+      without ever deleting them. */
+  promptVersion: number;
+  /** Round 2: the Hebrew grammatical-address preference this reflection
+      was generated under (see addressPreference.ts). Always normalized to
+      'neutral' for English by the caller BEFORE this key is built — see
+      routes/patternReflection.ts — so switching this preference never
+      creates a redundant English cache entry or affects English output. */
+  addressPreference: AddressPreference;
   /** The exact, sorted relevant dream-id set `dreamIdsKey` was built from —
       carried alongside it (rather than re-derived by splitting the key
       string) so persistReflection always has the real array to write to
@@ -69,6 +82,7 @@ export interface PatternReflectionDeps {
     totalDreamCount: number;
     conceptId: ConceptId;
     language: AppLanguage;
+    addressPreference: AddressPreference;
   }): Promise<GenerateOutcome>;
   persistReflection(
     key: PatternReflectionCacheKey,
@@ -90,6 +104,12 @@ export interface PatternReflectionRequest {
   conceptId: unknown;
   dreamIds: unknown;
   language: unknown;
+  /** The caller's raw stored preference (see addressPreference.ts) —
+      normalized here, and forced to 'neutral' for English regardless of
+      what the dreamer actually chose, since English address has no
+      grammatical gender and must never fragment the English cache or
+      change English output based on this setting. */
+  addressPreference: unknown;
 }
 
 export async function runPatternReflection(request: PatternReflectionRequest, deps: PatternReflectionDeps): Promise<PatternReflectionOutcome> {
@@ -98,6 +118,7 @@ export async function runPatternReflection(request: PatternReflectionRequest, de
   }
   const conceptId = request.conceptId;
   const language: AppLanguage = request.language === 'he' ? 'he' : 'en';
+  const addressPreference: AddressPreference = language === 'he' ? normalizeAddressPreference(request.addressPreference) : 'neutral';
 
   const requestedIds = Array.isArray(request.dreamIds)
     ? request.dreamIds.filter((d): d is string => typeof d === 'string' && d.trim().length > 0)
@@ -131,6 +152,8 @@ export async function runPatternReflection(request: PatternReflectionRequest, de
     ownerId: request.ownerId,
     conceptId,
     conceptVersion: CONCEPT_TAXONOMY_VERSION,
+    promptVersion: PATTERN_REFLECTION_PROMPT_VERSION,
+    addressPreference,
     dreamIds: sortedDreamIds,
     dreamIdsKey,
     language,
@@ -144,7 +167,7 @@ export async function runPatternReflection(request: PatternReflectionRequest, de
   const totalDreamCount = verified.length;
   const synthesized = selectDreamsForSynthesis(verified, MAX_SYNTHESIS_DREAMS);
 
-  const generated = await deps.generateReflection({ dreams: synthesized, totalDreamCount, conceptId, language });
+  const generated = await deps.generateReflection({ dreams: synthesized, totalDreamCount, conceptId, language, addressPreference });
   if (generated.status !== 'ok') {
     return { status: 'generation_failed', reason: generated.status };
   }

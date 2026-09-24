@@ -14,6 +14,8 @@ import {
   type PatternReflectionResult,
 } from '../../src/archive/patternReflectionSchema.js';
 import { buildPatternReflectionInput, type DreamEvidence } from '../../src/archive/patternReflectionInput.js';
+import { findReflectionProblems, buildReflectionRepairNote } from '../../src/archive/patternReflectionQuality.js';
+import { normalizeAddressPreference } from '../../src/hero/addressPreference.js';
 import { runPatternReflection, type OwnedDreamForReflection, type PatternReflectionDeps } from '../patternReflectionCore.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
@@ -75,6 +77,15 @@ export async function handlePatternReflection(rawBody: unknown, requestHeaders: 
     return errorResult(503, 'not_configured', 'The Pattern Reflection backend is missing OPENAI_API_KEY.');
   }
 
+  // The dreamer's own explicit, optional address preference (see
+  // addressPreference.ts) — read from the SAME verified user record this
+  // route already has via its own scoped client, never a second table and
+  // never inferred from anything else. Missing/invalid normalizes to
+  // 'neutral' (normalizeAddressPreference's own default), exactly matching
+  // "existing users who never chose one use Neutral."
+  const { data: userData } = await scoped.auth.getUser();
+  const addressPreference = normalizeAddressPreference(userData.user?.user_metadata?.addressPreference);
+
   const body = (rawBody ?? {}) as { conceptId?: unknown; dreamIds?: unknown; language?: unknown };
   const requestedIds = Array.isArray(body.dreamIds) ? body.dreamIds.filter((d): d is string => typeof d === 'string').slice(0, MAX_REQUESTED_DREAM_IDS) : [];
 
@@ -101,6 +112,8 @@ export async function handlePatternReflection(rawBody: unknown, requestHeaders: 
         .eq('owner_id', key.ownerId)
         .eq('concept_id', key.conceptId)
         .eq('concept_version', key.conceptVersion)
+        .eq('prompt_version', key.promptVersion)
+        .eq('address_preference', key.addressPreference)
         .eq('dream_ids_key', key.dreamIdsKey)
         .eq('language', key.language)
         .maybeSingle();
@@ -112,7 +125,7 @@ export async function handlePatternReflection(rawBody: unknown, requestHeaders: 
       };
     },
 
-    async generateReflection({ dreams, totalDreamCount, conceptId, language }) {
+    async generateReflection({ dreams, totalDreamCount, conceptId, language, addressPreference: pref }) {
       const concept = CONCEPTS[conceptId as ConceptId];
       const evidence: DreamEvidence[] = dreams.map((d) => ({
         id: d.id,
@@ -125,29 +138,59 @@ export async function handlePatternReflection(rawBody: unknown, requestHeaders: 
       }));
       const input = buildPatternReflectionInput({ label: concept.en, definition: concept.definition }, evidence, totalDreamCount);
       const dreamerText = evidence.map((e) => [e.sourceText, e.selectedElement, e.observation].join('\n')).join('\n');
-      const instructions = buildPatternReflectionSystemPrompt(language);
+      const instructions = buildPatternReflectionSystemPrompt(language, pref);
 
+      // Deterministic quality gate (see patternReflectionQuality.ts) —
+      // mirrors dreamElementLabels.ts's own one-repair-pass shape exactly:
+      // the repair happens INSIDE this produce callback (so it doesn't
+      // consume one of runWithLanguageIntegrity's own script-intrusion
+      // attempts), and a result that's STILL structurally malformed after
+      // one repair pass is reported as unusable (null) rather than ever
+      // being returned — that in turn makes the OUTER language-integrity
+      // loop retry the whole generation again (up to its own bound), and a
+      // final same check runs again just below after this returns, so a
+      // malformed reflection can never silently reach persistence.
       const outcome = await runWithLanguageIntegrity(
         async (retryNote) => {
-          const response = await client.responses.create({
-            model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
-            instructions: instructions + retryNote,
-            input,
-            text: {
-              format: { type: 'json_schema', name: 'pattern_reflection', schema: PATTERN_REFLECTION_JSON_SCHEMA, strict: true },
-            },
-          });
-          try {
-            return validatePatternReflectionResult(JSON.parse(response.output_text));
-          } catch {
-            return null;
-          }
+          const generate = async (note: string): Promise<PatternReflectionResult | null> => {
+            const response = await client.responses.create({
+              model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+              instructions: instructions + retryNote + note,
+              input,
+              text: {
+                format: { type: 'json_schema', name: 'pattern_reflection', schema: PATTERN_REFLECTION_JSON_SCHEMA, strict: true },
+              },
+            });
+            try {
+              return validatePatternReflectionResult(JSON.parse(response.output_text));
+            } catch {
+              return null;
+            }
+          };
+
+          const first = await generate('');
+          if (!first) return null;
+          const problems = findReflectionProblems(first);
+          if (problems.length === 0) return first;
+
+          const second = await generate(buildReflectionRepairNote(problems));
+          if (second && findReflectionProblems(second).length === 0) return second;
+          return null;
         },
         (result) => collectStrings(result),
         { route: 'pattern-reflection', language, context: dreamerText },
       );
-      if (outcome.status === 'ok') return { status: 'ok', value: outcome.value };
-      return { status: outcome.status === 'language_intrusion' ? 'language_intrusion' : 'invalid' };
+      if (outcome.status !== 'ok') {
+        return { status: outcome.status === 'language_intrusion' ? 'language_intrusion' : 'invalid' };
+      }
+      // Final safety net: whatever produced this (including the outer
+      // retry loop's own last attempt) must still pass the same
+      // deterministic check right before the caller ever considers
+      // persisting it.
+      if (findReflectionProblems(outcome.value).length > 0) {
+        return { status: 'invalid' };
+      }
+      return { status: 'ok', value: outcome.value };
     },
 
     async persistReflection(key, reflection, totalDreamCount, synthesizedDreamCount) {
@@ -155,6 +198,8 @@ export async function handlePatternReflection(rawBody: unknown, requestHeaders: 
         owner_id: key.ownerId,
         concept_id: key.conceptId,
         concept_version: key.conceptVersion,
+        prompt_version: key.promptVersion,
+        address_preference: key.addressPreference,
         dream_ids: key.dreamIds,
         dream_ids_key: key.dreamIdsKey,
         language: key.language,
@@ -173,7 +218,7 @@ export async function handlePatternReflection(rawBody: unknown, requestHeaders: 
 
   try {
     const outcome = await runPatternReflection(
-      { ownerId: resolved.identity.userId, conceptId: body.conceptId, dreamIds: requestedIds, language: body.language },
+      { ownerId: resolved.identity.userId, conceptId: body.conceptId, dreamIds: requestedIds, language: body.language, addressPreference },
       deps,
     );
 

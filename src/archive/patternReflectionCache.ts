@@ -1,6 +1,7 @@
 import { supabase } from '../auth/supabaseClient';
 import type { AppLanguage } from '../hero/appLanguage';
 import type { ConceptId } from '../hero/conceptTaxonomy';
+import type { AddressPreference } from '../hero/addressPreference';
 import type { PatternReflectionResult } from './patternReflectionSchema';
 
 /**
@@ -21,6 +22,8 @@ export async function getCachedPatternReflection(params: {
   ownerId: string;
   conceptId: ConceptId;
   conceptVersion: number;
+  promptVersion: number;
+  addressPreference: AddressPreference;
   dreamIdsKey: string;
   language: AppLanguage;
 }): Promise<{ reflection: PatternReflectionResult; totalDreamCount: number; synthesizedDreamCount: number } | null> {
@@ -30,6 +33,8 @@ export async function getCachedPatternReflection(params: {
     .eq('owner_id', params.ownerId)
     .eq('concept_id', params.conceptId)
     .eq('concept_version', params.conceptVersion)
+    .eq('prompt_version', params.promptVersion)
+    .eq('address_preference', params.addressPreference)
     .eq('dream_ids_key', params.dreamIdsKey)
     .eq('language', params.language)
     .maybeSingle();

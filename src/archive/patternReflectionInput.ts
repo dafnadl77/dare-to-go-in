@@ -58,6 +58,8 @@ export function buildPatternReflectionInput(
     dreams.length < totalDreamCount
       ? `This theme occurs in ${totalDreamCount} of the dreamer's saved dreams in total. Below are only the ${dreams.length} most recent of those, provided as your evidence — do not imply you have seen the rest, but you may mention the true total (${totalDreamCount}) as context.`
       : `This theme occurs in exactly these ${totalDreamCount} of the dreamer's saved dreams — all of them are shown below.`;
+  const groundingLine =
+    'The dreams below are grouped only because each one happens to contain this theme — that alone does not mean they share anything else. Base every claim only on what these specific dreams actually contain.';
 
   const dreamBlocks = dreams
     .map(
@@ -73,6 +75,7 @@ The dreamer's own earlier reflection on it: ${d.observation || 'none'}`,
   return `THEME: ${concept.label} — ${concept.definition}
 
 ${coverageLine}
+${groundingLine}
 
 ${dreamBlocks}`;
 }

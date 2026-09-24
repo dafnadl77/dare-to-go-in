@@ -552,6 +552,53 @@ html[dir='rtl'] .ar-insights-button:hover .ar-insights-chevron {
   border-color: var(--dream-btn-border);
 }
 
+/* The Hebrew-address preference row — same pill treatment as the language
+   buttons above (a different, purpose-named class rather than reusing
+   .ar-settings-lang-*, since these buttons hold Feminine/Masculine/Neutral
+   labels, not languages). flex-wrap so three labels never overflow a
+   narrow row. */
+.ar-settings-address-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ar-settings-address-btn {
+  padding: 0.4em 0.9em;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid rgba(244, 240, 232, 0.4);
+  color: var(--dream-white);
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.25s var(--ease-soft), border-color 0.25s var(--ease-soft), opacity 0.25s var(--ease-soft);
+}
+
+.ar-settings-address-btn:hover,
+.ar-settings-address-btn:focus-visible {
+  border-color: rgba(244, 240, 232, 0.7);
+}
+
+.ar-settings-address-btn--active {
+  background: rgba(244, 240, 232, 0.12);
+  border-color: var(--dream-btn-border);
+}
+
+.ar-settings-address-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.ar-settings-address-error {
+  margin: 0.6rem 0 0;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.82rem;
+  color: var(--dream-warm-neutral);
+  opacity: 0.85;
+}
+
 .ar-settings-signout {
   margin-top: clamp(1.8rem, 3.4vw, 2.4rem);
 }

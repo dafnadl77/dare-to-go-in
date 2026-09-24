@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import type { User } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { claimTrial } from './claimTrial';
+import { ADDRESS_PREFERENCE_METADATA_KEY, type AddressPreference } from '../hero/addressPreference';
 
 export type AuthActionResult =
   | { ok: true; sessionCreated: boolean }
@@ -51,6 +52,14 @@ interface AuthContextValue {
       isPasswordRecovery is true (see ResetPassword.tsx, which is the
       only caller). Clears isPasswordRecovery on success. */
   updatePassword: (newPassword: string) => Promise<AuthActionResult>;
+  /** The dreamer's own explicit, optional choice of how DARE addresses
+      them in generated Hebrew (see ../hero/addressPreference.ts) — stored
+      directly on the Supabase auth user's own metadata (the safest
+      existing per-user store: no new table, already owner-isolated by
+      Supabase itself, never readable/writable by anyone but this user's
+      own session). NEVER called automatically or inferred from anything;
+      the only caller is the dreamer's own explicit choice in Settings. */
+  updateAddressPreference: (preference: AddressPreference) => Promise<AuthActionResult>;
   signOut: () => Promise<void>;
 }
 
@@ -204,6 +213,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error) return { ok: false, error };
         setIsPasswordRecovery(false);
         return { ok: true, sessionCreated: true };
+      },
+      async updateAddressPreference(preference) {
+        // Supabase merges `data` into the user's existing user_metadata
+        // (never a full replace) and fires its own USER_UPDATED auth event,
+        // which the listener above already handles (setUser(session.user)),
+        // so `user.user_metadata` refreshes on its own — no extra state here.
+        const { error } = await supabase.auth.updateUser({ data: { [ADDRESS_PREFERENCE_METADATA_KEY]: preference } });
+        if (error) return { ok: false, error };
+        return { ok: true, sessionCreated: false };
       },
       async signOut() {
         await supabase.auth.signOut();

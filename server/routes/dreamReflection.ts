@@ -10,11 +10,34 @@ import {
 } from '../../src/hero/dreamReflectionSchema.js';
 import type { AppLanguage } from '../../src/hero/appLanguage.js';
 import { collectStrings } from '../../src/hero/languageIntegrity.js';
+import { normalizeAddressPreference, type AddressPreference } from '../../src/hero/addressPreference.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
-import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
+import { resolveCallerIdentity, type RequestHeaders, type CallerIdentity } from '../callerIdentity.js';
 import { reserveReflectionAttempt, refundReflectionAttempt } from '../dreamAttempts.js';
+import { getSupabaseUserScopedClient } from '../supabaseUserScopedClient.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
+
+function extractBearerToken(authorizationHeader: string): string | null {
+  const match = /^Bearer\s+(.+)$/i.exec(authorizationHeader.trim());
+  return match ? match[1].trim() || null : null;
+}
+
+/** The SAME persisted, optional address preference Pattern Reflection uses
+    (see addressPreference.ts) — read fresh from the caller's own verified
+    user record, never trusted from the request body. A trial (anonymous,
+    pre-sign-in) caller has no account and therefore no preference to read
+    at all — 'neutral' is not a guess in that case, it's the only thing
+    that could ever be true for an identity with no metadata. */
+async function resolveAddressPreference(identity: CallerIdentity, requestHeaders: RequestHeaders): Promise<AddressPreference> {
+  if (identity.kind !== 'user') return 'neutral';
+  const token = requestHeaders.authorization ? extractBearerToken(requestHeaders.authorization) : null;
+  if (!token) return 'neutral';
+  const scoped = getSupabaseUserScopedClient(token);
+  if (!scoped) return 'neutral';
+  const { data } = await scoped.auth.getUser();
+  return normalizeAddressPreference(data.user?.user_metadata?.addressPreference);
+}
 
 function actionPhrase(a: DreamAnalysis['actions'][number]): string {
   return [a.subject, a.action, a.target].filter(Boolean).join(' ').trim();
@@ -108,7 +131,8 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
   // Everything the dreamer themselves wrote — quoting it in another script
   // is legitimate, so it's the context the language-integrity check excuses.
   const dreamerText = [dreamAnalysis.sourceText, selectedElement, reflectionResponse, ...reconstructionCorrections].join('\n');
-  const instructions = buildDreamReflectionSystemPrompt(language);
+  const addressPreference = await resolveAddressPreference(resolved.identity, requestHeaders);
+  const instructions = buildDreamReflectionSystemPrompt(language, addressPreference);
 
   try {
     const outcome = await runWithLanguageIntegrity(

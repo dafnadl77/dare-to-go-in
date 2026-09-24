@@ -136,8 +136,9 @@ export interface Translations {
     insightsMotifGoneTitle: string;
     insightsMotifGoneBody: string;
     insightsBackToOverview: string;
-    reflectionWhatStandsOut: string;
-    reflectionPossibleThread: string;
+    reflectionWhatRepeats: string;
+    reflectionPossibleConnection: string;
+    reflectionDirectionToExplore: string;
     reflectionQuestion: string;
     reflectionLoading: string;
     reflectionUnavailable: string;
@@ -145,6 +146,11 @@ export interface Translations {
     settingsSubtitle: string;
     settingsEmailLabel: string;
     settingsLanguageLabel: string;
+    settingsAddressLabel: string;
+    settingsAddressFeminine: string;
+    settingsAddressMasculine: string;
+    settingsAddressNeutral: string;
+    settingsAddressError: string;
   };
   dreamDetail: {
     backToArchive: string;
@@ -408,8 +414,9 @@ export const en: Translations = {
     insightsMotifGoneTitle: "These dreams aren't available anymore",
     insightsMotifGoneBody: 'This motif no longer matches any saved dream.',
     insightsBackToOverview: '← Back to Insights',
-    reflectionWhatStandsOut: 'What stands out',
-    reflectionPossibleThread: 'A possible thread',
+    reflectionWhatRepeats: 'What repeats',
+    reflectionPossibleConnection: 'What may connect them',
+    reflectionDirectionToExplore: 'A direction worth exploring',
     reflectionQuestion: 'A question worth keeping',
     reflectionLoading: 'Looking for a thread across these dreams…',
     reflectionUnavailable: "A reflection isn't available for this pattern right now.",
@@ -417,6 +424,11 @@ export const en: Translations = {
     settingsSubtitle: 'Your account.',
     settingsEmailLabel: 'Signed in as',
     settingsLanguageLabel: 'Language',
+    settingsAddressLabel: 'How should DARE address me?',
+    settingsAddressFeminine: 'Feminine',
+    settingsAddressMasculine: 'Masculine',
+    settingsAddressNeutral: 'Neutral',
+    settingsAddressError: "Couldn't save that just now — please try again.",
   },
   dreamDetail: {
     backToArchive: 'BACK TO MY DREAM ARCHIVE',
@@ -705,8 +717,9 @@ export const he: Translations = {
     insightsMotifGoneTitle: 'החלומות האלה כבר לא זמינים',
     insightsMotifGoneBody: 'הנושא הזה כבר לא תואם אף חלום שמור.',
     insightsBackToOverview: 'חזרה לתובנות →',
-    reflectionWhatStandsOut: 'מה בולט',
-    reflectionPossibleThread: 'כיוון שכדאי לחקור',
+    reflectionWhatRepeats: 'מה חוזר',
+    reflectionPossibleConnection: 'מה עשוי לקשר ביניהם',
+    reflectionDirectionToExplore: 'כיוון שכדאי לבחון',
     reflectionQuestion: 'שאלה שכדאי לשמור',
     reflectionLoading: 'מחפשים חוט מקשר בין החלומות…',
     reflectionUnavailable: 'השתקפות לא זמינה כרגע עבור הדפוס הזה.',
@@ -714,6 +727,11 @@ export const he: Translations = {
     settingsSubtitle: 'החשבון שלכם.',
     settingsEmailLabel: 'מחוברים בתור',
     settingsLanguageLabel: 'שפה',
+    settingsAddressLabel: 'איך לפנות אליי?',
+    settingsAddressFeminine: 'לשון נקבה',
+    settingsAddressMasculine: 'לשון זכר',
+    settingsAddressNeutral: 'ניסוח ניטרלי',
+    settingsAddressError: 'השמירה נכשלה כרגע — נסו שוב.',
   },
   dreamDetail: {
     backToArchive: 'חזרה לארכיון החלומות שלי',
