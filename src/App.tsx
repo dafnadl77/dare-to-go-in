@@ -14,6 +14,7 @@ import LegalPage from './legal/LegalPage';
 import type { LegalKey } from './legal/legalContent';
 import AboutPage from './about/AboutPage';
 import PricingPage from './pricing/PricingPage';
+import { fetchCreditBalance } from './credits/credits';
 import AccessibilityControl from './a11y/AccessibilityControl';
 import GlobalHeader, { type GlobalNavKey } from './ui/GlobalHeader';
 
@@ -139,6 +140,9 @@ function App() {
   // is already used — DreamAuth then leads with the friendly "your first dream
   // was free" notice. Cleared as soon as the dreamer leaves the auth screen.
   const [authFreeDreamNotice, setAuthFreeDreamNotice] = useState(false);
+  // A signed-in account with no dream credit was sent to Pricing (see the gate
+  // effect below and HeroDream's onCreditsRequired).
+  const [creditsNotice, setCreditsNotice] = useState(false);
   const [openEntry, setOpenEntry] = useState<ArchiveEntry | null>(null);
   // SAVE THIS DREAM, chosen while signed OUT (see HeroDream.tsx's
   // handleSaveDream): 'none' the rest of the time; 'awaiting-auth' once a
@@ -162,6 +166,7 @@ function App() {
 
   const setView = (next: AppView) => {
     if (next !== 'auth') setAuthFreeDreamNotice(false);
+    if (next !== 'pricing') setCreditsNotice(false);
     setViewState(next);
     writeViewToUrl(next);
   };
@@ -285,6 +290,28 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, user, view, isPasswordRecovery]);
 
+  // ENTRY GATE (convenience only): a signed-in account whose server-side credit
+  // balance is definitely 0 is sent to Pricing when it lands on the dream view
+  // (Archive "New Dream", the header brand, a refresh, a direct link) instead of
+  // being let record a dream it cannot analyze. It only redirects on a definite 0
+  // — an unknown balance never blocks. The actual enforcement is server-side: the
+  // atomic credit spend in /api/dream-analysis (which also answers
+  // credits_required, mapped by HeroDream's onCreditsRequired), so bypassing this
+  // effect gains nothing.
+  useEffect(() => {
+    if (loading || view !== 'dream' || !user) return;
+    let cancelled = false;
+    fetchCreditBalance().then((balance) => {
+      if (cancelled || balance !== 0) return;
+      setCreditsNotice(true);
+      setView('pricing');
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, view, user?.id]);
+
   let screen: ReactNode;
 
   if (pendingSaveState === 'resuming' || pendingSaveState === 'error') {
@@ -311,7 +338,13 @@ function App() {
     screen = <AboutPage onBack={() => setView('dream')} onOpenLegal={handleOpenLegal} />;
   } else if (view === 'pricing') {
     screen = (
-      <PricingPage onBack={() => setView('dream')} onStartFree={() => setView('dream')} onOpenLegal={handleOpenLegal} />
+      <PricingPage
+        onBack={() => setView(user ? 'archive' : 'dream')}
+        onStartFree={() => setView('dream')}
+        onOpenLegal={handleOpenLegal}
+        signedIn={!!user}
+        creditsRequired={creditsNotice}
+      />
     );
   } else if (view === 'auth') {
     screen = (
@@ -381,6 +414,10 @@ function App() {
           setAuthMode('signup');
           setAuthFreeDreamNotice(true);
           setView('auth');
+        }}
+        onCreditsRequired={() => {
+          setCreditsNotice(true);
+          setView('pricing');
         }}
       />
     );

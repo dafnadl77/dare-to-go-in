@@ -173,7 +173,9 @@ test('the free dream is marked completed ONLY by dream-reflection, server-side, 
 
 test('a failed AI analysis does not consume the free dream (its attempt row is deleted, so it never counts)', () => {
   const src = read('server/routes/dreamAnalysis.ts');
-  assert.equal((src.match(/await deleteDreamAttempt\(attemptId\)/g) ?? []).length, 2, 'both failure paths (bad model output, thrown error) free the slot');
+  assert.equal((src.match(/await abandonAttempt\(resolved\.identity, attemptId\)/g) ?? []).length, 2, 'both failure paths (bad model output, thrown error) free the slot');
+  // abandonAttempt deletes an anonymous attempt outright (nothing was spent)
+  assert.ok(read('server/dreamAttempts.ts').includes("identity.kind === 'trial') return deleteDreamAttempt(attemptId)"));
 });
 
 test('leftover attempts get no further paid image/reflection/label work once the free dream is complete', () => {

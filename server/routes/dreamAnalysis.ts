@@ -11,8 +11,8 @@ import { resolveAnalysisModel } from '../analysisModel.js';
 import { collectStrings } from '../../src/hero/languageIntegrity.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
-import { createAttemptForIdentity, deleteDreamAttempt } from '../dreamAttempts.js';
-import { FREE_DREAM_USED_MESSAGE, TEMPORARILY_UNAVAILABLE_MESSAGE } from '../trialAllowance.js';
+import { createAttemptForIdentity, abandonAttempt } from '../dreamAttempts.js';
+import { CREDITS_REQUIRED_MESSAGE, FREE_DREAM_USED_MESSAGE, TEMPORARILY_UNAVAILABLE_MESSAGE } from '../trialAllowance.js';
 
 /**
  * Core POST /api/dream-analysis logic — framework-agnostic (no Express
@@ -59,12 +59,16 @@ export async function handleDreamAnalysis(rawBody: unknown, requestHeaders: Requ
   // plus a bounded number of technical attempts before it completes and a
   // global anonymous-spend breaker — all decided atomically in the database
   // (see trialAllowance.ts / createAttemptForIdentity), before any model call;
-  // a refused request leaves no attempt row behind. Signed-in accounts are
-  // not restricted here.
+  // a refused request leaves no attempt row behind. Signed-in accounts spend
+  // ONE credit atomically with the attempt (refunded exactly once below if the
+  // analysis genuinely fails) and are refused with credits_required at zero.
   const created = await createAttemptForIdentity(resolved.identity);
   if (!created.ok) {
     if (created.reason === 'free_dream_used') {
       return withHeaders(errorResult(403, 'free_dream_used', FREE_DREAM_USED_MESSAGE), cookieHeaders);
+    }
+    if (created.reason === 'credits_required') {
+      return withHeaders(errorResult(402, 'credits_required', CREDITS_REQUIRED_MESSAGE), cookieHeaders);
     }
     if (created.reason === 'temporarily_unavailable') {
       return withHeaders(errorResult(503, 'temporarily_unavailable', TEMPORARILY_UNAVAILABLE_MESSAGE), cookieHeaders);
@@ -105,7 +109,7 @@ export async function handleDreamAnalysis(rawBody: unknown, requestHeaders: Requ
       { route: 'dream-analysis', language: null, context: sourceText },
     );
     if (outcome.status !== 'ok') {
-      await deleteDreamAttempt(attemptId);
+      await abandonAttempt(resolved.identity, attemptId);
       return withHeaders(
         errorResult(
           502,
@@ -120,7 +124,7 @@ export async function handleDreamAnalysis(rawBody: unknown, requestHeaders: Requ
 
     return withHeaders(okResult({ ...outcome.value, attemptId }), cookieHeaders);
   } catch (err) {
-    await deleteDreamAttempt(attemptId);
+    await abandonAttempt(resolved.identity, attemptId);
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {
         return withHeaders(errorResult(502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.'), cookieHeaders);

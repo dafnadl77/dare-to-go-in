@@ -45,7 +45,7 @@ export const maxTrialTranscriptions = (env: Env = process.env) => readPositiveIn
 /** What the database said when asked to create an anonymous attempt. */
 export type TrialAttemptDecision =
   | { ok: true; attemptId: string }
-  | { ok: false; reason: 'free_dream_used' | 'temporarily_unavailable' | 'not_configured' };
+  | { ok: false; reason: 'free_dream_used' | 'credits_required' | 'temporarily_unavailable' | 'not_configured' };
 
 /** Maps the create_trial_attempt SQL function's jsonb result. Anything
     unrecognized fails closed. */
@@ -55,6 +55,15 @@ export function decideTrialAttempt(rpcResult: unknown): TrialAttemptDecision {
   if (r.status === 'created' && typeof r.attempt_id === 'string') return { ok: true, attemptId: r.attempt_id };
   if (r.status === 'consumed' || r.status === 'attempt_limit') return { ok: false, reason: 'free_dream_used' };
   if (r.status === 'unavailable') return { ok: false, reason: 'temporarily_unavailable' };
+  return { ok: false, reason: 'not_configured' };
+}
+
+/** Maps start_user_attempt's jsonb result (a signed-in account's attempt, which spends ONE credit). Anything unrecognized fails closed. */
+export function decideUserAttempt(rpcResult: unknown): TrialAttemptDecision {
+  if (!rpcResult || typeof rpcResult !== 'object') return { ok: false, reason: 'not_configured' };
+  const r = rpcResult as { status?: unknown; attempt_id?: unknown };
+  if (r.status === 'created' && typeof r.attempt_id === 'string') return { ok: true, attemptId: r.attempt_id };
+  if (r.status === 'credits_required') return { ok: false, reason: 'credits_required' };
   return { ok: false, reason: 'not_configured' };
 }
 
@@ -71,4 +80,6 @@ export function readTrialCompletion(value: unknown): TrialCompletionResult | nul
 /** The user-facing wording never mentions quotas; the typed reason is what
     the client maps to its existing sign-in flow. */
 export const FREE_DREAM_USED_MESSAGE = 'Your first dream was free. To continue with more dreams, sign in or create an account.';
+/** Stable machine-readable reason: 'credits_required'. The client maps it to the Pricing page. */
+export const CREDITS_REQUIRED_MESSAGE = 'This dream needs a dream credit. Choose a package to continue.';
 export const TEMPORARILY_UNAVAILABLE_MESSAGE = 'DARE is resting for a moment. Please try again a little later.';

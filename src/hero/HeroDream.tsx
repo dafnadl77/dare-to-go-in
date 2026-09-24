@@ -101,9 +101,11 @@ interface HeroDreamProps {
       the existing sign-in / create-account screen with the friendly notice —
       no new flow, and nothing client-side decides it. */
   onFreeDreamUsed: () => void;
+  /** A signed-in account with no dream credit tried to start a dream — the app sends them to Pricing. */
+  onCreditsRequired: () => void;
 }
 
-export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal, onRegisterHomeHandler, onFreeDreamUsed }: HeroDreamProps) {
+export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal, onRegisterHomeHandler, onFreeDreamUsed, onCreditsRequired }: HeroDreamProps) {
   const { user } = useAuth();
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
@@ -240,6 +242,10 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       .then((result) => {
         if (result.status === 'error' && result.reason === 'free_dream_used') {
           onFreeDreamUsed();
+          return;
+        }
+        if (result.status === 'error' && result.reason === 'credits_required') {
+          onCreditsRequired();
           return;
         }
         setAnalysisResult(result);

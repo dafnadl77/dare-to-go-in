@@ -115,6 +115,7 @@ export type AnalysisErrorReason =
   | 'not_authenticated'
   | 'limit_reached'
   | 'free_dream_used'
+  | 'credits_required'
   | 'temporarily_unavailable';
 
 export type AnalysisResult =

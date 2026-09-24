@@ -13,6 +13,10 @@ interface PricingPageProps {
       with zero gating for a signed-out visitor), never a new entitlement. */
   onStartFree: () => void;
   onOpenLegal: (key: LegalKey) => void;
+  /** Signed in: the free first dream is the anonymous trial's alone, so its line is not offered. */
+  signedIn?: boolean;
+  /** The account was sent here because it has no dream credit — shows why. */
+  creditsRequired?: boolean;
 }
 
 /** Maps each stable package id to its own `pricing.packages.*` translation
@@ -129,7 +133,7 @@ const PAID_PACKAGES = DREAM_PACKAGES.filter((pkg): pkg is DreamPackageDef & { pr
  * (handleSelectPaidPackage below) — Grow/Make integration later replaces
  * just that function's body, nothing else here needs to change.
  */
-export default function PricingPage({ onBack, onStartFree, onOpenLegal }: PricingPageProps) {
+export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn = false, creditsRequired = false }: PricingPageProps) {
   const { t } = useLanguage();
   const [comingSoonFor, setComingSoonFor] = useState<PackageId | null>(null);
 
@@ -187,6 +191,11 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal }: Pricin
               <EditorialTitle text={t('pricing.headline')} />
             </h1>
             <p className="pr-subtitle">{t('pricing.subtitle')}</p>
+            {creditsRequired && (
+              <p className="pr-subtitle" role="status">
+                {t('pricing.creditsRequiredNotice')}
+              </p>
+            )}
           </div>
 
           {/* FIRST DREAM/FREE — deliberately not a pricing card (per the
@@ -195,6 +204,7 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal }: Pricin
               pricing.packages.firstDream copy the card used to show, with
               its CTA wired to the same real, already-ungated Hero flow —
               no new entitlement/payment logic, just a different placement. */}
+          {!signedIn && (
           <div className="pr-free-note">
             <p className="pr-free-note-text">
               <strong>{t('pricing.packages.firstDream.name')}</strong>
@@ -205,6 +215,7 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal }: Pricin
               {t('pricing.packages.firstDream.cta')}
             </button>
           </div>
+          )}
 
           <div className="pr-grid">
             {PAID_PACKAGES.map((pkg) => (

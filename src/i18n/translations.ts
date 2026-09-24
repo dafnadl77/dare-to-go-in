@@ -283,6 +283,7 @@ export interface Translations {
     subtitle: string;
     mostPopular: string;
     freeLabel: string;
+    creditsRequiredNotice: string;
     /** "{count} Dreams" — {count} is replaced with the package's real dream count. */
     dreamsCountLabel: string;
     comingSoonNote: string;
@@ -569,6 +570,7 @@ export const en: Translations = {
     subtitle: 'MORE DREAMS. DEEPER INSIGHTS. A MORE YOU.',
     mostPopular: 'Most Popular',
     freeLabel: 'Free',
+    creditsRequiredNotice: 'Your free dream has been used. Choose a package to keep dreaming.',
     dreamsCountLabel: '{count} Dreams',
     comingSoonNote: 'Payments are coming soon — thank you for your patience.',
     packages: {
@@ -874,6 +876,7 @@ export const he: Translations = {
     subtitle: 'יותר חלומות. תובנות עמוקות יותר. הכרות עמוקה יותר עם עצמכם.',
     mostPopular: 'הכי פופולרי',
     freeLabel: 'חינם',
+    creditsRequiredNotice: 'החלום החינמי שלך נוצל. בחרו חבילה כדי להמשיך לחלום.',
     dreamsCountLabel: '{count} חלומות',
     comingSoonNote: 'אפשרות התשלום תהיה זמינה בקרוב — תודה על הסבלנות.',
     packages: {

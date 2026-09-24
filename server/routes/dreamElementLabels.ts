@@ -41,14 +41,15 @@ export async function handleDreamElementLabels(rawBody: unknown, requestHeaders:
   // An anonymous trial can only ask for labels for a dream it has really
   // started: the call must name its own attempt, the attempt's free dream must
   // still be open, and each attempt gets a small fixed number of label calls —
-  // this is never an independently callable, unlimited AI endpoint. Signed-in
-  // callers are unchanged here (their entitlements are a separate task).
+  // this is never an independently callable, unlimited AI endpoint. The same
+  // holds for a signed-in account: it must name an attempt IT owns (one that
+  // already spent a credit), so a zero-credit account cannot use this route as a
+  // free AI endpoint.
   const attemptId = typeof body.attemptId === 'string' ? body.attemptId : '';
-  let reservedLabels = false;
+  if (!attemptId) {
+    return withHeaders(errorResult(400, 'invalid_response', 'attemptId is required.'), cookieHeaders);
+  }
   if (resolved.identity.kind === 'trial') {
-    if (!attemptId) {
-      return withHeaders(errorResult(400, 'invalid_response', 'attemptId is required.'), cookieHeaders);
-    }
     const state = await getTrialAttemptState(attemptId, resolved.identity.trialId);
     if (state === null) {
       return withHeaders(errorResult(503, 'not_configured', 'Label usage tracking is not configured.'), cookieHeaders);
@@ -56,15 +57,15 @@ export async function handleDreamElementLabels(rawBody: unknown, requestHeaders:
     if (state === 'consumed_elsewhere') {
       return withHeaders(errorResult(403, 'free_dream_used', FREE_DREAM_USED_MESSAGE), cookieHeaders);
     }
-    const reservation = await reserveLabelsAttempt(attemptId, resolved.identity);
-    if (reservation === null) {
-      return withHeaders(errorResult(503, 'not_configured', 'Label usage tracking is not configured.'), cookieHeaders);
-    }
-    if (reservation === 'rejected') {
-      return withHeaders(errorResult(403, 'limit_reached', 'This dream has already used its label requests, or the attempt is invalid.'), cookieHeaders);
-    }
-    reservedLabels = true;
   }
+  const reservation = await reserveLabelsAttempt(attemptId, resolved.identity);
+  if (reservation === null) {
+    return withHeaders(errorResult(503, 'not_configured', 'Label usage tracking is not configured.'), cookieHeaders);
+  }
+  if (reservation === 'rejected') {
+    return withHeaders(errorResult(403, 'limit_reached', 'This dream has already used its label requests, or the attempt is invalid.'), cookieHeaders);
+  }
+  const reservedLabels = true;
 
   const input = `DREAM CONTEXT (for disambiguation only — do not label this line itself): ${sourceText || '(not provided)'}
 

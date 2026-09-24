@@ -4,6 +4,7 @@ import type { TrialMintStore } from './anonymousSafetyValves.js';
 import {
   anonAttemptsPerDay,
   decideTrialAttempt,
+  decideUserAttempt,
   maxTrialAttempts,
   maxTrialTranscriptions,
   MAX_LABEL_CALLS_PER_ATTEMPT,
@@ -50,19 +51,6 @@ export async function ensureTrialIdentityExists(trialId: string): Promise<boolea
   return !insertError;
 }
 
-/** One row per dream-creation attempt, created the moment analysis
-    starts — see server/routes/dreamAnalysis.ts. Never created by the
-    client; the returned id is the only thing later routes accept. */
-export async function createDreamAttempt(identity: CallerIdentity): Promise<string | null> {
-  const client = getSupabaseServiceClient();
-  if (!client) return null;
-  const row: { owner_id?: string; trial_id?: string } =
-    identity.kind === 'user' ? { owner_id: identity.userId } : { trial_id: identity.trialId };
-  const { data, error } = await client.from('dream_attempts').insert(row).select('id').single();
-  if (error || !data) return null;
-  return data.id as string;
-}
-
 export const trialMintStore: TrialMintStore = {
   async countTrialsSince(sinceIso) {
     const client = getSupabaseServiceClient();
@@ -73,8 +61,11 @@ export const trialMintStore: TrialMintStore = {
 };
 
 /**
- * dream-analysis's attempt creation. A signed-in account is the plain insert
- * (its limits belong to the entitlement work). An anonymous trial goes through
+ * dream-analysis's attempt creation. A signed-in account spends ONE purchased
+ * credit atomically with creating the attempt (start_user_attempt) and is
+ * refused with credits_required at a zero balance; the account never gets an
+ * implicit free dream — the free dream is the anonymous trial's alone. An
+ * anonymous trial goes through
  * the create_trial_attempt SQL function, which — serialized per trial identity
  * by an advisory lock — refuses once the identity's ONE free dream is complete
  * (or the identity was claimed by an account), refuses beyond the lifetime cap
@@ -82,12 +73,12 @@ export const trialMintStore: TrialMintStore = {
  * is open. Nothing here trusts any client-side flag.
  */
 export async function createAttemptForIdentity(identity: CallerIdentity): Promise<TrialAttemptDecision> {
-  if (identity.kind === 'user') {
-    const id = await createDreamAttempt(identity);
-    return id ? { ok: true, attemptId: id } : { ok: false, reason: 'not_configured' };
-  }
   const client = getSupabaseServiceClient();
   if (!client) return { ok: false, reason: 'not_configured' };
+  if (identity.kind === 'user') {
+    const { data, error } = await client.rpc('start_user_attempt', { p_owner: identity.userId });
+    return error ? { ok: false, reason: 'not_configured' } : decideUserAttempt(data);
+  }
   const { data, error } = await client.rpc('create_trial_attempt', {
     p_trial_id: identity.trialId,
     p_max_attempts: maxTrialAttempts(),
@@ -160,6 +151,31 @@ export async function deleteDreamAttempt(attemptId: string): Promise<void> {
   const client = getSupabaseServiceClient();
   if (!client) return;
   await client.from('dream_attempts').delete().eq('id', attemptId);
+}
+
+/**
+ * Releases an attempt whose analysis genuinely failed. Anonymous: the row is
+ * deleted (nothing was spent). Signed-in: cancel_user_attempt refunds the
+ * attempt's credit EXACTLY once (idempotent in SQL) and deletes the row. Only
+ * ever called by the server after its own failed provider call — no client
+ * request can reach it.
+ */
+export async function abandonAttempt(identity: CallerIdentity, attemptId: string): Promise<void> {
+  if (identity.kind === 'trial') return deleteDreamAttempt(attemptId);
+  const client = getSupabaseServiceClient();
+  if (!client) return;
+  await client.rpc('cancel_user_attempt', { p_attempt: attemptId, p_owner: identity.userId }).then(
+    () => {},
+    () => {},
+  );
+}
+
+/** The account's server-side credit balance; null = could not be determined (callers fail closed). */
+export async function getCreditBalance(userId: string): Promise<number | null> {
+  const client = getSupabaseServiceClient();
+  if (!client) return null;
+  const { data, error } = await client.rpc('get_credit_balance', { p_owner: userId });
+  return error || typeof data !== 'number' ? null : data;
 }
 
 type ReserveOutcome = 'reserved' | 'rejected';

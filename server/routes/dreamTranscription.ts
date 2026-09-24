@@ -2,8 +2,8 @@ import OpenAI, { toFile } from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
 import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpResult.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
-import { reserveTrialTranscription, refundTrialTranscription } from '../dreamAttempts.js';
-import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
+import { reserveTrialTranscription, refundTrialTranscription, getCreditBalance } from '../dreamAttempts.js';
+import { CREDITS_REQUIRED_MESSAGE, FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 
 // Was gpt-4o-mini-transcribe. Root-caused a real production report of a
 // Hebrew recording ("חלמתי שאני סופרוומן ועפתי מעל העיר.") coming back as
@@ -135,8 +135,20 @@ export async function handleDreamTranscription(rawBody: unknown, requestHeaders:
   // Recording happens BEFORE a dream attempt exists, so an anonymous trial's
   // transcriptions are metered against the trial identity itself: a small
   // lifetime allowance, closed once its ONE free dream is complete, refunded
-  // when a transcription genuinely fails. Signed-in callers are unchanged
-  // here (their entitlements are a separate task).
+  // when a transcription genuinely fails. A signed-in account is refused (a
+  // read-only balance check — the atomic spend happens when the dream's attempt
+  // starts) while it holds no credit: recording a dream it can never analyze
+  // would only be free AI spend. There is deliberately no per-credit
+  // transcription quota; recordings stay bounded by the per-request size cap.
+  if (resolved.identity.kind === 'user') {
+    const balance = await getCreditBalance(resolved.identity.userId);
+    if (balance === null) {
+      return withHeaders(errorResult(503, 'not_configured', 'Credit tracking is not configured.'), cookieHeaders);
+    }
+    if (balance < 1) {
+      return withHeaders(errorResult(402, 'credits_required', CREDITS_REQUIRED_MESSAGE), cookieHeaders);
+    }
+  }
   let reservedTranscription = false;
   if (resolved.identity.kind === 'trial') {
     const reservation = await reserveTrialTranscription(resolved.identity.trialId);

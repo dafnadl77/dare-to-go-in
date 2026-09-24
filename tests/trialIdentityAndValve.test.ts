@@ -131,7 +131,7 @@ test('the analysis route decides the anonymous allowance before any model call; 
   const analysis = read('server/routes/dreamAnalysis.ts');
   assert.ok(analysis.indexOf('createAttemptForIdentity(') > 0);
   assert.ok(analysis.indexOf('createAttemptForIdentity(') < analysis.indexOf('client.responses.create'), 'allowance before the model');
-  assert.ok(analysis.includes('deleteDreamAttempt(attemptId)'), 'a failed analysis still deletes its attempt');
+  assert.ok(analysis.includes('abandonAttempt(resolved.identity, attemptId)'), 'a failed analysis still releases its attempt');
   assert.ok(read('server/routes/dreamTranslation.ts').includes('resolveCallerIdentity('));
   assert.ok(!read('server/routes/dreamTranslation.ts').includes("kind === 'trial'"));
 });
