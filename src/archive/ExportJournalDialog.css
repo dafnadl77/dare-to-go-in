@@ -1,0 +1,115 @@
+/* Export Dream Journal dialog: builds on the shared .dd-dialog styles (DeleteDreamDialog.css). */
+.jr-dialog {
+  width: min(100%, 30rem);
+}
+
+.jr-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 1.1rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.jr-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.jr-radio.is-disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.jr-radio input,
+.jr-item input {
+  accent-color: var(--dream-white);
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: none;
+}
+
+.jr-note {
+  margin: 0.7rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--dream-warm-neutral);
+}
+
+.jr-picker {
+  margin-top: 1rem;
+  border: 1px solid rgba(244, 240, 232, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.jr-picker-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid rgba(244, 240, 232, 0.14);
+  font-size: 0.82rem;
+  color: var(--dream-warm-neutral);
+}
+
+.jr-picker-actions {
+  display: inline-flex;
+  gap: 0.9rem;
+}
+
+.jr-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--dream-white);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.jr-link:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.jr-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.jr-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.8rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(244, 240, 232, 0.08);
+}
+
+.jr-item-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.jr-item-date {
+  flex: none;
+  font-size: 0.78rem;
+  color: var(--dream-warm-neutral);
+}
+
+.dd-dialog .btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

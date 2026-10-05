@@ -17,6 +17,7 @@ import DreamTimeline from './DreamTimeline';
 import DeleteDreamDialog from './DeleteDreamDialog';
 import { archiveDisplay, statusWhenFetchStarts, statusWhenFetchFails, type ArchiveLoadStatus } from './archiveLoad';
 import DeleteAccountDialog from './DeleteAccountDialog';
+import ExportJournalDialog from './ExportJournalDialog';
 import { requestAccountDeletion, finishAccountDeletionLocally } from '../auth/deleteAccount';
 import LocalDreamImportPrompt from './LocalDreamImportPrompt';
 import { conceptLabel, CONCEPT_TAXONOMY_VERSION } from '../hero/conceptTaxonomy';
@@ -60,6 +61,8 @@ interface DreamArchiveProps {
   onBack: () => void;
   onOpenEntry: (entry: ArchiveEntry) => void;
   onOpenLegal: (key: LegalKey) => void;
+  /** The premium message of Export Dream Journal leads here (Packages). */
+  onGoToPackages: () => void;
 }
 
 /**
@@ -87,7 +90,7 @@ interface DreamArchiveProps {
  * - Settings: the account email already known from auth, the language
  *   switcher already in the header, and sign out — nothing invented.
  */
-export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: DreamArchiveProps) {
+export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onGoToPackages }: DreamArchiveProps) {
   const { t, language, setLanguage } = useLanguage();
   const { user, signOut, updateAddressPreference } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -354,6 +357,8 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
   // last). Only after the server confirms does the client clear local state, drop
   // its session and reload onto the public home screen; on any failure the account
   // is untouched as far as this UI knows, and the dialog offers a retry.
+  // EXPORT DREAM JOURNAL: the dialog decides what to show from the server's answer; the server authorizes the export itself.
+  const [journalDialogOpen, setJournalDialogOpen] = useState(false);
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [accountDeleting, setAccountDeleting] = useState(false);
   const [accountDeleteFailed, setAccountDeleteFailed] = useState(false);
@@ -550,12 +555,17 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
                     the same HOLD/TYPE capture the whole app already has, so
                     this returns to the room exactly like the header's own
                     brand button, just with an unmistakably primary look. */}
-                <button type="button" className="ar-new-dream btn btn-primary" data-cursor-hover onClick={onBack}>
-                  <span className="ar-new-dream-plus" aria-hidden="true">
-                    +
-                  </span>
-                  {t('archive.newDream')}
-                </button>
+                <div className="ar-hero-actions">
+                  <button type="button" className="ar-new-dream btn btn-primary" data-cursor-hover onClick={onBack}>
+                    <span className="ar-new-dream-plus" aria-hidden="true">
+                      +
+                    </span>
+                    {t('archive.newDream')}
+                  </button>
+                  <button type="button" className="ar-export-journal ar-new-dream btn btn-secondary" data-cursor-hover onClick={() => setJournalDialogOpen(true)}>
+                    {t('archive.exportJournal')}
+                  </button>
+                </div>
               </div>
 
               {display === 'loading' ? (
@@ -788,6 +798,14 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
       </div>
 
       <AppFooter onNavigate={onOpenLegal} />
+
+      {journalDialogOpen && (
+        <ExportJournalDialog
+          dreams={entries.flatMap((e) => (e.kind === 'real' ? [{ id: e.id, title: e.title, date: e.date }] : []))}
+          onClose={() => setJournalDialogOpen(false)}
+          onGoToPackages={onGoToPackages}
+        />
+      )}
 
       {accountDialogOpen && (
         <DeleteAccountDialog

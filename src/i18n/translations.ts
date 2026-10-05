@@ -139,6 +139,25 @@ export interface Translations {
     deleteConfirm: string;
     deleteInProgress: string;
     deleteFailed: string;
+    exportJournal: string;
+    journalTitle: string;
+    journalIntro: string;
+    journalLockedBody: string;
+    journalSeePackages: string;
+    journalAll: string;
+    journalChoose: string;
+    journalSelectAll: string;
+    journalClear: string;
+    journalSelectedCount: string;
+    journalExportBtn: string;
+    journalPreparing: string;
+    journalClose: string;
+    journalChecking: string;
+    journalTooMany: string;
+    journalErrTooLarge: string;
+    journalErrNotFound: string;
+    journalErrBusy: string;
+    journalErrGeneric: string;
     loading: string;
     loadErrorTitle: string;
     loadErrorBody: string;
@@ -325,6 +344,7 @@ export interface Translations {
       saveArchive: string;
       trackThemes: string;
       bilingual: string;
+      journalExport: string;
     };
   };
 }
@@ -447,6 +467,25 @@ export const en: Translations = {
     deleteConfirm: 'Delete',
     deleteInProgress: 'Deleting…',
     deleteFailed: "We couldn't delete this dream. Please try again.",
+    exportJournal: 'Export Dream Journal',
+    journalTitle: 'Your Dream Journal',
+    journalIntro: 'Turn your saved dreams into a printable PDF: your images, your words and your reflections.',
+    journalLockedBody: 'Dream Journal export is included with DIVE IN (25 dreams). It stays available even after all your credits are used.',
+    journalSeePackages: 'See packages',
+    journalAll: 'All my dreams ({n})',
+    journalChoose: 'Choose dreams',
+    journalSelectAll: 'Select all',
+    journalClear: 'Clear',
+    journalSelectedCount: '{n} selected',
+    journalExportBtn: 'Export PDF',
+    journalPreparing: 'Preparing your journal…',
+    journalClose: 'Close',
+    journalChecking: 'Checking…',
+    journalTooMany: 'Your archive has more than {max} dreams. Choose up to {max} for one journal.',
+    journalErrTooLarge: 'This journal is too large. Please choose fewer dreams.',
+    journalErrNotFound: 'Some of the selected dreams could not be found in your archive.',
+    journalErrBusy: 'Your journal is already being prepared. Please wait a moment.',
+    journalErrGeneric: 'We could not create your journal. Please try again.',
     loading: 'Gathering your dreams…',
     loadErrorTitle: 'We couldn’t load your dreams.',
     loadErrorBody: 'This doesn’t mean they’re gone. Check your connection and try again.',
@@ -654,6 +693,7 @@ export const en: Translations = {
       saveArchive: 'Saved to your Dream Archive',
       trackThemes: 'Track recurring themes',
       bilingual: 'Hebrew & English',
+      journalExport: 'Dream Journal PDF export',
     },
   },
 };
@@ -782,6 +822,25 @@ export const he: Translations = {
     deleteConfirm: 'מחיקה',
     deleteInProgress: 'מוחק…',
     deleteFailed: 'לא הצלחנו למחוק את החלום. אפשר לנסות שוב.',
+    exportJournal: 'ייצוא יומן החלומות',
+    journalTitle: 'יומן החלומות שלכם',
+    journalIntro: 'הפכו את החלומות השמורים לקובץ PDF להדפסה: התמונות, המילים וההתבוננויות שלכם.',
+    journalLockedBody: 'ייצוא יומן החלומות כלול בחבילת DIVE IN (25 חלומות). הוא נשאר זמין גם אחרי שכל הקרדיטים נוצלו.',
+    journalSeePackages: 'לצפייה בחבילות',
+    journalAll: 'כל החלומות שלי ({n})',
+    journalChoose: 'בחירת חלומות',
+    journalSelectAll: 'בחירת הכול',
+    journalClear: 'ניקוי',
+    journalSelectedCount: '{n} נבחרו',
+    journalExportBtn: 'ייצוא ל-PDF',
+    journalPreparing: 'מכינים את היומן…',
+    journalClose: 'סגירה',
+    journalChecking: 'בודקים…',
+    journalTooMany: 'בארכיון יש יותר מ-{max} חלומות. אפשר לבחור עד {max} ליומן אחד.',
+    journalErrTooLarge: 'היומן גדול מדי. אפשר לבחור פחות חלומות.',
+    journalErrNotFound: 'חלק מהחלומות שנבחרו לא נמצאו בארכיון.',
+    journalErrBusy: 'היומן שלכם כבר בהכנה. אפשר להמתין רגע.',
+    journalErrGeneric: 'לא הצלחנו ליצור את היומן. אפשר לנסות שוב.',
     loading: 'אוספים את החלומות שלך…',
     loadErrorTitle: 'לא הצלחנו לטעון את החלומות שלך.',
     loadErrorBody: 'זה לא אומר שהם נעלמו. כדאי לבדוק את החיבור ולנסות שוב.',
@@ -987,6 +1046,7 @@ export const he: Translations = {
       saveArchive: 'שמירה בארכיון החלומות שלכם',
       trackThemes: 'מעקב אחרי דפוסים חוזרים',
       bilingual: 'עברית ואנגלית',
+      journalExport: 'ייצוא יומן החלומות ל-PDF',
     },
   },
 };

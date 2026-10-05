@@ -260,6 +260,13 @@ html[lang='he'] .ar-title {
   flex: none;
 }
 
+.ar-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+}
+
 .ar-new-dream-plus {
   font-size: 1.15em;
   line-height: 1;
@@ -633,6 +640,11 @@ html[dir='rtl'] .ar-insights-button:hover .ar-insights-chevron {
   /* Centered, proportionate primary action — a fluid share of the content
      width with a sensible cap so it never balloons at landscape/tablet
      widths; min-width keeps its nowrap label from being squeezed. */
+  .ar-hero-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
   .ar-new-dream {
     align-self: center;
     width: 56%;
