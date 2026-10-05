@@ -1,6 +1,7 @@
 import { errorResult, okResult, type HandlerResult } from '../httpResult.js';
 import { verifyBearerToken, type RequestHeaders } from '../callerIdentity.js';
 import { getCreditBalance } from '../dreamAttempts.js';
+import { DREAM_JOURNAL_EXPORT, hasEntitlement } from '../entitlements.js';
 
 /**
  * GET /api/credits — the signed-in account's server-side dream-credit balance.
@@ -23,5 +24,8 @@ export async function handleCredits(requestHeaders: RequestHeaders): Promise<Han
   if (balance === null) {
     return errorResult(503, 'not_configured', 'Credit tracking is not configured.');
   }
-  return okResult({ balance });
+  // Read-only status for the UI (e.g. whether to offer Dream Journal export). Advisory only: the export route
+  // re-checks the entitlement server-side. null = could not be determined.
+  const journal = await hasEntitlement(verified.userId, DREAM_JOURNAL_EXPORT);
+  return okResult({ balance, entitlements: { dreamJournalExport: journal } });
 }

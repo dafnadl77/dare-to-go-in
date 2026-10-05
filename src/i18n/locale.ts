@@ -1,4 +1,4 @@
-import type { AppLanguage } from '../hero/appLanguage';
+import type { AppLanguage } from '../hero/appLanguage.js';
 
 /** The BCP-47 locale backing Intl/Date formatting for each app language —
     kept in this one place so no component hard-codes 'en-US' itself. */

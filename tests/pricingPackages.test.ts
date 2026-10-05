@@ -29,9 +29,11 @@ test('paid packages have a positive, increasing price as the dream count grows',
 });
 
 test('every package lists at least the baseline real capabilities, and only real capabilities', () => {
-  const KNOWN = new Set(['fullJourney', 'guidedReflection', 'dreamImage', 'saveArchive', 'trackThemes', 'bilingual']);
+  const KNOWN = new Set(['fullJourney', 'guidedReflection', 'dreamImage', 'saveArchive', 'trackThemes', 'bilingual', 'journalExport']);
   for (const pkg of DREAM_PACKAGES) {
     for (const f of pkg.features) assert.ok(KNOWN.has(f), `${pkg.id} lists an unknown feature: ${f}`);
+    // the Dream Journal PDF export is a DIVE IN-only perk (see server/entitlements.ts)
+    assert.equal(pkg.features.includes('journalExport' as never), pkg.id === 'dive_in_25', `${pkg.id} journalExport`);
     for (const base of ['fullJourney', 'guidedReflection', 'dreamImage', 'saveArchive']) {
       assert.ok(pkg.features.includes(base as never), `${pkg.id} is missing baseline feature ${base}`);
     }

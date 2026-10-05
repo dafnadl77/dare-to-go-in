@@ -1,8 +1,8 @@
-import type { SavedDream } from '../hero/dreamStorage';
-import { containsHebrew, getAppLanguage, type AppLanguage } from '../hero/appLanguage';
-import { dateLocale } from '../i18n/locale';
-import type { MockDream } from './mockDreams';
-import { CONCEPTS, conceptsOfDream, type ConceptId } from '../hero/conceptTaxonomy';
+import type { SavedDream } from '../hero/dreamStorage.js';
+import { containsHebrew, getAppLanguage, type AppLanguage } from '../hero/appLanguage.js';
+import { dateLocale } from '../i18n/locale.js';
+import type { MockDream } from './mockDreams.js';
+import { CONCEPTS, conceptsOfDream, type ConceptId } from '../hero/conceptTaxonomy.js';
 
 /**
  * One entry in the MY DREAM ARCHIVE timeline — either a real dream this
