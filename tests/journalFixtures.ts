@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
-import { readImageInfo, toDataUri } from '../server/pdf/imageInfo.ts';
-import type { JournalDocument, JournalDream, JournalImage, JournalPattern } from '../server/pdf/journalTypes.ts';
+import { readImageInfo, toDataUri } from '../server/pdf/imageInfo.js';
+import type { JournalDocument, JournalDream, JournalImage, JournalPattern } from '../server/pdf/journalTypes.js';
 
 /**
  * DEMO DATA ONLY. Invented dreams and the site's own artwork, used for the sample PDFs and the tests.
