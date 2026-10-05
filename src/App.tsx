@@ -421,6 +421,7 @@ function App() {
           setView('detail');
         }}
         onOpenLegal={handleOpenLegal}
+        onGoToPackages={() => setView('pricing')}
       />
     );
   } else {
