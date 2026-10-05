@@ -332,7 +332,9 @@ test('migration: purchase grants require a payment reference, so the entitlement
 test('export endpoint is wired: vercel function limits, express route, credits status, no stored PDF', () => {
   const vercel = JSON.parse(read('vercel.json'));
   assert.ok(vercel.functions['api/dream-journal.ts'].maxDuration >= 30);
-  assert.ok(vercel.functions['api/dream-journal.ts'].memory >= 1024);
+  // (no `memory` setting: Vercel ignores it under Active CPU billing and warned about it; the Preview measured the real ceiling)
+  assert.match(vercel.functions['api/dream-journal.ts'].includeFiles, /server\/pdf\/fonts\/\*\*/);
+  assert.match(vercel.functions['api/dream-journal.ts'].includeFiles, /@sparticuz\/chromium\/bin\/\*\*/);
   assert.match(read('server/index.ts'), /\/api\/dream-journal/);
   assert.match(read('server/routes/credits.ts'), /dreamJournalExport/);
 });
