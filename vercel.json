@@ -3,6 +3,10 @@
     "api/dream-journal.ts": {
       "maxDuration": 60,
       "includeFiles": "{server/pdf/fonts/**,server/pdf/assets/**,node_modules/@sparticuz/chromium/bin/**}"
+    },
+    "api/preview-journal-fixture.ts": {
+      "maxDuration": 60,
+      "includeFiles": "{server/pdf/fonts/**,server/pdf/assets/**,public/dream-assets/**,node_modules/@sparticuz/chromium/bin/**}"
     }
   }
 }
