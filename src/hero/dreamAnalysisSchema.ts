@@ -116,11 +116,15 @@ export type AnalysisErrorReason =
   | 'limit_reached'
   | 'free_dream_used'
   | 'credits_required'
+  | 'analysis_in_progress'
+  | 'idempotency_conflict'
+  | 'analysis_expired'
   | 'temporarily_unavailable';
 
 export type AnalysisResult =
   | { status: 'ok'; analysis: DreamAnalysis; attemptId: string }
-  | { status: 'error'; reason: AnalysisErrorReason; message: string };
+  /** `uncertain`: no definitive answer reached the client (timeout, dropped connection, a platform error page, or the server still working), so a paid analysis MAY have started or finished on the server. Absent/false = the server answered and released the attempt. */
+  | { status: 'error'; reason: AnalysisErrorReason; message: string; uncertain?: boolean };
 
 /**
  * The exact instruction the analysis backend uses. Reconstruction, not

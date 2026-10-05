@@ -56,6 +56,7 @@ export interface Translations {
     cancelTranscription: string;
     cancelTyping: string;
     analysisFailed: string;
+    analysisUncertain: string;
     tryAgain: string;
     editDream: string;
   };
@@ -363,6 +364,7 @@ export const en: Translations = {
     cancelTranscription: 'Cancel transcription',
     cancelTyping: 'Cancel typing',
     analysisFailed: 'Something went wrong while I was putting this together.',
+    analysisUncertain: 'I didn’t get an answer in time. Trying again won’t charge you twice.',
     tryAgain: 'TRY AGAIN',
     editDream: 'EDIT',
   },
@@ -697,6 +699,7 @@ export const he: Translations = {
     cancelTranscription: 'ביטול תמלול',
     cancelTyping: 'ביטול הקלדה',
     analysisFailed: 'משהו השתבש בזמן שניסיתי להרכיב את זה מחדש.',
+    analysisUncertain: 'לא קיבלתי תשובה בזמן. ניסיון נוסף לא יחייב אותך פעמיים.',
     tryAgain: 'ניסיון נוסף',
     editDream: 'עריכה',
   },

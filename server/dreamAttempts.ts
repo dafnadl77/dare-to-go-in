@@ -1,6 +1,7 @@
 import { getSupabaseServiceClient } from './supabaseServiceClient.js';
 import type { CallerIdentity } from './callerIdentity.js';
 import type { TrialMintStore } from './anonymousSafetyValves.js';
+import { decideIdemStart, type IdemStartDecision } from './analysisStart.js';
 import {
   anonAttemptsPerDay,
   decideTrialAttempt,
@@ -86,6 +87,26 @@ export async function createAttemptForIdentity(identity: CallerIdentity): Promis
   });
   if (error) return { ok: false, reason: 'not_configured' };
   return decideTrialAttempt(data);
+}
+
+/**
+ * Idempotent start of a signed-in account's paid analysis (start_user_attempt_idem): the database
+ * decides atomically whether this key is new (spend one credit), already analyzed (replay the stored
+ * result), still processing, or refused. The account is always the verified token's own user.
+ */
+export async function startUserAttemptIdempotent(userId: string, key: string, inputHash: string): Promise<IdemStartDecision> {
+  const client = getSupabaseServiceClient();
+  if (!client) return { kind: 'refused', reason: 'not_configured' };
+  const { data, error } = await client.rpc('start_user_attempt_idem', { p_owner: userId, p_key: key, p_input_hash: inputHash });
+  return error ? { kind: 'refused', reason: 'not_configured' } : decideIdemStart(data);
+}
+
+/** Records a finished analysis on its own attempt so a replay of the same key can return it. Best effort: false = not recorded (the caller still answers its own request normally). */
+export async function completeUserAnalysis(attemptId: string, userId: string, result: unknown): Promise<boolean> {
+  const client = getSupabaseServiceClient();
+  if (!client) return false;
+  const { data, error } = await client.rpc('complete_user_analysis', { p_attempt: attemptId, p_owner: userId, p_result: result });
+  return !error && data === true;
 }
 
 /** For a trial's attempt: is the free dream still open, already delivered by THIS attempt, or consumed by another? null = could not be determined (callers fail closed). */

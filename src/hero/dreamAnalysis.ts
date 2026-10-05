@@ -27,7 +27,7 @@ export { DREAM_EXTRACTION_SYSTEM_PROMPT, validateDreamAnalysis } from './dreamAn
  * bundle. Never fabricates a DreamAnalysis: any failure becomes a
  * controlled error result instead.
  */
-export async function analyzeDream(dreamInput: DreamInput): Promise<AnalysisResult> {
+export async function analyzeDream(dreamInput: DreamInput, idempotencyKey?: string): Promise<AnalysisResult> {
   const sourceText = dreamInputSourceText(dreamInput).trim();
   if (!sourceText) {
     return {
@@ -46,7 +46,9 @@ export async function analyzeDream(dreamInput: DreamInput): Promise<AnalysisResu
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeader },
-        body: JSON.stringify({ sourceText, inputMode: dreamInput.inputMode }),
+        // The idempotency key identifies THIS submitted dream: re-sending it (after a timeout or a dropped
+        // connection) is recognised by the server as the same paid request, never a second one.
+        body: JSON.stringify({ sourceText, inputMode: dreamInput.inputMode, idempotencyKey }),
       },
       { timeoutMs: ANALYSIS_TIMEOUT_MS },
     );
@@ -67,6 +69,9 @@ export async function analyzeDream(dreamInput: DreamInput): Promise<AnalysisResu
           'limit_reached',
           'free_dream_used',
           'credits_required',
+          'analysis_in_progress',
+          'idempotency_conflict',
+          'analysis_expired',
           'temporarily_unavailable',
         ];
         const reason = typeof errData.reason === 'string' && knownReasons.includes(errData.reason) ? errData.reason : 'request_failed';
@@ -74,9 +79,12 @@ export async function analyzeDream(dreamInput: DreamInput): Promise<AnalysisResu
           status: 'error',
           reason: reason as AnalysisResult extends { reason: infer R } ? R : never,
           message: typeof errData.message === 'string' ? errData.message : `Analysis backend responded with HTTP ${res.status}.`,
+          // A server answer released its attempt (definitive), except "still processing": that request is alive.
+          uncertain: reason === 'analysis_in_progress',
         };
       }
-      return { status: 'error', reason: 'request_failed', message: `Analysis backend responded with HTTP ${res.status}.` };
+      // No server JSON (a platform timeout / error page): whether the server finished is UNKNOWN.
+      return { status: 'error', reason: 'request_failed', message: `Analysis backend responded with HTTP ${res.status}.`, uncertain: true };
     }
 
     const validated = validateDreamAnalysis(data);
@@ -88,6 +96,8 @@ export async function analyzeDream(dreamInput: DreamInput): Promise<AnalysisResu
         status: 'error',
         reason: 'invalid_response',
         message: 'Analysis backend returned a response that did not match the expected DreamAnalysis schema.',
+        // The server answered 200, so an analysis was produced (and paid for) that the client could not use.
+        uncertain: true,
       };
     }
     return { status: 'ok', analysis: validated, attemptId };
@@ -96,6 +106,8 @@ export async function analyzeDream(dreamInput: DreamInput): Promise<AnalysisResu
       status: 'error',
       reason: 'request_failed',
       message: err instanceof Error ? err.message : 'Unknown network error while requesting dream analysis.',
+      // Timeout / disconnect: the server may still be running this request or may already have finished it.
+      uncertain: true,
     };
   }
 }

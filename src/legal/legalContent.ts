@@ -63,7 +63,7 @@ const en: LegalContent = {
       },
       {
         heading: 'How your data is stored',
-        body: 'Account and saved-dream data live in Supabase\'s database, associated with your account. At the time of writing, dreams saved before a real account existed are stored locally on your own device only (in your browser\'s local storage) and are not uploaded automatically — a separate, clearly-announced step will be needed before any such import happens.',
+        body: 'Account and saved-dream data live in Supabase\'s database, associated with your account. At the time of writing, dreams saved before a real account existed are stored locally on your own device only (in your browser\'s local storage) and are not uploaded automatically — a separate, clearly-announced step will be needed before any such import happens. Separately, when you submit a dream for analysis, DARE may temporarily keep the generated analysis result for up to about 2 hours, only for technical recovery, retrying a request and preventing a duplicate charge. It is then cleared, and it is not kept as part of your archive unless you save the dream.',
       },
       {
         heading: 'Technical & session data',
@@ -204,7 +204,7 @@ const he: LegalContent = {
       },
       {
         heading: 'איך המידע נשמר',
-        body: 'נתוני חשבון וחלומות שמורים נשמרים במסד הנתונים של Supabase, משויכים לחשבון. נכון לכתיבת שורות אלו, חלומות שנשמרו לפני קיום חשבון אמיתי נשמרים מקומית במכשיר בלבד (באחסון המקומי של הדפדפן) ואינם מועלים באופן אוטומטי — יידרש צעד נפרד ומוצהר בבירור לפני כל העברה כזו.',
+        body: 'נתוני חשבון וחלומות שמורים נשמרים במסד הנתונים של Supabase, משויכים לחשבון. נכון לכתיבת שורות אלו, חלומות שנשמרו לפני קיום חשבון אמיתי נשמרים מקומית במכשיר בלבד (באחסון המקומי של הדפדפן) ואינם מועלים באופן אוטומטי — יידרש צעד נפרד ומוצהר בבירור לפני כל העברה כזו. בנוסף, כששולחים חלום לניתוח, DARE עשויה לשמור זמנית את תוצאת הניתוח שנוצרה, עד כשעתיים בערך, רק לצורך התאוששות טכנית, ניסיון חוזר של בקשה ומניעת חיוב כפול. לאחר מכן היא נמחקת, והיא אינה נשמרת כחלק מהארכיון שלכם אלא אם שמרתם את החלום.',
       },
       {
         heading: 'מידע טכני וסשן',

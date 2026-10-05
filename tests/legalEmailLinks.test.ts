@@ -29,3 +29,14 @@ test('every email in every legal document (both languages) is a clean address th
   }
   assert.ok(found >= 6, 'privacy, accessibility and terms each show the contact in both languages');
 });
+
+test('privacy policy (EN + HE) discloses the temporary ~2h retention of the analysis result, without implying permanence', () => {
+  const en = JSON.stringify(getLegalDocument('en', 'privacy'));
+  const he = JSON.stringify(getLegalDocument('he', 'privacy'));
+  assert.match(en, /temporarily keep the generated analysis result for up to about 2 hours/);
+  assert.match(en, /preventing a duplicate charge/);
+  assert.match(en, /not kept as part of your archive unless you save the dream/);
+  assert.match(he, /לשמור זמנית את תוצאת הניתוח שנוצרה, עד כשעתיים בערך/);
+  assert.match(he, /מניעת חיוב כפול/);
+  assert.match(he, /אינה נשמרת כחלק מהארכיון שלכם אלא אם שמרתם את החלום/);
+});

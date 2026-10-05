@@ -110,7 +110,7 @@ const hero = read('src/hero/HeroDream.tsx');
 
 test('every async result that can change the journey goes through runInJourney (analysis, labels, image incl. regeneration, reflection)', () => {
   const analysis = hero.slice(hero.indexOf('const runAnalysis'), hero.indexOf('const handleDreamCapture'));
-  assert.match(analysis, /runInJourney\(\s*epoch,\s*\(\) => analyzeDream\(input\)/);
+  assert.match(analysis, /runInJourney\(\s*epoch,\s*\(\) => analyzeDream\(input, idempotencyKey\)/);
   assert.match(analysis, /if \(seq !== analysisSeqRef\.current\) return;/);
   assert.match(hero, /runInJourney\(\s*epoch,\s*\(\) => getDisplayLabels\(/);
   assert.match(hero, /runInJourney\(\s*epoch,\s*\(\) => generateDreamImage\(briefToUse, attemptId\)/);

@@ -16,6 +16,7 @@ import { useUnifiedDreamSequence } from './useUnifiedDreamSequence';
 import { dreamInputSourceText, type DreamInput } from './dreamInput';
 import { createJourneyEpoch, runInJourney } from './journeyEpoch';
 import { hasUnsavedDream } from './unsavedJourney';
+import { createSessionSubmissionStore, endSubmission, keyForSubmission } from './analysisSubmission';
 import { classifyFirstImageFailure, recoveryForFirstImageFailure } from './firstImageRecovery';
 import { getAppLanguage, type AppLanguage } from './appLanguage';
 import { analyzeDream, type AnalysisResult } from './dreamAnalysis';
@@ -137,6 +138,11 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // ONLY: the temporary dev view below is not final UI.
   const dreamInputRef = useRef<DreamInput | null>(null);
   const [analysisPending, setAnalysisPending] = useState(false);
+  // True while a submitted analysis has NO definitive answer (timeout, dropped connection, a platform
+  // error page, or "still processing"): the server may have started or finished it and, for a signed-in
+  // account, spent a credit. Retrying reuses the same submission identity, so it can never be charged twice.
+  const [analysisUncertain, setAnalysisUncertain] = useState(false);
+  const [submissionStore] = useState(createSessionSubmissionStore);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   // Only present with ?debug=1 — the dev view must never appear in the
   // normal user journey, only as a development aid.
@@ -276,16 +282,25 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
 
   const runAnalysis = (input: DreamInput) => {
     const seq = ++analysisSeqRef.current;
+    // The SAME submitted dream (unchanged text, still unanswered) keeps the same key, so a retry after a
+    // timeout is recognised by the server as the same paid request; a new or changed dream gets a new key.
+    const idempotencyKey = keyForSubmission(dreamInputSourceText(input), submissionStore);
     setAnalysisPending(true);
+    setAnalysisUncertain(false);
     setAnalysisResult(null);
     // Applied only if this journey is still the active one AND no newer analysis (TRY AGAIN /
     // EDIT) has started since; an abandoned analysis can never resurrect an old journey.
     runInJourney(
       epoch,
-      () => analyzeDream(input),
+      () => analyzeDream(input, idempotencyKey),
       (result) => {
         if (seq !== analysisSeqRef.current) return;
         setAnalysisPending(false);
+        const uncertain = result.status === 'error' && result.uncertain === true;
+        setAnalysisUncertain(uncertain);
+        // A definitive answer reached the client: the submission is over (its key is dropped, so even
+        // identical text submitted next is a new dream). An uncertain one keeps its key for the retry.
+        if (!uncertain) endSubmission(submissionStore);
         if (result.status === 'error' && result.reason === 'free_dream_used') {
           onFreeDreamUsed();
           return;
@@ -680,7 +695,10 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   };
 
   // Tells App whether leaving right now would lose an analyzed, unsaved dream (see unsavedJourney.ts).
-  const unsavedDream = hasUnsavedDream({ analysisOk: analysisResult?.status === 'ok', insideStep });
+  // Protected from the moment a signed-in account's PAID analysis is submitted (it may already have spent a
+  // credit) until the server answers definitively, and then, as before, until the analyzed dream is saved.
+  const paidAnalysisInFlight = !!user && (analysisPending || analysisUncertain);
+  const unsavedDream = hasUnsavedDream({ analysisOk: analysisResult?.status === 'ok', insideStep, paidAnalysisInFlight });
   useEffect(() => {
     onUnsavedDreamChange(unsavedDream);
   }, [unsavedDream, onUnsavedDreamChange]);
@@ -732,6 +750,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     // The journey is over: every in-flight response of it is now stale and will be ignored.
     epoch.invalidate();
     analysisSeqRef.current += 1;
+    setAnalysisUncertain(false); // (an unanswered submission keeps its stored key, so re-sending the same dream replays it)
     journeyLanguageRef.current = null;
     firstImageTriesRef.current = 0;
     imageEverSucceededRef.current = false;
@@ -850,6 +869,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
             onDreamCapture={handleDreamCapture}
             reconstructing={isReconstructing}
             analysisFailed={analysisResult?.status === 'error'}
+            analysisUncertain={!!user && analysisUncertain}
             onRetryAnalysis={handleRetryAnalysis}
             capturedDreamText={dreamInputRef.current ? dreamInputSourceText(dreamInputRef.current) : ''}
           />

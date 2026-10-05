@@ -115,7 +115,7 @@ test('every in-app navigation that would destroy the journey goes through the co
 });
 
 test('HeroDream reports the unsaved state (and clears it on unmount); saved or let-go removes protection', () => {
-  assert.match(hero, /hasUnsavedDream\(\{ analysisOk: analysisResult\?\.status === 'ok', insideStep \}\)/);
+  assert.match(hero, /hasUnsavedDream\(\{ analysisOk: analysisResult\?\.status === 'ok', insideStep, paidAnalysisInFlight \}\)/);
   assert.match(hero, /onUnsavedDreamChange\(unsavedDream\)/);
   assert.match(hero, /useEffect\(\(\) => \(\) => onUnsavedDreamChange\(false\), \[onUnsavedDreamChange\]\)/);
   assert.match(app, /onUnsavedDreamChange=\{setUnsavedDream\}/);

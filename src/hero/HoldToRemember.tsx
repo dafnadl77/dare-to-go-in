@@ -42,6 +42,8 @@ interface HoldToRememberProps {
       the dreamer staring at that text forever (the analysisResult.status
       === 'error' case was previously never rendered anywhere). */
   analysisFailed?: boolean;
+  /** The failure was UNCERTAIN (no answer in time) for a signed-in account: the retry is the same paid request and will not be charged again, and the panel says so. */
+  analysisUncertain?: boolean;
   /** Re-runs analysis for the exact same captured dream — see
       HeroDream.tsx's retryAnalysis. */
   onRetryAnalysis?: () => void;
@@ -107,6 +109,7 @@ export default function HoldToRemember({
   onDreamCapture,
   reconstructing = false,
   analysisFailed = false,
+  analysisUncertain = false,
   onRetryAnalysis,
   capturedDreamText = '',
 }: HoldToRememberProps) {
@@ -812,7 +815,7 @@ export default function HoldToRemember({
       >
         {analysisFailed ? (
           <>
-            <p className="central-settled-text">{t('hold.analysisFailed')}</p>
+            <p className="central-settled-text">{t(analysisUncertain ? 'hold.analysisUncertain' : 'hold.analysisFailed')}</p>
             <div className="central-settled-actions">
               <button
                 type="button"

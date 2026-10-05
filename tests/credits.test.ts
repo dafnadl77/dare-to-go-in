@@ -53,13 +53,13 @@ test('a signed-in attempt can ONLY be created through the atomic spend; the plai
 
 test('the analysis route refuses at zero credits BEFORE any model call, with 402 credits_required', () => {
   const route = read('server/routes/dreamAnalysis.ts');
-  assert.ok(route.indexOf('createAttemptForIdentity(') < route.indexOf('client.responses.create'));
-  assert.match(route, /created\.reason === 'credits_required'[\s\S]{0,120}errorResult\(402, 'credits_required', CREDITS_REQUIRED_MESSAGE\)/);
+  assert.ok(route.indexOf('await startAnalysisAttempt(') < route.indexOf('await deps.runModel('));
+  assert.match(route, /case 'credits_required':\s*return withHeaders\(errorResult\(402, 'credits_required', CREDITS_REQUIRED_MESSAGE\)/);
 });
 
 test('a genuinely failed analysis releases the attempt through the server-side refund, on both failure paths', () => {
   const route = read('server/routes/dreamAnalysis.ts');
-  assert.equal((route.match(/await abandonAttempt\(resolved\.identity, attemptId\)/g) ?? []).length, 2);
+  assert.equal((route.match(/await deps\.abandon\(resolved\.identity, attemptId\)/g) ?? []).length, 2);
   assert.ok(!route.includes('deleteDreamAttempt'));
   // signed-in: refund via cancel_user_attempt (idempotent in SQL); anonymous: delete
   assert.match(attempts, /rpc\('cancel_user_attempt', \{ p_attempt: attemptId, p_owner: identity\.userId \}\)/);
