@@ -106,6 +106,21 @@ export async function handlePreviewHarness(req: Req, res: Res): Promise<void> {
     return void res.status(200).json({ reason: 'unexpected_completion' });
   }
 
+  if (simulate === 'stream') {
+    // A synthetic body (NOT a journal) sent in paced chunks, to see whether the platform streams or buffers and whether > 4.5 MB passes.
+    const mb = Math.min(24, Math.max(1, Number(q(req, 'mb')) || 12));
+    res.status(200);
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    const chunk = Buffer.alloc(512 * 1024, 0x41);
+    for (let i = 0; i < mb * 2; i += 1) {
+      res.write(chunk);
+      await sleep(150);
+    }
+    res.end();
+    return;
+  }
+
   const kind = (['en', 'he', 'mixed', 'stress'] as const).find((k) => k === q(req, 'kind'));
   if (!kind) return void res.status(400).json({ reason: 'invalid_request', message: 'kind=en|he|mixed|stress' });
   const count = Math.min(JOURNAL_LIMITS.maxDreams, Math.max(1, Number(q(req, 'n')) || 12));
@@ -113,7 +128,7 @@ export async function handlePreviewHarness(req: Req, res: Res): Promise<void> {
   const wasCold = coldInstance;
   coldInstance = false;
   const t0 = Date.now();
-  const doc = buildFixtureDocument(kind as FixtureKind, count);
+  const doc = buildFixtureDocument(kind as FixtureKind, count, q(req, 'heavy') === '1');
   const buildMs = Date.now() - t0;
 
   let peakRss = 0;
@@ -157,6 +172,7 @@ export async function handlePreviewHarness(req: Req, res: Res): Promise<void> {
       renderMs,
       passes: result.passes,
       tocPageNumbers: result.tocPageNumbers,
+      heavy: q(req, 'heavy') === '1',
       coldInstance: wasCold,
       instanceAgeMs: Date.now() - startedAt,
       peakRssMbAllProcesses: Math.round(peakRss),

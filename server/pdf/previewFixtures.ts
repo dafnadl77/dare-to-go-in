@@ -19,7 +19,8 @@ function uniqueVariant(image: JournalImage, tag: number): JournalImage {
   return { ...image, dataUri: `data:image/jpeg;base64,${out.toString('base64')}` };
 }
 
-export function buildFixtureDocument(kind: FixtureKind, count = 12): JournalDocument {
+/** `heavy`: every dream carries one of the two largest demo images (~0.7 MB each, close to the app's total image budget at 60 dreams). */
+export function buildFixtureDocument(kind: FixtureKind, count = 12, heavy = false): JournalDocument {
   if (kind === 'en') return sampleDocument('en');
   if (kind === 'he') return sampleDocument('he');
   const en = sampleDocument('en');
@@ -35,12 +36,13 @@ export function buildFixtureDocument(kind: FixtureKind, count = 12): JournalDocu
   }
   // stress: `count` dreams cycling through the 12 templates (every fourth one is a long dream), each with a unique image.
   const templates = [...en.dreams, ...he.dreams];
-  const pool = Object.values(fixtureImages()).filter((img) => img.dataUri.length < 1_000_000);
+  const images = fixtureImages();
+  const pool = heavy ? [images.bed, images.mirror] : Object.values(images).filter((img) => img.dataUri.length < 1_000_000);
   const dreams: JournalDream[] = Array.from({ length: count }, (_, i) => {
     const t = templates[i % templates.length];
     const long = templates[i % 2 === 0 ? 1 : 7];
     const useLong = i % 4 === 1;
-    const image = i % 7 === 6 ? null : uniqueVariant(pool[i % pool.length], i);
+    const image = i % 7 === 6 && !heavy ? null : uniqueVariant(pool[i % pool.length], i);
     const date = new Date(Date.UTC(2022, 0, 5 + i * 11, 20, 0, 0)).toISOString();
     return { ...t, id: `stress-${i + 1}`, createdAt: date, title: `${t.title} ${i + 1}`, sourceText: useLong ? long.sourceText : t.sourceText, image };
   });
