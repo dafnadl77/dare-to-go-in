@@ -1,5 +1,6 @@
 import { getAuthHeader } from '../auth/getAccessToken';
 import type { AppLanguage } from '../hero/appLanguage';
+import { isCompletePdf, JOURNAL_REQUEST_TIMEOUT_MS } from './journalPdfCheck';
 
 /**
  * Client side of the Dream Journal export. Nothing here decides anything: whether the account may export is the
@@ -52,9 +53,12 @@ export async function requestJournalPdf(
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify({ ...selection, language, timeZone }),
+      signal: AbortSignal.timeout(JOURNAL_REQUEST_TIMEOUT_MS),
     });
     if (res.ok && (res.headers.get('content-type') ?? '').includes('application/pdf')) {
-      return { ok: true, blob: await res.blob() };
+      const blob = await res.blob();
+      // Never hand the user a cut-off or non-PDF file: it must be a whole PDF, or the attempt fails and can be repeated.
+      return (await isCompletePdf(blob, res.headers.get('content-encoding') ? null : res.headers.get('content-length'))) ? { ok: true, blob } : { ok: false, reason: 'failed' };
     }
     const data: unknown = await res.json().catch(() => null);
     const reason = data && typeof data === 'object' ? (data as { reason?: unknown }).reason : undefined;

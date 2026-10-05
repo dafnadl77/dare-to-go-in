@@ -243,8 +243,10 @@ test('bytes at the right path that are not an image are dropped (no mislabeled c
 });
 
 test('the PDF pipeline never fetches by URL: no fetch/http/axios anywhere in the journal modules, no AI client, no remote image support', () => {
-  for (const f of readdirSync(new URL('../server/pdf', import.meta.url)).filter((x) => x.endsWith('.ts'))) {
-    const src = read(`server/pdf/${f}`).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  // (preview*.ts is the Preview-only validation harness: it deliberately contains hostile markup to prove the network lock.
+  // It exists only on the preview branch and answers 404 outside a Vercel preview.)
+  for (const f of readdirSync(new URL('../server/pdf', import.meta.url)).filter((x) => x.endsWith('.ts') && !x.startsWith('preview'))) {
+    const src = read(`server/pdf/${f}`).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/^import type .*$/gm, '');
     assert.ok(!/\bfetch\(|node:https?|axios|openai|responses\.create/i.test(src), f);
   }
   const route = read('server/routes/dreamJournal.ts');
@@ -456,7 +458,37 @@ test('privacy: nothing is stored or shared: no upload, no signed/public URL, no 
   const sources = [...readdirSync(new URL('../server/pdf', import.meta.url)).filter((x) => x.endsWith('.ts')).map((f) => read(`server/pdf/${f}`)), read('server/routes/dreamJournal.ts'), read('api/dream-journal.ts')].join('\n');
   assert.ok(!/\.upload\(|createSignedUrl|getPublicUrl|writeFile|writeFileSync|createWriteStream|\.from\('journal/.test(sources));
   const api = read('api/dream-journal.ts');
+  assert.match(api, /sendPdf\(res, result\.pdf\)/);
   assert.match(api, /Cache-Control', 'no-store'/);
-  assert.match(api, /application\/pdf/);
-  assert.match(api, /res\.write\(/);
+  const sender = read('server/pdf/sendPdf.ts');
+  assert.match(sender, /Cache-Control', 'no-store'/);
+  assert.match(sender, /application\/pdf/);
+  assert.match(sender, /attachment; filename=/);
+  assert.match(sender, /Content-Length/);
+  assert.match(sender, /res\.write\(/);
+});
+
+// ============================================================ client safeguards ====
+
+import { isCompletePdf, JOURNAL_REQUEST_TIMEOUT_MS } from '../src/archive/journalPdfCheck.ts';
+
+test('client: only a COMPLETE pdf is ever saved (header, trailer and announced length must all agree)', async () => {
+  const body = `%PDF-1.7\n${'x'.repeat(200)}\n%%EOF\n`;
+  const whole = new Blob([body]);
+  assert.equal(await isCompletePdf(whole, String(whole.size)), true);
+  assert.equal(await isCompletePdf(whole, null), true, 'content-length unknown (e.g. compressed): header + trailer still required');
+  assert.equal(await isCompletePdf(new Blob([body.slice(0, 120)]), String(whole.size)), false, 'cut short: announced length differs');
+  assert.equal(await isCompletePdf(new Blob([body.slice(0, 120)]), null), false, 'cut short: no trailer');
+  assert.equal(await isCompletePdf(new Blob(['<html>Error</html>'.padEnd(300, ' ')]), null), false, 'an error page is never a pdf');
+  assert.equal(await isCompletePdf(new Blob(['']), '0'), false);
+});
+
+test('client: the export request cannot wait forever and an unfinished/failed export can simply be repeated', () => {
+  assert.ok(JOURNAL_REQUEST_TIMEOUT_MS > 60_000 && JOURNAL_REQUEST_TIMEOUT_MS <= 120_000, 'a bit longer than the 60 s server limit');
+  const client = read('src/archive/journalExport.ts');
+  assert.match(client, /AbortSignal\.timeout\(JOURNAL_REQUEST_TIMEOUT_MS\)/);
+  assert.match(client, /isCompletePdf\(/);
+  const dialog = read('src/archive/ExportJournalDialog.tsx');
+  assert.match(dialog, /setBusy\(false\);\s*\n\s*if \(result\.ok\)/, 'busy is always cleared after the request, success or not');
+  assert.match(dialog, /else setError\(result\.reason\)/, 'a failure shows a message and leaves the export button usable');
 });
