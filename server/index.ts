@@ -10,6 +10,7 @@ import { handleDreamTranscription } from './routes/dreamTranscription.js';
 import { handleClaimTrial } from './routes/claimTrial.js';
 import { handleCredits } from './routes/credits.js';
 import { handleDeleteAccount } from './routes/deleteAccount.js';
+import { handleDreamJournal } from './routes/dreamJournal.js';
 import { handleTrialSession } from './routes/trialSession.js';
 import type { HandlerResult } from './httpResult.js';
 import type { RequestHeaders } from './callerIdentity.js';
@@ -66,6 +67,15 @@ app.post('/api/trial-session', async (req, res) => {
 
 app.post('/api/delete-account', async (req, res) => {
   send(res, await handleDeleteAccount(req.body, requestHeaders(req)));
+});
+
+app.post('/api/dream-journal', async (req, res) => {
+  const result = await handleDreamJournal(req.body, requestHeaders(req));
+  if ('pdf' in result) {
+    res.status(200).type('application/pdf').set('Cache-Control', 'no-store').send(Buffer.from(result.pdf));
+    return;
+  }
+  send(res, result);
 });
 
 app.get('/api/credits', async (req, res) => {

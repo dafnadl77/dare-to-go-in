@@ -20,7 +20,7 @@
 
 export type PackageId = 'first_dream' | 'go_deeper_3' | 'explore_10' | 'dive_in_25';
 
-export type FeatureKey = 'fullJourney' | 'guidedReflection' | 'dreamImage' | 'saveArchive' | 'trackThemes' | 'bilingual';
+export type FeatureKey = 'fullJourney' | 'guidedReflection' | 'dreamImage' | 'saveArchive' | 'trackThemes' | 'bilingual' | 'journalExport';
 
 export interface DreamPackageDef {
   id: PackageId;
@@ -46,5 +46,5 @@ export const DREAM_PACKAGES: readonly DreamPackageDef[] = [
   { id: 'first_dream', dreamCount: 1, priceIls: null, featured: false, features: BASE_FEATURES },
   { id: 'go_deeper_3', dreamCount: 3, priceIls: 59, featured: false, features: FULL_FEATURES },
   { id: 'explore_10', dreamCount: 10, priceIls: 149, featured: true, features: FULL_FEATURES },
-  { id: 'dive_in_25', dreamCount: 25, priceIls: 279, featured: false, features: FULL_FEATURES },
+  { id: 'dive_in_25', dreamCount: 25, priceIls: 279, featured: false, features: [...FULL_FEATURES, 'journalExport'] },
 ];

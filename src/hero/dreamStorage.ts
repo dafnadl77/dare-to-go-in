@@ -1,6 +1,6 @@
-import type { DreamAnalysis } from './dreamAnalysisSchema';
-import type { DreamReflectionResult } from './dreamReflectionSchema';
-import { getAppLanguage, type AppLanguage } from './appLanguage';
+import type { DreamAnalysis } from './dreamAnalysisSchema.js';
+import type { DreamReflectionResult } from './dreamReflectionSchema.js';
+import { getAppLanguage, type AppLanguage } from './appLanguage.js';
 
 /**
  * A single saved dream, capturing everything MY DREAMS (and
