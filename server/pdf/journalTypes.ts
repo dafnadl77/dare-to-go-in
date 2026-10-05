@@ -58,8 +58,11 @@ export interface JournalDocument {
 /** Hard bounds on one export (the route answers 413 export_too_large beyond them). */
 export const JOURNAL_LIMITS = {
   maxDreams: JOURNAL_MAX_DREAMS,
-  /** Sum of all validated image bytes. */
-  maxTotalImageBytes: 45 * 1024 * 1024,
+  /**
+   * Sum of all validated image bytes. Measured on Vercel Preview: peak memory grows ~30 MB per image-MB (60 dreams with
+   * 26 MB of images peaked at 1.3 GB, 42 MB at 1.9 GB of the ~2.3 GB available), so 32 MB keeps a comfortable margin.
+   */
+  maxTotalImageBytes: 32 * 1024 * 1024,
   maxSingleImageBytes: 6 * 1024 * 1024,
   /** Sum of all text characters across dreams and patterns. */
   maxTotalTextChars: 1_500_000,

@@ -492,3 +492,31 @@ test('client: the export request cannot wait forever and an unfinished/failed ex
   assert.match(dialog, /setBusy\(false\);\s*\n\s*if \(result\.ok\)/, 'busy is always cleared after the request, success or not');
   assert.match(dialog, /else setError\(result\.reason\)/, 'a failure shows a message and leaves the export button usable');
 });
+
+test('limits: the total image budget is 32 MB (Vercel Preview stress test: 42 MB peaked at 1.9 GB of ~2.3 GB) and 60 dreams stay allowed', () => {
+  assert.equal(JOURNAL_LIMITS.maxTotalImageBytes, 32 * 1024 * 1024);
+  assert.equal(JOURNAL_LIMITS.maxDreams, 60);
+  assert.equal(JOURNAL_LIMITS.maxSingleImageBytes, 6 * 1024 * 1024);
+});
+
+test('limits: 60 realistic dreams (~430 KB each, ~26 MB) fit the budget; 7 dreams of near-maximum images do not', async () => {
+  const realistic = new Uint8Array(430 * 1024);
+  realistic.set(fakeJpeg(1536, 1024));
+  const rows: DreamRow[] = [];
+  const images: Record<string, Uint8Array> = {};
+  for (let i = 1; i <= 60; i += 1) {
+    rows.push(row(i, { payload: payload({ dreamImagePath: OWN_IMAGE(i) }) }));
+    images[OWN_IMAGE(i)] = realistic;
+  }
+  const ok = await buildJournalDocument(ME, ALL, deps({ rows, images }).d);
+  assert.ok(ok.ok, 'a normal 60-dream archive exports');
+  const huge = new Uint8Array(JOURNAL_LIMITS.maxSingleImageBytes - 10);
+  huge.set(fakeJpeg(1536, 1024));
+  const heavyRows: DreamRow[] = [];
+  const heavyImages: Record<string, Uint8Array> = {};
+  for (let i = 1; i <= 7; i += 1) {
+    heavyRows.push(row(i, { payload: payload({ dreamImagePath: OWN_IMAGE(i) }) }));
+    heavyImages[OWN_IMAGE(i)] = huge;
+  }
+  assert.deepEqual(await buildJournalDocument(ME, ALL, deps({ rows: heavyRows, images: heavyImages }).d), { ok: false, reason: 'export_too_large' });
+});
