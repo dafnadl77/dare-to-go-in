@@ -2,7 +2,6 @@
   "functions": {
     "api/dream-journal.ts": {
       "maxDuration": 60,
-      "memory": 2048,
       "includeFiles": "{server/pdf/fonts/**,server/pdf/assets/**,node_modules/@sparticuz/chromium/bin/**}"
     }
   }

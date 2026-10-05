@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { PDFArray, PDFDict, PDFDocument, PDFName, PDFNumber, PDFRef } from 'pdf-lib';
-import type { Browser } from 'puppeteer-core';
+import type { Browser, Page } from 'puppeteer-core';
 import { buildJournalHtml, DEFAULT_LAYOUT, hasTableOfContents, type DreamLayout, type JournalAssets } from './journalHtml.js';
 import type { JournalDocument } from './journalTypes.js';
 
@@ -156,15 +156,27 @@ export async function readInternalLinkDestinations(pdfBytes: Uint8Array): Promis
 
 // ------------------------------------------------------------------ render ----
 
-async function printHtml(browser: Browser, html: string): Promise<Uint8Array> {
+/**
+ * A page that can load NOTHING from the network: every request that is not a data: URI is aborted. This is the only way
+ * the renderer ever opens a page. `onBlocked` is only for diagnostics (e.g. the Preview check) and receives the URL.
+ */
+export async function createLockedPage(browser: Browser, onBlocked?: (url: string) => void): Promise<Page> {
   const page = await browser.newPage();
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    const url = req.url();
+    if (url.startsWith('data:') || url === 'about:blank') void req.continue();
+    else {
+      onBlocked?.(url);
+      void req.abort('blockedbyclient');
+    }
+  });
+  return page;
+}
+
+async function printHtml(browser: Browser, html: string): Promise<Uint8Array> {
+  const page = await createLockedPage(browser);
   try {
-    await page.setRequestInterception(true);
-    page.on('request', (req) => {
-      const url = req.url();
-      if (url.startsWith('data:') || url === 'about:blank') void req.continue();
-      else void req.abort('blockedbyclient');
-    });
     await page.setContent(html, { waitUntil: 'load' });
     await page.evaluate('document.fonts.ready.then(() => true)');
     return await page.pdf({
