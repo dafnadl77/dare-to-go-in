@@ -515,10 +515,16 @@ html[lang='he'] .pr-card-eyebrow {
   }
 }
 
-/* ---- The package this account holds: a diagonal corner ribbon worn across the card's top START corner (top-left in English,
-   top-right in Hebrew), and a quiet lift of the card itself. The card's own overflow:hidden + radius cut the band at the corner,
-   so it reads as a sash over the corner, not a header. It replaces "Most Popular" on the same card and never sits with it.
-   Geometry: the band is centred on the diagonal x + y = 7.6rem measured from the corner (centre 3.8rem in from each edge). ---- */
+/* ---- The package this account holds: a champagne-gold ribbon wrapped diagonally over the card's top START corner (top-left in
+   English, top-right in Hebrew) with folded ends, plus a quiet lift of the card itself. It replaces "Most Popular" on the same
+   card and never sits with it.
+   Everything inside the ribbon is in em, so one font-size scales it (smaller on phones). Geometry, in the ribbon box (S = 13em,
+   placed 1em beyond the card's corner): the band's centre line is the diagonal x + y = 10em, its thickness is 2.7em, so its
+   ends are cut by the box edges 1em outside the card; the two darker triangles are the ribbon folding behind the card. ---- */
+.pr-card-slot--current {
+  position: relative;
+}
+
 .pr-card--current {
   border-color: rgba(244, 240, 232, 0.5);
   box-shadow: 0 0 2.4rem rgba(244, 240, 232, 0.16), 0 1.6rem 3rem rgba(0, 0, 0, 0.45);
@@ -526,55 +532,105 @@ html[lang='he'] .pr-card-eyebrow {
 
 .pr-card-ribbon {
   position: absolute;
-  top: 0;
-  inset-inline-start: 0;
-  z-index: 3;
-  width: 11rem;
-  height: 11rem;
+  top: -1em;
+  inset-inline-start: -1em;
+  z-index: 4;
+  width: 13em;
+  height: 13em;
   overflow: hidden;
   pointer-events: none;
+  font-size: 1rem;
+}
+
+/* The folds: the ribbon turning behind the card at each end of the band. */
+.pr-card-ribbon::before,
+.pr-card-ribbon::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  width: 1em;
+  height: 1em;
+  background: linear-gradient(135deg, #a47427, #d6aa57);
+}
+
+.pr-card-ribbon::before {
+  left: 0;
+  top: 10.91em;
+  clip-path: polygon(0 100%, 100% 0, 100% 100%);
+}
+
+.pr-card-ribbon::after {
+  left: 10.91em;
+  top: 0;
+  clip-path: polygon(100% 0, 0 100%, 100% 100%);
 }
 
 .pr-card-ribbon-band {
   position: absolute;
-  top: 2.85rem;
-  left: -3.2rem;
-  width: 14rem;
-  height: 1.9rem;
+  z-index: 1;
+  top: 3.65em;
+  left: -3.5em;
+  width: 17em;
+  height: 2.7em;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35em;
+  gap: 0.4em;
   box-sizing: border-box;
   transform: rotate(-45deg);
-  background: linear-gradient(180deg, rgba(247, 243, 235, 0.98), rgba(226, 219, 204, 0.96));
-  border-block: 1px solid rgba(11, 12, 11, 0.28);
-  box-shadow: 0 0.35rem 0.8rem rgba(0, 0, 0, 0.45);
-  color: #0b0c0b;
+  background:
+    linear-gradient(90deg, rgba(95, 58, 12, 0.5) 0%, rgba(95, 58, 12, 0) 16%, rgba(95, 58, 12, 0) 84%, rgba(95, 58, 12, 0.5) 100%),
+    linear-gradient(180deg, rgba(255, 252, 240, 0.55) 0%, rgba(255, 252, 240, 0) 42%),
+    linear-gradient(180deg, #f3dca2 0%, #e4c27a 34%, #c9984a 70%, #e7cb89 100%);
+  box-shadow:
+    inset 0 0.07em 0 rgba(255, 248, 224, 0.85),
+    inset 0 -0.07em 0 rgba(122, 82, 29, 0.55),
+    0 0.45em 0.8em rgba(0, 0, 0, 0.5);
+  color: #2b1b06;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.76rem;
-  font-weight: 700;
+  font-size: 0.98em;
+  font-weight: 800;
   line-height: 1;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0.06em 0 rgba(255, 240, 200, 0.7);
   white-space: nowrap;
 }
 
-/* Hebrew reads right-to-left, so the start corner is the top-right: mirror the band. */
+/* Hebrew reads right-to-left, so the start corner is the top-right: the same ribbon, mirrored. */
 html[lang='he'] .pr-card-ribbon-band {
   left: auto;
-  right: -3.2rem;
+  right: -3.5em;
   transform: rotate(45deg);
-  font-size: 0.86rem;
+  font-size: 1.08em;
+  letter-spacing: normal;
+}
+
+html[lang='he'] .pr-card-ribbon::before {
+  left: auto;
+  right: 0;
+  clip-path: polygon(100% 100%, 0 0, 0 100%);
+}
+
+html[lang='he'] .pr-card-ribbon::after {
+  left: auto;
+  right: 10.91em;
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
 }
 
 .pr-card-ribbon-band .pr-check {
   flex: none;
-  width: 0.95em;
-  height: 0.95em;
+  width: 1.3em;
+  height: 1.3em;
   color: inherit;
-  /* keep the tick upright inside the tilted band */
-  transform: rotate(45deg);
 }
 
-html[lang='he'] .pr-card-ribbon-band .pr-check {
-  transform: rotate(-45deg);
+/* Phones: the same ribbon, a little smaller (it still crosses the corner as a real ribbon, never a thin strip). */
+.pr-card-ribbon-band .pr-check path {
+  stroke-width: 2.6;
+}
+
+@media (max-width: 480px) {
+  .pr-card-ribbon {
+    font-size: 0.86rem;
+  }
 }
