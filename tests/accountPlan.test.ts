@@ -163,27 +163,12 @@ test('prices, credits and package ids are untouched', () => {
 test('the held package gets a ribbon + card highlight; it replaces "Most Popular" on that card and never shows with it', () => {
   const pricing = read('src/pricing/PricingPage.tsx');
   assert.match(pricing, /\$\{isCurrent \? ' pr-card--current' : ''\}/);
-  // the Most Popular badge is only rendered when the card is NOT the held one; the ribbon only when it is — never both
-  assert.match(pricing, /\{!isCurrent && pkg\.featured && <span className="pr-card-badge">/);
-  assert.match(pricing, /\{isCurrent && \(\s*<div className="pr-card-ribbon">/);
+  // one ternary: ribbon when current, otherwise the Most Popular badge — never both
+  assert.match(pricing, /\{isCurrent \? \(\s*<div className="pr-card-ribbon">[\s\S]*?\) : \(\s*pkg\.featured && <span className="pr-card-badge">/);
   assert.equal((pricing.match(/className="pr-card-ribbon"/g) ?? []).length, 1);
-  // the ribbon sits beside the card (in its slot), so the card's own clipping does not cut it
-  assert.match(pricing, /<\/article>[\s\S]*?pr-card-ribbon[\s\S]*?pr-card-reflection/);
   const css = read('src/pricing/PricingPage.css');
   assert.match(css, /\.pr-card--current \{/);
-  // the slot is the size container: the ribbon is measured in cqw (a % of the card's width), so it scales with the card
-  assert.match(css, /\.pr-card-slot--current \{\s*position: relative;\s*container-type: inline-size;/);
-  assert.match(css, /\.pr-card-ribbon \{[\s\S]*?position: absolute;[\s\S]*?inset-inline-start: -3\.9cqw;[\s\S]*?width: 79cqw;/);
-  // built from shapes, not a rotated rectangle: the band, the curled tip (::before) and the side flap (::after) are clip-path polygons
-  assert.match(css, /\.pr-card-ribbon-band \{[\s\S]*?clip-path: polygon\(/);
-  assert.match(css, /\.pr-card-ribbon::before \{[\s\S]*?clip-path: polygon/);
-  assert.match(css, /\.pr-card-ribbon::after \{[\s\S]*?clip-path: polygon/);
-  const band = css.slice(css.indexOf('.pr-card-ribbon-band {'), css.indexOf('/* Curled tip'));
-  assert.ok(!/transform:/.test(band), 'the band itself is not a rotated box');
-  // only the label is rotated; Hebrew uses the design as drawn, English mirrors the whole ribbon and flips the label back
-  assert.match(css, /\.pr-card-ribbon-label \{[\s\S]*?transform: translate\(-50%, -50%\) rotate\(32deg\);/);
-  assert.match(css, /html:not\(\[lang='he'\]\) \.pr-card-ribbon \{\s*transform: scaleX\(-1\);/);
-  assert.match(css, /html:not\(\[lang='he'\]\) \.pr-card-ribbon-label \{\s*transform: translate\(-50%, -50%\) rotate\(32deg\) scaleX\(-1\);/);
+  assert.match(css, /\.pr-card-ribbon \{[\s\S]*?position: absolute;[\s\S]*?top: 0;/);
 });
 
 test('the ribbon wording is exactly the requested text in both languages', () => {

@@ -76,10 +76,19 @@ function PackageCard({ pkg, onSelectPaid, isCurrent = false }: PackageCardProps)
   const scene = PACKAGE_SCENE_IMAGE[pkg.id as Exclude<PackageId, 'first_dream'>];
 
   return (
-    <div className={`pr-card-slot${isCurrent ? ' pr-card-slot--current' : ''}`}>
+    <div className="pr-card-slot">
       <article className={`pr-card${pkg.featured ? ' pr-card--hero' : ''}${isCurrent ? ' pr-card--current' : ''}`} aria-current={isCurrent ? 'true' : undefined}>
-        {/* The held package's ribbon (below, in the slot) takes priority over "Most Popular": the two are never shown together. */}
-        {!isCurrent && pkg.featured && <span className="pr-card-badge">{t('pricing.mostPopular')}</span>}
+        {/* The held package's ribbon takes priority over "Most Popular": the two are never shown together. */}
+        {isCurrent ? (
+          <div className="pr-card-ribbon">
+            <span className="pr-card-ribbon-band">
+              <CheckIcon />
+              <span>{t('pricing.yourPackage')}</span>
+            </span>
+          </div>
+        ) : (
+          pkg.featured && <span className="pr-card-badge">{t('pricing.mostPopular')}</span>
+        )}
 
         <div className="pr-card-scene">
           <img className="pr-card-scene-img" src={scene} alt="" aria-hidden="true" loading="lazy" />
@@ -110,18 +119,6 @@ function PackageCard({ pkg, onSelectPaid, isCurrent = false }: PackageCardProps)
           </div>
         </div>
       </article>
-
-      {/* A ribbon wrapped over the card's top START corner (top-left in English, top-right in Hebrew). It sits beside the card, not
-          inside it, so it is not cut by the card's overflow clipping and its ends can fold around the corner. */}
-      {isCurrent && (
-        <div className="pr-card-ribbon">
-          <span className="pr-card-ribbon-band" aria-hidden="true" />
-          <span className="pr-card-ribbon-label">
-            <CheckIcon />
-            <span>{t('pricing.yourPackage')}</span>
-          </span>
-        </div>
-      )}
 
       {/* A faint, blurred, vertically-flipped echo of the SAME scene photo
           directly beneath the card — the "reflected on water" read from the

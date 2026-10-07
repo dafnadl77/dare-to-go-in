@@ -515,22 +515,10 @@ html[lang='he'] .pr-card-eyebrow {
   }
 }
 
-/* ---- The package this account holds: a satin champagne-gold ribbon that wraps the card's top START corner (top-right in Hebrew,
-   top-left in English), plus a quiet lift of the card itself. It replaces "Most Popular" on the same card, never alongside it.
-   Built from real shapes, not a rotated rectangle:
-     .pr-card-ribbon-band   the band: a clip-path polygon — flat across the top edge of the card, then running diagonally to the
-                            side edge, where it turns down and ends in a tail
-     ::before               the curled tip at the top (darker fold)
-     ::after                the flap that turns down over the card's side edge (darker, with a bright lip)
-     .pr-card-ribbon-label  the "tick + text", the only rotated piece
-   Everything is measured in cqw (1cqw = 1% of the card's width, the slot is the container), so the ribbon keeps the same
-   proportions on every card and every screen width. The polygons were traced from the approved reference
-   (wrapper = 79cqw x 53.2cqw, 3.9cqw beyond the card's side edge and 3.5cqw above its top edge). ---- */
-.pr-card-slot--current {
-  position: relative;
-  container-type: inline-size;
-}
-
+/* ---- The package this account holds: a diagonal corner ribbon worn across the card's top START corner (top-left in English,
+   top-right in Hebrew), and a quiet lift of the card itself. The card's own overflow:hidden + radius cut the band at the corner,
+   so it reads as a sash over the corner, not a header. It replaces "Most Popular" on the same card and never sits with it.
+   Geometry: the band is centred on the diagonal x + y = 7.6rem measured from the corner (centre 3.8rem in from each edge). ---- */
 .pr-card--current {
   border-color: rgba(244, 240, 232, 0.5);
   box-shadow: 0 0 2.4rem rgba(244, 240, 232, 0.16), 0 1.6rem 3rem rgba(0, 0, 0, 0.45);
@@ -538,118 +526,55 @@ html[lang='he'] .pr-card-eyebrow {
 
 .pr-card-ribbon {
   position: absolute;
-  z-index: 4;
-  top: -3.5cqw;
-  inset-inline-start: -3.9cqw;
-  width: 79cqw;
-  height: 53.2cqw;
-  pointer-events: none;
-  filter: drop-shadow(0 1cqw 1.3cqw rgba(0, 0, 0, 0.5));
-}
-
-.pr-card-ribbon-band,
-.pr-card-ribbon::before,
-.pr-card-ribbon::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-}
-
-/* The band. Gradient runs ACROSS the band (211deg ~ perpendicular to its direction): light upper hem, satin body, deeper lower
-   edge with a thin bright hem line on each side. */
-.pr-card-ribbon-band {
-  z-index: 1;
-  background:
-    linear-gradient(90deg, rgba(110, 68, 20, 0.34) 0%, rgba(110, 68, 20, 0) 14%, rgba(110, 68, 20, 0) 86%, rgba(110, 68, 20, 0.3) 100%),
-    radial-gradient(ellipse 34% 14% at 52% 24%, rgba(255, 246, 224, 0.42), rgba(255, 246, 224, 0)),
-    linear-gradient(
-      211deg,
-      #f7ddb4 28%,
-      #fff3d9 29.2%,
-      #f2d3a0 30.4%,
-      #ecc58a 36%,
-      #e3b172 42%,
-      #d8a05f 46%,
-      #f1cf9a 47%,
-      #c9904e 48.6%
-    );
-  clip-path: polygon(
-    0.7% 3.5%,
-    1.3% 2%,
-    2.7% 1.2%,
-    41.8% 1%,
-    94.8% 48.8%,
-    98.9% 55.3%,
-    98.5% 89.8%,
-    95.6% 99.6%,
-    94.8% 88.2%,
-    67.1% 64.4%,
-    41.1% 38%,
-    9.6% 6.9%
-  );
-}
-
-/* Curled tip: the ribbon turning over the card's top edge. */
-.pr-card-ribbon::before {
-  z-index: 2;
-  background: linear-gradient(100deg, rgba(104, 62, 16, 0.6), rgba(104, 62, 16, 0.08) 78%);
-  clip-path: polygon(0.7% 3.5%, 1.3% 2%, 2.7% 1.2%, 14% 1.2%, 9.6% 6.9%);
-}
-
-/* The flap that turns down over the side edge and tapers to a tail. */
-.pr-card-ribbon::after {
-  z-index: 2;
-  background:
-    linear-gradient(90deg, rgba(84, 48, 10, 0.6) 0%, rgba(84, 48, 10, 0) 22%),
-    linear-gradient(90deg, #d8a35c 0%, #bc8545 52%, #e9c386 86%, #a9722f 100%);
-  clip-path: polygon(94.8% 48.8%, 98.9% 55.3%, 98.5% 89.8%, 95.6% 99.6%, 94.8% 88.2%);
-}
-
-/* The only rotated piece: tick + text, centred on the broad part of the band, along its direction. */
-.pr-card-ribbon-label {
-  position: absolute;
+  top: 0;
+  inset-inline-start: 0;
   z-index: 3;
-  left: 60.5%;
-  top: 33.2%;
+  width: 11rem;
+  height: 11rem;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.pr-card-ribbon-band {
+  position: absolute;
+  top: 2.85rem;
+  left: -3.2rem;
+  width: 14rem;
+  height: 1.9rem;
   display: flex;
   align-items: center;
-  gap: 0.45em;
-  transform: translate(-50%, -50%) rotate(32deg);
-  color: #2b1a09;
+  justify-content: center;
+  gap: 0.35em;
+  box-sizing: border-box;
+  transform: rotate(-45deg);
+  background: linear-gradient(180deg, rgba(247, 243, 235, 0.98), rgba(226, 219, 204, 0.96));
+  border-block: 1px solid rgba(11, 12, 11, 0.28);
+  box-shadow: 0 0.35rem 0.8rem rgba(0, 0, 0, 0.45);
+  color: #0b0c0b;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 1.1rem;
-  font-size: 4.7cqw;
+  font-size: 0.76rem;
   font-weight: 700;
   line-height: 1;
-  letter-spacing: 0.01em;
-  text-shadow: 0 0.12cqw 0 rgba(255, 236, 196, 0.55);
   white-space: nowrap;
 }
 
-.pr-card-ribbon-label .pr-check {
+/* Hebrew reads right-to-left, so the start corner is the top-right: mirror the band. */
+html[lang='he'] .pr-card-ribbon-band {
+  left: auto;
+  right: -3.2rem;
+  transform: rotate(45deg);
+  font-size: 0.86rem;
+}
+
+.pr-card-ribbon-band .pr-check {
   flex: none;
-  width: 1.15em;
-  height: 1.15em;
+  width: 0.95em;
+  height: 0.95em;
   color: inherit;
+  /* keep the tick upright inside the tilted band */
+  transform: rotate(45deg);
 }
 
-.pr-card-ribbon-label .pr-check path {
-  stroke-width: 2.7;
-}
-
-/* Hebrew reads right-to-left: the ribbon sits on the top-right exactly as designed, the tick closes the line (left end). */
-html[lang='he'] .pr-card-ribbon-label {
-  flex-direction: row-reverse;
-  font-size: 1.5rem;
-  font-size: 6.3cqw;
-  letter-spacing: normal;
-}
-
-/* English: the whole ribbon is mirrored onto the top-left corner; the label is flipped back so the text is never mirrored. */
-html:not([lang='he']) .pr-card-ribbon {
-  transform: scaleX(-1);
-}
-
-html:not([lang='he']) .pr-card-ribbon-label {
-  transform: translate(-50%, -50%) rotate(32deg) scaleX(-1);
+html[lang='he'] .pr-card-ribbon-band .pr-check {
+  transform: rotate(-45deg);
 }
