@@ -101,8 +101,12 @@ test('GET /api/credits: verified bearer only, returns only the token holder\'s o
   assert.match(route, /verifyBearerToken\(authHeader\)/);
   assert.match(route, /getCreditBalance\(verified\.userId\)/);
   assert.ok(!/body|req\.|rawBody|spend|grant|cancel|start_user_attempt/.test(route.replace(/\/\*[\s\S]*?\*\//g, '')));
+  // The balance handler above is untouched. The same function now ALSO starts a purchase on POST (checkout initiation:
+  // it creates an order and asks Make for a payment link; it never grants credits, see checkoutStart.test.ts).
   const api = read('api/credits.ts');
-  assert.match(api, /req\.method !== 'GET'[\s\S]*405/);
+  assert.match(api, /req\.method === 'GET'[\s\S]*handleCredits\(headers\)/);
+  assert.match(api, /req\.method === 'POST'[\s\S]*handleStartCheckout/);
+  assert.match(api, /405/);
   assert.match(api, /no-store/);
   assert.ok(read('server/index.ts').includes("app.get('/api/credits'"));
 });
