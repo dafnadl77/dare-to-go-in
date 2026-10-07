@@ -1,5 +1,6 @@
 import { errorResult, okResult, type HandlerResult } from '../httpResult.js';
 import { verifyBearerToken, type RequestHeaders, type VerifyBearerResult } from '../callerIdentity.js';
+import { validatePayerDetails, type PayerDetails, type PayerField } from '../../src/payments/payerDetails.js';
 import { paidPackage, type PaidPackage } from './checkoutPackages.js';
 import { buildMakeCheckoutPayload, parseMakeWebhookUrl, requestPaymentLink, siteUrlFromEnv, type MakeCheckoutPayload, type MakeCheckoutResult } from './makeCheckoutClient.js';
 import { createPaymentOrder, markPaymentOrderLink, type CreateOrderOutcome } from './orderStore.js';
@@ -7,7 +8,9 @@ import { createPaymentOrder, markPaymentOrderLink, type CreateOrderOutcome } fro
 /**
  * POST /api/credits: start a purchase (the checkout-initiation half of the Grow-through-Make flow).
  *
- *  - The browser sends ONLY {packageId}. Any other key (amount, credits, userId, status ...) is rejected.
+ *  - The browser sends ONLY {packageId, fullName, phone}. Any other key (amount, credits, userId, status ...) is rejected.
+ *  - fullName and phone are the minimum Grow needs for a payment link. They are validated and normalized here, travel only
+ *    in the request to Make, and are never stored, logged, put in a Grow custom field or used as an account identity.
  *  - The account is the verified bearer token's user. Amount and credits come from the server's own price list.
  *  - An internal payment order is created BEFORE Make is called; Make/Grow only ever see its opaque id.
  *  - Make answers synchronously with the Grow payment link, which is validated before the browser is sent there.
@@ -35,12 +38,19 @@ const realDeps: CheckoutDeps = {
   requestLink: (payload) => requestPaymentLink(payload),
 };
 
-export function parseCheckoutRequest(raw: unknown): { ok: true; pkg: PaidPackage } | { ok: false } {
+export type CheckoutRequest = { ok: true; pkg: PaidPackage; payer: PayerDetails } | { ok: false; field?: PayerField };
+
+const REQUEST_KEYS = ['fullName', 'packageId', 'phone'];
+
+export function parseCheckoutRequest(raw: unknown): CheckoutRequest {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return { ok: false };
-  const keys = Object.keys(raw);
-  if (keys.length !== 1 || keys[0] !== 'packageId') return { ok: false };
-  const pkg = paidPackage((raw as { packageId?: unknown }).packageId);
-  return pkg ? { ok: true, pkg } : { ok: false };
+  const keys = Object.keys(raw).sort();
+  if (keys.length !== REQUEST_KEYS.length || keys.some((k, i) => k !== REQUEST_KEYS[i])) return { ok: false };
+  const body = raw as { packageId?: unknown; fullName?: unknown; phone?: unknown };
+  const pkg = paidPackage(body.packageId);
+  if (!pkg) return { ok: false };
+  const payer = validatePayerDetails(body.fullName, body.phone);
+  return payer.ok ? { ok: true, pkg, payer: payer.payer } : { ok: false, field: payer.field };
 }
 
 export async function handleStartCheckout(rawBody: unknown, requestHeaders: RequestHeaders, deps: CheckoutDeps = realDeps): Promise<HandlerResult> {
@@ -50,7 +60,11 @@ export async function handleStartCheckout(rawBody: unknown, requestHeaders: Requ
   if (!verified.ok) return errorResult(verified.status, verified.reason, verified.message);
 
   const parsed = parseCheckoutRequest(rawBody);
-  if (!parsed.ok) return errorResult(400, 'invalid_request', 'Choose one of the available packages.');
+  if (!parsed.ok) {
+    // Which field to fix, never its value.
+    if (parsed.field) return { status: 400, body: { reason: 'invalid_payer_details', field: parsed.field, message: 'Please check your name and mobile number.' } };
+    return errorResult(400, 'invalid_request', 'Choose one of the available packages.');
+  }
 
   // Not configured is a controlled 503 BEFORE anything is created: no orphan order, no half-started purchase.
   const siteUrl = deps.siteUrl();
@@ -60,7 +74,7 @@ export async function handleStartCheckout(rawBody: unknown, requestHeaders: Requ
   if (!order) return errorResult(503, 'not_configured', 'Checkout is not available right now.');
   if (order.status === 'rate_limited') return errorResult(429, 'rate_limited', 'Too many checkout attempts. Please wait a few minutes and try again.');
 
-  const payload = buildMakeCheckoutPayload(order.orderId, parsed.pkg, siteUrl);
+  const payload = buildMakeCheckoutPayload(order.orderId, parsed.pkg, siteUrl, parsed.payer);
   const link = await deps.requestLink(payload);
   if (!link.ok) {
     console.error(`checkout_link_failed reason=${link.reason}`);

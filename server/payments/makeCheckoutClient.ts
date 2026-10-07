@@ -1,3 +1,4 @@
+import type { PayerDetails } from '../../src/payments/payerDetails.js';
 import type { PaidPackage } from './checkoutPackages.js';
 
 /**
@@ -5,8 +6,9 @@ import type { PaidPackage } from './checkoutPackages.js';
  *
  * The Make webhook URL is a SECRET (anyone holding it can start a scenario run): it lives only in the server
  * environment (MAKE_CHECKOUT_WEBHOOK_URL), is never sent to the browser, never logged, and must be an https Make host.
- * The payload carries an opaque order id and the package facts: never the account id, never an email, a name or
- * a phone number.
+ * The payload carries an opaque order id, the package facts and the payer's checkout details (full name and Israeli
+ * mobile: Grow requires both to create a payment link). Never the account id, never an email. The payer details exist
+ * only in this one request: DARE does not store, log or reuse them.
  */
 
 export interface MakeCheckoutPayload {
@@ -19,11 +21,15 @@ export interface MakeCheckoutPayload {
   currency: 'ILS';
   title: string;
   successUrl: string;
+  /** Checkout details for the Grow payment page (validated and normalized server-side). NOT an account identity. */
+  fullName: string;
+  /** Israeli mobile, local ten-digit form (05XXXXXXXX). */
+  phone: string;
   /** Present only on the one-off sample sent while Make learns the payload structure. */
   sample?: true;
 }
 
-export function buildMakeCheckoutPayload(orderId: string, pkg: PaidPackage, siteUrl: string, options: { sample?: boolean } = {}): MakeCheckoutPayload {
+export function buildMakeCheckoutPayload(orderId: string, pkg: PaidPackage, siteUrl: string, payer: PayerDetails, options: { sample?: boolean } = {}): MakeCheckoutPayload {
   return {
     schema: 'dare.checkout.v1',
     orderId,
@@ -33,6 +39,8 @@ export function buildMakeCheckoutPayload(orderId: string, pkg: PaidPackage, site
     title: pkg.title,
     // Where the customer lands after paying. NEVER proof of payment: it only tells the page to show "confirming".
     successUrl: `${siteUrl}/?payment=${orderId}`,
+    fullName: payer.fullName,
+    phone: payer.phone,
     ...(options.sample ? { sample: true as const } : {}),
   };
 }

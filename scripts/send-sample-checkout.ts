@@ -15,7 +15,8 @@ import { buildMakeCheckoutPayload, parseMakeWebhookUrl, postToMake, siteUrlFromE
 const siteUrl = siteUrlFromEnv() ?? 'https://daretogoin.com';
 const pkg = paidPackage('explore_10');
 if (!pkg) throw new Error('package table is missing explore_10');
-const payload = buildMakeCheckoutPayload(randomBytes(16).toString('hex'), pkg, siteUrl, { sample: true });
+// Obviously fake sample customer: it only lets Make detect the fullName and phone fields. No real person is involved.
+const payload = buildMakeCheckoutPayload(randomBytes(16).toString('hex'), pkg, siteUrl, { fullName: 'Sample Customer', phone: '0500000000' }, { sample: true });
 
 console.log('Payload that will be sent to Make:');
 console.log(JSON.stringify(payload, null, 2));

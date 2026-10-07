@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { handleStartCheckout, parseCheckoutRequest, type CheckoutDeps } from '../server/payments/checkoutStart.ts';
 import { PAID_PACKAGE_IDS, paidPackage, type PaidPackage } from '../server/payments/checkoutPackages.ts';
+import { normalizeFullName, normalizeIsraeliMobile } from '../src/payments/payerDetails.ts';
 import {
   buildMakeCheckoutPayload,
   parseMakeWebhookUrl,
@@ -19,6 +20,9 @@ const OWNER = '11111111-1111-4111-8111-111111111111';
 const ORDER = 'a1b2c3d4e5f60718293a4b5c6d7e8f90';
 const WEBHOOK = 'https://hook.eu2.make.com/abcdefghijklmnop1234567890';
 const PAY_URL = 'https://pay.grow.link/ab12cd34ef';
+const PAYER = { fullName: 'Dafna Dalmeida', phone: '054-123-4567' };
+const PAYER_NORMALIZED = { fullName: 'Dafna Dalmeida', phone: '0541234567' };
+const body = (packageId: unknown, extra: Record<string, unknown> = {}) => ({ packageId, ...PAYER, ...extra });
 
 // ------------------------------------------------------------------ server price list ----
 
@@ -43,16 +47,70 @@ test('packages: titles are plain ASCII (Grow rejects special characters in param
 
 // ------------------------------------------------------------------------ the request ----
 
-test('request: ONLY {packageId} is accepted; amount, credits, user id, status or anything else is rejected', () => {
-  assert.ok(parseCheckoutRequest({ packageId: 'explore_10' }).ok);
+test('request: ONLY {packageId, fullName, phone} is accepted; amount, credits, user id, status or anything else is rejected', () => {
+  assert.ok(parseCheckoutRequest(body('explore_10')).ok);
   const rejected: unknown[] = [
-    null, undefined, 'explore_10', 7, [], {}, [{ packageId: 'explore_10' }],
-    { packageId: 'first_dream' }, { packageId: 'nope' }, { packageId: 10 },
-    { packageId: 'explore_10', amount: 1 }, { packageId: 'explore_10', credits: 1000 }, { packageId: 'explore_10', owner_id: OWNER },
-    { packageId: 'explore_10', userId: OWNER }, { packageId: 'explore_10', status: 'paid' }, { packageId: 'explore_10', extra: undefined },
-    { amount: 149 }, { credits: 10, packageId: 'go_deeper_3' },
+    null, undefined, 'explore_10', 7, [], {}, [body('explore_10')],
+    { packageId: 'explore_10' }, // the payer details are required now
+    { packageId: 'explore_10', fullName: 'Dafna Dalmeida' }, { packageId: 'explore_10', phone: '0541234567' },
+    body('first_dream'), body('nope'), body(10), body(undefined),
+    body('explore_10', { amount: 1 }), body('explore_10', { credits: 1000 }), body('explore_10', { owner_id: OWNER }),
+    body('explore_10', { userId: OWNER }), body('explore_10', { status: 'paid' }), body('explore_10', { email: 'a@b.co' }),
+    { fullName: 'Dafna Dalmeida', phone: '0541234567', amount: 149 }, { credits: 10, ...body('go_deeper_3') },
   ];
-  for (const body of rejected) assert.equal(parseCheckoutRequest(body).ok, false, JSON.stringify(body));
+  for (const req of rejected) assert.equal(parseCheckoutRequest(req).ok, false, JSON.stringify(req));
+});
+
+test('payer: the full name needs at least two names made of letters; punctuation is neutralized; junk is refused', () => {
+  const ok: [string, string][] = [
+    ['Dafna Dalmeida', 'Dafna Dalmeida'],
+    ['  דפנה   דלמדה ', 'דפנה דלמדה'],
+    ['בן-דוד כהן', 'בן דוד כהן'],
+    ["Anne O'Brien", 'Anne OBrien'],
+    ['Jean-Luc Picard', 'Jean Luc Picard'],
+    ['‏דפנה דלמדה‏', 'דפנה דלמדה'],
+    ['שָׁלוֹם עֲלֵיכֶם', 'שלום עליכם'],
+  ];
+  for (const [input, expected] of ok) assert.equal(normalizeFullName(input), expected, input);
+  const bad: unknown[] = [
+    '', ' ', 'Dafna', 'דפנה', 'D D', 'Dafna 3', 'Dafna Dalmeida1', '<b>Dafna</b> Dalmeida', 'Dafna; Dalmeida', 'Dafna\nDalmeida\nX1',
+    'a'.repeat(101), 'Dafna ' + 'x'.repeat(40), 'one two three four five six', null, undefined, 5, {}, ['Dafna Dalmeida'],
+    'http://evil.example Dalmeida', 'Dafna@Dalmeida', 'Dafna $$$ Dalmeida', '--- ---',
+  ];
+  for (const input of bad) assert.equal(normalizeFullName(input), null, JSON.stringify(input));
+});
+
+test('payer: only an Israeli MOBILE number is accepted, normalized to the local ten-digit form', () => {
+  const ok: [string, string][] = [
+    ['0541234567', '0541234567'], ['054-123-4567', '0541234567'], ['054 123 4567', '0541234567'], ['(054) 123-4567', '0541234567'],
+    ['+972541234567', '0541234567'], ['+972 54 123 4567', '0541234567'], ['972541234567', '0541234567'], ['00972541234567', '0541234567'],
+    ['+972 (0)54-123-4567', '0541234567'], ['‎050-0000000', '0500000000'], ['0521234567', '0521234567'], ['0581234567', '0581234567'],
+  ];
+  for (const [input, expected] of ok) assert.equal(normalizeIsraeliMobile(input), expected, input);
+  const bad: unknown[] = [
+    '', ' ', '054123456', '05412345678', '0341234567', '021234567', '0721234567', '+442071234567', '+1 415 555 0100', '1800123456',
+    '054-123-456a', 'abc', '054123456; drop table', '+972341234567', '9720341234567', '00', '+', null, undefined, 541234567, {}, ['0541234567'],
+  ];
+  for (const input of bad) assert.equal(normalizeIsraeliMobile(input), null, JSON.stringify(input));
+});
+
+test('payer: an invalid name or phone is a 400 that names the FIELD, never echoes the value, and creates nothing', async () => {
+  const cases: [Record<string, unknown>, string][] = [
+    [body('explore_10', { fullName: 'Dafna' }), 'fullName'],
+    [body('explore_10', { fullName: 'Dafna 1 Dalmeida' }), 'fullName'],
+    [body('explore_10', { phone: '031234567' }), 'phone'],
+    [body('explore_10', { phone: 'not a number' }), 'phone'],
+  ];
+  for (const [req, field] of cases) {
+    const { d, calls } = deps();
+    const res = await handleStartCheckout(req, H, d);
+    assert.equal(res.status, 400);
+    assert.equal((res.body as { reason: string }).reason, 'invalid_payer_details');
+    assert.equal((res.body as { field: string }).field, field);
+    const text = JSON.stringify(res.body);
+    assert.ok(!text.includes(String(req.fullName)) && !text.includes(String(req.phone)), 'no value is echoed back');
+    assert.deepEqual(calls.order, [], 'no order, no Make call');
+  }
 });
 
 // ---------------------------------------------------------------------------- the flow ----
@@ -81,14 +139,14 @@ const H = { authorization: 'Bearer good' };
 
 test('flow: unauthenticated or invalid-token requests stop first: no order, no Make call', async () => {
   const { d, calls } = deps();
-  assert.equal((await handleStartCheckout({ packageId: 'explore_10' }, {}, d)).status, 401);
-  assert.equal((await handleStartCheckout({ packageId: 'explore_10' }, { authorization: 'Bearer forged' }, d)).status, 401);
+  assert.equal((await handleStartCheckout(body('explore_10'), {}, d)).status, 401);
+  assert.equal((await handleStartCheckout(body('explore_10'), { authorization: 'Bearer forged' }, d)).status, 401);
   assert.deepEqual(calls.order, []);
 });
 
 test('flow: the order is created for the VERIFIED user BEFORE Make is called, then marked, then the link is returned', async () => {
   const { d, calls } = deps();
-  const res = await handleStartCheckout({ packageId: 'explore_10' }, H, d);
+  const res = await handleStartCheckout(body('explore_10'), H, d);
   assert.equal(res.status, 200);
   assert.deepEqual(res.body, { orderId: ORDER, paymentUrl: PAY_URL });
   assert.deepEqual(calls.order, ['createOrder', 'make', 'mark:link_created']);
@@ -100,7 +158,7 @@ test('flow: the order is created for the VERIFIED user BEFORE Make is called, th
 test('flow: every package reaches Make with its server-side price (59 / 149 / 279), whatever the browser claims', async () => {
   for (const [id, amount] of [['go_deeper_3', 59], ['explore_10', 149], ['dive_in_25', 279]] as const) {
     const { d, calls } = deps();
-    await handleStartCheckout({ packageId: id }, H, d);
+    await handleStartCheckout(body(id), H, d);
     assert.equal(calls.sent[0].amount, amount);
     assert.equal(calls.sent[0].packageId, id);
   }
@@ -117,24 +175,24 @@ test('flow: invalid package / extra keys: 400 and nothing is created or sent', a
 test('flow: not configured (Make URL or site URL) is a controlled 503 BEFORE any order exists', async () => {
   for (const over of [{ makeConfigured: () => false }, { siteUrl: () => null }]) {
     const { d, calls } = deps(over);
-    const res = await handleStartCheckout({ packageId: 'explore_10' }, H, d);
+    const res = await handleStartCheckout(body('explore_10'), H, d);
     assert.equal(res.status, 503);
     assert.deepEqual(calls.order, []);
   }
   const { d } = deps({ createOrder: async () => null });
-  assert.equal((await handleStartCheckout({ packageId: 'explore_10' }, H, d)).status, 503);
+  assert.equal((await handleStartCheckout(body('explore_10'), H, d)).status, 503);
 });
 
 test('flow: too many recent orders for one account: 429, Make is never called', async () => {
   const { d, calls } = deps({ createOrder: async () => ({ status: 'rate_limited' }) });
-  assert.equal((await handleStartCheckout({ packageId: 'explore_10' }, H, d)).status, 429);
+  assert.equal((await handleStartCheckout(body('explore_10'), H, d)).status, 429);
   assert.ok(!calls.order.includes('make'));
 });
 
 test('flow: when Make fails the order is marked link_failed and the customer gets a generic 502 with no link', async () => {
   for (const reason of ['unavailable', 'bad_response', 'not_configured'] as const) {
     const { d, calls } = deps({ requestLink: async () => ({ ok: false, reason }) });
-    const res = await handleStartCheckout({ packageId: 'explore_10' }, H, d);
+    const res = await handleStartCheckout(body('explore_10'), H, d);
     assert.equal(res.status, 502);
     assert.deepEqual(Object.keys(res.body as object).sort(), ['message', 'reason']);
     assert.equal((res.body as { reason: string }).reason, 'checkout_unavailable');
@@ -148,7 +206,7 @@ test('flow: logs carry reason codes only, never the webhook URL, the payment lin
   console.error = (...args: unknown[]) => void lines.push(args.map(String).join(' '));
   try {
     const { d } = deps({ requestLink: async () => ({ ok: false, reason: 'unavailable' }) });
-    await handleStartCheckout({ packageId: 'explore_10' }, H, d);
+    await handleStartCheckout(body('explore_10'), H, d);
   } finally {
     console.error = original;
   }
@@ -158,8 +216,8 @@ test('flow: logs carry reason codes only, never the webhook URL, the payment lin
 
 // ------------------------------------------------------------------- what Make receives ----
 
-test('payload: exactly the agreed fields; an opaque order id; NO account id, email, name or phone', () => {
-  const payload = buildMakeCheckoutPayload(ORDER, paidPackage('explore_10')!, 'https://daretogoin.com');
+test('payload: exactly the agreed fields (incl. the checkout name and phone); an opaque order id; NO account id or email', () => {
+  const payload = buildMakeCheckoutPayload(ORDER, paidPackage('explore_10')!, 'https://daretogoin.com', PAYER_NORMALIZED);
   assert.deepEqual(payload, {
     schema: 'dare.checkout.v1',
     orderId: ORDER,
@@ -168,18 +226,23 @@ test('payload: exactly the agreed fields; an opaque order id; NO account id, ema
     currency: 'ILS',
     title: 'DARE TO GO IN EXPLORE 10 dreams',
     successUrl: `https://daretogoin.com/?payment=${ORDER}`,
+    fullName: 'Dafna Dalmeida',
+    phone: '0541234567',
   });
   const text = JSON.stringify(payload).toLowerCase();
-  for (const forbidden of [OWNER, 'owner', 'user', 'email', 'phone', 'fullname', 'credits', 'token', 'secret']) assert.ok(!text.includes(forbidden.toLowerCase()), forbidden);
-  assert.deepEqual(buildMakeCheckoutPayload(ORDER, paidPackage('explore_10')!, 'https://daretogoin.com', { sample: true }).sample, true);
+  for (const forbidden of [OWNER, 'owner', 'user', 'email', 'credits', 'token', 'secret', 'cfield', 'customfield']) assert.ok(!text.includes(forbidden.toLowerCase()), forbidden);
+  // the order id and the success link carry no personal data
+  assert.ok(!payload.orderId.includes('0541234567') && !payload.successUrl.includes('Dafna') && !payload.successUrl.includes('0541234567'));
+  assert.deepEqual(buildMakeCheckoutPayload(ORDER, paidPackage('explore_10')!, 'https://daretogoin.com', PAYER_NORMALIZED, { sample: true }).sample, true);
   assert.ok(!('sample' in payload));
 });
 
 test('payload: the real route never sends the sample flag and the sample script uses the same builder', async () => {
   const { d, calls } = deps();
-  await handleStartCheckout({ packageId: 'dive_in_25' }, H, d);
+  await handleStartCheckout(body('dive_in_25'), H, d);
   assert.ok(!('sample' in calls.sent[0]));
-  assert.deepEqual(Object.keys(calls.sent[0]), ['schema', 'orderId', 'packageId', 'amount', 'currency', 'title', 'successUrl']);
+  assert.deepEqual(Object.keys(calls.sent[0]), ['schema', 'orderId', 'packageId', 'amount', 'currency', 'title', 'successUrl', 'fullName', 'phone']);
+  assert.equal(calls.sent[0].phone, '0541234567', 'the phone reaches Make normalized');
   const script = read('scripts/send-sample-checkout.ts');
   assert.match(script, /buildMakeCheckoutPayload\(/);
   assert.match(script, /--send/);
@@ -219,7 +282,7 @@ function fakeFetch(status: number, body: string, seen?: { url?: string; init?: R
     return new Response(body, { status });
   }) as typeof fetch;
 }
-const SAMPLE_PAYLOAD = buildMakeCheckoutPayload(ORDER, paidPackage('explore_10')!, 'https://daretogoin.com');
+const SAMPLE_PAYLOAD = buildMakeCheckoutPayload(ORDER, paidPackage('explore_10')!, 'https://daretogoin.com', PAYER_NORMALIZED);
 const ENV = { MAKE_CHECKOUT_WEBHOOK_URL: WEBHOOK } as NodeJS.ProcessEnv;
 
 test('make client: posts the JSON payload to the configured webhook (no redirects, optional api key header)', async () => {
@@ -327,4 +390,30 @@ test('this phase never grants credits: no checkout code calls grant_credits or r
   for (const f of ['server/payments/checkoutStart.ts', 'server/payments/orderStore.ts', 'server/payments/makeCheckoutClient.ts', 'api/credits.ts']) {
     assert.ok(!/grant_credits|grantCredits|'granted'|"granted"/.test(read(f).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')), f);
   }
+});
+
+test('privacy: the name and phone go ONLY to Make: not to the order store, the database, the logs, Grow custom fields or the browser response', async () => {
+  const lines: string[] = [];
+  const original = { error: console.error, log: console.log, warn: console.warn };
+  console.error = console.log = console.warn = (...args: unknown[]) => void lines.push(args.map(String).join(' '));
+  let res: Awaited<ReturnType<typeof handleStartCheckout>>;
+  const seenByStore: unknown[] = [];
+  try {
+    const { d } = deps({
+      createOrder: async (owner, pkg) => (seenByStore.push(owner, pkg), { status: 'created', orderId: ORDER }),
+      requestLink: async () => ({ ok: false, reason: 'unavailable' }),
+    });
+    res = await handleStartCheckout(body('explore_10'), H, d);
+  } finally {
+    Object.assign(console, original);
+  }
+  assert.ok(lines.length >= 1);
+  assert.ok(lines.every((l) => !l.includes('Dafna') && !l.includes('0541234567') && !l.includes('054-123-4567')));
+  assert.ok(!JSON.stringify(seenByStore).includes('Dafna') && !JSON.stringify(seenByStore).includes('0541234567'));
+  assert.ok(!JSON.stringify(res.body).includes('Dafna'));
+  const store = read('server/payments/orderStore.ts');
+  assert.ok(!/fullName|phone|payer/i.test(store), 'the order store never receives the payer details');
+  assert.ok(!/fullName|full_name|phone|payer/i.test(read('supabase/migrations/20261007_payment_orders.sql')), 'no personal data column in payment_orders');
+  const client = read('server/payments/makeCheckoutClient.ts').replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.ok(!/cField|customField/i.test(client), 'DARE fills no Grow custom field with personal data');
 });
