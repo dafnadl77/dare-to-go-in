@@ -515,8 +515,10 @@ html[lang='he'] .pr-card-eyebrow {
   }
 }
 
-/* ---- The package this account holds: a full-width ribbon across the top of the card (above the scene photograph) in the
-   page's own warm-white, and a quiet lift of the card itself. It replaces "Most Popular" on the same card, never sits with it. ---- */
+/* ---- The package this account holds: a diagonal corner ribbon worn across the card's top START corner (top-left in English,
+   top-right in Hebrew), and a quiet lift of the card itself. The card's own overflow:hidden + radius cut the band at the corner,
+   so it reads as a sash over the corner, not a header. It replaces "Most Popular" on the same card and never sits with it.
+   Geometry: the band is centred on the diagonal x + y = 7.6rem measured from the corner (centre 3.8rem in from each edge). ---- */
 .pr-card--current {
   border-color: rgba(244, 240, 232, 0.5);
   box-shadow: 0 0 2.4rem rgba(244, 240, 232, 0.16), 0 1.6rem 3rem rgba(0, 0, 0, 0.45);
@@ -525,32 +527,54 @@ html[lang='he'] .pr-card-eyebrow {
 .pr-card-ribbon {
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  z-index: 2;
+  inset-inline-start: 0;
+  z-index: 3;
+  width: 11rem;
+  height: 11rem;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.pr-card-ribbon-band {
+  position: absolute;
+  top: 2.85rem;
+  left: -3.2rem;
+  width: 14rem;
+  height: 1.9rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5em;
-  padding: 0.78rem 1rem;
-  background: linear-gradient(180deg, rgba(244, 240, 232, 0.97), rgba(228, 222, 208, 0.93));
+  gap: 0.35em;
+  box-sizing: border-box;
+  transform: rotate(-45deg);
+  background: linear-gradient(180deg, rgba(247, 243, 235, 0.98), rgba(226, 219, 204, 0.96));
+  border-block: 1px solid rgba(11, 12, 11, 0.28);
+  box-shadow: 0 0.35rem 0.8rem rgba(0, 0, 0, 0.45);
   color: #0b0c0b;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.76rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  text-align: center;
-  box-shadow: 0 0.5rem 1.2rem rgba(0, 0, 0, 0.35);
+  line-height: 1;
+  white-space: nowrap;
 }
 
-html[lang='he'] .pr-card-ribbon {
-  letter-spacing: normal;
-  text-transform: none;
-  font-size: 1rem;
+/* Hebrew reads right-to-left, so the start corner is the top-right: mirror the band. */
+html[lang='he'] .pr-card-ribbon-band {
+  left: auto;
+  right: -3.2rem;
+  transform: rotate(45deg);
+  font-size: 0.86rem;
 }
 
-.pr-card-ribbon .pr-check {
+.pr-card-ribbon-band .pr-check {
   flex: none;
+  width: 0.95em;
+  height: 0.95em;
   color: inherit;
+  /* keep the tick upright inside the tilted band */
+  transform: rotate(45deg);
+}
+
+html[lang='he'] .pr-card-ribbon-band .pr-check {
+  transform: rotate(-45deg);
 }

@@ -81,8 +81,10 @@ function PackageCard({ pkg, onSelectPaid, isCurrent = false }: PackageCardProps)
         {/* The held package's ribbon takes priority over "Most Popular": the two are never shown together. */}
         {isCurrent ? (
           <div className="pr-card-ribbon">
-            <CheckIcon />
-            <span>{t('pricing.yourPackage')}</span>
+            <span className="pr-card-ribbon-band">
+              <CheckIcon />
+              <span>{t('pricing.yourPackage')}</span>
+            </span>
           </div>
         ) : (
           pkg.featured && <span className="pr-card-badge">{t('pricing.mostPopular')}</span>

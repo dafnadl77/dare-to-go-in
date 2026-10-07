@@ -165,7 +165,7 @@ test('the held package gets a ribbon + card highlight; it replaces "Most Popular
   assert.match(pricing, /\$\{isCurrent \? ' pr-card--current' : ''\}/);
   // one ternary: ribbon when current, otherwise the Most Popular badge — never both
   assert.match(pricing, /\{isCurrent \? \(\s*<div className="pr-card-ribbon">[\s\S]*?\) : \(\s*pkg\.featured && <span className="pr-card-badge">/);
-  assert.equal((pricing.match(/pr-card-ribbon/g) ?? []).length, 1);
+  assert.equal((pricing.match(/className="pr-card-ribbon"/g) ?? []).length, 1);
   const css = read('src/pricing/PricingPage.css');
   assert.match(css, /\.pr-card--current \{/);
   assert.match(css, /\.pr-card-ribbon \{[\s\S]*?position: absolute;[\s\S]*?top: 0;/);
