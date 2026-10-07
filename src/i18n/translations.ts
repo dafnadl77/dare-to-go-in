@@ -212,6 +212,9 @@ export interface Translations {
     welcomeBack: string;
     continueWithGoogle: string;
     or: string;
+    namePlaceholder: string;
+    errorNameRequired: string;
+    errorInvalidName: string;
     emailPlaceholder: string;
     passwordPlaceholder: string;
     createMyArchive: string;
@@ -569,6 +572,9 @@ export const en: Translations = {
     welcomeBack: 'WELCOME BACK, DREAMER.',
     continueWithGoogle: 'Continue with Google',
     or: 'OR',
+    namePlaceholder: 'Name',
+    errorNameRequired: 'Please enter your name.',
+    errorInvalidName: 'Please enter a valid name (up to 60 characters, not an email address).',
     emailPlaceholder: 'Email',
     passwordPlaceholder: 'Password',
     createMyArchive: 'CREATE MY ARCHIVE',
@@ -949,6 +955,9 @@ export const he: Translations = {
     welcomeBack: 'ברוכים השבים, חולמים.',
     continueWithGoogle: 'המשך עם Google',
     or: 'או',
+    namePlaceholder: 'שם',
+    errorNameRequired: 'נא להזין שם.',
+    errorInvalidName: 'נא להזין שם תקין (עד 60 תווים, לא כתובת אימייל).',
     emailPlaceholder: 'אימייל',
     passwordPlaceholder: 'סיסמה',
     createMyArchive: 'יצירת הארכיון שלי',

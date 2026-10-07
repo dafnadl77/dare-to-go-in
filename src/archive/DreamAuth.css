@@ -350,3 +350,18 @@
     animation-duration: 0.01s !important;
   }
 }
+
+/* Sign-up has one more field (the name). On a short viewport, tighten the form's own rhythm a little so the pinned footer never sits on it. */
+@media (max-height: 820px) {
+  .auth-form--signup {
+    gap: 0.8rem;
+  }
+
+  .auth-form--signup .auth-input {
+    padding: 0.7em 1.1em;
+  }
+
+  .auth-form--signup .auth-submit {
+    margin-top: 0.3rem;
+  }
+}

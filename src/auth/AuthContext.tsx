@@ -37,7 +37,7 @@ interface AuthContextValue {
       new sign-up returns no session at all until the dreamer clicks the
       link Supabase just emailed them — the caller (DreamAuth) must show
       that as its own state, never treat it as "signed in". */
-  signUpWithPassword: (email: string, password: string) => Promise<AuthActionResult>;
+  signUpWithPassword: (email: string, password: string, name: string) => Promise<AuthActionResult>;
   /** Starts the real Google OAuth redirect — the browser navigates away
       to Google, then to Supabase, then back here. Only returns (with an
       error) if the redirect itself couldn't even start; a successful
@@ -158,7 +158,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error) return { ok: false, error };
         return { ok: true, sessionCreated: true };
       },
-      async signUpWithPassword(email, password) {
+      async signUpWithPassword(email, password, name) {
+        // The name is required for a new email account and is stored on the new user's own metadata under the same `displayName`
+        // key Settings edits and the greeting reads (see displayName.ts). It is validated here as well as in the form; an unusable
+        // name creates nothing. Sign-in and Google are untouched.
+        const cleanName = normalizeDisplayName(name);
+        if (cleanName === null) return { ok: false, error: new Error('invalid_name') };
         // emailRedirectTo is set explicitly rather than left to Supabase's
         // dashboard-configured Site URL default — a fresh Supabase project
         // defaults that to http://localhost:3000, which is exactly what
@@ -169,7 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: postAuthRedirectUrl() },
+          options: { emailRedirectTo: postAuthRedirectUrl(), data: { [DISPLAY_NAME_METADATA_KEY]: cleanName } },
         });
         if (error) return { ok: false, error };
         // A real session comes back immediately only when the project's

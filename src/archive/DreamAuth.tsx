@@ -3,6 +3,7 @@ import DreamStageBackground from '../hero/DreamStageBackground';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
 import { describeAuthError } from '../auth/authErrors';
+import { MAX_DISPLAY_NAME_LENGTH, normalizeDisplayName } from '../auth/displayName';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
 import './DreamAuth.css';
@@ -87,6 +88,7 @@ export default function DreamAuth({ freeDreamNotice = false, mode, onSwitchMode,
     bgVideoRef.current?.play().catch(() => {});
   }, []);
 
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -117,6 +119,19 @@ export default function DreamAuth({ freeDreamNotice = false, mode, onSwitchMode,
     if (pending) return;
     setErrorMessage(null);
 
+    // A new email account must give a name (same rules as editing it in Settings). Checked first, so the field is what the
+    // dreamer is sent to when it is empty or unusable.
+    if (isSignUp) {
+      if (name.trim() === '') {
+        setErrorMessage(t('auth.errorNameRequired'));
+        return;
+      }
+      if (normalizeDisplayName(name) === null) {
+        setErrorMessage(t('auth.errorInvalidName'));
+        return;
+      }
+    }
+
     const trimmedEmail = email.trim();
     if (!looksLikeEmail(trimmedEmail)) {
       setErrorMessage(t('auth.errorInvalidEmail'));
@@ -142,7 +157,7 @@ export default function DreamAuth({ freeDreamNotice = false, mode, onSwitchMode,
 
     setPending('password');
     const result = isSignUp
-      ? await signUpWithPassword(trimmedEmail, password)
+      ? await signUpWithPassword(trimmedEmail, password, name)
       : await signInWithPassword(trimmedEmail, password);
     setPending(null);
 
@@ -246,7 +261,7 @@ export default function DreamAuth({ freeDreamNotice = false, mode, onSwitchMode,
           </>
         )}
 
-        {!awaitingConfirmationFor && !resetSentFor && <form className="auth-form" onSubmit={handleSubmit}>
+        {!awaitingConfirmationFor && !resetSentFor && <form className={`auth-form${isSignUp ? ' auth-form--signup' : ''}`} onSubmit={handleSubmit}>
           {!isForgot && (
             <>
               <button
@@ -270,6 +285,22 @@ export default function DreamAuth({ freeDreamNotice = false, mode, onSwitchMode,
             <p className="auth-error" role="alert">
               {errorMessage}
             </p>
+          )}
+
+          {isSignUp && (
+            <label className="auth-field">
+              <input
+                className="auth-input"
+                type="text"
+                autoComplete="name"
+                maxLength={MAX_DISPLAY_NAME_LENGTH}
+                aria-label={t('auth.namePlaceholder')}
+                placeholder={t('auth.namePlaceholder')}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={pending !== null}
+              />
+            </label>
           )}
 
           <label className="auth-field">
