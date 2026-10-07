@@ -1,6 +1,7 @@
 -- Payment orders for the Grow-through-Make purchase flow: checkout initiation AND completion.
 --
--- WRITTEN, NOT APPLIED. Additive: nothing existing reads or writes these objects and no existing function is changed.
+-- APPLIED to production on 2026-10-07, after a rollback dry-run on the production database (identical function definitions, no data
+-- touched). Additive: nothing existing reads or writes these objects and no existing function is changed.
 -- It CALLS the existing public.grant_credits (credits migration), the only writer of a positive balance.
 --
 -- A purchase starts with a row here, created by the server for the VERIFIED account BEFORE Make/Grow are called. The
