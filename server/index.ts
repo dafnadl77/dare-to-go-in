@@ -79,7 +79,7 @@ app.post('/api/payment-complete', async (req, res) => {
 });
 
 app.get('/api/credits', async (req, res) => {
-  send(res, await handleCredits(requestHeaders(req)));
+  send(res, await handleCredits(requestHeaders(req), typeof req.query.order === 'string' ? req.query.order : undefined));
 });
 
 app.post('/api/claim-trial', async (req, res) => {

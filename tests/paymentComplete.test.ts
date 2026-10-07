@@ -75,19 +75,21 @@ test('request: malformed bodies are rejected (strict keys: no owner, credits, pa
 });
 
 test('request: failed, cancelled and pending payments are well-formed but can never grant', () => {
-  for (const status of ['failed', 'cancelled', 'pending']) assert.deepEqual(parseCompletionRequest({ ...GOOD, status }), { ok: false, reason: 'payment_not_successful' }, status);
+  for (const status of ['failed', 'cancelled', 'pending']) assert.deepEqual(parseCompletionRequest({ ...GOOD, status }), { ok: false, reason: 'payment_not_successful', orderId: ORDER, providerStatus: 'Paid' }, status);
 });
 
 // ------------------------------------------------------------------------------ handler ----
 
 function deps(over: Partial<CompletionDeps> = {}) {
   const calls: CompletionRequest[] = [];
+  const notices: [string, string][] = [];
   const d: CompletionDeps = {
     auth: (h) => checkCompletionAuth(h, ENV),
     complete: async (r) => (calls.push(r), 'granted' as CompletionStatus),
+    recordNotice: async (orderId, providerStatus) => void notices.push([orderId, providerStatus]),
     ...over,
   };
-  return { d, calls };
+  return { d, calls, notices };
 }
 const AUTH = { authorization: `Bearer ${SECRET}` };
 
@@ -124,7 +126,7 @@ test('route: a valid, authenticated paid completion reaches the database call wi
   assert.deepEqual(Object.keys(calls[0]).sort(), ['amount', 'currency', 'orderId', 'providerStatus', 'transactionId']);
 });
 
-test('route: malformed bodies are 400; failed/cancelled/pending are 422; neither touches the database', async () => {
+test('route: malformed bodies are 400; failed/cancelled/pending are 422 and can never grant', async () => {
   const { d, calls } = deps();
   assert.equal((await handlePaymentComplete({ ...GOOD, amount: 'abc' }, AUTH, d)).status, 400);
   assert.equal((await handlePaymentComplete({ ...GOOD, owner_id: 'u' }, AUTH, d)).status, 400);
@@ -133,14 +135,30 @@ test('route: malformed bodies are 400; failed/cancelled/pending are 422; neither
     assert.equal(res.status, 422);
     assert.equal((res.body as { reason: string }).reason, 'payment_not_successful');
   }
+  assert.deepEqual(calls, [], 'the grant path is never reached');
+});
+
+test('route: a non-paid notice only REMEMBERS the last status; it closes nothing, and an unauthenticated or malformed one is not even remembered', async () => {
+  const { d, calls, notices } = deps();
+  for (const status of ['failed', 'cancelled', 'pending']) await handlePaymentComplete({ ...GOOD, status, providerStatus: `Seen-${status}` }, AUTH, d);
+  assert.deepEqual(notices, [[ORDER, 'Seen-failed'], [ORDER, 'Seen-cancelled'], [ORDER, 'Seen-pending']]);
   assert.deepEqual(calls, []);
+  await handlePaymentComplete({ ...GOOD, status: 'failed' }, { authorization: 'Bearer wrong' }, d);
+  await handlePaymentComplete({ ...GOOD, status: 'failed', owner_id: 'u' }, AUTH, d);
+  assert.equal(notices.length, 3);
+  // even if remembering fails, the answer is the same refusal (nothing to retry, nothing granted)
+  const failing = deps({ recordNotice: async () => { throw new Error('db down'); } });
+  assert.equal((await handlePaymentComplete({ ...GOOD, status: 'pending' }, AUTH, failing.d)).status, 422);
+  // and a LATER paid notification for the same order still reaches the completion step
+  assert.equal((await handlePaymentComplete(GOOD, AUTH, d)).status, 200);
+  assert.equal(calls.length, 1);
 });
 
 test('route: every database outcome maps to a safe HTTP answer; duplicates are success, conflicts are 409, mismatches are 422', async () => {
   const expected: Record<CompletionStatus, [number, string?]> = {
     granted: [200], duplicate: [200], order_not_found: [404, 'order_not_found'],
     transaction_used_by_other_order: [409, 'transaction_used_by_other_order'], order_already_completed: [409, 'order_already_completed'],
-    order_closed: [409, 'order_closed'], rejected_duplicate: [409, 'rejected_duplicate'], owner_gone: [409, 'owner_gone'],
+    owner_gone: [409, 'owner_gone'],
     amount_mismatch: [422, 'amount_mismatch'], currency_mismatch: [422, 'currency_mismatch'], invalid: [400, 'invalid_request'],
   };
   for (const [outcome, [status, reason]] of Object.entries(expected) as [CompletionStatus, [number, string?]][]) {

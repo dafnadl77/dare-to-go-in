@@ -1,6 +1,7 @@
 import { errorResult, okResult, type HandlerResult } from '../httpResult.js';
 import { verifyBearerToken, type RequestHeaders } from '../callerIdentity.js';
 import { getCreditBalance } from '../dreamAttempts.js';
+import { getPaymentOrderState } from '../payments/orderStore.js';
 
 /**
  * GET /api/credits — the signed-in account's server-side dream-credit balance.
@@ -10,7 +11,7 @@ import { getCreditBalance } from '../dreamAttempts.js';
  * the account is always the token's own, never anything the client names — and
  * there is no route that lets a client set, add or spend credits.
  */
-export async function handleCredits(requestHeaders: RequestHeaders): Promise<HandlerResult> {
+export async function handleCredits(requestHeaders: RequestHeaders, orderId?: string): Promise<HandlerResult> {
   const authHeader = requestHeaders.authorization;
   if (!authHeader) {
     return errorResult(401, 'not_authenticated', 'Checking credits requires being signed in.');
@@ -22,6 +23,13 @@ export async function handleCredits(requestHeaders: RequestHeaders): Promise<Han
   const balance = await getCreditBalance(verified.userId);
   if (balance === null) {
     return errorResult(503, 'not_configured', 'Credit tracking is not configured.');
+  }
+  // The customer's return page after paying may ask about ITS OWN order (never anyone else's: a foreign or missing id both
+  // answer 'unknown'). Read-only and advisory: it changes nothing and a redirect can never mark a payment paid.
+  if (orderId !== undefined) {
+    const order = await getPaymentOrderState(orderId, verified.userId);
+    if (order === null) return errorResult(503, 'not_configured', 'Payment status is not available right now.');
+    return okResult({ balance, order });
   }
   return okResult({ balance });
 }

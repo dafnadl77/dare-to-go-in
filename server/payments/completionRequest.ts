@@ -26,7 +26,9 @@ export interface CompletionRequest {
 
 export type CompletionParse =
   | { ok: true; value: CompletionRequest }
-  | { ok: false; reason: 'invalid_request' | 'payment_not_successful' };
+  | { ok: false; reason: 'invalid_request' }
+  // A well-formed report that is not "paid". Only the order id and the status text are kept (to remember the last notice).
+  | { ok: false; reason: 'payment_not_successful'; orderId: string; providerStatus: string };
 
 const KEYS = ['amount', 'currency', 'orderId', 'providerStatus', 'schema', 'status', 'transactionId'];
 const STATUSES = ['paid', 'failed', 'cancelled', 'pending'];
@@ -66,7 +68,8 @@ export function parseCompletionRequest(raw: unknown): CompletionParse {
   const hasControlChar = [...providerStatus].some((ch) => ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127);
   if (providerStatus.length < 1 || providerStatus.length > 64 || hasControlChar) return invalid;
 
-  // A well-formed report of a payment that did not succeed: refused without touching the order (a customer may retry).
-  if (body.status !== 'paid') return { ok: false, reason: 'payment_not_successful' };
+  // A well-formed report that is not "paid" (failed / cancelled / pending): it can never grant, and it never closes the order,
+  // because DARE has not observed what Grow's non-paid statuses mean (a customer may still pay afterwards).
+  if (body.status !== 'paid') return { ok: false, reason: 'payment_not_successful', orderId: body.orderId, providerStatus };
   return { ok: true, value: { orderId: body.orderId, transactionId: tx, amount, currency: body.currency, providerStatus } };
 }

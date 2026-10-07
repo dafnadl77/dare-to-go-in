@@ -37,11 +37,13 @@ export interface LegalContent {
 
 const LAST_UPDATED_EN = 'Last updated: September 2026';
 const LAST_UPDATED_HE = 'עודכן לאחרונה: ספטמבר 2026';
+const PRIVACY_UPDATED_EN = 'Last updated: October 2026';
+const PRIVACY_UPDATED_HE = 'עודכן לאחרונה: אוקטובר 2026';
 
 const en: LegalContent = {
   privacy: {
     title: 'Privacy Policy',
-    updated: LAST_UPDATED_EN,
+    updated: PRIVACY_UPDATED_EN,
     intro:
       'DARE TO GO IN ("DARE", "we", "the app") is a small, independent dream-journaling app. This page explains, in plain language, what information the app handles and why. It is written for people using DARE, not for lawyers — a fuller, formally reviewed version will replace it before any commercial launch.',
     sections: [
@@ -64,6 +66,10 @@ const en: LegalContent = {
       {
         heading: 'How your data is stored',
         body: 'Account and saved-dream data live in Supabase\'s database, associated with your account. At the time of writing, dreams saved before a real account existed are stored locally on your own device only (in your browser\'s local storage) and are not uploaded automatically — a separate, clearly-announced step will be needed before any such import happens. Separately, when you submit a dream for analysis, DARE may temporarily keep the generated analysis result for up to about 2 hours, only for technical recovery, retrying a request and preventing a duplicate charge. It is then cleared, and it is not kept as part of your archive unless you save the dream.',
+      },
+      {
+        heading: 'Payments',
+        body: 'When you choose to buy dream credits, DARE asks for your full name and your Israeli mobile phone number. These details are collected only when you start a payment. They are sent to Make (an automation service) and to Grow (our payment provider) so that a payment page can be created and your payment processed. DARE does not store your name or phone number in its own payment records, and DARE never receives or stores your card details: they are entered on the Grow payment page and handled by Grow. Make and Grow process these details under their own terms and privacy policies. DARE keeps limited order and payment information (such as the package you bought, the amount, the payment status and a transaction reference, linked to your account and anonymized if you delete your account) so that it can add your credits, and may retain it for transaction, accounting, fraud-prevention and support purposes.',
       },
       {
         heading: 'Technical & session data',
@@ -182,7 +188,7 @@ const en: LegalContent = {
 const he: LegalContent = {
   privacy: {
     title: 'מדיניות פרטיות',
-    updated: LAST_UPDATED_HE,
+    updated: PRIVACY_UPDATED_HE,
     intro:
       'DARE TO GO IN ("דיר", "האפליקציה") היא אפליקציית יומן חלומות קטנה ועצמאית. הדף הזה מסביר, בשפה פשוטה, אילו מידע האפליקציה מטפלת בו ולמה. הוא נכתב עבור מי שמשתמש ב-DARE, לא עבור עורכי דין — גרסה מלאה ומאושרת משפטית תחליף אותו לפני השקה מסחרית.',
     sections: [
@@ -205,6 +211,10 @@ const he: LegalContent = {
       {
         heading: 'איך המידע נשמר',
         body: 'נתוני חשבון וחלומות שמורים נשמרים במסד הנתונים של Supabase, משויכים לחשבון. נכון לכתיבת שורות אלו, חלומות שנשמרו לפני קיום חשבון אמיתי נשמרים מקומית במכשיר בלבד (באחסון המקומי של הדפדפן) ואינם מועלים באופן אוטומטי — יידרש צעד נפרד ומוצהר בבירור לפני כל העברה כזו. בנוסף, כששולחים חלום לניתוח, DARE עשויה לשמור זמנית את תוצאת הניתוח שנוצרה, עד כשעתיים בערך, רק לצורך התאוששות טכנית, ניסיון חוזר של בקשה ומניעת חיוב כפול. לאחר מכן היא נמחקת, והיא אינה נשמרת כחלק מהארכיון שלכם אלא אם שמרתם את החלום.',
+      },
+      {
+        heading: 'תשלומים',
+        body: 'כשבוחרים לרכוש קרדיטים לחלומות, DARE מבקשת את השם המלא ואת מספר הטלפון הנייד הישראלי שלכם. הפרטים האלה נאספים רק כשמתחילים תשלום. הם נשלחים אל Make (שירות אוטומציה) ואל Grow (ספקית התשלומים שלנו) כדי שאפשר יהיה ליצור דף תשלום ולעבד את התשלום. DARE אינה שומרת את השם או את מספר הטלפון ברשומות התשלום שלה, ואינה מקבלת או שומרת פרטי כרטיס אשראי: הם מוזנים בדף התשלום של Grow ומטופלים על ידה. Make ו-Grow מעבדות את הפרטים לפי התנאים ומדיניות הפרטיות שלהן. DARE שומרת מידע מוגבל על ההזמנה והתשלום (כמו החבילה שנרכשה, הסכום, סטטוס התשלום ואסמכתת עסקה, בקישור לחשבון שלכם, והקישור מוסר אם תמחקו את החשבון) כדי שאפשר יהיה להוסיף לכם את הקרדיטים, והיא עשויה לשמור אותו לצורכי עסקאות, הנהלת חשבונות, מניעת הונאות ותמיכה.',
       },
       {
         heading: 'מידע טכני וסשן',

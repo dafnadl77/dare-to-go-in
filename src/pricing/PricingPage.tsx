@@ -4,6 +4,8 @@ import EditorialTitle from '../ui/EditorialTitle';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
 import { DREAM_PACKAGES, type DreamPackageDef, type PackageId } from './packages';
+import CheckoutDialog from '../payments/CheckoutDialog';
+import type { PaidPackageId } from '../payments/checkout';
 import './PricingPage.css';
 
 interface PricingPageProps {
@@ -17,6 +19,8 @@ interface PricingPageProps {
   signedIn?: boolean;
   /** The account was sent here because it has no dream credit — shows why. */
   creditsRequired?: boolean;
+  /** A signed-out visitor chose a paid package: send them to sign in first (nothing is collected from them here). */
+  onRequireSignIn?: () => void;
 }
 
 /** Maps each stable package id to its own `pricing.packages.*` translation
@@ -55,7 +59,6 @@ function CheckIcon() {
 interface PackageCardProps {
   pkg: DreamPackageDef;
   onSelectPaid: (id: PackageId) => void;
-  showComingSoon: boolean;
 }
 
 /** Only ever called with a paid package (see the .filter in the grid below),
@@ -63,7 +66,7 @@ interface PackageCardProps {
     that's what gives the three cards their equal height/baseline; EXPLORE's
     emphasis comes only from .pr-card--hero's border/glow/width, never from
     extra height or a vertical offset. */
-function PackageCard({ pkg, onSelectPaid, showComingSoon }: PackageCardProps) {
+function PackageCard({ pkg, onSelectPaid }: PackageCardProps) {
   const { t } = useLanguage();
   const copyKey = PACKAGE_COPY_KEY[pkg.id];
   const scene = PACKAGE_SCENE_IMAGE[pkg.id as Exclude<PackageId, 'first_dream'>];
@@ -99,11 +102,6 @@ function PackageCard({ pkg, onSelectPaid, showComingSoon }: PackageCardProps) {
             <button type="button" className="btn btn-primary pr-card-cta" data-cursor-hover onClick={() => onSelectPaid(pkg.id)}>
               {t(`pricing.packages.${copyKey}.cta`)}
             </button>
-            {showComingSoon && (
-              <p className="pr-card-note" role="status">
-                {t('pricing.comingSoonNote')}
-              </p>
-            )}
           </div>
         </div>
       </article>
@@ -133,9 +131,10 @@ const PAID_PACKAGES = DREAM_PACKAGES.filter((pkg): pkg is DreamPackageDef & { pr
  * (handleSelectPaidPackage below) — Grow/Make integration later replaces
  * just that function's body, nothing else here needs to change.
  */
-export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn = false, creditsRequired = false }: PricingPageProps) {
+export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn = false, creditsRequired = false, onRequireSignIn }: PricingPageProps) {
   const { t } = useLanguage();
-  const [comingSoonFor, setComingSoonFor] = useState<PackageId | null>(null);
+  // The package whose checkout dialog is open. Nothing is asked of the customer before they choose to buy.
+  const [checkoutFor, setCheckoutFor] = useState<Exclude<PackageId, 'first_dream'> | null>(null);
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -161,14 +160,19 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
     return () => window.removeEventListener('keydown', onKey);
   }, [onBack]);
 
-  // ISOLATED PLACEHOLDER — UI-only for this phase. Deliberately does nothing
-  // beyond showing a local "coming soon" note next to the clicked card: no
-  // fake checkout, no fake success, no entitlement of any kind. The package's
-  // own stable `id` (packages.ts) is exactly what a later Grow/Make handler
-  // would need to start a real purchase — replace this function's body only.
+  // A purchase starts here. Signed in: the checkout dialog opens (it collects only the full name and the Israeli mobile that
+  // Grow requires). Signed out: the visitor is sent to sign in first. The package id is the ONLY thing about the purchase the
+  // browser ever sends; the server decides the price and the credits, and only its own payment-completion route adds credits.
   const handleSelectPaidPackage = (id: PackageId) => {
-    setComingSoonFor(id);
+    if (id === 'first_dream') return;
+    if (!signedIn) {
+      onRequireSignIn?.();
+      return;
+    }
+    setCheckoutFor(id);
   };
+
+  const checkoutPackage = checkoutFor ? PAID_PACKAGES.find((p) => p.id === checkoutFor) : undefined;
 
   return (
     <div className="pricing-page">
@@ -219,7 +223,7 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
 
           <div className="pr-grid">
             {PAID_PACKAGES.map((pkg) => (
-              <PackageCard key={pkg.id} pkg={pkg} onSelectPaid={handleSelectPaidPackage} showComingSoon={comingSoonFor === pkg.id} />
+              <PackageCard key={pkg.id} pkg={pkg} onSelectPaid={handleSelectPaidPackage} />
             ))}
           </div>
 
@@ -228,6 +232,20 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
           <AppFooter onNavigate={onOpenLegal} />
         </div>
       </div>
+
+      {checkoutPackage && checkoutFor && (
+        <CheckoutDialog
+          packageId={checkoutFor as PaidPackageId}
+          packageName={t(`pricing.packages.${PACKAGE_COPY_KEY[checkoutPackage.id]}.name`)}
+          dreamsLabel={t('pricing.dreamsCountLabel').replace('{count}', String(checkoutPackage.dreamCount))}
+          priceLabel={`₪${checkoutPackage.priceIls}`}
+          onClose={() => setCheckoutFor(null)}
+          onOpenPrivacy={() => {
+            setCheckoutFor(null);
+            onOpenLegal('privacy');
+          }}
+        />
+      )}
     </div>
   );
 }

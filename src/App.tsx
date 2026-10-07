@@ -15,6 +15,8 @@ import type { LegalKey } from './legal/legalContent';
 import AboutPage from './about/AboutPage';
 import PricingPage from './pricing/PricingPage';
 import { fetchCreditBalance } from './credits/credits';
+import PaymentReturnNotice from './payments/PaymentReturnNotice';
+import { readPaymentReturnParam } from './payments/paymentLink';
 import LeaveDreamDialog from './ui/LeaveDreamDialog';
 import { createLeaveGate, handleBeforeUnload } from './hero/unsavedJourney';
 import AccessibilityControl from './a11y/AccessibilityControl';
@@ -64,6 +66,20 @@ function getInitialView(): AppView {
   if (value && (LEGAL_VIEWS as string[]).includes(value)) return value as LegalKey;
   return 'dream';
 }
+
+/** The customer comes back from the Grow payment page to /?payment=<order id>. Read ONCE per page load and removed from the address
+    straight away, so a refresh or the back button never replays it. It is only a lookup key: the page asks the server how the
+    signed-in account's OWN order is doing and never treats this as proof of payment. */
+const INITIAL_PAYMENT_RETURN: string | null = (() => {
+  if (typeof window === 'undefined') return null;
+  const orderId = readPaymentReturnParam(window.location.search);
+  if (new URLSearchParams(window.location.search).has('payment')) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('payment');
+    window.history.replaceState({}, '', url);
+  }
+  return orderId;
+})();
 
 function writeViewToUrl(view: AppView) {
   const url = new URL(window.location.href);
@@ -145,6 +161,10 @@ function App() {
   // A signed-in account with no dream credit was sent to Pricing (see the gate
   // effect below and HeroDream's onCreditsRequired).
   const [creditsNotice, setCreditsNotice] = useState(false);
+  // Set while the notice for a payment the customer just came back from is open (in memory only).
+  const [paymentReturn, setPaymentReturn] = useState<string | null>(INITIAL_PAYMENT_RETURN);
+  // A signed-out visitor chose a paid package: after signing in they land back on Pricing.
+  const [returnToPricingAfterAuth, setReturnToPricingAfterAuth] = useState(false);
   const [openEntry, setOpenEntry] = useState<ArchiveEntry | null>(null);
   // SAVE THIS DREAM, chosen while signed OUT (see HeroDream.tsx's
   // handleSaveDream): 'none' the rest of the time; 'awaiting-auth' once a
@@ -319,7 +339,8 @@ function App() {
   // credits_required, mapped by HeroDream's onCreditsRequired), so bypassing this
   // effect gains nothing.
   useEffect(() => {
-    if (loading || view !== 'dream' || !user) return;
+    // Not while the customer is confirming a payment they just made: their balance is 0 only until the payment is confirmed.
+    if (loading || view !== 'dream' || !user || paymentReturn) return;
     let cancelled = false;
     fetchCreditBalance().then((balance) => {
       if (cancelled || balance !== 0) return;
@@ -330,7 +351,7 @@ function App() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, view, user?.id]);
+  }, [loading, view, user?.id, paymentReturn]);
 
   let screen: ReactNode;
 
@@ -364,6 +385,11 @@ function App() {
         onOpenLegal={handleOpenLegal}
         signedIn={!!user}
         creditsRequired={creditsNotice}
+        onRequireSignIn={() => {
+          setAuthMode('signin');
+          setReturnToPricingAfterAuth(true);
+          setView('auth');
+        }}
       />
     );
   } else if (view === 'auth') {
@@ -385,9 +411,13 @@ function App() {
             clearPendingDreamSave();
             setPendingSaveState('none');
           }
+          setReturnToPricingAfterAuth(false);
           setView('dream');
         }}
-        onAuthenticated={() => setView('archive')}
+        onAuthenticated={() => {
+          setView(returnToPricingAfterAuth ? 'pricing' : 'archive');
+          setReturnToPricingAfterAuth(false);
+        }}
         onOpenLegal={handleOpenLegal}
       />
     );
@@ -455,6 +485,22 @@ function App() {
   return (
     <>
       {screen}
+      {paymentReturn && view !== 'auth' && (
+        <PaymentReturnNotice
+          orderId={paymentReturn}
+          signedIn={!!user}
+          authLoading={loading}
+          onSignIn={() => {
+            setAuthMode('signin');
+            setView('auth');
+          }}
+          onStartDreaming={() => {
+            setPaymentReturn(null);
+            setView('dream');
+          }}
+          onClose={() => setPaymentReturn(null)}
+        />
+      )}
       <GlobalHeader
         onHome={() => requestLeave(goHome)}
         onMyDreams={() => requestLeave(handleMyDreamsNav)}

@@ -311,7 +311,39 @@ export interface Translations {
     creditsRequiredNotice: string;
     /** "{count} Dreams" — {count} is replaced with the package's real dream count. */
     dreamsCountLabel: string;
-    comingSoonNote: string;
+    checkout: {
+      title: string;
+      intro: string;
+      fullName: string;
+      fullNameHint: string;
+      phone: string;
+      phoneHint: string;
+      privacy: string;
+      privacyLink: string;
+      cancel: string;
+      submit: string;
+      preparing: string;
+      redirecting: string;
+      errName: string;
+      errPhone: string;
+      errSession: string;
+      errRate: string;
+      errUnavailable: string;
+    };
+    paymentReturn: {
+      title: string;
+      confirming: string;
+      confirmingNote: string;
+      slow: string;
+      checkFailed: string;
+      confirmed: string;
+      startDreaming: string;
+      unknown: string;
+      reference: string;
+      signIn: string;
+      signInButton: string;
+      close: string;
+    };
     packages: {
       firstDream: { name: string; description: string; cta: string };
       goDeeper: { name: string; description: string; cta: string };
@@ -624,7 +656,39 @@ export const en: Translations = {
     freeLabel: 'Free',
     creditsRequiredNotice: 'Your free dream has been used. Choose a package to keep dreaming.',
     dreamsCountLabel: '{count} Dreams',
-    comingSoonNote: 'Payments are coming soon — thank you for your patience.',
+    checkout: {
+      title: 'Complete your purchase',
+      intro: 'Two details are needed to create your secure payment page.',
+      fullName: 'Full name',
+      fullNameHint: 'First and last name',
+      phone: 'Mobile phone',
+      phoneHint: 'Israeli mobile number, for example 054-123-4567',
+      privacy: 'Used only to create your payment page. DARE does not store them; they are passed to our payment partners (Make and Grow) to process the payment.',
+      privacyLink: 'Privacy Policy',
+      cancel: 'Cancel',
+      submit: 'Continue to payment',
+      preparing: 'Preparing your payment…',
+      redirecting: 'Taking you to the secure payment page…',
+      errName: 'Please enter your first and last name, using letters only.',
+      errPhone: 'Please enter an Israeli mobile number, for example 054-123-4567.',
+      errSession: 'Your session has ended. Please sign in again.',
+      errRate: 'Too many attempts. Please wait a few minutes and try again.',
+      errUnavailable: 'We could not start the payment right now. Nothing was charged. Please try again in a moment.',
+    },
+    paymentReturn: {
+      title: 'Your payment',
+      confirming: 'Thank you. We are confirming your payment…',
+      confirmingNote: 'This usually takes a few seconds. Please keep this page open.',
+      slow: 'We have not received the confirmation yet. This can take a few minutes. Your credits will appear in your account automatically once the payment is confirmed.',
+      checkFailed: 'We could not check the status just now. Your payment is not affected.',
+      confirmed: 'Payment confirmed. Your dream credits have been added.',
+      startDreaming: 'Start dreaming',
+      unknown: 'We could not find this payment on your account. If you paid, please sign in with the account you used, or contact us.',
+      reference: 'Reference:',
+      signIn: 'Please sign in to see your credits.',
+      signInButton: 'Sign in',
+      close: 'Close',
+    },
     packages: {
       firstDream: {
         name: 'First Dream',
@@ -957,7 +1021,39 @@ export const he: Translations = {
     freeLabel: 'חינם',
     creditsRequiredNotice: 'החלום החינמי שלך נוצל. בחרו חבילה כדי להמשיך לחלום.',
     dreamsCountLabel: '{count} חלומות',
-    comingSoonNote: 'אפשרות התשלום תהיה זמינה בקרוב — תודה על הסבלנות.',
+    checkout: {
+      title: 'השלמת הרכישה',
+      intro: 'נדרשים שני פרטים כדי ליצור את דף התשלום המאובטח שלך.',
+      fullName: 'שם מלא',
+      fullNameHint: 'שם פרטי ושם משפחה',
+      phone: 'טלפון נייד',
+      phoneHint: 'מספר נייד ישראלי, לדוגמה 054-123-4567',
+      privacy: 'משמשים רק ליצירת דף התשלום. DARE אינה שומרת אותם; הם מועברים לשותפי התשלום שלנו (Make ו-Grow) לצורך עיבוד התשלום.',
+      privacyLink: 'מדיניות הפרטיות',
+      cancel: 'ביטול',
+      submit: 'המשך לתשלום',
+      preparing: 'מכינים את התשלום…',
+      redirecting: 'מעבירים אותך לדף התשלום המאובטח…',
+      errName: 'נא להזין שם פרטי ושם משפחה, באותיות בלבד.',
+      errPhone: 'נא להזין מספר נייד ישראלי, לדוגמה 054-123-4567.',
+      errSession: 'ההתחברות שלך הסתיימה. נא להתחבר שוב.',
+      errRate: 'יותר מדי ניסיונות. נא להמתין כמה דקות ולנסות שוב.',
+      errUnavailable: 'לא הצלחנו להתחיל את התשלום כרגע. לא בוצע חיוב. נא לנסות שוב בעוד רגע.',
+    },
+    paymentReturn: {
+      title: 'התשלום שלך',
+      confirming: 'תודה. אנחנו מאשרים את התשלום שלך…',
+      confirmingNote: 'זה לוקח בדרך כלל כמה שניות. נא להשאיר את הדף פתוח.',
+      slow: 'עדיין לא קיבלנו את האישור. זה יכול לקחת כמה דקות. הקרדיטים יופיעו בחשבון שלך אוטומטית ברגע שהתשלום יאושר.',
+      checkFailed: 'לא הצלחנו לבדוק את הסטטוס ברגע זה. התשלום עצמו לא מושפע.',
+      confirmed: 'התשלום אושר. קרדיטי החלומות נוספו לחשבון שלך.',
+      startDreaming: 'מתחילים לחלום',
+      unknown: 'לא מצאנו את התשלום הזה בחשבון שלך. אם שילמת, נא להתחבר עם החשבון שבו השתמשת, או לפנות אלינו.',
+      reference: 'מספר אסמכתא:',
+      signIn: 'נא להתחבר כדי לראות את הקרדיטים שלך.',
+      signInButton: 'התחברות',
+      close: 'סגירה',
+    },
     packages: {
       firstDream: {
         name: 'החלום הראשון',

@@ -7,7 +7,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Cache-Control', 'no-store');
   const headers = { authorization: req.headers.authorization, cookie: req.headers.cookie };
   if (req.method === 'GET') {
-    const result = await handleCredits(headers);
+    const order = typeof req.query.order === 'string' ? req.query.order : undefined;
+    const result = await handleCredits(headers, order);
     res.status(result.status).json(result.body);
     return;
   }

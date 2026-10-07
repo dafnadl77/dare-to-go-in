@@ -28,3 +28,15 @@ export async function markPaymentOrderLink(orderId: string, ownerId: string, sta
   const { data, error } = await client.rpc('set_payment_order_link_status', { p_order: orderId, p_owner: ownerId, p_status: status });
   return !error && data === true;
 }
+
+/** What the customer's own return page may learn about ITS order. A foreign or missing order is both 'unknown'. null = unavailable. */
+export type OrderState = 'confirmed' | 'pending' | 'unknown';
+
+export async function getPaymentOrderState(orderId: string, ownerId: string): Promise<OrderState | null> {
+  if (!/^[0-9a-f]{32}$/.test(orderId)) return 'unknown';
+  const client = getSupabaseServiceClient();
+  if (!client) return null;
+  const { data, error } = await client.rpc('get_payment_order_state', { p_order: orderId, p_owner: ownerId });
+  if (error) return null;
+  return data === 'confirmed' || data === 'pending' || data === 'unknown' ? data : null;
+}

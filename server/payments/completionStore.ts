@@ -1,15 +1,13 @@
 import { getSupabaseServiceClient } from '../supabaseServiceClient.js';
 import type { CompletionRequest } from './completionRequest.js';
 
-/** Outcomes of public.complete_payment_order (see the migration for what each means). */
+/** Outcomes of public.complete_payment_order (see the migration for what each means). None of them closes an order. */
 export const COMPLETION_STATUSES = [
   'granted',
   'duplicate',
   'order_not_found',
   'transaction_used_by_other_order',
   'order_already_completed',
-  'order_closed',
-  'rejected_duplicate',
   'amount_mismatch',
   'currency_mismatch',
   'owner_gone',
@@ -31,4 +29,11 @@ export async function completePaymentOrder(request: CompletionRequest): Promise<
   if (error || !data || typeof data !== 'object') return null;
   const status = (data as { status?: unknown }).status;
   return (COMPLETION_STATUSES as readonly unknown[]).includes(status) ? (status as CompletionStatus) : null;
+}
+
+/** Remembers the last NON-PAID status text seen for an order. Best effort: it changes no status and grants nothing. */
+export async function recordPaymentNotice(orderId: string, providerStatus: string): Promise<void> {
+  const client = getSupabaseServiceClient();
+  if (!client) return;
+  await client.rpc('record_payment_notice', { p_order: orderId, p_provider_status: providerStatus });
 }

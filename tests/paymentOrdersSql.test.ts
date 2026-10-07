@@ -122,23 +122,28 @@ test('an order completed with one transaction rejects a different transaction', 
   assert.equal(await balance(owner), 3);
 });
 
-test('a wrong amount grants nothing, closes the order for review, and the transaction stays attached to it', async () => {
+test('a wrong amount grants nothing and is kept for review, but the order STAYS OPEN for a later independently valid payment', async () => {
   const owner = await newUser();
   const id = await createOrder(owner, 'dive_in_25');
   assert.equal((await complete(id, 'TX-5001', 59)).status, 'amount_mismatch');
   assert.equal(await balance(owner), 0);
   const o = await order(id);
-  assert.equal(o.status, 'rejected');
-  assert.equal(o.reject_reason, 'amount_mismatch');
-  assert.equal(Number(o.paid_amount_ils), 59);
-  // a later "correct" notification cannot reopen it, and a repeat of the bad one stays rejected
-  assert.equal((await complete(id, 'TX-5002', 279)).status, 'order_closed');
-  assert.equal((await complete(id, 'TX-5001', 59)).status, 'rejected_duplicate');
+  assert.equal(o.status, 'created', 'a notification never closes an order');
+  assert.equal(o.review_reason, 'amount_mismatch');
+  assert.equal(o.review_tx, 'TX-5001');
+  assert.equal(Number(o.review_amount_ils), 59);
+  assert.equal(o.provider_tx, null, 'the mismatched payment is NOT recorded as the order\'s payment');
+  // the SAME bad report, repeated, is still refused: it can never turn into a grant by being resent
+  for (let i = 0; i < 3; i += 1) assert.equal((await complete(id, 'TX-5001', 59)).status, 'amount_mismatch');
   assert.equal(await balance(owner), 0);
-  // the rejected transaction cannot be used for another order either
+  // the mismatched transaction cannot be used for another order
   const other = await createOrder(owner, 'go_deeper_3');
   assert.equal((await complete(other, 'TX-5001', 59)).status, 'transaction_used_by_other_order');
   assert.equal(await balance(owner), 0);
+  // a LATER payment that is independently valid (different transaction, right amount) completes the order normally
+  assert.deepEqual(await complete(id, 'TX-5002', 279), { status: 'granted', balance: 25 });
+  assert.equal((await order(id)).status, 'granted');
+  assert.equal((await order(id)).provider_tx, 'TX-5002');
 });
 
 test('a slightly different or fractional amount is a mismatch too (no rounding in the customer\'s favour)', async () => {
@@ -152,12 +157,16 @@ test('a slightly different or fractional amount is a mismatch too (no rounding i
   assert.equal((await complete(ok, 'TX-6999', 149.0)).status, 'granted');
 });
 
-test('a wrong currency grants nothing', async () => {
+test('a wrong currency grants nothing and keeps the order open', async () => {
   const owner = await newUser();
   const id = await createOrder(owner, 'explore_10');
   assert.equal((await complete(id, 'TX-7001', 149, 'USD')).status, 'currency_mismatch');
   assert.equal(await balance(owner), 0);
-  assert.equal((await order(id)).reject_reason, 'currency_mismatch');
+  const o = await order(id);
+  assert.equal(o.review_reason, 'currency_mismatch');
+  assert.equal(o.status, 'created');
+  assert.equal((await complete(id, 'TX-7002', 149, 'ILS')).status, 'granted');
+  assert.equal(await balance(owner), 10);
 });
 
 test('an unknown or malformed order / transaction / amount is refused without any effect', async () => {
@@ -180,14 +189,18 @@ test('an unknown or malformed order / transaction / amount is refused without an
   assert.equal((await order(id)).status, 'created');
 });
 
-test('a payment that arrives after the account was deleted grants nothing and is closed for manual review', async () => {
+test('a payment that arrives after the account was deleted grants nothing and is kept for manual review', async () => {
   const owner = await newUser();
   const id = await createOrder(owner, 'explore_10');
   await db.query('delete from auth.users where id = $1', [owner]);
   assert.equal((await order(id)).owner_id, null, 'the order is anonymized, not deleted');
   assert.equal((await complete(id, 'TX-9001', 149)).status, 'owner_gone');
-  assert.equal((await order(id)).reject_reason, 'owner_deleted');
+  assert.equal((await complete(id, 'TX-9002', 149)).status, 'owner_gone', 'no later notification can resurrect it');
+  const o = await order(id);
+  assert.equal(o.review_reason, 'owner_deleted');
+  assert.equal(o.status, 'created');
   assert.deepEqual(await ledgerRows(null, 'grow:TX-9001'), []);
+  assert.deepEqual(await ledgerRows(null, 'grow:TX-9002'), []);
 });
 
 test('deleting the account AFTER a completed purchase keeps the anonymized record, and a replay still grants nothing', async () => {
@@ -250,6 +263,8 @@ test('privileges: only service_role can run the payment functions or read the ta
       await assert.rejects(db.query('select public.complete_payment_order($1, $2, $3, $4, $5)', [id, 'TX-9301', 59, 'ILS', 'PAID']), /permission denied/, role);
       await assert.rejects(db.query('select public.create_payment_order($1, $2, $3, $4)', [owner, 'go_deeper_3', 59, 3]), /permission denied/, role);
       await assert.rejects(db.query('select * from public.payment_orders'), /permission denied/, role);
+      await assert.rejects(db.query('select public.record_payment_notice($1, $2)', [id, 'x']), /permission denied/, role);
+      await assert.rejects(db.query('select public.get_payment_order_state($1, $2)', [id, owner]), /permission denied/, role);
       await assert.rejects(db.query('update public.payment_orders set status = $1', ['granted']), /permission denied/, role);
     } finally {
       await db.exec('reset role');
@@ -271,4 +286,50 @@ test('the ledger\'s own unique (reason, external_ref) index is a second, indepen
   const again = await db.query<{ r: Outcome }>("select public.grant_credits($1, 3, 'purchase', 'grow:TX-9401') as r", [owner]);
   assert.equal(again.rows[0].r.status, 'duplicate');
   assert.equal(await balance(owner), 3);
+});
+
+test('a NON-PAID notice only remembers the last status: nothing is granted, nothing is closed, a later paid notification completes the order', async () => {
+  const owner = await newUser();
+  const id = await createOrder(owner, 'go_deeper_3');
+  const note = async (status: string) => (await db.query<{ r: boolean }>('select public.record_payment_notice($1, $2) as r', [id, status])).rows[0].r;
+  assert.equal(await note('Pending'), true);
+  assert.equal(await note('Failed'), true);
+  let o = await order(id);
+  assert.equal(o.status, 'created');
+  assert.equal(o.provider_status, 'Failed');
+  assert.ok(o.last_notice_at);
+  assert.equal(o.provider_tx, null);
+  assert.equal(await balance(owner), 0);
+  assert.equal((await complete(id, 'TX-A001', 59, 'ILS', 'Paid')).status, 'granted');
+  o = await order(id);
+  assert.equal(o.provider_status, 'Paid');
+  assert.equal(await balance(owner), 3);
+  // after completion a late non-paid notice cannot disturb a granted order
+  assert.equal(await note('Failed'), false);
+  assert.equal((await order(id)).provider_status, 'Paid');
+  assert.equal((await order(id)).status, 'granted');
+  // unknown / malformed ids are simply ignored
+  assert.equal((await db.query<{ r: boolean }>("select public.record_payment_notice('f' || repeat('0', 31), 'x') as r")).rows[0].r, false);
+  assert.equal((await db.query<{ r: boolean }>("select public.record_payment_notice('nope', 'x') as r")).rows[0].r, false);
+});
+
+test('get_payment_order_state: the customer can learn only about ITS OWN order; a foreign or missing order is simply unknown', async () => {
+  const owner = await newUser();
+  const stranger = await newUser();
+  const id = await createOrder(owner, 'go_deeper_3');
+  const state = async (order: string, who: string) => (await db.query<{ r: string }>('select public.get_payment_order_state($1, $2) as r', [order, who])).rows[0].r;
+  assert.equal(await state(id, owner), 'pending');
+  assert.equal(await state(id, stranger), 'unknown');
+  assert.equal(await state('f'.repeat(32), owner), 'unknown');
+  assert.equal(await state('nope', owner), 'unknown');
+  await complete(id, 'TX-B001', 59);
+  assert.equal(await state(id, owner), 'confirmed');
+  assert.equal(await state(id, stranger), 'unknown');
+  assert.equal(await state(id, '00000000-0000-4000-8000-000000000000'), 'unknown');
+});
+
+test('no payment function ever leaves an order in a "closed" state: the only terminal state is granted', async () => {
+  const cols = await db.query<{ check_clause: string }>("select check_clause from information_schema.check_constraints where constraint_name like 'payment_orders_status_check'");
+  assert.match(cols.rows[0].check_clause, /created/);
+  assert.ok(!/rejected|paid/.test(cols.rows[0].check_clause), cols.rows[0].check_clause);
 });
