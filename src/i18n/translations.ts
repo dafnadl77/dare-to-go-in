@@ -688,7 +688,7 @@ export const en: Translations = {
     creditsRequiredNotice: 'Your free dream has been used. Choose a package to keep dreaming.',
     dreamsCountLabel: '{count} Dreams',
     planFree: 'Free',
-    yourPackage: 'Your package',
+    yourPackage: 'This is your package',
     checkout: {
       title: 'Complete your purchase',
       intro: 'Two details are needed to create your secure payment page.',
@@ -1069,7 +1069,7 @@ export const he: Translations = {
     creditsRequiredNotice: 'החלום החינמי שלך נוצל. בחרו חבילה כדי להמשיך לחלום.',
     dreamsCountLabel: '{count} חלומות',
     planFree: 'חינמי',
-    yourPackage: 'החבילה שלך',
+    yourPackage: 'זו החבילה שלך',
     checkout: {
       title: 'השלמת הרכישה',
       intro: 'נדרשים שני פרטים כדי ליצור את דף התשלום המאובטח שלך.',

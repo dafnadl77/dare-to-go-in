@@ -146,8 +146,8 @@ test('the Pricing card marks only the held package, and the free fallback never 
   const pricing = read('src/pricing/PricingPage.tsx');
   assert.match(pricing, /isCurrent=\{accountPlan\.status === 'ready' && accountPlan\.plan === pkg\.id\}/);
   assert.match(pricing, /t\('pricing\.yourPackage'\)/);
-  assert.equal(en.pricing.yourPackage, 'Your package');
-  assert.equal(he.pricing.yourPackage, 'החבילה שלך');
+  assert.equal(en.pricing.yourPackage, 'This is your package');
+  assert.equal(he.pricing.yourPackage, 'זו החבילה שלך');
   assert.equal(he.archive.greeting.replace('{name}', 'דנה'), 'שלום דנה');
   assert.equal(he.archive.greetingNoName, 'שלום');
   assert.ok(!/undefined|null/.test(he.archive.greetingNoName + en.archive.greetingNoName));
@@ -158,4 +158,20 @@ test('prices, credits and package ids are untouched', () => {
     DREAM_PACKAGES.map((p) => [p.id, p.priceIls, p.dreamCount]),
     [['first_dream', null, 1], ['go_deeper_3', 59, 3], ['explore_10', 149, 10], ['dive_in_25', 279, 25]],
   );
+});
+
+test('the held package gets a ribbon + card highlight; it replaces "Most Popular" on that card and never shows with it', () => {
+  const pricing = read('src/pricing/PricingPage.tsx');
+  assert.match(pricing, /\$\{isCurrent \? ' pr-card--current' : ''\}/);
+  // one ternary: ribbon when current, otherwise the Most Popular badge — never both
+  assert.match(pricing, /\{isCurrent \? \(\s*<div className="pr-card-ribbon">[\s\S]*?\) : \(\s*pkg\.featured && <span className="pr-card-badge">/);
+  assert.equal((pricing.match(/pr-card-ribbon/g) ?? []).length, 1);
+  const css = read('src/pricing/PricingPage.css');
+  assert.match(css, /\.pr-card--current \{/);
+  assert.match(css, /\.pr-card-ribbon \{[\s\S]*?position: absolute;[\s\S]*?top: 0;/);
+});
+
+test('the ribbon wording is exactly the requested text in both languages', () => {
+  assert.equal(he.pricing.yourPackage, 'זו החבילה שלך');
+  assert.equal(en.pricing.yourPackage, 'This is your package');
 });

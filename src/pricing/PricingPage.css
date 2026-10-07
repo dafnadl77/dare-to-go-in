@@ -514,3 +514,43 @@ html[lang='he'] .pr-card-eyebrow {
     animation: none !important;
   }
 }
+
+/* ---- The package this account holds: a full-width ribbon across the top of the card (above the scene photograph) in the
+   page's own warm-white, and a quiet lift of the card itself. It replaces "Most Popular" on the same card, never sits with it. ---- */
+.pr-card--current {
+  border-color: rgba(244, 240, 232, 0.5);
+  box-shadow: 0 0 2.4rem rgba(244, 240, 232, 0.16), 0 1.6rem 3rem rgba(0, 0, 0, 0.45);
+}
+
+.pr-card-ribbon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: 0.78rem 1rem;
+  background: linear-gradient(180deg, rgba(244, 240, 232, 0.97), rgba(228, 222, 208, 0.93));
+  color: #0b0c0b;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  box-shadow: 0 0.5rem 1.2rem rgba(0, 0, 0, 0.35);
+}
+
+html[lang='he'] .pr-card-ribbon {
+  letter-spacing: normal;
+  text-transform: none;
+  font-size: 1rem;
+}
+
+.pr-card-ribbon .pr-check {
+  flex: none;
+  color: inherit;
+}

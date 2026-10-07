@@ -77,9 +77,13 @@ function PackageCard({ pkg, onSelectPaid, isCurrent = false }: PackageCardProps)
 
   return (
     <div className="pr-card-slot">
-      <article className={`pr-card${pkg.featured ? ' pr-card--hero' : ''}`}>
+      <article className={`pr-card${pkg.featured ? ' pr-card--hero' : ''}${isCurrent ? ' pr-card--current' : ''}`} aria-current={isCurrent ? 'true' : undefined}>
+        {/* The held package's ribbon takes priority over "Most Popular": the two are never shown together. */}
         {isCurrent ? (
-          <span className="pr-card-badge">{t('pricing.yourPackage')}</span>
+          <div className="pr-card-ribbon">
+            <CheckIcon />
+            <span>{t('pricing.yourPackage')}</span>
+          </div>
         ) : (
           pkg.featured && <span className="pr-card-badge">{t('pricing.mostPopular')}</span>
         )}
