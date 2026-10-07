@@ -131,7 +131,9 @@ test('server code that can add credits exists only as the service-only SQL funct
     assert.ok(!/grant_credits/.test(read(`server/routes/${f}`)), f);
   }
   assert.ok(!/grant_credits/.test(attempts));
-  assert.deepEqual(readdirSync(new URL('../api', import.meta.url)).filter((f) => /grow|webhook|payment/i.test(f)), []);
+  // Credits can be added by exactly one HTTP route, and it is not a browser route: Make -> /api/payment-complete, authenticated by a
+  // dedicated server secret (see paymentComplete.test.ts).
+  assert.deepEqual(readdirSync(new URL('../api', import.meta.url)).filter((f) => /grow|webhook|payment/i.test(f)), ['payment-complete.ts']);
 });
 
 // ---------------------------------------------------------- the migration ----

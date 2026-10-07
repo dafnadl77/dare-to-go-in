@@ -342,8 +342,8 @@ test('make client: a slow Make is cut off by the timeout instead of hanging the 
 
 test('wiring: checkout lives on the existing /api/credits function (no new Vercel function; the project stays at 11)', () => {
   const files = readdirSync(new URL('../api', import.meta.url)).filter((f) => f.endsWith('.ts'));
-  assert.equal(files.length, 11, files.join(', '));
-  assert.ok(!files.some((f) => /checkout|payment|grow|make/i.test(f)));
+  assert.equal(files.length, 12, files.join(', '));
+  assert.deepEqual(files.filter((f) => /checkout|payment|grow|make/i.test(f)), ['payment-complete.ts']);
   const api = read('api/credits.ts');
   assert.match(api, /req\.method === 'POST'/);
   assert.match(api, /handleStartCheckout/);
@@ -381,8 +381,9 @@ test('migration: payment_orders is service-role only, anonymized (not deleted) w
   assert.match(sql, /grant execute on function public\.create_payment_order\(uuid, text, integer, integer\) to service_role/i);
   assert.match(sql, /grant execute on function public\.set_payment_order_link_status\(text, uuid, text\) to service_role/i);
   assert.ok(!/to (anon|authenticated|public)\s*;/i.test(sql.replace(/revoke[^;]*;/gi, '')));
-  assert.ok(!/(update|insert into|alter table|drop|truncate|delete from)\s+public\.(credit_ledger|dream_credits|dream_attempts|dreams)/i.test(sql), 'it never touches credits: granting is a later step');
-  assert.ok(!/grant_credits/.test(sql));
+  const code = sql.replace(/--.*$/gm, '');
+  assert.ok(!/(update|insert into|alter table|drop|truncate|delete from)\s+public\.(credit_ledger|dream_credits|dream_attempts|dreams)/i.test(code), 'it never writes credit tables directly: only through the existing grant_credits');
+  assert.equal((code.match(/grant_credits\(/g) ?? []).length, 1, 'grant_credits is called in exactly one place (complete_payment_order)');
   assert.ok(!/delete_account_data/.test(sql.replace(/--.*$/gm, '')), 'no change to account deletion needed (FK set null anonymizes)');
 });
 
@@ -413,7 +414,7 @@ test('privacy: the name and phone go ONLY to Make: not to the order store, the d
   assert.ok(!JSON.stringify(res.body).includes('Dafna'));
   const store = read('server/payments/orderStore.ts');
   assert.ok(!/fullName|phone|payer/i.test(store), 'the order store never receives the payer details');
-  assert.ok(!/fullName|full_name|phone|payer/i.test(read('supabase/migrations/20261007_payment_orders.sql')), 'no personal data column in payment_orders');
+  assert.ok(!/fullName|full_name|phone|payer/i.test(read('supabase/migrations/20261007_payment_orders.sql').replace(/--.*$/gm, '')), 'no personal data column in payment_orders');
   const client = read('server/payments/makeCheckoutClient.ts').replace(/\/\*[\s\S]*?\*\//g, '');
   assert.ok(!/cField|customField/i.test(client), 'DARE fills no Grow custom field with personal data');
 });

@@ -10,6 +10,7 @@ import { handleDreamTranscription } from './routes/dreamTranscription.js';
 import { handleClaimTrial } from './routes/claimTrial.js';
 import { handleCredits } from './routes/credits.js';
 import { handleStartCheckout } from './payments/checkoutStart.js';
+import { handlePaymentComplete } from './payments/paymentComplete.js';
 import { handleDeleteAccount } from './routes/deleteAccount.js';
 import { handleTrialSession } from './routes/trialSession.js';
 import type { HandlerResult } from './httpResult.js';
@@ -71,6 +72,10 @@ app.post('/api/delete-account', async (req, res) => {
 
 app.post('/api/credits', async (req, res) => {
   send(res, await handleStartCheckout(req.body, requestHeaders(req)));
+});
+
+app.post('/api/payment-complete', async (req, res) => {
+  send(res, await handlePaymentComplete(req.body, { authorization: req.headers.authorization }));
 });
 
 app.get('/api/credits', async (req, res) => {
