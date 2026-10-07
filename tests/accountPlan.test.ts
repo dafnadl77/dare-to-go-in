@@ -171,13 +171,19 @@ test('the held package gets a ribbon + card highlight; it replaces "Most Popular
   assert.match(pricing, /<\/article>[\s\S]*?pr-card-ribbon[\s\S]*?pr-card-reflection/);
   const css = read('src/pricing/PricingPage.css');
   assert.match(css, /\.pr-card--current \{/);
-  assert.match(css, /\.pr-card-slot--current \{\s*position: relative;/);
-  assert.match(css, /\.pr-card-ribbon \{[\s\S]*?position: absolute;[\s\S]*?inset-inline-start: -1em;/);
-  // a diagonal ribbon with folded ends (::before / ::after), mirrored for Hebrew
+  // the slot is the size container: the ribbon is measured in cqw (a % of the card's width), so it scales with the card
+  assert.match(css, /\.pr-card-slot--current \{\s*position: relative;\s*container-type: inline-size;/);
+  assert.match(css, /\.pr-card-ribbon \{[\s\S]*?position: absolute;[\s\S]*?inset-inline-start: -3\.9cqw;[\s\S]*?width: 79cqw;/);
+  // built from shapes, not a rotated rectangle: the band, the curled tip (::before) and the side flap (::after) are clip-path polygons
+  assert.match(css, /\.pr-card-ribbon-band \{[\s\S]*?clip-path: polygon\(/);
   assert.match(css, /\.pr-card-ribbon::before \{[\s\S]*?clip-path: polygon/);
   assert.match(css, /\.pr-card-ribbon::after \{[\s\S]*?clip-path: polygon/);
-  assert.match(css, /\.pr-card-ribbon-band \{[\s\S]*?transform: rotate\(-45deg\);/);
-  assert.match(css, /html\[lang='he'\] \.pr-card-ribbon-band \{[\s\S]*?transform: rotate\(45deg\);/);
+  const band = css.slice(css.indexOf('.pr-card-ribbon-band {'), css.indexOf('/* Curled tip'));
+  assert.ok(!/transform:/.test(band), 'the band itself is not a rotated box');
+  // only the label is rotated; Hebrew uses the design as drawn, English mirrors the whole ribbon and flips the label back
+  assert.match(css, /\.pr-card-ribbon-label \{[\s\S]*?transform: translate\(-50%, -50%\) rotate\(32deg\);/);
+  assert.match(css, /html:not\(\[lang='he'\]\) \.pr-card-ribbon \{\s*transform: scaleX\(-1\);/);
+  assert.match(css, /html:not\(\[lang='he'\]\) \.pr-card-ribbon-label \{\s*transform: translate\(-50%, -50%\) rotate\(32deg\) scaleX\(-1\);/);
 });
 
 test('the ribbon wording is exactly the requested text in both languages', () => {

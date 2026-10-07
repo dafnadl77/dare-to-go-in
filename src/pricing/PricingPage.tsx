@@ -115,7 +115,8 @@ function PackageCard({ pkg, onSelectPaid, isCurrent = false }: PackageCardProps)
           inside it, so it is not cut by the card's overflow clipping and its ends can fold around the corner. */}
       {isCurrent && (
         <div className="pr-card-ribbon">
-          <span className="pr-card-ribbon-band">
+          <span className="pr-card-ribbon-band" aria-hidden="true" />
+          <span className="pr-card-ribbon-label">
             <CheckIcon />
             <span>{t('pricing.yourPackage')}</span>
           </span>
