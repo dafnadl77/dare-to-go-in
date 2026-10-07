@@ -27,6 +27,9 @@ import { PATTERN_REFLECTION_PROMPT_VERSION, type PatternReflectionResult } from 
 import { addressPreferenceOfUser, type AddressPreference } from '../hero/addressPreference';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../auth/AuthContext';
+import { fullNameOfUser, firstNameOf, normalizeDisplayName, MAX_DISPLAY_NAME_LENGTH } from '../auth/displayName';
+import { useAccountPlan } from '../credits/useAccountPlan';
+import { planDisplayName } from '../pricing/planName';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
 import Breadcrumb from '../ui/Breadcrumb';
@@ -89,7 +92,7 @@ interface DreamArchiveProps {
  */
 export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: DreamArchiveProps) {
   const { t, language, setLanguage } = useLanguage();
-  const { user, signOut, updateAddressPreference } = useAuth();
+  const { user, signOut, updateAddressPreference, updateDisplayName } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     bgVideoRef.current?.play().catch(() => {});
@@ -152,6 +155,40 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
     setAddressPrefStatus('saving');
     const result = await updateAddressPreference(preference);
     setAddressPrefStatus(result.ok ? 'idle' : 'error');
+  };
+
+  // The dreamer's name comes from the signed-in account's own metadata (see auth/displayName.ts) — never from the email
+  // address and never hardcoded. The package is what the account PURCHASED (server-read, never inferred from the balance),
+  // fetched only while Settings is open.
+  const fullName = fullNameOfUser(user);
+  const firstName = firstNameOf(fullName);
+  const accountPlan = useAccountPlan(activeSection === 'settings' ? user?.id : undefined);
+  const [nameEditing, setNameEditing] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
+  const [nameStatus, setNameStatus] = useState<'idle' | 'saving' | 'error'>('idle');
+  const startNameEdit = () => {
+    setNameDraft(fullName ?? '');
+    setNameStatus('idle');
+    setNameEditing(true);
+  };
+  const cancelNameEdit = () => {
+    setNameEditing(false);
+    setNameStatus('idle');
+  };
+  const saveName = async () => {
+    if (nameStatus === 'saving') return;
+    if (normalizeDisplayName(nameDraft) === null) {
+      setNameStatus('error');
+      return;
+    }
+    setNameStatus('saving');
+    const result = await updateDisplayName(nameDraft);
+    if (result.ok) {
+      setNameEditing(false);
+      setNameStatus('idle');
+    } else {
+      setNameStatus('error');
+    }
   };
 
   // Set only while viewing one recurring motif's own filtered dream list
@@ -541,6 +578,9 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
             <>
               <div className="ar-hero-row">
                 <div className="ar-hero-copy">
+                  {activeSection === 'all' && (
+                    <p className="ar-greeting">{firstName ? t('archive.greeting').replace('{name}', firstName) : t('archive.greetingNoName')}</p>
+                  )}
                   <h1 className="ar-title">
                     <EditorialTitle text={activeSection === 'favorites' ? t('archive.navFavorites') : t('archive.pageHeading')} />
                   </h1>
@@ -722,8 +762,57 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
               </h1>
               <p className="ar-subtitle">{t('archive.settingsSubtitle')}</p>
               <div className="ar-settings-row">
+                <span className="ar-settings-label">{t('archive.settingsNameLabel')}</span>
+                {nameEditing ? (
+                  <div className="ar-settings-name-controls">
+                    <input
+                      className="ar-settings-name-input"
+                      type="text"
+                      value={nameDraft}
+                      maxLength={MAX_DISPLAY_NAME_LENGTH}
+                      autoComplete="name"
+                      autoFocus
+                      aria-label={t('archive.settingsNameLabel')}
+                      aria-invalid={nameStatus === 'error'}
+                      disabled={nameStatus === 'saving'}
+                      onChange={(e) => {
+                        setNameDraft(e.target.value);
+                        if (nameStatus === 'error') setNameStatus('idle');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          void saveName();
+                        } else if (e.key === 'Escape') {
+                          e.preventDefault();
+                          cancelNameEdit();
+                        }
+                      }}
+                    />
+                    <button type="button" className="ar-settings-lang-btn ar-settings-lang-btn--active" disabled={nameStatus === 'saving'} onClick={() => void saveName()}>
+                      {t('archive.settingsNameSave')}
+                    </button>
+                    <button type="button" className="ar-settings-lang-btn" disabled={nameStatus === 'saving'} onClick={cancelNameEdit}>
+                      {t('archive.settingsNameCancel')}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="ar-settings-name-controls">
+                    <span className="ar-settings-value">{fullName ?? t('archive.settingsNameEmpty')}</span>
+                    <button type="button" className="ar-settings-lang-btn" onClick={startNameEdit}>
+                      {fullName ? t('archive.settingsNameEdit') : t('archive.settingsNameAdd')}
+                    </button>
+                  </div>
+                )}
+              </div>
+              {nameStatus === 'error' && <p className="ar-settings-address-error">{t('archive.settingsNameError')}</p>}
+              <div className="ar-settings-row">
                 <span className="ar-settings-label">{t('archive.settingsEmailLabel')}</span>
                 <span className="ar-settings-value">{user?.email ?? '—'}</span>
+              </div>
+              <div className="ar-settings-row">
+                <span className="ar-settings-label">{t('archive.settingsPlanLabel')}</span>
+                <span className="ar-settings-value">{accountPlan.status === 'ready' ? planDisplayName(accountPlan.plan, t) : '—'}</span>
               </div>
               <div className="ar-settings-row">
                 <span className="ar-settings-label">{t('archive.settingsLanguageLabel')}</span>

@@ -2,6 +2,7 @@ import { errorResult, okResult, type HandlerResult } from '../httpResult.js';
 import { verifyBearerToken, type RequestHeaders } from '../callerIdentity.js';
 import { getCreditBalance } from '../dreamAttempts.js';
 import { getPaymentOrderState } from '../payments/orderStore.js';
+import { getPurchasedPackage } from '../payments/purchasedPackage.js';
 
 /**
  * GET /api/credits — the signed-in account's server-side dream-credit balance.
@@ -31,5 +32,8 @@ export async function handleCredits(requestHeaders: RequestHeaders, orderId?: st
     if (order === null) return errorResult(503, 'not_configured', 'Payment status is not available right now.');
     return okResult({ balance, order });
   }
-  return okResult({ balance });
+  // The package the account last PURCHASED (null = a free account), read from its completed orders, never from the balance. If it
+  // cannot be determined the field is left out so the UI shows nothing rather than guessing.
+  const purchasedPackage = await getPurchasedPackage(verified.userId);
+  return okResult(purchasedPackage === undefined ? { balance } : { balance, purchasedPackage });
 }

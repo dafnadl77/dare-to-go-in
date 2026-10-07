@@ -3,6 +3,7 @@ import type { User } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { claimTrial } from './claimTrial';
 import { ADDRESS_PREFERENCE_METADATA_KEY, type AddressPreference } from '../hero/addressPreference';
+import { DISPLAY_NAME_METADATA_KEY, normalizeDisplayName } from './displayName';
 
 export type AuthActionResult =
   | { ok: true; sessionCreated: boolean }
@@ -60,6 +61,9 @@ interface AuthContextValue {
       own session). NEVER called automatically or inferred from anything;
       the only caller is the dreamer's own explicit choice in Settings. */
   updateAddressPreference: (preference: AddressPreference) => Promise<AuthActionResult>;
+  /** The name the dreamer types in Settings, stored on the same Supabase auth user metadata (key `displayName`, which a Google
+      sign-in never overwrites). Validated here as well as in the UI; an unusable name is refused without touching anything. */
+  updateDisplayName: (name: string) => Promise<AuthActionResult>;
   signOut: () => Promise<void>;
 }
 
@@ -220,6 +224,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // which the listener above already handles (setUser(session.user)),
         // so `user.user_metadata` refreshes on its own — no extra state here.
         const { error } = await supabase.auth.updateUser({ data: { [ADDRESS_PREFERENCE_METADATA_KEY]: preference } });
+        if (error) return { ok: false, error };
+        return { ok: true, sessionCreated: false };
+      },
+      async updateDisplayName(name) {
+        const clean = normalizeDisplayName(name);
+        if (clean === null) return { ok: false, error: new Error('invalid_name') };
+        const { error } = await supabase.auth.updateUser({ data: { [DISPLAY_NAME_METADATA_KEY]: clean } });
         if (error) return { ok: false, error };
         return { ok: true, sessionCreated: false };
       },

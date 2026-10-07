@@ -172,7 +172,17 @@ export interface Translations {
     reflectionUnavailable: string;
     reflectionDreamCountNote: string;
     settingsSubtitle: string;
+    greeting: string;
+    greetingNoName: string;
+    settingsNameLabel: string;
+    settingsNameEmpty: string;
+    settingsNameAdd: string;
+    settingsNameEdit: string;
+    settingsNameSave: string;
+    settingsNameCancel: string;
+    settingsNameError: string;
     settingsEmailLabel: string;
+    settingsPlanLabel: string;
     settingsLanguageLabel: string;
     settingsAddressLabel: string;
     settingsAddressFeminine: string;
@@ -311,6 +321,10 @@ export interface Translations {
     creditsRequiredNotice: string;
     /** "{count} Dreams" — {count} is replaced with the package's real dream count. */
     dreamsCountLabel: string;
+    /** The free tier's display name, shown as the account's package when it has never purchased one. */
+    planFree: string;
+    /** Marks the package card the signed-in account holds. */
+    yourPackage: string;
     checkout: {
       title: string;
       intro: string;
@@ -515,7 +529,17 @@ export const en: Translations = {
     reflectionUnavailable: "A reflection isn't available for this pattern right now.",
     reflectionDreamCountNote: 'Based on the {n} most recent of {total} dreams.',
     settingsSubtitle: 'Your account.',
-    settingsEmailLabel: 'Signed in as',
+    greeting: 'Hello {name}',
+    greetingNoName: 'Hello',
+    settingsNameLabel: 'Name',
+    settingsNameEmpty: 'Not set',
+    settingsNameAdd: 'Add name',
+    settingsNameEdit: 'Edit',
+    settingsNameSave: 'Save',
+    settingsNameCancel: 'Cancel',
+    settingsNameError: "Couldn't save that name — please check it and try again.",
+    settingsEmailLabel: 'Email',
+    settingsPlanLabel: 'My package',
     settingsLanguageLabel: 'Language',
     settingsAddressLabel: 'How should DARE address me?',
     settingsAddressFeminine: 'Feminine',
@@ -657,6 +681,8 @@ export const en: Translations = {
     freeLabel: 'Free',
     creditsRequiredNotice: 'Your free dream has been used. Choose a package to keep dreaming.',
     dreamsCountLabel: '{count} Dreams',
+    planFree: 'Free',
+    yourPackage: 'Your package',
     checkout: {
       title: 'Complete your purchase',
       intro: 'Two details are needed to create your secure payment page.',
@@ -883,7 +909,17 @@ export const he: Translations = {
     reflectionUnavailable: 'השתקפות לא זמינה כרגע עבור הדפוס הזה.',
     reflectionDreamCountNote: 'בהתבסס על {n} מתוך {total} החלומות האחרונים.',
     settingsSubtitle: 'החשבון שלכם.',
-    settingsEmailLabel: 'מחוברים בתור',
+    greeting: 'שלום {name}',
+    greetingNoName: 'שלום',
+    settingsNameLabel: 'שם',
+    settingsNameEmpty: 'לא הוגדר',
+    settingsNameAdd: 'הוספת שם',
+    settingsNameEdit: 'עריכה',
+    settingsNameSave: 'שמירה',
+    settingsNameCancel: 'ביטול',
+    settingsNameError: 'לא הצלחנו לשמור את השם — בדקו אותו ונסו שוב.',
+    settingsEmailLabel: 'אימייל',
+    settingsPlanLabel: 'החבילה שלי',
     settingsLanguageLabel: 'שפה',
     settingsAddressLabel: 'איך לפנות אליי?',
     settingsAddressFeminine: 'לשון נקבה',
@@ -1023,6 +1059,8 @@ export const he: Translations = {
     freeLabel: 'חינם',
     creditsRequiredNotice: 'החלום החינמי שלך נוצל. בחרו חבילה כדי להמשיך לחלום.',
     dreamsCountLabel: '{count} חלומות',
+    planFree: 'חינמי',
+    yourPackage: 'החבילה שלך',
     checkout: {
       title: 'השלמת הרכישה',
       intro: 'נדרשים שני פרטים כדי ליצור את דף התשלום המאובטח שלך.',

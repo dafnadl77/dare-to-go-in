@@ -707,3 +707,45 @@ html[dir='rtl'] .ar-insights-button:hover .ar-insights-chevron {
   background: rgba(230, 176, 168, 0.14);
   box-shadow: 0 0 1.2rem rgba(230, 176, 168, 0.3);
 }
+
+/* Personal greeting above the My Dreams heading — a quiet line in the same type as .ar-subtitle. */
+.ar-greeting {
+  margin: 0 0 0.35rem;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: clamp(1rem, 1.8vw, 1.15rem);
+  color: var(--dream-warm-neutral);
+  opacity: 0.95;
+  overflow-wrap: anywhere;
+}
+
+/* Settings → Name: the value (or the editor) and its action, on the row's trailing side. */
+.ar-settings-name-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.ar-settings-name-input {
+  min-width: 0;
+  flex: 1 1 8rem;
+  max-width: 14rem;
+  padding: 0.45em 0.8em;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 240, 232, 0.35);
+  background: rgba(6, 7, 6, 0.55);
+  color: var(--dream-white);
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.95rem;
+}
+
+.ar-settings-name-input:focus-visible {
+  outline: 2px solid rgba(244, 240, 232, 0.9);
+  outline-offset: 2px;
+}
+
+.ar-settings-name-input[aria-invalid='true'] {
+  border-color: rgba(255, 150, 150, 0.7);
+}
