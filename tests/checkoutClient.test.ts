@@ -205,3 +205,52 @@ test('secrets: no browser source mentions the Make webhook, the completion secre
     assert.ok(!/MAKE_CHECKOUT|MAKE_COMPLETION|hook\.[a-z0-9]+\.make\.com|SERVICE_ROLE|payment-complete/.test(read(f)), f);
   }
 });
+
+// ------------------------------------------------------ privacy link keeps the customer in the checkout ----
+
+test('privacy link: it opens the Privacy Policy in a modal OVER the checkout; nothing navigates, nothing is closed, nothing is lost', () => {
+  const dialog = strip(read('src/payments/CheckoutDialog.tsx'));
+  assert.match(dialog, /import PrivacyPolicyDialog from '\.\.\/legal\/PrivacyPolicyDialog'/);
+  assert.match(dialog, /onClick=\{\(\) => setPrivacyOpen\(true\)\}/);
+  assert.match(dialog, /\{privacyOpen && <PrivacyPolicyDialog closeLabel=\{t\('pricing\.checkout\.privacyClose'\)\} onClose=\{\(\) => setPrivacyOpen\(false\)\} \/>\}/);
+  // no navigation of any kind from the checkout, and the old "leave to the legal page" hook is gone everywhere
+  assert.ok(!/onOpenLegal|onOpenPrivacy|window\.open|location\.(href|assign|replace)\s*=|history\./.test(dialog.replace(/window\.location\.assign\(result\.paymentUrl\)/, '')));
+  assert.equal((dialog.match(/window\.location\.assign\(/g) ?? []).length, 1, 'the ONLY navigation is the validated payment redirect');
+  const pricing = strip(read('src/pricing/PricingPage.tsx'));
+  assert.ok(!/onOpenPrivacy/.test(pricing));
+  assert.ok(!/setCheckoutFor\(null\);\s*onOpenLegal/.test(pricing), 'opening the policy no longer closes the checkout');
+  // the form's state lives in CheckoutDialog, which stays mounted while the modal is open
+  assert.match(dialog, /inert=\{privacyOpen\}/);
+});
+
+test('privacy link: the checkout steps aside while the policy is open, and Escape closes ONLY the policy', () => {
+  const dialog = strip(read('src/payments/CheckoutDialog.tsx'));
+  assert.match(dialog, /if \(privacyOpenRef\.current\) return;/);
+  const policy = strip(read('src/legal/PrivacyPolicyDialog.tsx'));
+  assert.match(policy, /e\.key === 'Escape'[\s\S]*stopImmediatePropagation\(\)[\s\S]*onCloseRef\.current\(\)/);
+  assert.match(policy, /role="dialog"/);
+  assert.match(policy, /aria-modal="true"/);
+  assert.match(policy, /opener\.focus\(\)/, 'focus returns to the link that opened it');
+  assert.match(policy, /onClick=\{\(e\) => \{\s*if \(e\.target === e\.currentTarget\) onClose\(\);/);
+});
+
+test('privacy link: the modal shows the project\'s EXISTING Privacy Policy text (no invented URL, no external page)', () => {
+  const policy = strip(read('src/legal/PrivacyPolicyDialog.tsx'));
+  assert.match(policy, /getLegalDocument\(language, 'privacy'\)/);
+  assert.ok(!/https?:\/\//.test(policy), 'no URL in the component');
+  assert.ok(!/<iframe|dangerouslySetInnerHTML|window\.open|target="_blank"/.test(policy));
+  // same renderer for emails as the Privacy page, now shared
+  assert.match(policy, /linkifyEmails\(paragraph\)/);
+  assert.match(strip(read('src/legal/LegalPage.tsx')), /import \{ linkifyEmails \} from '\.\/linkifyEmails'/);
+  // the return button is translated in both languages
+  assert.equal(en.pricing.checkout.privacyClose, 'Close and return to payment');
+  assert.equal(he.pricing.checkout.privacyClose, 'סגירה וחזרה לתשלום');
+});
+
+test('privacy link: it sits above the checkout (z-index) and fits small screens', () => {
+  const css = read('src/legal/PrivacyPolicyDialog.css');
+  assert.match(css, /\.pp-backdrop \{[^}]*z-index: 210/);
+  assert.match(read('src/archive/DeleteDreamDialog.css'), /\.dd-dialog-backdrop \{[^}]*z-index: 200/);
+  assert.match(css, /@media \(max-width: 480px\)/);
+  assert.match(css, /overflow-y: auto/);
+});

@@ -1,0 +1,115 @@
+/* Privacy Policy as a modal over the current screen (PrivacyPolicyDialog.tsx). Sits ABOVE the shared .dd-dialog backdrop (z-index 200). */
+.pp-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(1rem, env(safe-area-inset-top, 0px)) 1rem max(1rem, env(safe-area-inset-bottom, 0px));
+  background: rgba(3, 4, 3, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.pp-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 42rem);
+  max-height: min(100%, 46rem);
+  box-sizing: border-box;
+  border: 1px solid rgba(244, 240, 232, 0.22);
+  border-radius: 14px;
+  background: rgba(11, 12, 11, 0.98);
+  color: var(--dream-white);
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  text-align: start;
+  box-shadow: 0 1.2rem 3rem rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+
+.pp-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.6rem 1.6rem 1rem;
+  overscroll-behavior: contain;
+}
+
+.pp-title {
+  margin: 0 0 0.3rem;
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.pp-updated {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  color: var(--dream-warm-neutral);
+}
+
+.pp-intro,
+.pp-body {
+  margin: 0 0 0.8rem;
+  font-size: 0.93rem;
+  line-height: 1.6;
+  color: var(--dream-warm-neutral);
+  overflow-wrap: anywhere;
+}
+
+.pp-section {
+  margin-top: 1.2rem;
+}
+
+.pp-heading {
+  margin: 0 0 0.4rem;
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--dream-white);
+}
+
+.pp-draft {
+  margin: 1.4rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--dream-warm-neutral);
+  opacity: 0.8;
+}
+
+.pp-body a {
+  color: var(--dream-white);
+  text-underline-offset: 0.2em;
+}
+
+.pp-footer {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.9rem 1.6rem 1.1rem;
+  border-top: 1px solid rgba(244, 240, 232, 0.14);
+  background: rgba(11, 12, 11, 0.98);
+}
+
+.pp-close:focus-visible {
+  outline: 2px solid rgba(244, 240, 232, 0.9);
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .pp-panel {
+    max-height: 100%;
+  }
+
+  .pp-scroll {
+    padding: 1.3rem 1.2rem 0.8rem;
+  }
+
+  .pp-footer {
+    padding: 0.8rem 1.2rem 1rem;
+  }
+
+  .pp-close {
+    width: 100%;
+  }
+}

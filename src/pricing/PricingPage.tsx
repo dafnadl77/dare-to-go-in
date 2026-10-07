@@ -240,10 +240,6 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
           dreamsLabel={t('pricing.dreamsCountLabel').replace('{count}', String(checkoutPackage.dreamCount))}
           priceLabel={`₪${checkoutPackage.priceIls}`}
           onClose={() => setCheckoutFor(null)}
-          onOpenPrivacy={() => {
-            setCheckoutFor(null);
-            onOpenLegal('privacy');
-          }}
         />
       )}
     </div>

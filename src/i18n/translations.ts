@@ -320,6 +320,7 @@ export interface Translations {
       phoneHint: string;
       privacy: string;
       privacyLink: string;
+      privacyClose: string;
       cancel: string;
       submit: string;
       preparing: string;
@@ -665,6 +666,7 @@ export const en: Translations = {
       phoneHint: 'Israeli mobile number, for example 054-123-4567',
       privacy: 'Used only to create your payment page. DARE does not store them; they are passed to our payment partners (Make and Grow) to process the payment.',
       privacyLink: 'Privacy Policy',
+      privacyClose: 'Close and return to payment',
       cancel: 'Cancel',
       submit: 'Continue to payment',
       preparing: 'Preparing your payment…',
@@ -1030,6 +1032,7 @@ export const he: Translations = {
       phoneHint: 'מספר נייד ישראלי, לדוגמה 054-123-4567',
       privacy: 'משמשים רק ליצירת דף התשלום. DARE אינה שומרת אותם; הם מועברים לשותפי התשלום שלנו (Make ו-Grow) לצורך עיבוד התשלום.',
       privacyLink: 'מדיניות הפרטיות',
+      privacyClose: 'סגירה וחזרה לתשלום',
       cancel: 'ביטול',
       submit: 'המשך לתשלום',
       preparing: 'מכינים את התשלום…',

@@ -4,6 +4,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { normalizeFullName, normalizeIsraeliMobile } from './payerDetails';
 import { startCheckout, type CheckoutError, type PaidPackageId } from './checkout';
 import '../archive/DeleteDreamDialog.css';
+import PrivacyPolicyDialog from '../legal/PrivacyPolicyDialog';
 import './CheckoutDialog.css';
 
 interface CheckoutDialogProps {
@@ -13,7 +14,6 @@ interface CheckoutDialogProps {
   dreamsLabel: string;
   priceLabel: string;
   onClose: () => void;
-  onOpenPrivacy: () => void;
 }
 
 const ERROR_KEY: Record<Exclude<CheckoutError, 'invalid_name' | 'invalid_phone'>, string> = {
@@ -28,7 +28,7 @@ const ERROR_KEY: Record<Exclude<CheckoutError, 'invalid_name' | 'invalid_phone'>
  * cookie), are validated here for instant feedback and again by the server, and travel only in the one POST that starts
  * the checkout. Success sends the browser to the Grow link the server validated; nothing is credited here.
  */
-export default function CheckoutDialog({ packageId, packageName, dreamsLabel, priceLabel, onClose, onOpenPrivacy }: CheckoutDialogProps) {
+export default function CheckoutDialog({ packageId, packageName, dreamsLabel, priceLabel, onClose }: CheckoutDialogProps) {
   const { t } = useLanguage();
   const titleId = useId();
   const nameErrorId = useId();
@@ -42,6 +42,11 @@ export default function CheckoutDialog({ packageId, packageName, dreamsLabel, pr
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [phase, setPhase] = useState<'idle' | 'submitting' | 'redirecting'>('idle');
+  // The Privacy Policy opens in a modal OVER this form (no navigation), so nothing the customer typed is ever lost.
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const privacyOpenRef = useRef(false);
+  const privacyWasOpenRef = useRef(false);
+  const privacyLinkRef = useRef<HTMLButtonElement>(null);
   const [nameInvalid, setNameInvalid] = useState(false);
   const [phoneInvalid, setPhoneInvalid] = useState(false);
   const [error, setError] = useState<Exclude<CheckoutError, 'invalid_name' | 'invalid_phone'> | null>(null);
@@ -50,6 +55,13 @@ export default function CheckoutDialog({ packageId, packageName, dreamsLabel, pr
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
+
+  useEffect(() => {
+    privacyOpenRef.current = privacyOpen;
+    // Back from the policy: the form is interactive again, so focus returns to the link that opened it.
+    if (!privacyOpen && privacyWasOpenRef.current) privacyLinkRef.current?.focus();
+    privacyWasOpenRef.current = privacyOpen;
+  }, [privacyOpen]);
 
   // After a failed attempt the form unlocks; only then can the field the server complained about take focus.
   useEffect(() => {
@@ -62,6 +74,8 @@ export default function CheckoutDialog({ packageId, packageName, dreamsLabel, pr
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     nameRef.current?.focus();
     const onKeyDown = (e: KeyboardEvent) => {
+      // While the Privacy Policy is open it owns the keyboard (Escape closes only that modal, Tab stays inside it).
+      if (privacyOpenRef.current) return;
       if (e.key === 'Escape') {
         e.stopPropagation();
         e.preventDefault();
@@ -135,14 +149,16 @@ export default function CheckoutDialog({ packageId, packageName, dreamsLabel, pr
     }
   };
 
-  return createPortal(
+  return (
+    <>
+      {createPortal(
     <div
       className="dd-dialog-backdrop"
       onClick={(e) => {
         if (e.target === e.currentTarget && !submittingRef.current) onClose();
       }}
     >
-      <div ref={panelRef} className="dd-dialog co-dialog" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-busy={locked}>
+      <div ref={panelRef} className="dd-dialog co-dialog" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-busy={locked} inert={privacyOpen}>
         <h2 id={titleId} className="dd-dialog-title">
           {t('pricing.checkout.title')}
         </h2>
@@ -219,7 +235,7 @@ export default function CheckoutDialog({ packageId, packageName, dreamsLabel, pr
 
           <p className="co-privacy">
             {t('pricing.checkout.privacy')}{' '}
-            <button type="button" className="co-link" disabled={locked} onClick={onOpenPrivacy}>
+            <button ref={privacyLinkRef} type="button" className="co-link" disabled={locked} onClick={() => setPrivacyOpen(true)}>
               {t('pricing.checkout.privacyLink')}
             </button>
           </p>
@@ -243,5 +259,8 @@ export default function CheckoutDialog({ packageId, packageName, dreamsLabel, pr
       </div>
     </div>,
     document.body,
+      )}
+      {privacyOpen && <PrivacyPolicyDialog closeLabel={t('pricing.checkout.privacyClose')} onClose={() => setPrivacyOpen(false)} />}
+    </>
   );
 }
