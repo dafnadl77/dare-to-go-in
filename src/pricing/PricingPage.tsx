@@ -82,7 +82,6 @@ function PackageCard({ pkg, onSelectPaid, isCurrent = false }: PackageCardProps)
         {isCurrent ? (
           <div className="pr-card-ribbon">
             <span className="pr-card-ribbon-band">
-              <CheckIcon />
               <span>{t('pricing.yourPackage')}</span>
             </span>
           </div>
