@@ -14,6 +14,7 @@ import type { useDreamRecorder } from './useDreamRecorder';
 import { createTextDreamInput, type DreamInput } from './dreamInput';
 import { transcribeDreamAudio, type TranscriptionErrorReason } from './dreamTranscription';
 import { takeDreamDraft } from './dreamDraft';
+import { classifyMicFailure, MIC_FAILURE_MESSAGE_KEY } from './micFailure';
 import { getAppLanguage, normalizeTranscriptionLanguage } from './appLanguage';
 import { useLivePreviewTranscript } from './useLivePreviewTranscript';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -68,11 +69,11 @@ const FINISH_SETTLE_MS = 1100;
 // way out. This timeout guarantees the UI always reaches a real state
 // (recording, or a clear TYPE fallback) within a bounded wait, without
 // changing anything about the 800ms hold itself.
-const MIC_REQUEST_TIMEOUT_MS = 20000;
+const MIC_REQUEST_TIMEOUT_MS = 30000;
 // Bounds the OpenAI transcription round-trip the same way — a slow
 // network or a stalled response must not leave the dreamer staring at
 // "TRANSCRIBING…" forever with no way out.
-const TRANSCRIPTION_TIMEOUT_MS = 30000;
+const TRANSCRIPTION_TIMEOUT_MS = 60000;
 // A server-side payload ceiling (see server/routes/dreamTranscription.ts)
 // backstops cost-abuse from directly-crafted requests, but the intended,
 // normal way a real recording ever gets this long is simply forgetting to
@@ -81,25 +82,20 @@ const TRANSCRIPTION_TIMEOUT_MS = 30000;
 // dreamer recording indefinitely.
 const RECORDING_MAX_DURATION_MS = 10 * 60 * 1000;
 
-/** One of exactly two messages: the mic itself couldn't be reached (any
-    getUserMedia-stage failure — denied, no device, busy, unsupported —
-    or the request timing out), or it was reached but MediaRecorder never
-    confirmed it actually started recording ('start-not-confirmed', from
-    useDreamRecorder). Never show "I'm listening" without a real,
-    confirmed recording, and be honest about which stage actually failed.
-    Both land the dreamer in TYPE with an immediately usable, focused,
-    empty textarea — never a silent dead end. Takes `t` as a parameter
-    (rather than calling useLanguage() itself) since it's a plain
+/** The mic could not be started. Says WHICH thing failed — the permission was refused, there is no microphone, another app holds it,
+    the page is not secure, the browser cannot record, the recorder would not start, or the permission prompt was never answered —
+    from what the browser actually reported (see micFailure.ts), never one line for all of them. Every one of these lands the
+    dreamer in TYPE with an immediately usable, focused textarea: never a dead end. Takes `t` as a parameter since it is a plain
     function, not a component. */
 function describeRecordingFailure(errorName: string | null, timedOut: boolean, t: (path: string) => string): string {
-  if (!timedOut && errorName === 'start-not-confirmed') {
-    return t('hold.micErrorStartFailed');
-  }
-  return t('hold.micErrorGeneric');
+  return t(MIC_FAILURE_MESSAGE_KEY[classifyMicFailure(errorName, timedOut)]);
 }
 
 /** Why a recording could not become text — said plainly, with the way forward (typing always still works), instead of one
     generic line that hid, for example, "your free dream was already used" behind "I couldn't transcribe that". */
+/** Failures where sending the SAME recording again can work (the upload or the service had a hiccup); the rest need typing, signing in or a shorter recording. */
+const RETRYABLE_TRANSCRIPTION_FAILURES = new Set<TranscriptionErrorReason>(['network', 'timeout', 'request_failed', 'rate_limited', 'invalid_response']);
+
 function describeTranscriptionFailure(reason: TranscriptionErrorReason, t: (path: string) => string): string {
   switch (reason) {
     case 'free_dream_used':
@@ -108,6 +104,12 @@ function describeTranscriptionFailure(reason: TranscriptionErrorReason, t: (path
       return t('hold.transcriptionSessionExpired');
     case 'credits_required':
       return t('hold.transcriptionCreditsRequired');
+    case 'too_large':
+      return t('hold.transcriptionTooLarge');
+    case 'network':
+      return t('hold.transcriptionNetwork');
+    case 'timeout':
+      return t('hold.transcriptionTimeout');
     default:
       return t('hold.transcriptionFailed');
   }
@@ -146,6 +148,9 @@ export default function HoldToRemember({
   // separate from micErrorMessage since it's a different failure (the mic
   // worked fine; OpenAI transcription itself didn't).
   const [transcriptionErrorMessage, setTranscriptionErrorMessage] = useState<string | null>(null);
+  // The recording that failed to transcribe stays available for "try again" until the dreamer leaves this step.
+  const lastRecordingRef = useRef<Blob | null>(null);
+  const [canRetryTranscription, setCanRetryTranscription] = useState(false);
   const rafRef = useRef(0);
   const startRef = useRef(0);
   const listenTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -242,6 +247,7 @@ export default function HoldToRemember({
       }
       setIsListening(false);
       setMicUnavailable(true);
+      console.warn(`mic_failure code=${recorder.errorRef.current ?? 'none'} timedOut=${timedOut}`);
       setMicErrorMessage(describeRecordingFailure(recorder.errorRef.current, timedOut, t));
       setCentralMode('typing');
     }
@@ -418,6 +424,8 @@ export default function HoldToRemember({
     setMicUnavailable(false);
     setMicErrorMessage(null);
     setTranscriptionErrorMessage(null);
+    lastRecordingRef.current = null;
+    setCanRetryTranscription(false);
     setCentralMode('hold');
     setEntry('');
     onTypedTranscriptChange('');
@@ -480,6 +488,8 @@ export default function HoldToRemember({
     setMicUnavailable(false);
     setMicErrorMessage(null);
     setTranscriptionErrorMessage(null);
+    lastRecordingRef.current = null;
+    setCanRetryTranscription(false);
     setCentralMode('hold');
   }, [centralMode, recorder, holdRef, onTypedTranscriptChange, setCentralMode, setMicUnavailable, livePreview]);
 
@@ -588,6 +598,51 @@ export default function HoldToRemember({
   // comes back into `entry` — the exact same state TYPE mode's own
   // textarea/submit uses — so review/edit/submit is one unified path
   // regardless of how the words got there.
+  // Sends one recording to /api/dream-transcription. The result is applied only if this is still the active request (a deliberate
+  // Close, or a newer recording, supersedes it). Success fills the typing box; any failure says which stage failed and still lands
+  // in the typing box, keeping the recording so "try again" can send it once more.
+  const runTranscription = useCallback(
+    (blob: Blob) => {
+      const controller = new AbortController();
+      transcribeAbortRef.current = controller;
+      transcriptionTimeoutRef.current = setTimeout(() => controller.abort(), TRANSCRIPTION_TIMEOUT_MS);
+      setCanRetryTranscription(false);
+
+      transcribeDreamAudio(blob, normalizeTranscriptionLanguage(getAppLanguage()), controller.signal).then(
+        (result) => {
+          clearTimeout(transcriptionTimeoutRef.current);
+          // A deliberate Close (or a fresh recording started since) already cleared the ref: this response is stale.
+          if (transcribeAbortRef.current !== controller) return;
+          transcribeAbortRef.current = null;
+
+          if (result.status === 'ok') {
+            lastRecordingRef.current = null;
+            setEntry(result.transcript);
+            onTypedTranscriptChange(result.transcript);
+            setTranscriptionErrorMessage(null);
+          } else {
+            setTranscriptionErrorMessage(describeTranscriptionFailure(result.reason, t));
+            setCanRetryTranscription(RETRYABLE_TRANSCRIPTION_FAILURES.has(result.reason));
+          }
+          setCentralMode('typing');
+        },
+        () => {
+          // transcribeDreamAudio() always resolves; this only guards a genuinely unexpected exception so the dreamer still reaches a
+          // usable state instead of being stranded on TRANSCRIBING… forever.
+          if (transcribeAbortRef.current !== controller) return;
+          transcribeAbortRef.current = null;
+          setTranscriptionErrorMessage(t('hold.transcriptionFailed'));
+          setCanRetryTranscription(true);
+          setCentralMode('typing');
+        },
+      );
+    },
+    [onTypedTranscriptChange, setCentralMode, t],
+  );
+
+  // The real audio blob shows up asynchronously via MediaRecorder's onstop, after handleFinishDream already returns. Once it
+  // exists, send it off and write whatever comes back into `entry` — the same state TYPE mode's own textarea/submit uses — so
+  // review/edit/submit is one unified path regardless of how the words got there.
   useEffect(() => {
     if (!pendingTranscriptionRef.current || recorder.audioBlob === null) return;
     pendingTranscriptionRef.current = false;
@@ -599,37 +654,18 @@ export default function HoldToRemember({
       return;
     }
 
-    const controller = new AbortController();
-    transcribeAbortRef.current = controller;
-    transcriptionTimeoutRef.current = setTimeout(() => controller.abort(), TRANSCRIPTION_TIMEOUT_MS);
+    lastRecordingRef.current = blob;
+    runTranscription(blob);
+  }, [recorder.audioBlob, runTranscription, setCentralMode, t]);
 
-    transcribeDreamAudio(blob, normalizeTranscriptionLanguage(getAppLanguage()), controller.signal).then((result) => {
-      clearTimeout(transcriptionTimeoutRef.current);
-      // A deliberate Close (or a fresh recording started since) already
-      // cleared the ref — this response is stale, do nothing with it.
-      if (transcribeAbortRef.current !== controller) return;
-      transcribeAbortRef.current = null;
-
-      if (result.status === 'ok') {
-        setEntry(result.transcript);
-        onTypedTranscriptChange(result.transcript);
-        setTranscriptionErrorMessage(null);
-      } else {
-        setTranscriptionErrorMessage(describeTranscriptionFailure(result.reason, t));
-      }
-      setCentralMode('typing');
-    }, () => {
-      // transcribeDreamAudio() always resolves (it catches its own
-      // network/parsing errors) rather than rejecting — this only guards
-      // against a genuinely unexpected exception, so the dreamer still
-      // reaches a real, usable state instead of being stranded on
-      // TRANSCRIBING… forever.
-      if (transcribeAbortRef.current !== controller) return;
-      transcribeAbortRef.current = null;
-      setTranscriptionErrorMessage(t('hold.transcriptionFailed'));
-      setCentralMode('typing');
-    });
-  }, [recorder.audioBlob, onTypedTranscriptChange, setCentralMode, t]);
+  const handleRetryTranscription = () => {
+    const blob = lastRecordingRef.current;
+    if (!blob) return;
+    setTranscriptionErrorMessage(null);
+    setCanRetryTranscription(false);
+    setCentralMode('transcribing');
+    runTranscription(blob);
+  };
 
   const isHoldFaded = centralMode !== 'hold';
   const requestingMic = recorder.recordingState === 'requesting-permission';
@@ -794,16 +830,31 @@ export default function HoldToRemember({
           ×
         </button>
         {micUnavailable && (
-          <p className="central-mic-note">
-            {micErrorMessage ?? t('hold.micErrorGeneric')}
-            <br />
-            {t('hold.typeInsteadHint')}
-          </p>
+          <div className="central-mic-notice">
+            <p className="central-mic-note" role="status">
+              {micErrorMessage ?? t('hold.micErrorGeneric')}
+              <br />
+              {t('hold.typeInsteadHint')}
+            </p>
+          </div>
         )}
         {!micUnavailable && transcriptionErrorMessage && (
-          <p className="central-mic-note" role="status">
-            {transcriptionErrorMessage}
-          </p>
+          <div className="central-mic-notice">
+            <p className="central-mic-note" role="status">
+              {transcriptionErrorMessage}
+            </p>
+            {canRetryTranscription && (
+              <button
+                type="button"
+                className="central-retry"
+                data-cursor-hover
+                tabIndex={centralMode === 'typing' ? 0 : -1}
+                onClick={handleRetryTranscription}
+              >
+                {t('hold.retryTranscription')}
+              </button>
+            )}
+          </div>
         )}
         <p className="central-typing-heading">{t('hold.tellMeWhatHappened')}</p>
         <textarea

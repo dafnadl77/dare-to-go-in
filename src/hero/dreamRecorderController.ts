@@ -42,6 +42,25 @@ export interface RecorderEnv {
 // real failure does rather than hanging forever.
 export const RECORDER_ONSTART_TIMEOUT_MS = 4000;
 
+/** How long start() waits for a suspended AudioContext to resume. The context only drives the live level meter; some mobile
+    browsers leave resume() pending forever outside a gesture, which must never hold the recording hostage. */
+export const AUDIO_RESUME_WAIT_MS = 500;
+
+/** Formats tried in order; the first this browser can record wins (Chrome/Firefox/Edge: webm, Safari/iOS: mp4, then ogg). The
+    server accepts every one of them. '' = let the browser choose its own default. */
+export const RECORDER_MIME_CANDIDATES = ['audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+
+export function pickRecorderMimeType(ctor: { isTypeSupported(type: string): boolean }): string {
+  for (const type of RECORDER_MIME_CANDIDATES) {
+    try {
+      if (ctor.isTypeSupported(type)) return type;
+    } catch {
+      // A browser whose isTypeSupported throws: fall through to the next candidate / the default format.
+    }
+  }
+  return '';
+}
+
 export function browserRecorderEnv(): RecorderEnv {
   const w = window as typeof window & { webkitAudioContext?: typeof AudioContext };
   return {
@@ -175,12 +194,19 @@ export class DreamRecorderController {
     this.listener.onState('requesting-permission');
 
     const { getUserMedia, MediaRecorderCtor, AudioContextCtor } = this.env;
-    if (!getUserMedia || !MediaRecorderCtor || !AudioContextCtor) {
-      this.setError('unsupported');
+    // The microphone and the recorder are required. The AudioContext is NOT: it only draws the live level meter, so a browser
+    // without it (or one where it fails) still records.
+    if (!getUserMedia || !MediaRecorderCtor) {
+      // getUserMedia is also absent on any page that is not served securely (plain http), which is a different fix for the dreamer.
+      const secure = typeof window === 'undefined' || window.isSecureContext !== false;
+      this.setError(!getUserMedia ? (secure ? 'unsupported' : 'insecure-context') : 'recorder-unsupported');
       this.listener.onState('error');
       return false;
     }
 
+    // Which step is running, so a failure is reported as what it was (a refused permission is not a recorder that cannot be created).
+    type Stage = 'getUserMedia' | 'recorder-create' | 'recorder-start';
+    let stage: Stage = 'getUserMedia';
     let stream: MediaStream | null = null;
     let recorder: MediaRecorder | null = null;
     try {
@@ -193,31 +219,42 @@ export class DreamRecorderController {
       }
       this.stream = stream;
 
-      if (!this.audioCtx || this.audioCtx.state === 'closed') {
-        this.audioCtx = new AudioContextCtor();
-      }
-      const audioCtx = this.audioCtx;
-      if (audioCtx.state === 'suspended') {
-        await audioCtx.resume().catch(() => {});
-        if (this.isStale(generation)) {
-          this.abandon(stream, null);
-          return false;
+      // The level meter: best effort, never allowed to block or fail the recording.
+      if (AudioContextCtor) {
+        try {
+          if (!this.audioCtx || this.audioCtx.state === 'closed') {
+            this.audioCtx = new AudioContextCtor();
+          }
+          const audioCtx = this.audioCtx;
+          if (audioCtx.state === 'suspended') {
+            await Promise.race([audioCtx.resume().catch(() => {}), new Promise<void>((resolve) => setTimeout(resolve, AUDIO_RESUME_WAIT_MS))]);
+            if (this.isStale(generation)) {
+              this.abandon(stream, null);
+              return false;
+            }
+          }
+          const source = audioCtx.createMediaStreamSource(stream);
+          const analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 256;
+          analyser.smoothingTimeConstant = 0.6;
+          source.connect(analyser);
+          this.analyser = analyser;
+          this.analyserData = new Uint8Array(analyser.frequencyBinCount);
+        } catch {
+          this.analyser = null;
+          this.analyserData = null;
         }
       }
-      const source = audioCtx.createMediaStreamSource(stream);
-      const analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.6;
-      source.connect(analyser);
-      this.analyser = analyser;
-      this.analyserData = new Uint8Array(analyser.frequencyBinCount);
 
-      const mimeType = MediaRecorderCtor.isTypeSupported('audio/webm')
-        ? 'audio/webm'
-        : MediaRecorderCtor.isTypeSupported('audio/mp4')
-          ? 'audio/mp4'
-          : '';
-      recorder = mimeType ? new MediaRecorderCtor(stream, { mimeType }) : new MediaRecorderCtor(stream);
+      stage = 'recorder-create';
+      const mimeType = pickRecorderMimeType(MediaRecorderCtor);
+      try {
+        recorder = mimeType ? new MediaRecorderCtor(stream, { mimeType }) : new MediaRecorderCtor(stream);
+      } catch (first) {
+        // The chosen format was refused at construction: let the browser pick its own default before giving up.
+        if (!mimeType) throw first;
+        recorder = new MediaRecorderCtor(stream);
+      }
       const rec = recorder;
       this.chunks = [];
       rec.ondataavailable = (e) => {
@@ -230,6 +267,7 @@ export class DreamRecorderController {
 
       // The UI only shows "I'M LISTENING." once this resolves true, so it must
       // not resolve on the strength of calling recorder.start() alone.
+      stage = 'recorder-start';
       const reallyStarted = await new Promise<boolean>((resolve) => {
         let settled = false;
         const timer = setTimeout(() => settle(false), RECORDER_ONSTART_TIMEOUT_MS);
@@ -243,7 +281,11 @@ export class DreamRecorderController {
         this.settleStartWait = settle;
         rec.onstart = () => settle(true);
         rec.onerror = () => settle(false);
-        rec.start();
+        try {
+          rec.start();
+        } catch {
+          settle(false);
+        }
       });
 
       if (this.isStale(generation)) {
@@ -268,7 +310,9 @@ export class DreamRecorderController {
         return false;
       }
       this.teardown();
-      this.setError(err instanceof Error ? err.name : 'unknown');
+      const name = err instanceof Error ? err.name : 'unknown';
+      // The permission/device step keeps the browser's own error name; later steps say which one failed.
+      this.setError(stage === 'getUserMedia' ? name : `${stage}:${name}`);
       this.listener.onState('error');
       return false;
     }

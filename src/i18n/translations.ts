@@ -50,6 +50,17 @@ export interface Translations {
     letMePutItBackTogether: string;
     micErrorGeneric: string;
     micErrorStartFailed: string;
+    micDenied: string;
+    micNoDevice: string;
+    micBusy: string;
+    micInsecure: string;
+    micUnsupported: string;
+    micFormat: string;
+    micTimeout: string;
+    transcriptionTooLarge: string;
+    transcriptionNetwork: string;
+    transcriptionTimeout: string;
+    retryTranscription: string;
     typeInsteadHint: string;
     transcriptionFailed: string;
     transcriptionFreeDreamUsed: string;
@@ -412,6 +423,17 @@ export const en: Translations = {
     letMePutItBackTogether: 'LET ME PUT IT BACK TOGETHER.',
     micErrorGeneric: 'I couldn’t access your microphone.',
     micErrorStartFailed: 'I couldn’t start listening.',
+    micDenied: 'Microphone access is blocked. Allow the microphone for this site in your browser settings, then try again.',
+    micNoDevice: 'I couldn’t find a microphone on this device.',
+    micBusy: 'The microphone is in use by another app or isn’t available right now.',
+    micInsecure: 'Voice recording only works on a secure (https) page.',
+    micUnsupported: 'This browser doesn’t support voice recording.',
+    micFormat: 'This browser can’t record in a format I can use.',
+    micTimeout: 'The microphone permission wasn’t answered in time. Allow it in the browser prompt and try again.',
+    transcriptionTooLarge: 'The recording is too long to send. Try a shorter one, or type your dream.',
+    transcriptionNetwork: 'The recording didn’t reach me — check your connection. You can try again, or type your dream.',
+    transcriptionTimeout: 'The transcription took too long. You can try again, or type your dream.',
+    retryTranscription: 'Try again',
     typeInsteadHint: 'Type your dream instead.',
     transcriptionFailed: 'I couldn’t transcribe that. Try again or type your dream.',
     transcriptionFreeDreamUsed: 'Your free dream has been used. You can keep typing here, and sign in or create an account to continue.',
@@ -799,6 +821,17 @@ export const he: Translations = {
     letMePutItBackTogether: 'מרכיבים את זה מחדש.',
     micErrorGeneric: 'לא הצלחתי לגשת אל המיקרופון.',
     micErrorStartFailed: 'לא הצלחתי להתחיל להקשיב.',
+    micDenied: 'הגישה למיקרופון חסומה. אפשרו מיקרופון לאתר בהגדרות הדפדפן ונסו שוב.',
+    micNoDevice: 'לא מצאתי מיקרופון במכשיר הזה.',
+    micBusy: 'המיקרופון בשימוש של אפליקציה אחרת או לא זמין כרגע.',
+    micInsecure: 'הקלטה קולית עובדת רק בעמוד מאובטח (https).',
+    micUnsupported: 'הדפדפן הזה לא תומך בהקלטה קולית.',
+    micFormat: 'הדפדפן הזה לא יכול להקליט בפורמט שאני מצליחה לעבד.',
+    micTimeout: 'לא התקבל אישור למיקרופון בזמן. אשרו את הבקשה בדפדפן ונסו שוב.',
+    transcriptionTooLarge: 'ההקלטה ארוכה מכדי לשלוח. נסו הקלטה קצרה יותר או הקלידו את החלום.',
+    transcriptionNetwork: 'ההקלטה לא הגיעה אליי — בדקו את החיבור. אפשר לנסות שוב או להקליד את החלום.',
+    transcriptionTimeout: 'התמלול לקח יותר מדי זמן. אפשר לנסות שוב או להקליד את החלום.',
+    retryTranscription: 'נסו שוב',
     typeInsteadHint: 'אפשר להקליד את החלום במקום זאת.',
     transcriptionFailed: 'לא הצלחתי לתמלל את זה. נסו שוב או הקלידו את החלום.',
     transcriptionFreeDreamUsed: 'החלום החינמי שלך כבר נוצל. אפשר להמשיך להקליד כאן, ולהתחבר או ליצור חשבון כדי להמשיך.',

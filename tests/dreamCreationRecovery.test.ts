@@ -111,14 +111,14 @@ test('every redirect that leaves the typing screen saves the words first, and th
 // ------------------------------------------------------------ the microphone says what actually happened
 
 test('a refused recording names the real reason and always leaves typing available', () => {
-  const client = read('src/hero/dreamTranscription.ts');
+  const client = read('src/hero/transcriptionResult.ts');
   for (const reason of ['free_dream_used', 'credits_required', 'limit_reached']) assert.ok(client.includes(`'${reason}'`), reason);
   const hold = read('src/hero/HoldToRemember.tsx');
   assert.match(hold, /case 'free_dream_used':\s*return t\('hold\.transcriptionFreeDreamUsed'\)/);
   assert.match(hold, /case 'not_authenticated':\s*return t\('hold\.transcriptionSessionExpired'\)/);
   assert.match(hold, /case 'credits_required':\s*return t\('hold\.transcriptionCreditsRequired'\)/);
   // after ANY transcription outcome the dreamer lands in the typing box
-  assert.match(hold, /describeTranscriptionFailure\(result\.reason, t\)\);\s*\}\s*setCentralMode\('typing'\);/);
+  assert.match(hold, /describeTranscriptionFailure\(result\.reason, t\)\);[\s\S]*?\}\s*setCentralMode\('typing'\);/);
   for (const dict of [en, he]) {
     for (const key of ['transcriptionFreeDreamUsed', 'transcriptionSessionExpired', 'transcriptionCreditsRequired'] as const) {
       assert.ok(dict.hold[key].length > 20 && !/undefined|null/.test(dict.hold[key]), key);

@@ -1,41 +1,16 @@
 import { paidFetch } from '../auth/paidFetch';
 import { getAuthHeader } from '../auth/getAccessToken';
+import { interpretTranscriptionResponse, interpretTranscriptionThrow, type TranscriptionResult } from './transcriptionResult';
+
+export type { TranscriptionErrorReason, TranscriptionResult } from './transcriptionResult';
 
 /**
  * Calls the local backend to turn a recorded dream clip into text — the
  * backend holds the OpenAI key, this only ever talks to the same-origin
  * proxy (mirrors dreamReflectionEngine.ts's exact shape/pattern). Never
  * fabricates a transcript on failure; always returns a controlled error
- * result instead.
+ * result instead, naming the stage that failed (see transcriptionResult.ts).
  */
-export type TranscriptionErrorReason =
-  | 'not_configured'
-  | 'invalid_response'
-  | 'request_failed'
-  | 'empty_input'
-  | 'rate_limited'
-  | 'billing_issue'
-  | 'not_authenticated'
-  | 'free_dream_used'
-  | 'credits_required'
-  | 'limit_reached';
-
-export type TranscriptionResult =
-  | { status: 'ok'; transcript: string }
-  | { status: 'error'; reason: TranscriptionErrorReason; message: string };
-
-const KNOWN_REASONS: TranscriptionErrorReason[] = [
-  'not_configured',
-  'invalid_response',
-  'request_failed',
-  'empty_input',
-  'rate_limited',
-  'billing_issue',
-  'not_authenticated',
-  'free_dream_used',
-  'credits_required',
-  'limit_reached',
-];
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -97,36 +72,8 @@ export async function transcribeDreamAudio(
     });
 
     const data: unknown = await res.json().catch(() => null);
-
-    if (!res.ok) {
-      if (data && typeof data === 'object' && 'reason' in data && 'message' in data) {
-        const errData = data as { reason: unknown; message: unknown };
-        const reason =
-          typeof errData.reason === 'string' && KNOWN_REASONS.includes(errData.reason as TranscriptionErrorReason)
-            ? (errData.reason as TranscriptionErrorReason)
-            : 'request_failed';
-        return {
-          status: 'error',
-          reason,
-          message: typeof errData.message === 'string' ? errData.message : `Transcription backend responded with HTTP ${res.status}.`,
-        };
-      }
-      return { status: 'error', reason: 'request_failed', message: `Transcription backend responded with HTTP ${res.status}.` };
-    }
-
-    const transcript =
-      data && typeof data === 'object' && 'transcript' in data && typeof (data as { transcript: unknown }).transcript === 'string'
-        ? (data as { transcript: string }).transcript.trim()
-        : '';
-    if (!transcript) {
-      return { status: 'error', reason: 'invalid_response', message: 'Transcription backend returned no text.' };
-    }
-    return { status: 'ok', transcript };
+    return interpretTranscriptionResponse(res.status, data);
   } catch (err) {
-    return {
-      status: 'error',
-      reason: 'request_failed',
-      message: err instanceof Error ? err.message : 'Unknown network error while transcribing the recording.',
-    };
+    return interpretTranscriptionThrow(err);
   }
 }

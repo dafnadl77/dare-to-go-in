@@ -593,6 +593,47 @@
   opacity: 0.9;
 }
 
+/* The notice (a mic or transcription message, optionally with "try again") sits BELOW the buttons, out of the panel's flow. The
+   panel is centred on the screen, so a notice in the flow (above the heading) grew the panel upward and ran over the
+   "What do you remember from your dream?" line; out of flow it cannot move the heading, the text box or the buttons at all, and
+   a long message simply wraps inside the panel's width in the free space under them. */
+.central-mic-notice {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.central-mic-notice .central-mic-note {
+  margin: 0;
+}
+
+.central-retry {
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--dream-white);
+  background: transparent;
+  border: 1px solid rgba(244, 240, 232, 0.6);
+  border-radius: 999px;
+  padding: 0.5em 1.3em;
+  cursor: pointer;
+  transition: border-color 0.3s var(--ease-soft), background-color 0.3s var(--ease-soft);
+}
+
+.central-retry:hover,
+.central-retry:focus-visible {
+  border-color: var(--dream-white);
+  background-color: rgba(244, 240, 232, 0.1);
+  outline: none;
+}
+
 .central-typing-heading {
   margin: 0 0 1.5rem;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
