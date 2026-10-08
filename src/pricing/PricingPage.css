@@ -518,7 +518,8 @@ html[lang='he'] .pr-card-eyebrow {
 /* ---- The package this account holds: a diagonal corner ribbon worn across the card's top START corner (top-left in English,
    top-right in Hebrew), and a quiet lift of the card itself. The card's own overflow:hidden + radius cut the band at the corner,
    so it reads as a sash over the corner, not a header. It replaces "Most Popular" on the same card and never sits with it.
-   Geometry: the band is centred on the diagonal x + y = 7.6rem measured from the corner (centre 3.8rem in from each edge). ---- */
+   Geometry: the band is 3.5rem thick and centred on the diagonal x + y = 8.6rem measured from the corner (centre 4.3rem in from
+   each edge); the 12rem box keeps its lowest point inside the card's picture. ---- */
 .pr-card--current {
   border-color: rgba(244, 240, 232, 0.5);
   box-shadow: 0 0 2.4rem rgba(244, 240, 232, 0.16), 0 1.6rem 3rem rgba(0, 0, 0, 0.45);
@@ -529,31 +530,38 @@ html[lang='he'] .pr-card-eyebrow {
   top: 0;
   inset-inline-start: 0;
   z-index: 3;
-  width: 11rem;
-  height: 11rem;
+  width: 12rem;
+  height: 12rem;
   overflow: hidden;
   pointer-events: none;
 }
 
 .pr-card-ribbon-band {
   position: absolute;
-  top: 2.85rem;
-  left: -3.2rem;
-  width: 14rem;
-  height: 1.9rem;
+  top: 2.55rem;
+  left: -3.7rem;
+  width: 16rem;
+  height: 3.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35em;
+  gap: 0.45em;
+  padding-inline: 1.6rem;
   box-sizing: border-box;
   transform: rotate(-45deg);
-  background: linear-gradient(180deg, rgba(247, 243, 235, 0.98), rgba(226, 219, 204, 0.96));
-  border-block: 1px solid rgba(11, 12, 11, 0.28);
-  box-shadow: 0 0.35rem 0.8rem rgba(0, 0, 0, 0.45);
-  color: #0b0c0b;
+  /* Muted champagne gold: lightest in the middle, a little deeper toward both ends (gradient runs along the band). */
+  background: linear-gradient(90deg, #c8a766 0%, #e2c98f 28%, #f0dcab 50%, #e2c98f 72%, #c8a766 100%);
+  border-block: 1px solid rgba(96, 72, 30, 0.32);
+  /* a soft light edge along the top, a faint depth along the bottom, and a gentle shadow that lifts the band off the picture */
+  box-shadow:
+    inset 0 0.14rem 0 rgba(255, 250, 236, 0.75),
+    inset 0 -0.18rem 0.35rem rgba(120, 92, 40, 0.22),
+    0 0.5rem 1rem rgba(0, 0, 0, 0.45);
+  color: #2b2012;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.76rem;
-  font-weight: 700;
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
   line-height: 1;
   white-space: nowrap;
 }
@@ -561,15 +569,16 @@ html[lang='he'] .pr-card-eyebrow {
 /* Hebrew reads right-to-left, so the start corner is the top-right: mirror the band. */
 html[lang='he'] .pr-card-ribbon-band {
   left: auto;
-  right: -3.2rem;
+  right: -3.7rem;
   transform: rotate(45deg);
-  font-size: 0.86rem;
+  font-size: 1.05rem;
+  letter-spacing: normal;
 }
 
 .pr-card-ribbon-band .pr-check {
   flex: none;
-  width: 0.95em;
-  height: 0.95em;
+  width: 1.3em;
+  height: 1.3em;
   color: inherit;
   /* keep the tick upright inside the tilted band */
   transform: rotate(45deg);
@@ -577,4 +586,8 @@ html[lang='he'] .pr-card-ribbon-band {
 
 html[lang='he'] .pr-card-ribbon-band .pr-check {
   transform: rotate(-45deg);
+}
+
+.pr-card-ribbon-band .pr-check path {
+  stroke-width: 2.5;
 }
