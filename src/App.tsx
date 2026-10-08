@@ -7,6 +7,7 @@ import type { ArchiveEntry } from './archive/archiveData';
 import type { SavedDream } from './hero/dreamStorage';
 import { saveDreamRemote } from './hero/dreamRemoteStorage';
 import { getPendingDreamSave, setPendingDreamSave, clearPendingDreamSave } from './hero/pendingDreamSave';
+import { supabase } from './auth/supabaseClient';
 import ResetPassword from './archive/ResetPassword';
 import { useAuth, POST_AUTH_REDIRECT_PARAM, POST_AUTH_REDIRECT_VALUE, RESET_PASSWORD_VIEW_VALUE } from './auth/AuthContext';
 import { useLanguage } from './i18n/LanguageContext';
@@ -53,7 +54,9 @@ const LEGAL_VIEWS: LegalKey[] = ['privacy', 'accessibility', 'terms'];
 function getInitialView(): AppView {
   const value = new URLSearchParams(window.location.search).get(POST_AUTH_REDIRECT_PARAM);
   if (value === POST_AUTH_REDIRECT_VALUE) return 'archive';
-  if (value === 'auth') return 'auth';
+  // 'auth' is never a place to ARRIVE: a stale ?view=auth (a bookmark, a home-screen shortcut, a restored tab from an earlier
+  // sign-in prompt) must open the home page, not the "keep your dreams" screen. The one exception is a dream waiting to be saved.
+  if (value === 'auth') return getPendingDreamSave() ? 'auth' : 'dream';
   // A real password-recovery email link (see resetPasswordRedirectUrl in
   // AuthContext.tsx) lands here with this exact query value, alongside
   // Supabase's own auth params (a `code` param, or hash tokens — either
@@ -83,7 +86,7 @@ const INITIAL_PAYMENT_RETURN: string | null = (() => {
 
 function writeViewToUrl(view: AppView) {
   const url = new URL(window.location.href);
-  if (view === 'dream') {
+  if (view === 'dream' || view === 'auth') {
     url.searchParams.delete(POST_AUTH_REDIRECT_PARAM);
   } else {
     url.searchParams.set(POST_AUTH_REDIRECT_PARAM, view === 'detail' ? POST_AUTH_REDIRECT_VALUE : view);
@@ -158,6 +161,10 @@ function App() {
   // is already used — DreamAuth then leads with the friendly "your first dream
   // was free" notice. Cleared as soon as the dreamer leaves the auth screen.
   const [authFreeDreamNotice, setAuthFreeDreamNotice] = useState(false);
+  // True only when a signed-in session turned out to be gone on the server (see handleSessionExpired).
+  const [authSessionNotice, setAuthSessionNotice] = useState(false);
+  // The current screen came from the page address (a refresh or a link), not from anything the dreamer chose in this visit.
+  const viewFromUrlRef = useRef(getInitialView() !== 'dream');
   // A signed-in account with no dream credit was sent to Pricing (see the gate
   // effect below and HeroDream's onCreditsRequired).
   const [creditsNotice, setCreditsNotice] = useState(false);
@@ -187,7 +194,11 @@ function App() {
   const isResumingSaveRef = useRef(false);
 
   const setView = (next: AppView) => {
-    if (next !== 'auth') setAuthFreeDreamNotice(false);
+    if (next !== 'auth') {
+      setAuthFreeDreamNotice(false);
+      setAuthSessionNotice(false);
+    }
+    viewFromUrlRef.current = false;
     if (next !== 'pricing') setCreditsNotice(false);
     setViewState(next);
     writeViewToUrl(next);
@@ -289,6 +300,17 @@ function App() {
     setView('auth');
   };
 
+  // The server refused the signed-in account's token. If Supabase confirms the session is really gone (and this device has just
+  // dropped it), say so on the sign-in screen; if the session is fine, this was not an expired session and nothing changes.
+  const handleSessionExpired = async (): Promise<boolean> => {
+    const { data } = await supabase.auth.getSession();
+    if (data.session) return false;
+    setAuthMode('signin');
+    setAuthSessionNotice(true);
+    setView('auth');
+    return true;
+  };
+
   // The Hero's own way into the Dream Archive area — previously the only
   // path in was mid-journey, via DREAM SAVED.'s "go to my dream archive".
   // Decided from the real Supabase session (`user`), exactly like the
@@ -325,7 +347,9 @@ function App() {
       return;
     }
     if ((view === 'archive' || view === 'detail') && !user) {
-      setView('auth');
+      // Arriving at a protected address while signed out (an old link, a session that ended) opens the HOME page; the sign-in screen
+      // is only for someone who asked for My Dreams during this visit.
+      setView(viewFromUrlRef.current ? 'dream' : 'auth');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, user, view, isPasswordRecovery]);
@@ -396,6 +420,7 @@ function App() {
     screen = (
       <DreamAuth
         freeDreamNotice={authFreeDreamNotice}
+        sessionExpiredNotice={authSessionNotice}
         mode={authMode}
         onSwitchMode={setAuthMode}
         onBack={() => {
@@ -469,6 +494,7 @@ function App() {
           setCreditsNotice(true);
           setView('pricing');
         }}
+        onSessionExpired={handleSessionExpired}
         onUnsavedDreamChange={setUnsavedDream}
       />
     );

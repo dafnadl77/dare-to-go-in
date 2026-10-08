@@ -1,4 +1,5 @@
 import { getAuthHeader } from '../auth/getAccessToken';
+import { dropRevokedSession } from '../auth/revokedSession';
 import { parseCreditSummary, type CreditSummary } from './creditSummary';
 
 /** null = unknown (signed out, a failed request): callers must treat that as "don't redirect / show nothing", never as zero. */
@@ -7,7 +8,11 @@ export async function fetchCreditSummary(): Promise<CreditSummary | null> {
     const authHeader = await getAuthHeader();
     if (!authHeader.Authorization) return null;
     const res = await fetch('/api/credits', { headers: authHeader, cache: 'no-store' });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      // The server refused this account's token: if that session was ended elsewhere, this device is signed out cleanly.
+      if (res.status === 401) await dropRevokedSession();
+      return null;
+    }
     return parseCreditSummary(await res.json().catch(() => null));
   } catch {
     return null;

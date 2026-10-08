@@ -180,7 +180,8 @@ test('the client maps credits_required to the Pricing page (analysis reason, Her
   assert.match(read('src/hero/dreamAnalysisSchema.ts'), /\| 'credits_required'/);
   assert.match(read('src/hero/dreamAnalysis.ts'), /'credits_required',/);
   const hero = read('src/hero/HeroDream.tsx');
-  assert.match(hero, /result\.reason === 'credits_required'\) \{\s*onCreditsRequired\(\);\s*return;/);
+  // (the dreamer's typed words are kept first so they are waiting when they come back — see dreamDraft.ts)
+  assert.match(hero, /result\.reason === 'credits_required'\) \{\s*(?:saveDreamDraft\(dreamInputSourceText\(input\)\);\s*)?onCreditsRequired\(\);\s*return;/);
   const app = read('src/App.tsx');
   assert.match(app, /onCreditsRequired=\{\(\) => \{\s*setCreditsNotice\(true\);\s*setView\('pricing'\);/);
 });

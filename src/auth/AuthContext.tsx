@@ -240,7 +240,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { ok: true, sessionCreated: false };
       },
       async signOut() {
-        await supabase.auth.signOut();
+        // This device only. Supabase's default scope ends the account's sessions EVERYWHERE, which silently killed the dreamer's
+        // other devices (their tokens kept looking valid but every paid call was refused).
+        await supabase.auth.signOut({ scope: 'local' });
       },
     }),
     [user, loading, isPasswordRecovery],

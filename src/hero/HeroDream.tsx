@@ -4,6 +4,7 @@ import MemoryVeil from './MemoryVeil';
 import MemoryTitle from './MemoryTitle';
 import DreamPrompt from './DreamPrompt';
 import HoldToRemember from './HoldToRemember';
+import { saveDreamDraft } from './dreamDraft';
 import DreamEchoes from './DreamEchoes';
 import { usePointerRef } from './usePointerRef';
 import { useOpeningSequence } from './useOpeningSequence';
@@ -108,11 +109,13 @@ interface HeroDreamProps {
   onFreeDreamUsed: () => void;
   /** A signed-in account with no dream credit tried to start a dream — the app sends them to Pricing. */
   onCreditsRequired: () => void;
+  /** The server refused the signed-in account's token (analysis answered 401). App confirms with Supabase whether the session is really gone and, if so, shows the sign-in screen; resolves false when it is NOT gone (then the failure is shown like any other). */
+  onSessionExpired: () => Promise<boolean>;
   /** Reports whether a meaningfully UNSAVED dream is on screen (analyzed, not saved, not let go), so App can guard refresh and in-app navigation. Called with false when this screen unmounts. */
   onUnsavedDreamChange: (unsaved: boolean) => void;
 }
 
-export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal, onRegisterHomeHandler, onFreeDreamUsed, onCreditsRequired, onUnsavedDreamChange }: HeroDreamProps) {
+export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal, onRegisterHomeHandler, onFreeDreamUsed, onCreditsRequired, onSessionExpired, onUnsavedDreamChange }: HeroDreamProps) {
   const { user } = useAuth();
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
@@ -301,12 +304,22 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         // A definitive answer reached the client: the submission is over (its key is dropped, so even
         // identical text submitted next is a new dream). An uncertain one keeps its key for the retry.
         if (!uncertain) endSubmission(submissionStore);
+        // Whatever sends the dreamer to another screen first keeps what they wrote: it is back in the typing box on return.
         if (result.status === 'error' && result.reason === 'free_dream_used') {
+          saveDreamDraft(dreamInputSourceText(input));
           onFreeDreamUsed();
           return;
         }
         if (result.status === 'error' && result.reason === 'credits_required') {
+          saveDreamDraft(dreamInputSourceText(input));
           onCreditsRequired();
+          return;
+        }
+        if (result.status === 'error' && result.reason === 'not_authenticated') {
+          saveDreamDraft(dreamInputSourceText(input));
+          onSessionExpired().then((handled) => {
+            if (!handled && seq === analysisSeqRef.current) setAnalysisResult(result);
+          });
           return;
         }
         setAnalysisResult(result);

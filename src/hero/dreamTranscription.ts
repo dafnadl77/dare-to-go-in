@@ -15,7 +15,10 @@ export type TranscriptionErrorReason =
   | 'empty_input'
   | 'rate_limited'
   | 'billing_issue'
-  | 'not_authenticated';
+  | 'not_authenticated'
+  | 'free_dream_used'
+  | 'credits_required'
+  | 'limit_reached';
 
 export type TranscriptionResult =
   | { status: 'ok'; transcript: string }
@@ -29,6 +32,9 @@ const KNOWN_REASONS: TranscriptionErrorReason[] = [
   'rate_limited',
   'billing_issue',
   'not_authenticated',
+  'free_dream_used',
+  'credits_required',
+  'limit_reached',
 ];
 
 function blobToBase64(blob: Blob): Promise<string> {

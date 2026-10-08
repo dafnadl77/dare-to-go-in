@@ -38,6 +38,8 @@ export async function verifyBearerToken(authorizationHeader: string): Promise<Ve
   }
   const { data, error } = await verifier.auth.getUser(token);
   if (error || !data?.user) {
+    // Reason codes only (never the token): this is what tells a revoked session (session_not_found) from a malformed token.
+    console.warn(`auth_token_rejected status=${(error as { status?: number } | null)?.status ?? 'none'} code=${(error as { code?: string } | null)?.code ?? 'none'}`);
     return { ok: false, status: 401, reason: 'not_authenticated', message: 'Your session is invalid or has expired. Please sign in again.' };
   }
   return { ok: true, userId: data.user.id };

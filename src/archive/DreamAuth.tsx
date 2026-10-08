@@ -16,6 +16,8 @@ interface DreamAuthProps {
       "your first dream was free" message (the existing tagline slot — no new
       layout). */
   freeDreamNotice?: boolean;
+  /** Set by App.tsx when a signed-in session turned out to be gone on the server: the tagline says so. */
+  sessionExpiredNotice?: boolean;
   mode: AuthMode;
   onSwitchMode: (mode: AuthMode) => void;
   /** No longer called by anything in THIS component (its own "way back" —
@@ -80,7 +82,7 @@ function looksLikeEmail(value: string): boolean {
  * wired to real Supabase Auth (see AuthContext.tsx): email/password and
  * Google both create/resume a genuine session, never a bypass.
  */
-export default function DreamAuth({ freeDreamNotice = false, mode, onSwitchMode, onBack: _onBack, onAuthenticated, onOpenLegal }: DreamAuthProps) {
+export default function DreamAuth({ freeDreamNotice = false, sessionExpiredNotice = false, mode, onSwitchMode, onBack: _onBack, onAuthenticated, onOpenLegal }: DreamAuthProps) {
   const { t } = useLanguage();
   const { signInWithPassword, signUpWithPassword, signInWithGoogle, resetPasswordForEmail } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -252,12 +254,12 @@ export default function DreamAuth({ freeDreamNotice = false, mode, onSwitchMode,
         ) : isSignUp ? (
           <>
             <h1 className="auth-eyebrow-title">{t('auth.keepYourDreams')}</h1>
-            <p className="auth-tagline">{freeDreamNotice ? t('auth.freeDreamUsedNotice') : t('auth.createArchiveTagline')}</p>
+            <p className="auth-tagline">{freeDreamNotice ? t('auth.freeDreamUsedNotice') : sessionExpiredNotice ? t('auth.sessionExpiredNotice') : t('auth.createArchiveTagline')}</p>
           </>
         ) : (
           <>
             <h1 className="auth-eyebrow-title">{t('auth.welcomeBack')}</h1>
-            <p className="auth-tagline">{freeDreamNotice ? t('auth.freeDreamUsedNotice') : <>&nbsp;</>}</p>
+            <p className="auth-tagline">{freeDreamNotice ? t('auth.freeDreamUsedNotice') : sessionExpiredNotice ? t('auth.sessionExpiredNotice') : <>&nbsp;</>}</p>
           </>
         )}
 

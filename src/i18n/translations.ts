@@ -52,6 +52,9 @@ export interface Translations {
     micErrorStartFailed: string;
     typeInsteadHint: string;
     transcriptionFailed: string;
+    transcriptionFreeDreamUsed: string;
+    transcriptionSessionExpired: string;
+    transcriptionCreditsRequired: string;
     cancelRecording: string;
     cancelTranscription: string;
     cancelTyping: string;
@@ -209,6 +212,7 @@ export interface Translations {
     keepYourDreams: string;
     createArchiveTagline: string;
     freeDreamUsedNotice: string;
+    sessionExpiredNotice: string;
     welcomeBack: string;
     continueWithGoogle: string;
     or: string;
@@ -410,6 +414,9 @@ export const en: Translations = {
     micErrorStartFailed: 'I couldn’t start listening.',
     typeInsteadHint: 'Type your dream instead.',
     transcriptionFailed: 'I couldn’t transcribe that. Try again or type your dream.',
+    transcriptionFreeDreamUsed: 'Your free dream has been used. You can keep typing here, and sign in or create an account to continue.',
+    transcriptionSessionExpired: 'Your sign-in has ended. You can keep typing here and sign in again to continue.',
+    transcriptionCreditsRequired: 'You have no dreams left in your package. You can keep typing here, and choose a package to continue.',
     cancelRecording: 'Cancel recording',
     cancelTranscription: 'Cancel transcription',
     cancelTyping: 'Cancel typing',
@@ -569,6 +576,7 @@ export const en: Translations = {
     keepYourDreams: 'KEEP YOUR DREAMS',
     createArchiveTagline: 'Create your private dream archive.',
     freeDreamUsedNotice: 'Your first dream was free. To continue with more dreams, sign in or create an account.',
+    sessionExpiredNotice: 'Your sign-in has ended. Sign in again to continue — what you wrote is waiting for you.',
     welcomeBack: 'WELCOME BACK, DREAMER.',
     continueWithGoogle: 'Continue with Google',
     or: 'OR',
@@ -793,6 +801,9 @@ export const he: Translations = {
     micErrorStartFailed: 'לא הצלחתי להתחיל להקשיב.',
     typeInsteadHint: 'אפשר להקליד את החלום במקום זאת.',
     transcriptionFailed: 'לא הצלחתי לתמלל את זה. נסו שוב או הקלידו את החלום.',
+    transcriptionFreeDreamUsed: 'החלום החינמי שלך כבר נוצל. אפשר להמשיך להקליד כאן, ולהתחבר או ליצור חשבון כדי להמשיך.',
+    transcriptionSessionExpired: 'ההתחברות שלך הסתיימה. אפשר להמשיך להקליד כאן ולהתחבר מחדש כדי להמשיך.',
+    transcriptionCreditsRequired: 'לא נשארו לך חלומות בחבילה. אפשר להמשיך להקליד כאן ולבחור חבילה כדי להמשיך.',
     cancelRecording: 'ביטול הקלטה',
     cancelTranscription: 'ביטול תמלול',
     cancelTyping: 'ביטול הקלדה',
@@ -952,6 +963,7 @@ export const he: Translations = {
     keepYourDreams: 'שמרו את החלומות שלכם',
     createArchiveTagline: 'צרו את ארכיון החלומות הפרטי שלכם.',
     freeDreamUsedNotice: 'החלום הראשון שלך היה במתנה. כדי להמשיך לחלומות נוספים, יש להתחבר או ליצור חשבון.',
+    sessionExpiredNotice: 'ההתחברות שלך הסתיימה. התחברו מחדש כדי להמשיך — מה שכתבת מחכה לך.',
     welcomeBack: 'ברוכים השבים, חולמים.',
     continueWithGoogle: 'המשך עם Google',
     or: 'או',

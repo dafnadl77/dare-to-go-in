@@ -12,7 +12,8 @@ import type { HoldState } from './HoldState';
 import type { CentralMode } from './centralMode';
 import type { useDreamRecorder } from './useDreamRecorder';
 import { createTextDreamInput, type DreamInput } from './dreamInput';
-import { transcribeDreamAudio } from './dreamTranscription';
+import { transcribeDreamAudio, type TranscriptionErrorReason } from './dreamTranscription';
+import { takeDreamDraft } from './dreamDraft';
 import { getAppLanguage, normalizeTranscriptionLanguage } from './appLanguage';
 import { useLivePreviewTranscript } from './useLivePreviewTranscript';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -95,6 +96,21 @@ function describeRecordingFailure(errorName: string | null, timedOut: boolean, t
     return t('hold.micErrorStartFailed');
   }
   return t('hold.micErrorGeneric');
+}
+
+/** Why a recording could not become text — said plainly, with the way forward (typing always still works), instead of one
+    generic line that hid, for example, "your free dream was already used" behind "I couldn't transcribe that". */
+function describeTranscriptionFailure(reason: TranscriptionErrorReason, t: (path: string) => string): string {
+  switch (reason) {
+    case 'free_dream_used':
+      return t('hold.transcriptionFreeDreamUsed');
+    case 'not_authenticated':
+      return t('hold.transcriptionSessionExpired');
+    case 'credits_required':
+      return t('hold.transcriptionCreditsRequired');
+    default:
+      return t('hold.transcriptionFailed');
+  }
 }
 
 export default function HoldToRemember({
@@ -310,6 +326,19 @@ export default function HoldToRemember({
       textareaRef.current?.focus();
     }
   }, [centralMode]);
+
+  // Words kept when the dreamer had to sign in (or choose a package) before their dream could be analyzed come back here, in the
+  // typing box, once the home screen is ready — never sent anywhere, read once (see dreamDraft.ts).
+  const draftRestoredRef = useRef(false);
+  useEffect(() => {
+    if (!revealed || draftRestoredRef.current) return;
+    draftRestoredRef.current = true;
+    const draft = takeDreamDraft();
+    if (!draft) return;
+    setEntry(draft);
+    onTypedTranscriptChange(draft);
+    setCentralMode('typing');
+  }, [revealed, onTypedTranscriptChange, setCentralMode]);
 
   // Live voice-reactive breathing: mirrors the mic level into the shared
   // holdRef (MemoryVeil reads it) and the ambient listening orb, every
@@ -586,7 +615,7 @@ export default function HoldToRemember({
         onTypedTranscriptChange(result.transcript);
         setTranscriptionErrorMessage(null);
       } else {
-        setTranscriptionErrorMessage(t('hold.transcriptionFailed'));
+        setTranscriptionErrorMessage(describeTranscriptionFailure(result.reason, t));
       }
       setCentralMode('typing');
     }, () => {

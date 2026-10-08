@@ -1,3 +1,5 @@
+import { dropRevokedSession } from './revokedSession';
+
 /**
  * Calls /api/claim-trial once right after a real sign-in (see
  * AuthContext.tsx's onAuthStateChange handler) — re-points this browser's
@@ -10,10 +12,12 @@
  */
 export async function claimTrial(accessToken: string): Promise<void> {
   try {
-    await fetch('/api/claim-trial', {
+    const res = await fetch('/api/claim-trial', {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}` },
     });
+    // A refused token here means the session this tab holds no longer exists on the server (ended elsewhere): sign this device out.
+    if (res.status === 401) await dropRevokedSession();
   } catch (err) {
     console.error('Failed to claim anonymous trial history:', err);
   }

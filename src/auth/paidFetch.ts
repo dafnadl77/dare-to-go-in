@@ -12,6 +12,8 @@
  * handles like any other network failure (a controlled request_failed result).
  * It is never retried here: a timeout must not become a second request.
  */
+import { carriesBearerToken, dropRevokedSession } from './revokedSession';
+
 let inFlight: Promise<void> | null = null;
 
 export class RequestTimeoutError extends Error {
@@ -42,6 +44,12 @@ async function runPaidFetch(input: string, init: RequestInit | undefined): Promi
     .json()
     .catch(() => null);
   const reason = body && typeof body === 'object' ? (body as { reason?: unknown }).reason : null;
+  // The account's own token was refused. If Supabase confirms that session is gone (it was ended elsewhere), drop it on this
+  // device so the app is honestly signed out instead of failing every action; the 401 itself is still returned to the caller.
+  if (reason === 'not_authenticated' && carriesBearerToken(init)) {
+    await dropRevokedSession();
+    return res;
+  }
   if (reason !== 'trial_required') return res;
   try {
     await ensureTrialSession();
