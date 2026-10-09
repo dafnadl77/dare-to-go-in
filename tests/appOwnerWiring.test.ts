@@ -30,7 +30,7 @@ test('the role is read only through the verified account id, server-side, and an
 
   const credits = code('server/routes/credits.ts');
   assert.match(credits, /verifyBearerToken\(authHeader\)/);
-  assert.match(credits, /\(await isAppOwner\(verified\.userId\)\) === true/, 'only a definite true is the owner');
+  assert.match(credits, /const owner = await isAppOwner\(verified\.userId\);\s*if \(owner === true && orderId === undefined\)/, 'only a definite true is the owner');
 
   const transcription = code('server/routes/dreamTranscription.ts');
   assert.match(transcription, /resolved\.identity\.kind === 'user' && \(await isAppOwner\(resolved\.identity\.userId\)\) !== true/, 'unknown or false keeps the balance check');
@@ -77,7 +77,7 @@ test('/api/credits tells the owner so, and every other account gets the unchange
 
 test('the owner is never sent to Pricing by a zero balance, and the UI shows unlimited dreams without a credit number', () => {
   const credits = code('src/credits/credits.ts');
-  assert.match(credits, /return summary && !summary\.owner \? summary\.balance : null;/);
+  assert.match(credits, /return summary && !summary\.owner && !summary\.roleUnknown \? summary\.balance : null;/);
   const plan = code('src/credits/useAccountPlan.ts');
   assert.match(plan, /summary\?\.owner \? \{ status: 'owner' \}/);
 
@@ -101,6 +101,28 @@ test('the owner wording, in both languages', () => {
   assert.equal(en.archive.settingsDreamsUnlimited, 'Unlimited ∞');
   assert.match(he.pricing.ownerUnlimitedNotice, /גישה בלתי מוגבלת/);
   assert.match(en.pricing.ownerUnlimitedNotice, /unlimited access/i);
+});
+
+test('the owner is never reported with a zero balance (a tab still running a pre-owner version cannot send her to Pricing)', () => {
+  const credits = code('server/routes/credits.ts');
+  assert.match(credits, /balance: Math\.max\(\(await getCreditBalance\(verified\.userId\)\) \?\? 0, 1\), owner: true/);
+  // the role is decided BEFORE any balance is read or reported
+  assert.ok(credits.indexOf('isAppOwner(verified.userId)') < credits.indexOf('getCreditBalance(verified.userId)'));
+});
+
+test('an undetermined role is reported as such, and the UI never acts on a zero balance for it (enforcement stays server-side)', () => {
+  const credits = code('server/routes/credits.ts');
+  assert.match(credits, /if \(owner === null\) \{[\s\S]*owner_check_unavailable[\s\S]*roleUnknown: true/);
+  assert.deepEqual(parseCreditSummary({ balance: 0, roleUnknown: true }), { balance: 0, plan: null, roleUnknown: true });
+  assert.equal(parseCreditSummary({ balance: 0, roleUnknown: 'yes' })?.roleUnknown, undefined);
+  assert.match(code('src/credits/credits.ts'), /summary && !summary\.owner && !summary\.roleUnknown \? summary\.balance : null/);
+  // a definite regular account is unchanged: balance 0 is still a definite 0
+  assert.deepEqual(parseCreditSummary({ balance: 0, purchasedPackage: 'go_deeper_3' }), { balance: 0, plan: 'go_deeper_3' });
+});
+
+test('the entry gate only ever acts on a finished server answer and only for a definite zero', () => {
+  const app = code('src/App.tsx');
+  assert.match(app, /fetchCreditBalance\(\)\.then\(\(balance\) => \{\s*if \(cancelled \|\| balance !== 0\) return;/);
 });
 
 test('payments, Grow, Make, prices and the recording/transcription path are untouched', () => {

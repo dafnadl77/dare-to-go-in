@@ -22,9 +22,13 @@ export async function handleCredits(requestHeaders: RequestHeaders, orderId?: st
     return errorResult(verified.status, verified.reason, verified.message);
   }
   // The app owner is told so (and nothing else about packages or limits): the UI shows unlimited dreams. Every other account
-  // continues below exactly as before. An unknown role is treated as "not the owner".
-  if ((await isAppOwner(verified.userId)) === true && orderId === undefined) {
-    return okResult({ balance: (await getCreditBalance(verified.userId)) ?? 0, owner: true });
+  // continues below exactly as before. The role is decided here, from the verified account, before anything about credits is said.
+  const owner = await isAppOwner(verified.userId);
+  if (owner === true && orderId === undefined) {
+    // `balance` is advisory and meaningless for the owner (nothing is ever spent). It is never reported as 0, so a browser tab that
+    // is still running a version from before the owner role existed — which sends any account whose balance is exactly 0 to
+    // Pricing — can never send the owner there.
+    return okResult({ balance: Math.max((await getCreditBalance(verified.userId)) ?? 0, 1), owner: true });
   }
   const balance = await getCreditBalance(verified.userId);
   if (balance === null) {
@@ -40,5 +44,11 @@ export async function handleCredits(requestHeaders: RequestHeaders, orderId?: st
   // The package the account last PURCHASED (null = a free account), read from its completed orders, never from the balance. If it
   // cannot be determined the field is left out so the UI shows nothing rather than guessing.
   const purchasedPackage = await getPurchasedPackage(verified.userId);
+  if (owner === null) {
+    // The role could not be determined (never "not the owner" by assumption): enforcement stays with the server's own atomic
+    // checks, but the UI is told not to act on a zero balance — it is not allowed to send a possible owner to Pricing.
+    console.warn('owner_check_unavailable');
+    return okResult({ balance, ...(purchasedPackage === undefined ? {} : { purchasedPackage }), roleUnknown: true });
+  }
   return okResult(purchasedPackage === undefined ? { balance } : { balance, purchasedPackage });
 }

@@ -23,5 +23,5 @@ export async function fetchCreditSummary(): Promise<CreditSummary | null> {
     send the owner to Pricing. */
 export async function fetchCreditBalance(): Promise<number | null> {
   const summary = await fetchCreditSummary();
-  return summary && !summary.owner ? summary.balance : null;
+  return summary && !summary.owner && !summary.roleUnknown ? summary.balance : null;
 }
