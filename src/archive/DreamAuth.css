@@ -105,7 +105,7 @@
 /* ---- Continue with Google — a quiet outlined pill, never the boxy
    branded button a generic SaaS product would use. A thin monogram
    stands in for the logo (deliberately monochrome, matching DARE's own
-   restrained line-icon language elsewhere — see .dc-portal-icon). ---- */
+   restrained line-icon language elsewhere — see .dc-choice-btn-icon). ---- */
 .auth-google {
   display: flex;
   align-items: center;

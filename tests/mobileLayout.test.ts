@@ -149,14 +149,13 @@ test('no animated dots on a phone or tablet: every star / mote / sparkle / orbit
     'da-choice-sparkle',
     'da-choice-trace-particle',
     'dream-portal-particles',
-    'dc-portal-particles',
     'dc-saving-particles',
     'dc-breaking-particles',
   ];
   for (const cls of removed) assert.ok(group.includes(`.${cls}`), `${cls} is removed on touch`);
   // Every dot-like class that exists in any stylesheet is either removed above or is the individual dot inside a removed layer:
   // a NEW dot-like animation must be handled deliberately (this fails until it is).
-  const insideRemoved = new Set(['dream-stage-star', 'ar-star', 'dw-mote', 'dr-mote', 'dr-writing-spark', 'dc-portal-particle', 'dc-saving-particle', 'dc-breaking-particle']);
+  const insideRemoved = new Set(['dream-stage-star', 'ar-star', 'dw-mote', 'dr-mote', 'dr-writing-spark', 'dc-saving-particle', 'dc-breaking-particle']);
   const found = new Set<string>();
   for (const file of cssFiles('src')) {
     for (const m of noComments(read(file)).matchAll(/\.([\w-]*(?:twinkle|sparkle|-stars?\b|-motes?\b|-spark\b|-sparks\b|particles?\b)[\w-]*)\s*[,{:]/g)) found.add(m[1]);
@@ -166,7 +165,7 @@ test('no animated dots on a phone or tablet: every star / mote / sparkle / orbit
     assert.ok(removed.includes(cls) || insideRemoved.has(cls), `dot-like class .${raw} is not handled for phones`);
   }
   // and none of the removed layers is re-enabled anywhere with a more specific rule
-  assert.ok(!/(dream-stage-stars|ar-stars|dc-portal-particles)[^{]*\{[^}]*display: (block|flex|inline)/.test(css));
+  assert.ok(!/(dream-stage-stars|ar-stars|dc-saving-particles)[^{]*\{[^}]*display: (block|flex|inline)/.test(css));
 });
 
 test('the lens formerly called "Jungian" has a clear title and a short explanation that opens only on request, in both languages', () => {
@@ -202,3 +201,25 @@ test('the owner, credits, payments, recording and dream engine are untouched by 
     assert.ok(!/owner|credit|payment|grow|make\.com|transcri|dream-analysis/i.test(noComments(read(file))), file);
   }
 });
+
+test('the closing screen: two still, clean buttons — no rotating ring, glow, pulse or particles — with the icons, labels and actions kept', () => {
+  const tsx = read('src/hero/DreamClosing.tsx');
+  const css = noComments(read('src/hero/DreamClosing.css'));
+  const choices = tsx.slice(tsx.indexOf('<div className="dc-choices">'), tsx.indexOf('{saveFailed && ('));
+  assert.match(choices, /className="dc-choice-btn dc-choice-btn--keep"[^>]*onClick=\{onSave\}/);
+  assert.match(choices, /className="dc-choice-btn dc-choice-btn--let-go"[^>]*onClick=\{onLetGo\}/);
+  assert.equal((choices.match(/<svg className="dc-choice-btn-icon"/g) ?? []).length, 2, 'both icons kept');
+  assert.match(choices, /closing\.keepThisDream/);
+  assert.match(choices, /closing\.letItGo/);
+  for (const gone of ['dc-portal', 'arc', 'core', 'glow', 'particle']) assert.ok(!choices.includes(gone), `no ${gone} layer in the choices`);
+  // nothing in the button styles moves on its own or on hover
+  const buttons = css.slice(css.indexOf('.dc-choice-btn {'), css.indexOf('.dc-choice-btn-label {'));
+  assert.ok(!/animation|@keyframes|transform|filter|infinite/.test(buttons), 'no animation, transform or filter on the choice buttons');
+  assert.ok(!/dc-portal/.test(css), 'the portal styles are gone');
+  assert.match(css, /\.dc-choice-btn--keep \{\s*border: 1\.5px solid rgba\(var\(--dream-gold-rgb, 214, 178, 110\), 0\.85\);/);
+  assert.match(css, /@media \(max-width: 640px\) \{\s*\.dc-choices \{\s*flex-direction: column;/);
+  // the other outcomes (the saving flash, letting go) are unchanged
+  assert.match(tsx, /dc-saving-portal/);
+  assert.match(tsx, /dc-breaking-portal/);
+});
+

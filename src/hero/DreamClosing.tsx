@@ -39,7 +39,6 @@ function DispersingLetters({ text }: { text: string }) {
   );
 }
 
-const RING_PARTICLE_COUNT = 7;
 const RING_ARC_COUNT = 6;
 const SPARK_COUNT = 10;
 
@@ -70,24 +69,12 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
               <EditorialTitle text={t('closing.dontLetItDisappear')} />
             </p>
             <div className="dc-choices">
-              <button type="button" className="dc-portal dc-portal--keep" data-cursor-hover onClick={onSave}>
-                <span className="dc-portal-glow" aria-hidden="true" />
-                <span className="dc-portal-arcs" aria-hidden="true">
-                  {Array.from({ length: RING_ARC_COUNT }).map((_, i) => (
-                    <span key={i} className="dc-portal-arc" style={{ '--ai': i } as CSSProperties} />
-                  ))}
-                </span>
-                <span className="dc-portal-core" aria-hidden="true" />
-                <span className="dc-portal-particles" aria-hidden="true">
-                  {Array.from({ length: RING_PARTICLE_COUNT }).map((_, i) => (
-                    <span key={i} className="dc-portal-particle" style={{ '--pi': i } as CSSProperties} />
-                  ))}
-                </span>
-                <svg className="dc-portal-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <button type="button" className="dc-choice-btn dc-choice-btn--keep" data-cursor-hover onClick={onSave}>
+                <svg className="dc-choice-btn-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
                   <path d="M16 9c-2.6-2-6.2-2.8-10-1.8v17c3.8-1 7.4-.2 10 1.8 2.6-2 6.2-2.8 10-1.8V7.2C22.2 6.2 18.6 7 16 9Z" stroke="currentColor" strokeWidth="1.3" />
                   <path d="M16 9v17.6" stroke="currentColor" strokeWidth="1.3" />
                 </svg>
-                <span className="dc-portal-label">
+                <span className="dc-choice-btn-label">
                   {t('closing.keepThisDream').split('\n').map((line, i) => (
                     <span key={i}>
                       {i > 0 && <br />}
@@ -97,20 +84,8 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
                 </span>
               </button>
 
-              <button type="button" className="dc-portal dc-portal--let-go" data-cursor-hover onClick={onLetGo}>
-                <span className="dc-portal-glow" aria-hidden="true" />
-                <span className="dc-portal-arcs dc-portal-arcs--loose" aria-hidden="true">
-                  {Array.from({ length: RING_ARC_COUNT }).map((_, i) => (
-                    <span key={i} className="dc-portal-arc" style={{ '--ai': i } as CSSProperties} />
-                  ))}
-                </span>
-                <span className="dc-portal-core" aria-hidden="true" />
-                <span className="dc-portal-particles dc-portal-particles--escape" aria-hidden="true">
-                  {Array.from({ length: RING_PARTICLE_COUNT }).map((_, i) => (
-                    <span key={i} className="dc-portal-particle" style={{ '--pi': i } as CSSProperties} />
-                  ))}
-                </span>
-                <svg className="dc-portal-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <button type="button" className="dc-choice-btn dc-choice-btn--let-go" data-cursor-hover onClick={onLetGo}>
+                <svg className="dc-choice-btn-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
                   <path
                     d="M24.5 5.5c-8.3 0-15 6.7-15 15v3.5h3.5c8.3 0 15-6.7 15-15V5.5h-3.5Z"
                     stroke="currentColor"
@@ -118,9 +93,7 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
                   />
                   <path d="M9.5 22.5 22 10" stroke="currentColor" strokeWidth="1.1" />
                 </svg>
-                <span className="dc-portal-label">
-                  <DispersingLetters text={t('closing.letItGo')} />
-                </span>
+                <span className="dc-choice-btn-label">{t('closing.letItGo')}</span>
               </button>
             </div>
             {saveFailed && (
