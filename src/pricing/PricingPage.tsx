@@ -148,6 +148,8 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
   const { t } = useLanguage();
   const { user } = useAuth();
   const accountPlan = useAccountPlan(signedIn ? user?.id : undefined);
+  // The app owner already has unlimited dreams: no packages are offered, and the page says so.
+  const isOwner = accountPlan.status === 'owner';
   // The package whose checkout dialog is open. Nothing is asked of the customer before they choose to buy.
   const [checkoutFor, setCheckoutFor] = useState<Exclude<PackageId, 'first_dream'> | null>(null);
 
@@ -210,7 +212,12 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
               <EditorialTitle text={t('pricing.headline')} />
             </h1>
             <p className="pr-subtitle">{t('pricing.subtitle')}</p>
-            {creditsRequired && (
+            {isOwner && (
+              <p className="pr-subtitle" role="status">
+                {t('pricing.ownerUnlimitedNotice')}
+              </p>
+            )}
+            {creditsRequired && !isOwner && (
               <p className="pr-subtitle" role="status">
                 {t('pricing.creditsRequiredNotice')}
               </p>
@@ -223,7 +230,7 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
               pricing.packages.firstDream copy the card used to show, with
               its CTA wired to the same real, already-ungated Hero flow —
               no new entitlement/payment logic, just a different placement. */}
-          {!signedIn && (
+          {!signedIn && !isOwner && (
           <div className="pr-free-note">
             <p className="pr-free-note-text">
               <strong>{t('pricing.packages.firstDream.name')}</strong>
@@ -236,11 +243,13 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
           </div>
           )}
 
+          {!isOwner && (
           <div className="pr-grid">
             {PAID_PACKAGES.map((pkg) => (
               <PackageCard key={pkg.id} pkg={pkg} onSelectPaid={handleSelectPaidPackage} isCurrent={accountPlan.status === 'ready' && accountPlan.plan === pkg.id} />
             ))}
           </div>
+          )}
 
           <p className="pr-reassurance">{t('about.emphasis')}</p>
 

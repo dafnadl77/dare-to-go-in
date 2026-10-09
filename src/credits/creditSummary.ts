@@ -13,16 +13,18 @@ import type { PackageId } from '../pricing/packages';
 export interface CreditSummary {
   balance: number;
   plan: PackageId | null;
+  /** The server says this account is the app owner: unlimited dreams, no credits, no package. Present only when true. */
+  owner?: true;
 }
 
 const PURCHASABLE: readonly PackageId[] = ['go_deeper_3', 'explore_10', 'dive_in_25'];
 
 export function parseCreditSummary(data: unknown): CreditSummary | null {
   if (!data || typeof data !== 'object') return null;
-  const body = data as { balance?: unknown; purchasedPackage?: unknown };
+  const body = data as { balance?: unknown; purchasedPackage?: unknown; owner?: unknown };
   if (typeof body.balance !== 'number' || !Number.isFinite(body.balance)) return null;
   let plan: PackageId | null = null;
   if (body.purchasedPackage === null) plan = 'first_dream';
   else if (typeof body.purchasedPackage === 'string' && (PURCHASABLE as readonly string[]).includes(body.purchasedPackage)) plan = body.purchasedPackage as PackageId;
-  return { balance: body.balance, plan };
+  return body.owner === true ? { balance: body.balance, plan, owner: true } : { balance: body.balance, plan };
 }

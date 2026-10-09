@@ -198,8 +198,8 @@ test('entry gate: signed-in + definite zero balance on the dream view redirects 
 
 test('Pricing: a signed-in account is not offered a free dream, and sees why it was sent there', () => {
   const page = read('src/pricing/PricingPage.tsx');
-  assert.match(page, /\{!signedIn && \(\s*<div className="pr-free-note">/);
-  assert.match(page, /creditsRequired && \(/);
+  assert.match(page, /\{!signedIn && !isOwner && \(\s*<div className="pr-free-note">/);
+  assert.match(page, /creditsRequired && !isOwner && \(/);
   const tr = read('src/i18n/translations.ts');
   assert.equal(tr.split('creditsRequiredNotice:').length - 1, 3); // interface + en + he
   const app = read('src/App.tsx');

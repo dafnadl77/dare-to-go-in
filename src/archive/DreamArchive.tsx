@@ -810,10 +810,23 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
                 <span className="ar-settings-label">{t('archive.settingsEmailLabel')}</span>
                 <span className="ar-settings-value">{user?.email ?? '—'}</span>
               </div>
-              <div className="ar-settings-row">
-                <span className="ar-settings-label">{t('archive.settingsPlanLabel')}</span>
-                <span className="ar-settings-value">{accountPlan.status === 'ready' ? planDisplayName(accountPlan.plan, t) : '—'}</span>
-              </div>
+              {accountPlan.status === 'owner' ? (
+                <>
+                  <div className="ar-settings-row">
+                    <span className="ar-settings-label">{t('archive.settingsAccountTypeLabel')}</span>
+                    <span className="ar-settings-value">{t('archive.settingsOwnerValue')}</span>
+                  </div>
+                  <div className="ar-settings-row">
+                    <span className="ar-settings-label">{t('archive.settingsDreamsLabel')}</span>
+                    <span className="ar-settings-value">{t('archive.settingsDreamsUnlimited')}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="ar-settings-row">
+                  <span className="ar-settings-label">{t('archive.settingsPlanLabel')}</span>
+                  <span className="ar-settings-value">{accountPlan.status === 'ready' ? planDisplayName(accountPlan.plan, t) : '—'}</span>
+                </div>
+              )}
               <div className="ar-settings-row">
                 <span className="ar-settings-label">{t('archive.settingsLanguageLabel')}</span>
                 <div className="ar-settings-lang-buttons">

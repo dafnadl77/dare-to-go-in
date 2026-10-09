@@ -19,7 +19,9 @@ export async function fetchCreditSummary(): Promise<CreditSummary | null> {
   }
 }
 
-/** The balance alone (the entry gate in App.tsx). null = unknown. */
+/** The balance alone (the entry gate in App.tsx). null = unknown — which is also what the app owner gets: no balance can ever
+    send the owner to Pricing. */
 export async function fetchCreditBalance(): Promise<number | null> {
-  return (await fetchCreditSummary())?.balance ?? null;
+  const summary = await fetchCreditSummary();
+  return summary && !summary.owner ? summary.balance : null;
 }

@@ -201,6 +201,10 @@ export interface Translations {
     settingsNameError: string;
     settingsEmailLabel: string;
     settingsPlanLabel: string;
+    settingsAccountTypeLabel: string;
+    settingsOwnerValue: string;
+    settingsDreamsLabel: string;
+    settingsDreamsUnlimited: string;
     settingsLanguageLabel: string;
     settingsAddressLabel: string;
     settingsAddressFeminine: string;
@@ -341,6 +345,7 @@ export interface Translations {
     mostPopular: string;
     freeLabel: string;
     creditsRequiredNotice: string;
+    ownerUnlimitedNotice: string;
     /** "{count} Dreams" — {count} is replaced with the package's real dream count. */
     dreamsCountLabel: string;
     /** The free tier's display name, shown as the account's package when it has never purchased one. */
@@ -580,6 +585,10 @@ export const en: Translations = {
     settingsNameError: "Couldn't save that name — please check it and try again.",
     settingsEmailLabel: 'Email',
     settingsPlanLabel: 'My package',
+    settingsAccountTypeLabel: 'Account type',
+    settingsOwnerValue: 'App owner',
+    settingsDreamsLabel: 'Dreams',
+    settingsDreamsUnlimited: 'Unlimited ∞',
     settingsLanguageLabel: 'Language',
     settingsAddressLabel: 'How should DARE address me?',
     settingsAddressFeminine: 'Feminine',
@@ -724,6 +733,7 @@ export const en: Translations = {
     mostPopular: 'Most Popular',
     freeLabel: 'Free',
     creditsRequiredNotice: 'Your free dream has been used. Choose a package to keep dreaming.',
+    ownerUnlimitedNotice: 'You already have unlimited access to every dream. No package is needed.',
     dreamsCountLabel: '{count} Dreams',
     planFree: 'Free',
     yourPackage: 'This is your package',
@@ -982,6 +992,10 @@ export const he: Translations = {
     settingsNameError: 'לא הצלחנו לשמור את השם — בדקו אותו ונסו שוב.',
     settingsEmailLabel: 'אימייל',
     settingsPlanLabel: 'החבילה שלי',
+    settingsAccountTypeLabel: 'סוג חשבון',
+    settingsOwnerValue: 'בעלת האפליקציה',
+    settingsDreamsLabel: 'חלומות',
+    settingsDreamsUnlimited: 'ללא הגבלה ∞',
     settingsLanguageLabel: 'שפה',
     settingsAddressLabel: 'איך לפנות אליי?',
     settingsAddressFeminine: 'לשון נקבה',
@@ -1124,6 +1138,7 @@ export const he: Translations = {
     mostPopular: 'הכי פופולרי',
     freeLabel: 'חינם',
     creditsRequiredNotice: 'החלום החינמי שלך נוצל. בחרו חבילה כדי להמשיך לחלום.',
+    ownerUnlimitedNotice: 'כבר יש לך גישה בלתי מוגבלת לכל החלומות. אין צורך ברכישת חבילה.',
     dreamsCountLabel: '{count} חלומות',
     planFree: 'חינמי',
     yourPackage: 'זו החבילה שלך',

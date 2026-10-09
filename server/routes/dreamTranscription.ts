@@ -2,7 +2,7 @@ import OpenAI, { toFile } from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
 import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpResult.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
-import { reserveTrialTranscription, refundTrialTranscription, getCreditBalance } from '../dreamAttempts.js';
+import { reserveTrialTranscription, refundTrialTranscription, getCreditBalance, isAppOwner } from '../dreamAttempts.js';
 import { CREDITS_REQUIRED_MESSAGE, FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 
 // Was gpt-4o-mini-transcribe. Root-caused a real production report of a
@@ -140,7 +140,8 @@ export async function handleDreamTranscription(rawBody: unknown, requestHeaders:
   // starts) while it holds no credit: recording a dream it can never analyze
   // would only be free AI spend. There is deliberately no per-credit
   // transcription quota; recordings stay bounded by the per-request size cap.
-  if (resolved.identity.kind === 'user') {
+  // The app owner (decided server-side from the verified account) records without a balance check.
+  if (resolved.identity.kind === 'user' && (await isAppOwner(resolved.identity.userId)) !== true) {
     const balance = await getCreditBalance(resolved.identity.userId);
     if (balance === null) {
       return withHeaders(errorResult(503, 'not_configured', 'Credit tracking is not configured.'), cookieHeaders);

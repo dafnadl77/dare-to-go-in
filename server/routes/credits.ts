@@ -1,6 +1,6 @@
 import { errorResult, okResult, type HandlerResult } from '../httpResult.js';
 import { verifyBearerToken, type RequestHeaders } from '../callerIdentity.js';
-import { getCreditBalance } from '../dreamAttempts.js';
+import { getCreditBalance, isAppOwner } from '../dreamAttempts.js';
 import { getPaymentOrderState } from '../payments/orderStore.js';
 import { getPurchasedPackage } from '../payments/purchasedPackage.js';
 
@@ -20,6 +20,11 @@ export async function handleCredits(requestHeaders: RequestHeaders, orderId?: st
   const verified = await verifyBearerToken(authHeader);
   if (!verified.ok) {
     return errorResult(verified.status, verified.reason, verified.message);
+  }
+  // The app owner is told so (and nothing else about packages or limits): the UI shows unlimited dreams. Every other account
+  // continues below exactly as before. An unknown role is treated as "not the owner".
+  if ((await isAppOwner(verified.userId)) === true && orderId === undefined) {
+    return okResult({ balance: (await getCreditBalance(verified.userId)) ?? 0, owner: true });
   }
   const balance = await getCreditBalance(verified.userId);
   if (balance === null) {

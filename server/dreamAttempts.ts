@@ -191,6 +191,18 @@ export async function abandonAttempt(identity: CallerIdentity, attemptId: string
   );
 }
 
+/**
+ * Whether this VERIFIED account (the id comes from the validated bearer token, never from the request) is the app owner: the role
+ * is read from the database's service-role-only table via is_app_owner. null = could not be determined (callers fail closed: an
+ * unknown role never grants unlimited access, it only falls back to the regular credit rules).
+ */
+export async function isAppOwner(userId: string): Promise<boolean | null> {
+  const client = getSupabaseServiceClient();
+  if (!client) return null;
+  const { data, error } = await client.rpc('is_app_owner', { p_owner: userId });
+  return error || typeof data !== 'boolean' ? null : data;
+}
+
 /** The account's server-side credit balance; null = could not be determined (callers fail closed). */
 export async function getCreditBalance(userId: string): Promise<number | null> {
   const client = getSupabaseServiceClient();

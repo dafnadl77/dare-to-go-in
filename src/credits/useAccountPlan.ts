@@ -5,6 +5,7 @@ import { fetchCreditSummary } from './credits';
 export type AccountPlanState =
   | { status: 'loading' }
   | { status: 'unavailable' }
+  | { status: 'owner' }
   | { status: 'ready'; plan: PackageId };
 
 /** The package the signed-in account holds (see CreditSummary.plan), fetched once when the screen mounts for that account. */
@@ -16,7 +17,7 @@ export function useAccountPlan(userId: string | undefined): AccountPlanState {
     let cancelled = false;
     fetchCreditSummary().then((summary) => {
       if (cancelled) return;
-      setState({ forUser: userId, value: summary?.plan ? { status: 'ready', plan: summary.plan } : { status: 'unavailable' } });
+      setState({ forUser: userId, value: summary?.owner ? { status: 'owner' } : summary?.plan ? { status: 'ready', plan: summary.plan } : { status: 'unavailable' } });
     });
     return () => {
       cancelled = true;
