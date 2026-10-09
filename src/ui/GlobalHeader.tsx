@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
 import LanguageSwitcher from '../i18n/LanguageSwitcher';
 import './GlobalHeader.css';
@@ -94,6 +95,47 @@ function GlobalNavLinks({ active, onMyDreams, onPackages, onAbout }: GlobalNavLi
   );
 }
 
+/**
+ * True only while some scrolling area of the current screen is scrolled away from its top, i.e. while content may actually be
+ * passing UNDER the fixed header. The header's soft band is shown only then: at rest the header sits over the screen's own
+ * background untouched, and every screen starts its content below it (--gh-h), so nothing is dimmed or covered. Listens in the
+ * capture phase because `scroll` does not bubble (each screen scrolls in its own box, or in the document on the interpretation).
+ */
+function useContentUnderHeader(): boolean {
+  const [under, setUnder] = useState(false);
+  useEffect(() => {
+    let last: Element | null = null;
+    const scrollTopOf = (el: Element) => {
+      // The document only scrolls while the body lets it (the interpretation screen on a phone).
+      if (el === document.scrollingElement && getComputedStyle(document.body).overflowY === 'hidden') return 0;
+      return el.scrollTop;
+    };
+    const onScroll = (e: Event) => {
+      const t = e.target;
+      const el = t instanceof Element ? t : document.scrollingElement;
+      if (!el) return;
+      last = el;
+      setUnder(scrollTopOf(el) > 4);
+    };
+    // A screen that is replaced while scrolled (its scroller disappears) must not leave the band behind.
+    const timer = window.setInterval(() => {
+      if (!last) return;
+      if (!last.isConnected) {
+        last = null;
+        setUnder(false);
+      } else {
+        setUnder(scrollTopOf(last) > 4);
+      }
+    }, 400);
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    return () => {
+      document.removeEventListener('scroll', onScroll, true);
+      window.clearInterval(timer);
+    };
+  }, []);
+  return under;
+}
+
 interface GlobalHeaderProps {
   /** Always navigates Home. On the Hero screen (view === 'dream') App.tsx
       wires this to the journey's OWN handleGoHome (via HeroDream.tsx's
@@ -132,6 +174,7 @@ interface GlobalHeaderProps {
  * for exactly how each screen's own control was adapted.
  */
 export default function GlobalHeader({ onHome, onMyDreams, onPackages, onAbout, active = null }: GlobalHeaderProps) {
+  const contentUnder = useContentUnderHeader();
   return (
     // dir="ltr" on the row itself — every previous per-page brand/nav
     // implementation was physically pinned (brand top-start via `left:`,
@@ -144,7 +187,7 @@ export default function GlobalHeader({ onHome, onMyDreams, onPackages, onAbout, 
     // convention. Hebrew nav labels still render correctly regardless
     // (Hebrew is inherently RTL at the character level; this only fixes
     // the CONTAINER's own left/right placement).
-    <div className="global-header" dir="ltr">
+    <div className="global-header" dir="ltr" data-under={contentUnder ? 'true' : 'false'}>
       <div className="gh-left">
         <BrandMark onHome={onHome} />
       </div>

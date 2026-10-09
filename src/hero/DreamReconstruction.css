@@ -37,6 +37,10 @@
     height: auto;
     min-height: 100%;
     overflow: visible;
+    /* The space the fixed header takes is this screen's own PADDING, so everything inside (the dream's picture, the question,
+       the choices, the interpretation) starts below it. A margin on a child here collapsed through its parents and pushed the
+       whole screen — background included — down instead. */
+    padding-top: var(--gh-h);
   }
 
   .dream-reconstruction:has(.dream-reflection) .dream-stage-bg-layer {
@@ -374,9 +378,8 @@
     left: auto;
     right: auto;
     bottom: auto;
-    /* Starts below the fixed global header, whatever height it has here (--gh-h, index.css), plus a little real empty
-       space so the image never touches the menu. */
-    margin: calc(var(--gh-h) + 10px) 16px 0;
+    /* The header space is the container's padding (above); the picture only keeps its side margins. */
+    margin: 0 16px;
     width: auto;
     height: auto;
   }

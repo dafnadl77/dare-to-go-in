@@ -141,6 +141,26 @@
     display: none;
   }
 
+  /* ---- 5. No animated dots on a phone or tablet. Every small white point that twinkles, drifts, orbits or sparkles is removed
+          (not slowed): the twinkling stars of the cloud stage and of My Dreams, the drifting motes over the dream's picture,
+          the sparks along the writing line and the thought line, the dots orbiting and twinkling on each choice, the particles
+          of the portal and of the Keep / Let it go screen. The clouds, colours, pictures and the rest of the atmosphere stay.
+          Dots that are part of a still background picture are not touched. ---- */
+  :root .dream-stage-stars,
+  :root .ar-stars,
+  :root .dw-motes,
+  :root .dr-image-motes,
+  :root .dr-writing-sparks,
+  :root .dr-node-line-spark,
+  :root .da-choice-sparkle,
+  :root .da-choice-trace-particle,
+  :root .dream-portal-particles,
+  :root .dc-portal-particles,
+  :root .dc-saving-particles,
+  :root .dc-breaking-particles {
+    display: none;
+  }
+
   /* ---- 4. Full-screen backgrounds are sized to the LARGE viewport and pinned to the top: when the browser's address bar
           slides away while the page scrolls they keep their size, so the picture is never re-cropped mid-scroll. ---- */
   :root .dream-stage-bg-layer {

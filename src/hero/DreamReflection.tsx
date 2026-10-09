@@ -120,6 +120,8 @@ export default function DreamReflection({
   const showAiText = useReflectionDisplay(reflectionResult);
   const [responseText, setResponseText] = useState('');
   const [lensesVisible, setLensesVisible] = useState(false);
+  // The short explanation of the symbols-and-meanings lens opens only when the dreamer asks for it.
+  const [lensInfoOpen, setLensInfoOpen] = useState(false);
   const fieldRef = useRef<HTMLDivElement>(null);
   const sequenceRef = useRef<HTMLDivElement>(null);
   const continueWrapRef = useRef<HTMLDivElement>(null);
@@ -323,7 +325,26 @@ export default function DreamReflection({
                 <div className="dr-lenses">
                   {activeLenses.map(([key, text]) => (
                     <p className="dr-lens" key={key}>
-                      <span className="dr-lens-label">{t(LENS_LABEL_KEYS[key])}</span> {showAiText(text as string)}
+                      <span className="dr-lens-label">{t(LENS_LABEL_KEYS[key])}</span>
+                      {key === 'jungian' && (
+                        <button
+                          type="button"
+                          className="dr-lens-info"
+                          data-cursor-hover
+                          aria-expanded={lensInfoOpen}
+                          aria-controls="dr-lens-info-text"
+                          aria-label={t('reflection.jungianInfoAria')}
+                          onClick={() => setLensInfoOpen((v) => !v)}
+                        >
+                          i
+                        </button>
+                      )}
+                      {key === 'jungian' && lensInfoOpen && (
+                        <span id="dr-lens-info-text" className="dr-lens-info-text" role="note">
+                          {t('reflection.jungianInfo')}
+                        </span>
+                      )}{' '}
+                      {showAiText(text as string)}
                     </p>
                   ))}
                 </div>

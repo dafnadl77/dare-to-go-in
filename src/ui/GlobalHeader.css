@@ -33,26 +33,27 @@
   pointer-events: none;
 }
 
-/* A soft dark band behind the header on every screen whose content scrolls beneath it (everything except the Hero landing,
-   which never scrolls; the interpretation screen is the one Hero phase that does). Without it, scrolled text ran straight
-   through the menu. The band fades out below the header, so it reads as a shadow rather than a bar. */
+/* A soft dark band behind the header, shown ONLY while some scrolling content is actually passing under it (the data-under flag is
+   set by GlobalHeader.tsx from real scroll positions). At rest — the moment a screen opens — it is invisible, so it never
+   darkens or covers a screen's own background or the top of a picture. It is exactly as tall as the header, so it can never reach
+   the content below. */
 .global-header::before {
   content: '';
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: calc(var(--gh-h) + 14px);
+  height: var(--gh-h);
   z-index: -1;
   pointer-events: none;
   opacity: 0;
-  background: linear-gradient(to bottom, rgba(3, 6, 14, 0.96) 0%, rgba(3, 6, 14, 0.92) 72%, rgba(3, 6, 14, 0) 100%);
+  transition: opacity 0.2s var(--ease-soft);
+  background: linear-gradient(to bottom, rgba(3, 6, 14, 0.94) 0%, rgba(3, 6, 14, 0.9) 70%, rgba(3, 6, 14, 0) 100%);
 }
 
 /* Phones and tablets only: on a wide screen the header has always floated over the page exactly as designed. */
 @media (max-width: 900px), (max-height: 500px), (pointer: coarse) {
-  body:not(:has(.hero-dream)) .global-header::before,
-  body:has(.dream-reflection) .global-header::before {
+  .global-header[data-under='true']::before {
     opacity: 1;
   }
 }

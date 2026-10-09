@@ -122,6 +122,8 @@ export interface Translations {
     hideOtherLenses: string;
     cognitive: string;
     jungian: string;
+    jungianInfoAria: string;
+    jungianInfo: string;
     psychodynamic: string;
   };
   closing: {
@@ -503,7 +505,9 @@ export const en: Translations = {
     seeOtherLenses: 'SEE OTHER LENSES',
     hideOtherLenses: 'HIDE OTHER LENSES',
     cognitive: 'COGNITIVE',
-    jungian: 'JUNGIAN',
+    jungian: 'INTERPRETATION THROUGH SYMBOLS & MEANINGS',
+    jungianInfoAria: 'What is this?',
+    jungianInfo: 'An approach inspired by the psychologist Carl Jung, which looks at the symbols and images in a dream and the personal meaning they may hold.',
     psychodynamic: 'PSYCHODYNAMIC',
   },
   closing: {
@@ -910,7 +914,9 @@ export const he: Translations = {
     seeOtherLenses: 'זוויות נוספות',
     hideOtherLenses: 'הסתרת הזוויות',
     cognitive: 'קוגניטיבי',
-    jungian: 'יונגיאני',
+    jungian: 'פרשנות דרך סמלים ומשמעויות',
+    jungianInfoAria: 'מה זה?',
+    jungianInfo: 'גישה בהשראת הפסיכולוג קרל יונג, הבוחנת סמלים ודימויים בחלום ואת המשמעות האישית האפשרית שלהם.',
     psychodynamic: 'פסיכודינמי',
   },
   closing: {
