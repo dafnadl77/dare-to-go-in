@@ -34,6 +34,8 @@ export interface RecorderEnv {
   requestFrame: (cb: FrameRequestCallback) => number;
   cancelFrame: (id: number) => void;
   now: () => number;
+  /** The ids of the audio INPUT devices the browser knows about (never the virtual "default"/"communications" aliases). Optional. */
+  listAudioInputs?: (() => Promise<string[]>) | null;
 }
 
 // onstart fires essentially immediately after MediaRecorder.start() on a
@@ -61,6 +63,10 @@ export function pickRecorderMimeType(ctor: { isTypeSupported(type: string): bool
   return '';
 }
 
+/** The default microphone could not be opened for a DEVICE reason (not a refused permission): worth trying the other inputs. */
+const DEVICE_FALLBACK_ERRORS: ReadonlySet<string> = new Set(['NotFoundError', 'DevicesNotFoundError', 'NotReadableError', 'TrackStartError', 'OverconstrainedError', 'ConstraintNotSatisfiedError', 'AbortError']);
+export const MAX_DEVICE_FALLBACKS = 4;
+
 export function browserRecorderEnv(): RecorderEnv {
   const w = window as typeof window & { webkitAudioContext?: typeof AudioContext };
   return {
@@ -70,6 +76,12 @@ export function browserRecorderEnv(): RecorderEnv {
     requestFrame: (cb) => requestAnimationFrame(cb),
     cancelFrame: (id) => cancelAnimationFrame(id),
     now: () => performance.now(),
+    listAudioInputs: navigator.mediaDevices?.enumerateDevices
+      ? async () =>
+          (await navigator.mediaDevices.enumerateDevices())
+            .filter((d) => d.kind === 'audioinput' && d.deviceId && d.deviceId !== 'default' && d.deviceId !== 'communications')
+            .map((d) => d.deviceId)
+      : null,
   };
 }
 
@@ -147,6 +159,37 @@ export class DreamRecorderController {
   }
 
   /**
+   * Opens the microphone. The browser's default input first; if THAT fails for a device reason (not found, in use, no longer
+   * available — e.g. the default is a headset that is switched off or held by another app, or a disabled virtual device), each
+   * other input the browser lists is tried in turn (a few at most), so a working microphone is not ignored just because the
+   * default one is not. A refused permission is never retried. If nothing works, the FIRST error is the one reported.
+   */
+  private async acquireStream(getUserMedia: (constraints: MediaStreamConstraints) => Promise<MediaStream>, generation: number): Promise<MediaStream> {
+    try {
+      return await getUserMedia({ audio: true });
+    } catch (first) {
+      const name = first instanceof Error ? first.name : '';
+      const list = this.env.listAudioInputs;
+      if (!DEVICE_FALLBACK_ERRORS.has(name) || !list) throw first;
+      let ids: string[];
+      try {
+        ids = await list();
+      } catch {
+        throw first;
+      }
+      for (const id of ids.slice(0, MAX_DEVICE_FALLBACKS)) {
+        if (this.isStale(generation)) throw first;
+        try {
+          return await getUserMedia({ audio: { deviceId: { exact: id } } });
+        } catch {
+          // try the next input
+        }
+      }
+      throw first;
+    }
+  }
+
+  /**
    * Creates/resumes the AudioContext synchronously. Call this directly from
    * the real user gesture (pointerdown) — some mobile browsers (notably iOS
    * Safari) refuse to unlock audio from a delayed callback like a timeout.
@@ -210,7 +253,7 @@ export class DreamRecorderController {
     let stream: MediaStream | null = null;
     let recorder: MediaRecorder | null = null;
     try {
-      stream = await getUserMedia({ audio: true });
+      stream = await this.acquireStream(getUserMedia, generation);
       // The dreamer may have left (or reset) while the permission prompt was
       // open: never adopt a stream nobody is waiting for.
       if (this.isStale(generation)) {
