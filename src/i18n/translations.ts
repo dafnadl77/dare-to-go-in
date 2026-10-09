@@ -54,6 +54,8 @@ export interface Translations {
     micNoDevice: string;
     writeYourDream: string;
     writeSomethingFirst: string;
+    liveWordsUnavailable: string;
+    liveWordsKept: string;
     micBusy: string;
     micInsecure: string;
     micUnsupported: string;
@@ -429,6 +431,8 @@ export const en: Translations = {
     micNoDevice: 'We couldn’t find a microphone on this device. You can tell us your dream by writing it.',
     writeYourDream: 'Write your dream',
     writeSomethingFirst: 'Write a few words about your dream to continue.',
+    liveWordsUnavailable: 'Recording in progress. Your words will appear when you finish.',
+    liveWordsKept: 'I couldn’t finish the accurate transcript, so I kept the words I caught while you spoke. Please check them.',
     micBusy: 'The microphone is in use by another app or isn’t available right now.',
     micInsecure: 'Voice recording only works on a secure (https) page.',
     micUnsupported: 'This browser doesn’t support voice recording.',
@@ -829,6 +833,8 @@ export const he: Translations = {
     micNoDevice: 'לא מצאנו מיקרופון במכשיר הזה. אפשר לספר לנו את החלום בכתיבה.',
     writeYourDream: 'כתיבת החלום',
     writeSomethingFirst: 'כתבו כמה מילים על החלום כדי להמשיך.',
+    liveWordsUnavailable: 'ההקלטה מתבצעת. המילים יופיעו כשתסיימו.',
+    liveWordsKept: 'לא הצלחתי להשלים את התמלול המדויק, אז שמרתי את המילים שקלטתי בזמן שדיברתם. כדאי לעבור עליהן.',
     micBusy: 'המיקרופון בשימוש של אפליקציה אחרת או לא זמין כרגע.',
     micInsecure: 'הקלטה קולית עובדת רק בעמוד מאובטח (https).',
     micUnsupported: 'הדפדפן הזה לא תומך בהקלטה קולית.',

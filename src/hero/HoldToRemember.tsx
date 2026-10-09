@@ -17,6 +17,14 @@ import { takeDreamDraft } from './dreamDraft';
 import { classifyMicFailure, MIC_FAILURE_MESSAGE_KEY, type MicFailureKind } from './micFailure';
 import { useMicAvailability } from './micAvailability';
 import { hasDreamText, submitTypedDream } from './dreamEntry';
+import {
+  STALL_SPEECH_MS,
+  browserStore,
+  disableLiveWords,
+  isCollision,
+  isLiveWordsDisabled,
+  nextStallSpeechMs,
+} from './liveWordsPolicy';
 import { getAppLanguage, normalizeTranscriptionLanguage } from './appLanguage';
 import { useLivePreviewTranscript } from './useLivePreviewTranscript';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -142,6 +150,9 @@ export default function HoldToRemember({
   const [isListening, setIsListening] = useState(false);
   const [entry, setEntry] = useState('');
   const dreamHasText = hasDreamText(entry);
+  useEffect(() => {
+    entryRef.current = entry;
+  }, [entry]);
   const [finishing, setFinishing] = useState(false);
   // The specific reason the mic fell back to TYPE — purely a local
   // display concern, so this doesn't need to be lifted to HeroDream.tsx
@@ -161,6 +172,18 @@ export default function HoldToRemember({
   const [canRetryTranscription, setCanRetryTranscription] = useState(false);
   // I'M DONE was pressed with nothing written: the box stays, with a gentle note, and nothing is sent anywhere.
   const [doneBlocked, setDoneBlocked] = useState(false);
+  // Live words are honest about themselves: when they are not running (this browser has none, this device is remembered as
+  // competing with the recording for the microphone, they stopped, or they have heard nothing while the dreamer clearly speaks),
+  // the recording panel says plainly that the transcript will appear at the end instead of promising words that never come.
+  const [liveSkipped, setLiveSkipped] = useState(false);
+  const [liveStalled, setLiveStalled] = useState(false);
+  // The words the browser caught live at the moment the dreamer finished: the fallback if the recording cannot be transcribed.
+  const liveHeardRef = useRef('');
+  // The typing box holds exactly this fallback (not yet edited by the dreamer): an accurate transcript may replace it.
+  const entryIsLiveFallbackRef = useRef(false);
+  const entryRef = useRef('');
+  const lastVisibilityChangeRef = useRef(0);
+  const livePreviewElRef = useRef<HTMLParagraphElement>(null);
   const rafRef = useRef(0);
   const startRef = useRef(0);
   const listenTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -182,22 +205,11 @@ export default function HoldToRemember({
   // transcript always comes from recorder.audioBlob -> OpenAI below.
   const livePreview = useLivePreviewTranscript();
   const { t, language } = useLanguage();
-  // Gates live preview to hover-capable devices only (desktop) — the same
-  // `(hover: none)` signal MemoryVeil.tsx already uses to detect
-  // touch-primary devices. This is the one platform boundary that must
-  // never be crossed: on Android Chrome specifically, getUserMedia
-  // hijacks the audio stream when browser SpeechRecognition and
-  // MediaRecorder both request the mic at once (a real, confirmed
-  // Chromium issue — 41083534), which would silently corrupt the actual
-  // recorded audio, not just the preview. Desktop has no such conflict —
-  // the only prior objection there was live-preview TEXT QUALITY (real
-  // Hebrew speech sometimes came back garbled from SpeechRecognition
-  // itself), which is now an accepted tradeoff since this text is always
-  // discarded in favor of the real OpenAI transcript the moment it's
-  // ready. Read once per mount (a live language/pointer-type change
-  // mid-session is not a case worth reacting to for a decorative
-  // preview); `typeof window` guards SSR, though this app has none today.
-  const isTouchPrimaryRef = useRef(typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches);
+  // Live words run on phones and tablets too, in the browsers that have them. The one real risk there is that a phone lets only one
+  // consumer hold the microphone, so running SpeechRecognition beside the MediaRecorder can silence the recording (Chromium issue
+  // 41083534 on Android; WebKit has similar audio-session conflicts). That cannot be known from a feature test, so it is WATCHED:
+  // the recording's microphone stream being muted/ended while the live words run (page in the foreground) switches the live words
+  // off at once and remembers the device (liveWordsPolicy.ts), and the recording itself is never touched either way.
 
   const tick = useCallback(() => {
     const elapsed = performance.now() - startRef.current;
@@ -212,6 +224,8 @@ export default function HoldToRemember({
   const commitToListening = useCallback(async () => {
     setMicUnavailable(false);
     setMicErrorMessage(null);
+    setLiveSkipped(false);
+    setLiveStalled(false);
 
     // Races the real permission/recording request against a bounded
     // timeout — see MIC_REQUEST_TIMEOUT_MS above for why this exists.
@@ -241,15 +255,16 @@ export default function HoldToRemember({
       markMicAvailable();
       if (holdRef.current) holdRef.current.active = false;
       setCentralMode('recording');
-      // Re-enabled, desktop/hover-capable only — see isTouchPrimaryRef's
-      // own comment above for exactly why touch-primary devices (Android
-      // Chrome's real mic-hijack conflict) are excluded while desktop's
-      // earlier "text quality" objection is now an accepted tradeoff for
-      // a preview that's always discarded in favor of the real OpenAI
-      // transcript. Never affects recorder.start()/finish() or what
-      // actually gets submitted — this is strictly additional, optional
-      // UI on top of the unchanged MediaRecorder pipeline.
-      if (!isTouchPrimaryRef.current) livePreview.start(getAppLanguage());
+      // Live words start only AFTER the recording is confirmed running, on every device — unless this device was found to compete
+      // with the recording for the microphone (then the panel says the transcript will appear at the end). Never affects
+      // recorder.start()/finish() or what actually gets submitted: strictly additional, optional UI on top of the recording.
+      if (isLiveWordsDisabled(browserStore(), Date.now())) {
+        // Nothing from an earlier recording may linger as this one's live text (or as its fallback words).
+        livePreview.reset();
+        setLiveSkipped(true);
+      } else {
+        livePreview.start(getAppLanguage());
+      }
     } else {
       const timedOut = result === 'timeout';
       if (holdRef.current) {
@@ -409,6 +424,7 @@ export default function HoldToRemember({
 
   const handleEntryChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setEntry(e.target.value);
+    entryIsLiveFallbackRef.current = false;
     if (doneBlocked && hasDreamText(e.target.value)) setDoneBlocked(false);
     onTypedTranscriptChange(e.target.value);
   };
@@ -569,6 +585,7 @@ export default function HoldToRemember({
     setFinishing(true);
     clearTimeout(recordingMaxDurationTimeoutRef.current);
     pendingTranscriptionRef.current = true;
+    liveHeardRef.current = livePreview.heardText();
     recorder.finish();
     // The preview's job ends here — the real, authoritative transcript
     // comes from the effect below once OpenAI responds. Stop (not
@@ -604,6 +621,71 @@ export default function HoldToRemember({
     requestAnimationFrame(decay);
   }, [recorder, holdRef, setCentralMode, livePreview]);
 
+  // Is the page in the foreground? Phones mute capture when a page goes to the background; that is not a collision.
+  useEffect(() => {
+    lastVisibilityChangeRef.current = Date.now();
+    const onVisibility = () => {
+      lastVisibilityChangeRef.current = Date.now();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
+
+  // The recording's microphone stream stopped delivering while the live words were running: they compete for the microphone on
+  // this device. Switch them off at once (the recording is untouched), remember the device, and say so honestly.
+  const livePreviewStatusRef = useRef(livePreview.status);
+  useEffect(() => {
+    livePreviewStatusRef.current = livePreview.status;
+  }, [livePreview.status]);
+  const { setInterruptionHandler } = recorder;
+  const { abort: abortLivePreview } = livePreview;
+  useEffect(() => {
+    setInterruptionHandler((reason) => {
+      const running = livePreviewStatusRef.current === 'starting' || livePreviewStatusRef.current === 'live';
+      if (!running) return;
+      const collision = isCollision({
+        now: Date.now(),
+        lastVisibilityChangeAt: lastVisibilityChangeRef.current,
+        pageHidden: document.visibilityState === 'hidden',
+      });
+      if (!collision) return;
+      console.warn(`speech_preview_conflict capture=${reason}`);
+      abortLivePreview(`capture-${reason}`);
+      disableLiveWords(browserStore(), Date.now(), reason);
+      setLiveSkipped(true);
+    });
+    return () => setInterruptionHandler(null);
+  }, [setInterruptionHandler, abortLivePreview]);
+
+  // Live words that stay empty while the dreamer is clearly speaking (some phones start the recognizer and never deliver a word,
+  // without any error): say that the transcript will appear at the end instead of leaving a silent promise.
+  const hasLiveWords = livePreview.previewText !== '';
+  const { audioLevelRef } = recorder;
+  useEffect(() => {
+    if (hasLiveWords) setLiveStalled(false);
+  }, [hasLiveWords]);
+  useEffect(() => {
+    if (centralMode !== 'recording') return;
+    let spokenMs = 0;
+    let last = performance.now();
+    const timer = setInterval(() => {
+      const now = performance.now();
+      spokenMs = nextStallSpeechMs(spokenMs, audioLevelRef.current?.level ?? 0, now - last, hasLiveWords);
+      last = now;
+      if (spokenMs >= STALL_SPEECH_MS) setLiveStalled(true);
+    }, 500);
+    return () => clearInterval(timer);
+  }, [centralMode, audioLevelRef, hasLiveWords]);
+
+  // A long dream makes the live text longer than its box: keep the newest words in view.
+  useEffect(() => {
+    const el = livePreviewElRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [livePreview.previewText]);
+
+  const liveNoteVisible =
+    centralMode === 'recording' && (liveSkipped || liveStalled || livePreview.status === 'unsupported' || livePreview.status === 'stopped');
+
   // Additive safety valve, not a UX feature to advertise — a real dreamer
   // finishes in well under this. Starts counting only once recording is
   // genuinely confirmed (centralMode reaching 'recording'), and is cleared
@@ -623,6 +705,18 @@ export default function HoldToRemember({
   // comes back into `entry` — the exact same state TYPE mode's own
   // textarea/submit uses — so review/edit/submit is one unified path
   // regardless of how the words got there.
+  // When the accurate transcript could not be produced, the words the browser caught while the dreamer spoke are put in the (empty)
+  // box so nothing said is lost; they are editable, and an accurate transcript later replaces them only while they are untouched.
+  // Returns whether they were kept. A box the dreamer already wrote in is never touched.
+  const keepLiveWords = useCallback((): boolean => {
+    const heard = liveHeardRef.current.trim();
+    if (!hasDreamText(heard) || hasDreamText(entryRef.current)) return false;
+    entryIsLiveFallbackRef.current = true;
+    setEntry(heard);
+    onTypedTranscriptChange(heard);
+    return true;
+  }, [onTypedTranscriptChange]);
+
   // Sends one recording to /api/dream-transcription. The result is applied only if this is still the active request (a deliberate
   // Close, or a newer recording, supersedes it). Success fills the typing box; any failure says which stage failed and still lands
   // in the typing box, keeping the recording so "try again" can send it once more.
@@ -642,11 +736,17 @@ export default function HoldToRemember({
 
           if (result.status === 'ok') {
             lastRecordingRef.current = null;
-            setEntry(result.transcript);
-            onTypedTranscriptChange(result.transcript);
+            // The accurate transcript fills an empty box, or replaces the live words kept as a fallback (not yet edited). Words the
+            // dreamer typed or edited are never overwritten: the transcript is added after them.
+            const current = entryRef.current;
+            const text =
+              hasDreamText(current) && !entryIsLiveFallbackRef.current ? `${current.trimEnd()}\n\n${result.transcript}` : result.transcript;
+            entryIsLiveFallbackRef.current = false;
+            setEntry(text);
+            onTypedTranscriptChange(text);
             setTranscriptionErrorMessage(null);
           } else {
-            setTranscriptionErrorMessage(describeTranscriptionFailure(result.reason, t));
+            setTranscriptionErrorMessage(keepLiveWords() ? t('hold.liveWordsKept') : describeTranscriptionFailure(result.reason, t));
             setCanRetryTranscription(RETRYABLE_TRANSCRIPTION_FAILURES.has(result.reason));
           }
           setCentralMode('typing');
@@ -656,13 +756,13 @@ export default function HoldToRemember({
           // usable state instead of being stranded on TRANSCRIBING… forever.
           if (transcribeAbortRef.current !== controller) return;
           transcribeAbortRef.current = null;
-          setTranscriptionErrorMessage(t('hold.transcriptionFailed'));
+          setTranscriptionErrorMessage(keepLiveWords() ? t('hold.liveWordsKept') : t('hold.transcriptionFailed'));
           setCanRetryTranscription(true);
           setCentralMode('typing');
         },
       );
     },
-    [onTypedTranscriptChange, setCentralMode, t],
+    [onTypedTranscriptChange, setCentralMode, t, keepLiveWords],
   );
 
   // The real audio blob shows up asynchronously via MediaRecorder's onstop, after handleFinishDream already returns. Once it
@@ -674,14 +774,14 @@ export default function HoldToRemember({
     const blob = recorder.audioBlob;
 
     if (blob.size === 0) {
-      setTranscriptionErrorMessage(t('hold.transcriptionFailed'));
+      setTranscriptionErrorMessage(keepLiveWords() ? t('hold.liveWordsKept') : t('hold.transcriptionFailed'));
       setCentralMode('typing');
       return;
     }
 
     lastRecordingRef.current = blob;
     runTranscription(blob);
-  }, [recorder.audioBlob, runTranscription, setCentralMode, t]);
+  }, [recorder.audioBlob, runTranscription, setCentralMode, t, keepLiveWords]);
 
   const handleRetryTranscription = () => {
     const blob = lastRecordingRef.current;
@@ -785,30 +885,29 @@ export default function HoldToRemember({
         <p className="central-recording-heading">{t('hold.imListening')}</p>
         <p className="central-recording-subheading">{t('hold.tellMeEverything')}</p>
         <div className="central-recording-orb-wrap">
-          {/* A soft ring that ripples outward and glows with real mic
-              amplitude (see the audio-reactive frame loop above) — the
+          {/* A soft ring that ripples outward and glows with real
+              mic amplitude (see the audio-reactive frame loop above) — the
               "DARE is hearing you" cue on every platform, live words or
-              not (touch-primary devices below never get live words —
-              see isTouchPrimaryRef above — so the orb/ripple stays their
-              only real-time feedback). */}
+              not (when live words are unavailable it is the dreamer's only
+              real-time feedback, together with the note below). */}
           <div ref={rippleRef} className="central-recording-ripple" aria-hidden="true" />
           <div ref={orbRef} className="central-recording-orb" aria-hidden="true" />
         </div>
-        {/* Purely cosmetic — see useLivePreviewTranscript.ts. Only ever
-            populated on hover-capable (desktop) devices — see
-            isTouchPrimaryRef's comment above for why touch-primary
-            devices never start this at all, so previewText simply stays
-            '' there and nothing renders. Explicit dir (not "auto") so a
-            short or ambiguous interim result can't be mis-detected —
-            this always matches the active UI language, which is also the
-            language passed to livePreview.start(). The authoritative
-            transcript always comes from OpenAI after FINISH DREAM,
-            which replaces this text entirely once it arrives (see the
-            audioBlob effect below) — this is never read by anything that
-            decides what actually gets submitted. */}
+        {/* Purely cosmetic — see useLivePreviewTranscript.ts. Explicit
+            dir (not "auto") so a short or ambiguous interim result can't
+            be mis-detected — this always matches the active UI language,
+            which is also the language passed to livePreview.start(). The
+            authoritative transcript always comes from the server after
+            FINISH DREAM; it is never read by anything that decides what
+            actually gets submitted. */}
         {livePreview.previewText && (
-          <p className="central-live-preview" dir={language === 'he' ? 'rtl' : 'ltr'}>
+          <p ref={livePreviewElRef} className="central-live-preview" dir={language === 'he' ? 'rtl' : 'ltr'}>
             {livePreview.previewText}
+          </p>
+        )}
+        {liveNoteVisible && (
+          <p className="central-live-note" role="status">
+            {t('hold.liveWordsUnavailable')}
           </p>
         )}
         <button

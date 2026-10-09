@@ -3,10 +3,11 @@ import {
   DreamRecorderController,
   browserRecorderEnv,
   type AudioLevelState,
+  type CaptureInterruption,
   type RecordingState,
 } from './dreamRecorderController';
 
-export type { AudioLevelState, RecordingState };
+export type { AudioLevelState, CaptureInterruption, RecordingState };
 
 interface DreamRecorderApi {
   recordingState: RecordingState;
@@ -40,6 +41,8 @@ interface DreamRecorderApi {
   start: () => Promise<boolean>;
   finish: () => void;
   reset: () => void;
+  /** Told when the microphone stream is muted/ended while recording (observational only). */
+  setInterruptionHandler: (handler: ((reason: CaptureInterruption) => void) | null) => void;
 }
 
 /**
@@ -81,5 +84,6 @@ export function useDreamRecorder(): DreamRecorderApi {
     start: controller.start,
     finish: controller.finish,
     reset: controller.reset,
+    setInterruptionHandler: controller.setInterruptionHandler,
   };
 }

@@ -50,8 +50,14 @@ export interface LivePreviewEnv {
   warn: (message: string) => void;
 }
 
+/** idle = not started; starting = asked, nothing heard yet; live = words have arrived; stopped = ended (finished, failed or
+    aborted); unsupported = this browser has no SpeechRecognition at all. */
+export type LivePreviewStatus = 'idle' | 'starting' | 'live' | 'stopped' | 'unsupported';
+
 export interface LivePreviewListener {
   onText: (finalText: string, interimText: string) => void;
+  /** Optional: told whenever the status changes (the screen uses it to be honest about whether live words are really running). */
+  onStatus?: (status: LivePreviewStatus) => void;
 }
 
 /** Errors that are not a failure of the feature: the session is simply started again. */
@@ -75,6 +81,8 @@ export function browserLivePreviewEnv(): LivePreviewEnv {
 export class LivePreviewController {
   /** Why the preview stopped for good, if it did (a browser error code); null while it is running or was never started. */
   errorCode: string | null = null;
+  /** Whether live words are running right now (see LivePreviewStatus). */
+  status: LivePreviewStatus = 'idle';
 
   private recognition: SpeechRecognitionLike | null = null;
   private wanted = false;
@@ -97,9 +105,16 @@ export class LivePreviewController {
     this.listener.onText(this.finalText, this.interimText);
   }
 
+  private setStatus(status: LivePreviewStatus): void {
+    if (this.status === status) return;
+    this.status = status;
+    this.listener.onStatus?.(status);
+  }
+
   private fail(code: string): void {
     this.wanted = false;
     this.errorCode = code;
+    this.setStatus('stopped');
     if (!this.warned) {
       this.warned = true;
       this.env.warn(`speech_preview_stopped code=${code}`);
@@ -108,7 +123,10 @@ export class LivePreviewController {
 
   private attach(): void {
     const create = this.env.createRecognition;
-    if (!create) return;
+    if (!create) {
+      this.setStatus('unsupported');
+      return;
+    }
 
     let recognition: SpeechRecognitionLike;
     try {
@@ -124,6 +142,7 @@ export class LivePreviewController {
 
     recognition.onresult = (event) => {
       this.restarts = 0; // it is hearing the dreamer: the silence budget starts over
+      if (this.wanted) this.setStatus('live');
       let interim = '';
       let finalChunk = '';
       for (let i = event.resultIndex; i < event.results.length; i += 1) {
@@ -172,6 +191,8 @@ export class LivePreviewController {
     this.finalText = '';
     this.interimText = '';
     this.lang = lang === 'he' ? 'he-IL' : 'en-US';
+    this.status = 'idle';
+    this.setStatus(this.env.createRecognition ? 'starting' : 'unsupported');
     this.emit();
     if (this.restartTimer !== null) {
       this.env.clearTimeout(this.restartTimer);
@@ -188,6 +209,7 @@ export class LivePreviewController {
 
   stop(): void {
     this.wanted = false;
+    if (this.status === 'starting' || this.status === 'live') this.setStatus('stopped');
     if (this.restartTimer !== null) {
       this.env.clearTimeout(this.restartTimer);
       this.restartTimer = null;
@@ -197,6 +219,27 @@ export class LivePreviewController {
     } catch {
       // disposable — nothing to react to
     }
+  }
+
+  /** Switches the live words off at once and keeps the reason (used when they are suspected of competing with the recording
+      for the microphone). Unlike stop(), the session is aborted, not allowed to deliver a last result. */
+  abort(code: string): void {
+    this.wanted = false;
+    if (this.restartTimer !== null) {
+      this.env.clearTimeout(this.restartTimer);
+      this.restartTimer = null;
+    }
+    try {
+      this.recognition?.abort();
+    } catch {
+      // disposable
+    }
+    this.fail(code);
+  }
+
+  /** What was heard so far (final + interim), for a fallback when the recording itself could not be transcribed. */
+  get heardText(): string {
+    return [this.finalText, this.interimText].filter(Boolean).join(' ').trim();
   }
 
   reset(): void {

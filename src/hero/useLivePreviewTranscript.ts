@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { LivePreviewController, browserLivePreviewEnv } from './livePreviewController';
+import { LivePreviewController, browserLivePreviewEnv, type LivePreviewStatus } from './livePreviewController';
 
 /**
  * Purely cosmetic, best-effort live transcript preview shown WHILE
@@ -23,11 +23,18 @@ interface LivePreviewApi {
   start: (lang: 'en' | 'he') => void;
   stop: () => void;
   reset: () => void;
+  /** Whether live words are really running (idle / starting / live / stopped / unsupported). */
+  status: LivePreviewStatus;
+  /** Switches the live words off at once, keeping the reason (suspected microphone competition). */
+  abort: (code: string) => void;
+  /** Everything heard so far — read at the moment the dreamer finishes, as a fallback if the recording cannot be transcribed. */
+  heardText: () => string;
 }
 
 export function useLivePreviewTranscript(): LivePreviewApi {
   const [finalText, setFinalText] = useState('');
   const [interimText, setInterimText] = useState('');
+  const [status, setStatus] = useState<LivePreviewStatus>('idle');
 
   const [controller] = useState(
     () =>
@@ -36,14 +43,17 @@ export function useLivePreviewTranscript(): LivePreviewApi {
           setFinalText(finalPart);
           setInterimText(interimPart);
         },
+        onStatus: setStatus,
       }),
   );
 
   const start = useCallback((lang: 'en' | 'he') => controller.start(lang), [controller]);
   const stop = useCallback(() => controller.stop(), [controller]);
   const reset = useCallback(() => controller.reset(), [controller]);
+  const abort = useCallback((code: string) => controller.abort(code), [controller]);
+  const heardText = useCallback(() => controller.heardText, [controller]);
 
   const previewText = interimText ? (finalText ? `${finalText} ${interimText}` : interimText) : finalText;
 
-  return { previewText, start, stop, reset };
+  return { previewText, start, stop, reset, status, abort, heardText };
 }

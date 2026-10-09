@@ -89,6 +89,10 @@ function stopTracks(stream: MediaStream | null): void {
   stream?.getTracks().forEach((t) => t.stop());
 }
 
+/** Why the microphone stream stopped delivering while a recording was open: 'muted' = the browser/OS took the input away (another
+    capture started, a call, the page went to the background), 'ended' = the input is gone for good. */
+export type CaptureInterruption = 'muted' | 'ended';
+
 export class DreamRecorderController {
   /** Same value as the last onError, readable synchronously right after start() resolves (see useDreamRecorder). */
   readonly errorRef: { current: string | null } = { current: null };
@@ -108,6 +112,10 @@ export class DreamRecorderController {
   private disposed = false;
   /** Releases a start() that is waiting on the recorder's own onstart (called by reset()/dispose()). */
   private settleStartWait: ((ok: boolean) => void) | null = null;
+  /** Told when the live microphone stream stops delivering audio (see CaptureInterruption). Observational only: it never
+      touches the recording. */
+  private interruptionHandler: ((reason: CaptureInterruption) => void) | null = null;
+  private unwatchTracks: (() => void) | null = null;
 
   private readonly env: RecorderEnv;
   private readonly listener: RecorderListener;
@@ -127,6 +135,8 @@ export class DreamRecorderController {
   }
 
   private teardown(): void {
+    this.unwatchTracks?.();
+    this.unwatchTracks = null;
     this.env.cancelFrame(this.raf);
     stopTracks(this.stream);
     this.stream = null;
@@ -136,6 +146,30 @@ export class DreamRecorderController {
     this.audioCtx = null;
     this.analyser = null;
     this.recorder = null;
+  }
+
+  /** Registers (or clears, with null) the one listener told when the microphone stream is muted or ended mid-recording. */
+  setInterruptionHandler = (handler: ((reason: CaptureInterruption) => void) | null): void => {
+    this.interruptionHandler = handler;
+  };
+
+  /** Watches the audio tracks of the recording stream. Purely observational (listeners only report); a stream that cannot be
+      watched (no addEventListener) is simply not watched. */
+  private watchTracks(stream: MediaStream): void {
+    const tracks = typeof stream.getAudioTracks === 'function' ? stream.getAudioTracks() : [];
+    const cleanups: Array<() => void> = [];
+    for (const track of tracks) {
+      if (typeof track.addEventListener !== 'function') continue;
+      const onMute = () => this.interruptionHandler?.('muted');
+      const onEnded = () => this.interruptionHandler?.('ended');
+      track.addEventListener('mute', onMute);
+      track.addEventListener('ended', onEnded);
+      cleanups.push(() => {
+        track.removeEventListener('mute', onMute);
+        track.removeEventListener('ended', onEnded);
+      });
+    }
+    this.unwatchTracks = () => cleanups.forEach((c) => c());
   }
 
   /** Releases a stream/recorder an abandoned start() had already acquired. */
@@ -343,6 +377,7 @@ export class DreamRecorderController {
       }
 
       this.startTime = this.env.now();
+      this.watchTracks(stream);
       this.runAnalyserLoop();
       this.listener.onState('recording');
       return true;

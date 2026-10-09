@@ -476,6 +476,24 @@
   color: var(--dream-white);
   text-align: start;
   opacity: 0.92;
+  /* a long dream must not grow past the screen: the box scrolls (to the newest words) instead */
+  max-height: min(5.6em, 16vh);
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  text-shadow: 0 0.04em 0.5em rgba(0, 0, 0, 0.4);
+}
+
+/* Live words are not running on this device/browser: an honest line instead of a promise. */
+.central-live-note {
+  width: 100%;
+  margin: -0.6rem 0 1.6rem;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: clamp(0.88rem, 1.9vw, 1rem);
+  line-height: 1.55;
+  color: var(--dream-warm-neutral);
+  text-align: center;
+  opacity: 0.9;
   text-shadow: 0 0.04em 0.5em rgba(0, 0, 0, 0.4);
 }
 
