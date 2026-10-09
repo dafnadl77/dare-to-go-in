@@ -53,6 +53,7 @@ export interface Translations {
     micDenied: string;
     micNoDevice: string;
     writeYourDream: string;
+    writeSomethingFirst: string;
     micBusy: string;
     micInsecure: string;
     micUnsupported: string;
@@ -427,6 +428,7 @@ export const en: Translations = {
     micDenied: 'Microphone access is blocked. Click the lock icon (or “Site settings”) in the address bar, allow the microphone, then try again.',
     micNoDevice: 'We couldn’t find a microphone on this device. You can tell us your dream by writing it.',
     writeYourDream: 'Write your dream',
+    writeSomethingFirst: 'Write a few words about your dream to continue.',
     micBusy: 'The microphone is in use by another app or isn’t available right now.',
     micInsecure: 'Voice recording only works on a secure (https) page.',
     micUnsupported: 'This browser doesn’t support voice recording.',
@@ -826,6 +828,7 @@ export const he: Translations = {
     micDenied: 'הגישה למיקרופון חסומה. לחצו על סמל המנעול (או “הגדרות אתר”) בשורת הכתובת, אפשרו מיקרופון ונסו שוב.',
     micNoDevice: 'לא מצאנו מיקרופון במכשיר הזה. אפשר לספר לנו את החלום בכתיבה.',
     writeYourDream: 'כתיבת החלום',
+    writeSomethingFirst: 'כתבו כמה מילים על החלום כדי להמשיך.',
     micBusy: 'המיקרופון בשימוש של אפליקציה אחרת או לא זמין כרגע.',
     micInsecure: 'הקלטה קולית עובדת רק בעמוד מאובטח (https).',
     micUnsupported: 'הדפדפן הזה לא תומך בהקלטה קולית.',

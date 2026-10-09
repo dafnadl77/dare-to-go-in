@@ -344,7 +344,8 @@ test('the notice sits below the buttons, out of the centred panel\'s flow, so it
   assert.match(css, /\.central-retry \{/);
   // both kinds of notice (microphone and transcription) use that one container, after the buttons in the layout
   const hold = read('src/hero/HoldToRemember.tsx');
-  assert.equal((hold.match(/className="central-mic-notice"/g) ?? []).length, 2);
+  // ONE container for every kind of notice (two absolute containers would sit on top of each other under the buttons)
+  assert.equal((hold.match(/className="central-mic-notice"/g) ?? []).length, 1);
   assert.ok(!/<p className="central-mic-note">/.test(hold), 'no bare in-flow note remains');
 });
 

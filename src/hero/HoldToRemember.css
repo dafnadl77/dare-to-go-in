@@ -795,6 +795,18 @@
   box-shadow: 0 0 0 3px var(--dream-btn-glow);
 }
 
+/* Nothing written yet: I'M DONE looks unavailable (it stays pressable, so a gentle note can say why instead of the press doing nothing). */
+.central-done[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.central-done[aria-disabled='true']:hover {
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
 .central-done:active {
   background: var(--dream-btn-active-bg);
   transform: translateY(0);

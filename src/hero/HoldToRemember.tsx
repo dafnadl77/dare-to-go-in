@@ -11,11 +11,12 @@ import {
 import type { HoldState } from './HoldState';
 import type { CentralMode } from './centralMode';
 import type { useDreamRecorder } from './useDreamRecorder';
-import { createTextDreamInput, type DreamInput } from './dreamInput';
+import type { DreamInput } from './dreamInput';
 import { transcribeDreamAudio, type TranscriptionErrorReason } from './dreamTranscription';
 import { takeDreamDraft } from './dreamDraft';
 import { classifyMicFailure, MIC_FAILURE_MESSAGE_KEY, type MicFailureKind } from './micFailure';
 import { useMicAvailability } from './micAvailability';
+import { hasDreamText, submitTypedDream } from './dreamEntry';
 import { getAppLanguage, normalizeTranscriptionLanguage } from './appLanguage';
 import { useLivePreviewTranscript } from './useLivePreviewTranscript';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -140,6 +141,7 @@ export default function HoldToRemember({
   const [isHolding, setIsHolding] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [entry, setEntry] = useState('');
+  const dreamHasText = hasDreamText(entry);
   const [finishing, setFinishing] = useState(false);
   // The specific reason the mic fell back to TYPE — purely a local
   // display concern, so this doesn't need to be lifted to HeroDream.tsx
@@ -157,6 +159,8 @@ export default function HoldToRemember({
   // The recording that failed to transcribe stays available for "try again" until the dreamer leaves this step.
   const lastRecordingRef = useRef<Blob | null>(null);
   const [canRetryTranscription, setCanRetryTranscription] = useState(false);
+  // I'M DONE was pressed with nothing written: the box stays, with a gentle note, and nothing is sent anywhere.
+  const [doneBlocked, setDoneBlocked] = useState(false);
   const rafRef = useRef(0);
   const startRef = useRef(0);
   const listenTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -341,6 +345,8 @@ export default function HoldToRemember({
   useEffect(() => {
     if (centralMode === 'typing') {
       textareaRef.current?.focus();
+    } else {
+      setDoneBlocked(false);
     }
   }, [centralMode]);
 
@@ -403,6 +409,7 @@ export default function HoldToRemember({
 
   const handleEntryChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setEntry(e.target.value);
+    if (doneBlocked && hasDreamText(e.target.value)) setDoneBlocked(false);
     onTypedTranscriptChange(e.target.value);
   };
 
@@ -442,18 +449,25 @@ export default function HoldToRemember({
     onTypedTranscriptChange('');
   };
 
+  // I'M DONE. Only a dream with something written (or transcribed) in it goes on to the analysis. With an EMPTY box — e.g. after a
+  // recording that could not start because there is no microphone — nothing is submitted, nothing is analyzed and no failure screen
+  // appears: the dreamer stays in the typing box. (The analysis used to be started with empty text, refuse it at once, and show
+  // "Something went wrong while I was putting this together".)
+  // On success the box is cleared: if that dream is later discarded (LET IT GO) and the screen returns to 'hold' for a new one, TYPE
+  // re-mounts empty instead of with the PREVIOUS dream's text; onDreamCapture already received its own copy of the text.
   const handleDoneTyping = () => {
-    onDreamCapture?.(createTextDreamInput(entry));
-    // Unlike handleBack/handleClose's typing branch, this used to leave
-    // `entry` populated — invisible while the journey moves on through
-    // reconstruction/reflection/closing, but if that dream is later
-    // discarded (LET IT GO) and centralMode returns to 'hold' for a new
-    // one, TYPE re-mounts with the PREVIOUS dream's full text still in
-    // the textarea, and typing lands mid-string instead of into an empty
-    // field. onDreamCapture above already received its own copy of the
-    // text, so clearing it here can't affect the dream already handed off.
-    setEntry('');
-    setCentralMode('settled');
+    const outcome = submitTypedDream(entry, {
+      onCapture: onDreamCapture,
+      onSubmitted: () => {
+        setEntry('');
+        setDoneBlocked(false);
+        setCentralMode('settled');
+      },
+    });
+    if (outcome === 'blocked_empty') {
+      setDoneBlocked(true);
+      textareaRef.current?.focus();
+    }
   };
 
   // CANCEL — not FINISH. Discards whatever is in progress (typed text, a
@@ -840,34 +854,41 @@ export default function HoldToRemember({
         >
           ×
         </button>
-        {micUnavailable && (
+        {(micUnavailable || transcriptionErrorMessage || (doneBlocked && !dreamHasText)) && (
           <div className="central-mic-notice">
-            <p className="central-mic-note" role="status">
-              {micErrorMessage ?? t('hold.micErrorGeneric')}
-              {micFailureKind !== 'no-device' && (
-                <>
-                  <br />
-                  {t('hold.typeInsteadHint')}
-                </>
-              )}
-            </p>
-          </div>
-        )}
-        {!micUnavailable && transcriptionErrorMessage && (
-          <div className="central-mic-notice">
-            <p className="central-mic-note" role="status">
-              {transcriptionErrorMessage}
-            </p>
-            {canRetryTranscription && (
-              <button
-                type="button"
-                className="central-retry"
-                data-cursor-hover
-                tabIndex={centralMode === 'typing' ? 0 : -1}
-                onClick={handleRetryTranscription}
-              >
-                {t('hold.retryTranscription')}
-              </button>
+            {micUnavailable && (
+              <p className="central-mic-note" role="status">
+                {micErrorMessage ?? t('hold.micErrorGeneric')}
+                {micFailureKind !== 'no-device' && (
+                  <>
+                    <br />
+                    {t('hold.typeInsteadHint')}
+                  </>
+                )}
+              </p>
+            )}
+            {!micUnavailable && transcriptionErrorMessage && (
+              <>
+                <p className="central-mic-note" role="status">
+                  {transcriptionErrorMessage}
+                </p>
+                {canRetryTranscription && (
+                  <button
+                    type="button"
+                    className="central-retry"
+                    data-cursor-hover
+                    tabIndex={centralMode === 'typing' ? 0 : -1}
+                    onClick={handleRetryTranscription}
+                  >
+                    {t('hold.retryTranscription')}
+                  </button>
+                )}
+              </>
+            )}
+            {doneBlocked && !dreamHasText && (
+              <p className="central-mic-note" role="alert">
+                {t('hold.writeSomethingFirst')}
+              </p>
             )}
           </div>
         )}
@@ -897,6 +918,7 @@ export default function HoldToRemember({
             className="central-done"
             data-cursor-hover
             tabIndex={centralMode === 'typing' ? 0 : -1}
+            aria-disabled={!dreamHasText}
             onClick={handleDoneTyping}
           >
             {t('hold.imDone')}
