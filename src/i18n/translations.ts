@@ -52,6 +52,7 @@ export interface Translations {
     micErrorStartFailed: string;
     micDenied: string;
     micNoDevice: string;
+    writeYourDream: string;
     micBusy: string;
     micInsecure: string;
     micUnsupported: string;
@@ -423,8 +424,9 @@ export const en: Translations = {
     letMePutItBackTogether: 'LET ME PUT IT BACK TOGETHER.',
     micErrorGeneric: 'I couldn’t access your microphone.',
     micErrorStartFailed: 'I couldn’t start listening.',
-    micDenied: 'Microphone access is blocked. Allow the microphone for this site in your browser settings, then try again.',
-    micNoDevice: 'I couldn’t find a microphone on this device.',
+    micDenied: 'Microphone access is blocked. Click the lock icon (or “Site settings”) in the address bar, allow the microphone, then try again.',
+    micNoDevice: 'We couldn’t find a microphone on this device. You can tell us your dream by writing it.',
+    writeYourDream: 'Write your dream',
     micBusy: 'The microphone is in use by another app or isn’t available right now.',
     micInsecure: 'Voice recording only works on a secure (https) page.',
     micUnsupported: 'This browser doesn’t support voice recording.',
@@ -821,8 +823,9 @@ export const he: Translations = {
     letMePutItBackTogether: 'מרכיבים את זה מחדש.',
     micErrorGeneric: 'לא הצלחתי לגשת אל המיקרופון.',
     micErrorStartFailed: 'לא הצלחתי להתחיל להקשיב.',
-    micDenied: 'הגישה למיקרופון חסומה. אפשרו מיקרופון לאתר בהגדרות הדפדפן ונסו שוב.',
-    micNoDevice: 'לא מצאתי מיקרופון במכשיר הזה.',
+    micDenied: 'הגישה למיקרופון חסומה. לחצו על סמל המנעול (או “הגדרות אתר”) בשורת הכתובת, אפשרו מיקרופון ונסו שוב.',
+    micNoDevice: 'לא מצאנו מיקרופון במכשיר הזה. אפשר לספר לנו את החלום בכתיבה.',
+    writeYourDream: 'כתיבת החלום',
     micBusy: 'המיקרופון בשימוש של אפליקציה אחרת או לא זמין כרגע.',
     micInsecure: 'הקלטה קולית עובדת רק בעמוד מאובטח (https).',
     micUnsupported: 'הדפדפן הזה לא תומך בהקלטה קולית.',

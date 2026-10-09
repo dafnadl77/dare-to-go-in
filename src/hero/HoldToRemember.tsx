@@ -14,7 +14,8 @@ import type { useDreamRecorder } from './useDreamRecorder';
 import { createTextDreamInput, type DreamInput } from './dreamInput';
 import { transcribeDreamAudio, type TranscriptionErrorReason } from './dreamTranscription';
 import { takeDreamDraft } from './dreamDraft';
-import { classifyMicFailure, MIC_FAILURE_MESSAGE_KEY } from './micFailure';
+import { classifyMicFailure, MIC_FAILURE_MESSAGE_KEY, type MicFailureKind } from './micFailure';
+import { useMicAvailability } from './micAvailability';
 import { getAppLanguage, normalizeTranscriptionLanguage } from './appLanguage';
 import { useLivePreviewTranscript } from './useLivePreviewTranscript';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -144,6 +145,11 @@ export default function HoldToRemember({
   // display concern, so this doesn't need to be lifted to HeroDream.tsx
   // alongside micUnavailable.
   const [micErrorMessage, setMicErrorMessage] = useState<string | null>(null);
+  // Which kind of failure it was: a missing microphone is a calm "write it instead", not an error, and needs no extra hint line.
+  const [micFailureKind, setMicFailureKind] = useState<MicFailureKind | null>(null);
+  // Whether there is a microphone at all, learned without opening one (no permission prompt) and kept current as hardware changes.
+  const { availability: micAvailability, markNone: markMicNone, markAvailable: markMicAvailable } = useMicAvailability();
+  const noMicrophone = micAvailability === 'none';
   // Set only when a recorded clip failed to come back as usable text —
   // separate from micErrorMessage since it's a different failure (the mic
   // worked fine; OpenAI transcription itself didn't).
@@ -228,6 +234,7 @@ export default function HoldToRemember({
     clearTimeout(micTimeoutRef.current);
 
     if (result === true) {
+      markMicAvailable();
       if (holdRef.current) holdRef.current.active = false;
       setCentralMode('recording');
       // Re-enabled, desktop/hover-capable only — see isTouchPrimaryRef's
@@ -248,10 +255,14 @@ export default function HoldToRemember({
       setIsListening(false);
       setMicUnavailable(true);
       console.warn(`mic_failure code=${recorder.errorRef.current ?? 'none'} timedOut=${timedOut}`);
+      const kind = classifyMicFailure(recorder.errorRef.current, timedOut);
+      setMicFailureKind(kind);
+      // No microphone: remembered until the hardware changes, so the home screen offers writing first (recording is never hidden for good).
+      if (kind === 'no-device') markMicNone();
       setMicErrorMessage(describeRecordingFailure(recorder.errorRef.current, timedOut, t));
       setCentralMode('typing');
     }
-  }, [recorder, holdRef, setCentralMode, setMicUnavailable, t, livePreview]);
+  }, [recorder, holdRef, setCentralMode, setMicUnavailable, t, livePreview, markMicNone, markMicAvailable]);
 
   const beginHold = useCallback(() => {
     if (centralMode !== 'hold' || committedRef.current) return;
@@ -675,7 +686,7 @@ export default function HoldToRemember({
       <button
         ref={buttonRef}
         type="button"
-        className={`htr-circle${isHolding ? ' is-holding' : ''}${isListening ? ' is-listening' : ''}`}
+        className={`htr-circle${isHolding ? ' is-holding' : ''}${isListening ? ' is-listening' : ''}${noMicrophone ? ' is-no-mic' : ''}`}
         data-cursor-hover
         tabIndex={isHoldFaded ? -1 : 0}
         aria-hidden={isHoldFaded}
@@ -725,13 +736,13 @@ export default function HoldToRemember({
 
       <button
         type="button"
-        className="htr-type-link"
+        className={`htr-type-link${noMicrophone ? ' htr-type-link--primary' : ''}`}
         data-cursor-hover
         tabIndex={isHoldFaded ? -1 : 0}
         aria-hidden={isHoldFaded}
         onClick={() => setCentralMode('typing')}
       >
-        {t('hold.idRatherType')}
+        {noMicrophone ? t('hold.writeYourDream') : t('hold.idRatherType')}
       </button>
 
       {/* A short, plain-language clarification that the circle above
@@ -739,8 +750,8 @@ export default function HoldToRemember({
           gesture alone wasn't obvious enough on its own. Fades with the
           circle/type-link (same is-mode-* rule in HoldToRemember.css),
           never shown once a gesture has actually started. */}
-      <p className="htr-hold-hint" aria-hidden={isHoldFaded}>
-        {t('hold.pressAndHoldHint')}
+      <p className="htr-hold-hint" aria-hidden={isHoldFaded} role={noMicrophone ? 'status' : undefined}>
+        {noMicrophone ? t('hold.micNoDevice') : t('hold.pressAndHoldHint')}
       </p>
 
       <div
@@ -833,8 +844,12 @@ export default function HoldToRemember({
           <div className="central-mic-notice">
             <p className="central-mic-note" role="status">
               {micErrorMessage ?? t('hold.micErrorGeneric')}
-              <br />
-              {t('hold.typeInsteadHint')}
+              {micFailureKind !== 'no-device' && (
+                <>
+                  <br />
+                  {t('hold.typeInsteadHint')}
+                </>
+              )}
             </p>
           </div>
         )}

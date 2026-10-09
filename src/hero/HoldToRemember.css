@@ -265,6 +265,25 @@
   transform: translateY(0);
 }
 
+/* No microphone on this device: writing becomes the clear way in. The same pill, a touch stronger (a soft fill and a brighter
+   outline), so "Write your dream" reads as THE action; the circle stays (recording is never hidden for good — a microphone can
+   be plugged in after the page loads) but is quieter. */
+.htr-type-link--primary {
+  background: rgba(244, 240, 232, 0.14);
+  border-color: rgba(244, 240, 232, 0.85);
+  font-size: 0.9rem;
+  padding: 0.75em 1.8em;
+}
+
+.htr-type-link--primary:hover,
+.htr-type-link--primary:focus-visible {
+  background: rgba(244, 240, 232, 0.24);
+}
+
+.htr-circle.is-no-mic:not(.is-holding):not(.is-listening) {
+  opacity: 0.6;
+}
+
 /* "Press and hold while you speak" — a short, quiet clarification that
    the circle needs a real press-and-hold, not a tap. Sits below I'D
    RATHER TYPE, deliberately smaller than HOLD TO TELL ME itself so it
