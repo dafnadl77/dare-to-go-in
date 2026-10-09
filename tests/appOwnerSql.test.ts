@@ -26,8 +26,9 @@ async function freshDb(users: Array<{ id: string; email: string; confirmed: bool
       id uuid primary key default gen_random_uuid(),
       owner_id uuid references auth.users (id) on delete cascade,
       trial_id uuid,
-      image_count integer not null default 0,
-      reflection_count integer not null default 0,
+      -- the CHECK bounds production has on these counters (not part of the repo's migrations)
+      image_count integer not null default 0 constraint dream_attempts_image_count_bounds check (image_count >= 0 and image_count <= 3),
+      reflection_count integer not null default 0 constraint dream_attempts_reflection_count_bounds check (reflection_count >= 0 and reflection_count <= 3),
       label_count integer not null default 0,
       created_at timestamptz not null default now(),
       saved_dream_id uuid,
@@ -40,6 +41,7 @@ async function freshDb(users: Array<{ id: string; email: string; confirmed: bool
   await db.exec(sql('20260924_credits_entitlement.sql'));
   await db.exec(sql('20260925_idempotent_analysis.sql'));
   await db.exec(sql('20261009_app_owner.sql'));
+  await db.exec(sql('20261009_app_owner_cap_saturation.sql'));
   return db;
 }
 
@@ -83,8 +85,9 @@ test('the owner migration grants the verified account, once, with an audit row',
   const audit = (await db.query<{ owner_id: string; action: string }>('select owner_id, action from public.app_owner_audit')).rows;
   assert.deepEqual(audit, [{ owner_id: OWNER_ID, action: 'grant' }]);
   assert.equal((await db.query<{ r: boolean }>('select public.is_app_owner($1) as r', [OWNER_ID])).rows[0].r, true);
-  // re-running the migration changes nothing
+  // re-running the migrations (in order) changes nothing
   await db.exec(sql('20261009_app_owner.sql'));
+  await db.exec(sql('20261009_app_owner_cap_saturation.sql'));
   assert.equal((await db.query('select 1 from public.app_owners')).rows.length, 1);
   assert.equal((await db.query('select 1 from public.app_owner_audit')).rows.length, 1);
 });
@@ -164,8 +167,9 @@ async function reserve(fn: 'image' | 'reflection', attempt: string, owner: strin
 
 test('per-dream image and reflection caps: the owner is not stopped at 3, a regular account is, and ownership of the attempt is still checked', async () => {
   const ownerAttempt = (await startIdem(OWNER_ID, key(400), hash('e'))).attempt_id as string;
-  for (let i = 1; i <= 6; i += 1) assert.equal(await reserve('image', ownerAttempt, OWNER_ID), i);
-  for (let i = 1; i <= 5; i += 1) assert.equal(await reserve('reflection', ownerAttempt, OWNER_ID), i);
+  // production bounds the counters at 3: the owner's saturates there, and every reservation still succeeds
+  for (let i = 1; i <= 6; i += 1) assert.equal(await reserve('image', ownerAttempt, OWNER_ID), Math.min(i, 3));
+  for (let i = 1; i <= 5; i += 1) assert.equal(await reserve('reflection', ownerAttempt, OWNER_ID), Math.min(i, 3));
 
   const user = await newUser();
   await grant(user, 1, 'grow:TEST-USER-3');
