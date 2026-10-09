@@ -13,26 +13,18 @@
   animation: ar-screen-in 1.4s var(--ease-memory) forwards;
 }
 
-/* Ends on `filter: none`, deliberately NOT `blur(0)` — visually identical,
-   but per spec any specified filter value other than none (blur(0)
-   included) makes this element a new containing block for its own
-   position:fixed descendants. .dream-archive is the ancestor of the
-   "fixed" cloud video AND of an opened dream portal — either ending this
-   animation on blur(0) traps them relative to .dream-archive's own tall
-   scrolling box instead of the real viewport. Reproduced live: with
-   blur(0) here, the video visibly scrolled away from the bottom of the
-   archive instead of staying pinned, revealing the plain page background
-   underneath ("a black area") once scrolled past where the video used to
-   sit. Never reintroduce blur(0) (or any non-none filter) as this
-   animation's resting value. */
+/* OPACITY ONLY, on purpose. This element is the ancestor of the "fixed" cloud video AND of an opened dream portal, and any
+   filter on it — even an animation that ENDS on `filter: none` — is kept by the animation's `forwards` fill as an
+   interpolated blur(0px) at rest, which per spec makes this element the containing block of its own position:fixed
+   descendants. The cloud background then scrolled away with the list instead of staying pinned to the screen, revealing the
+   plain page behind it (a black area under the cards). Reproduced live in the current browser: the "fixed" layer's top was
+   -420px after scrolling 420px. Never put a filter (or transform) in this animation. */
 @keyframes ar-screen-in {
   from {
     opacity: 0;
-    filter: blur(10px);
   }
   to {
     opacity: 1;
-    filter: none;
   }
 }
 
@@ -106,7 +98,8 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding-top: max(5rem, env(safe-area-inset-top));
+  /* below the fixed global header, whatever height it has on this screen size (--gh-h, index.css) */
+  padding-top: calc(var(--gh-h) + 0.75rem);
   padding-bottom: 1.1rem;
   padding-inline: max(1.5rem, env(safe-area-inset-left));
   background: linear-gradient(to bottom, rgba(3, 6, 12, 0.88) 0%, rgba(3, 6, 12, 0.7) 70%, transparent 100%);
@@ -176,7 +169,7 @@
      padding-top alone reserves space for the fixed GlobalHeader above
      it, see .ar-shell-header's own comment) so the two never overlap
      once both are stuck during scroll. */
-  top: 9rem;
+  top: calc(var(--gh-h) + 4.75rem);
 }
 
 /* All four sections (All Dreams / Favorites / Insights / Settings) are
@@ -648,16 +641,31 @@ html[dir='rtl'] .ar-insights-button:hover .ar-insights-chevron {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 900px) {
+  /* The account row (Sign out) scrolls away with the page on small screens instead of sticking: a sticky row has no opaque
+     backing there, so dream cards slid underneath its button. The menu above it stays put (global header + its band). */
   .ar-shell-header {
-    /* Physical, same reasoning as the base rule above — the switcher
-       shrinks its own footprint on mobile too (LanguageSwitcher.css) but
-       stays physically top-right regardless of language. */
-    padding-right: max(1.5rem, 6.5rem);
+    position: static;
   }
+}
 
+@media (max-width: 640px) {
+  /* The account row (Sign out) sits BELOW the two-row global header (padding above), never beside it, so it needs no
+     side reserve any more. */
   .ar-account-email {
     display: none;
+  }
+
+  /* Four sections in a tidy 2 x 2 grid instead of a ragged wrap with one orphan. */
+  .ar-sidenav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .ar-nav-item {
+    width: 100%;
+    justify-content: center;
   }
 }
 

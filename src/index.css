@@ -24,8 +24,18 @@
   --dream-btn-active-bg: rgba(255, 255, 255, 0.14);
   --dream-btn-glow: rgba(244, 240, 232, 0.28);
 
+  /* The space the fixed global header occupies at the top of every screen (src/ui/GlobalHeader.css). Every page puts its own
+     content below THIS, so a page title can never ride up under the menu. On a phone the header is two rows tall. */
+  --gh-h: 4.25rem;
+
   --ease-memory: cubic-bezier(0.16, 0.72, 0.2, 1);
   --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 640px) {
+  :root {
+    --gh-h: calc(6.4rem + env(safe-area-inset-top, 0px));
+  }
 }
 
 * {

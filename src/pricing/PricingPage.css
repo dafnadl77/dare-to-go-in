@@ -110,7 +110,7 @@
   z-index: 1;
   max-width: min(1520px, 94vw);
   margin: 0 auto;
-  padding: 12vh 6vw 8vh;
+  padding: max(12vh, calc(var(--gh-h) + 1.25rem)) 6vw 8vh;
 }
 
 /* ---- Hero header: brand eyebrow, headline, supporting line — centered,
@@ -471,7 +471,7 @@ html[lang='he'] .pr-card-eyebrow {
 
 @media (max-width: 640px) {
   .pr-column {
-    padding: 13vh 6vw 8vh;
+    padding: max(13vh, calc(var(--gh-h) + 1.25rem)) 6vw 8vh;
   }
 
   .pr-backdrop-veil {

@@ -1,0 +1,159 @@
+/* =====================================================================
+   PHONE AND TABLET RENDERING — the one place that keeps the cinematic screens STABLE on a phone or tablet GPU.
+
+   WHY THIS FILE EXISTS. Every screen of DARE is built from full-screen layers (looping video, photographs, clouds) with soft
+   glass cards on top. On a desktop GPU that is cheap. On a phone, four things in that recipe make the compositor redo a whole
+   screen every frame, and a phone answers that with shimmering, flashing backgrounds while scrolling:
+     1. backdrop-filter (blur) on a card that sits over a PLAYING video or an animated photograph — the blur is recomputed
+        every video frame;
+     2. a CSS `filter` (brightness/saturate/blur) on a full-screen <video> or on a photograph that also has a transform animation;
+     3. mix-blend-mode (overlay / soft-light / screen) on full-screen layers that move — each frame blends the whole viewport;
+     4. a full-screen layer sized in `dvh`/inherited from the browser bar: it changes size every time the address bar slides
+        away while scrolling, so the picture is re-cropped on every scroll tick.
+   Each rule below swaps the expensive technique for a visually equivalent cheap one: the blur becomes a slightly more opaque
+   glass tint, a filter on a video becomes a dark overlay of the same strength, a blend layer becomes an ordinary soft glow,
+   the slow "drift" of a photograph stops (it was imperceptible), and full-screen backgrounds are sized to the LARGE viewport so
+   they never resize. Nothing else about the design changes, and NONE of this applies to a desktop (wide screen with a mouse),
+   where every effect stays exactly as it was designed.
+   Specificity is raised with `:root` so these win regardless of the order the component stylesheets load in.
+   ===================================================================== */
+
+@media (max-width: 900px), (pointer: coarse) {
+  /* ---- 1. Glass cards: no backdrop blur over moving backgrounds; the tint carries the look. ---- */
+  :root .pr-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: linear-gradient(135deg, rgba(12, 18, 32, 0.86), rgba(8, 12, 22, 0.92));
+  }
+
+  :root .dt-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: linear-gradient(135deg, rgba(12, 18, 32, 0.8), rgba(8, 12, 22, 0.78));
+  }
+
+  :root .ar-shell-header {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  :root .auth-google,
+  :root .auth-field {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  :root .auth-field {
+    background: linear-gradient(180deg, rgba(18, 14, 9, 0.5), rgba(18, 14, 9, 0.38));
+  }
+
+  :root .dr-writing-surface {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: linear-gradient(180deg, rgba(18, 14, 9, 0.5), rgba(18, 14, 9, 0.38));
+  }
+
+  :root .dr-lenses-wrap {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(6, 7, 6, 0.6);
+  }
+
+  :root .a11y-trigger {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(10, 11, 9, 0.55);
+  }
+
+  :root .a11y-panel {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(10, 11, 9, 0.96);
+  }
+
+  :root .dd-dialog-backdrop,
+  :root .pp-backdrop {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /* ---- 2. A filter on a full-screen video or on a photograph that also animates: replaced by a dark overlay of the same
+          strength (a brightness(0.6) is a 40% black layer). ---- */
+  :root .dream-archive .dream-stage-bg-video {
+    filter: none;
+  }
+
+  :root .ar-night-tint {
+    background: radial-gradient(ellipse 90% 70% at 50% 0%, rgba(4, 8, 16, 0.55) 0%, rgba(3, 6, 12, 0.72) 60%, rgba(2, 4, 10, 0.84) 100%);
+  }
+
+  :root .dream-detail .dream-stage-bg-video {
+    filter: none;
+  }
+
+  :root .dd-night-tint {
+    background: linear-gradient(to bottom, rgba(5, 8, 16, 0.34) 0%, rgba(4, 7, 14, 0.46) 45%, rgba(3, 6, 12, 0.6) 100%);
+  }
+
+  /* The soft halo behind a saved dream's picture: a 76px blur is one of the heaviest filters there is. */
+  :root .dd-image-glow {
+    filter: blur(28px) saturate(1.15) brightness(0.5);
+  }
+
+  :root .pr-backdrop {
+    filter: none;
+    animation: none;
+  }
+
+  /* brightness(0.64) saturate(0.88) of the room photograph, now as an overlay on top of it. */
+  :root .pr-backdrop-veil {
+    background:
+      linear-gradient(rgba(4, 5, 4, 0.34), rgba(4, 5, 4, 0.34)),
+      radial-gradient(ellipse 100% 60% at 50% 4%, rgba(6, 7, 6, 0.5) 0%, rgba(6, 7, 6, 0.22) 40%, rgba(6, 7, 6, 0.34) 70%, rgba(6, 7, 6, 0.58) 100%);
+  }
+
+  /* The slow drift of a background photograph (about 4% over a minute): imperceptible, and it forces a full-screen
+     re-composite for as long as the page is open. */
+  :root .about-visual {
+    animation: none;
+  }
+
+  /* ---- 3. Blend modes on moving full-screen layers: an ordinary soft glow instead. ---- */
+  :root .pr-backdrop-glow,
+  :root .dr-image-light-drift,
+  :root .dr-water-layer,
+  :root .dw-light-breathe,
+  :root .dw-accent-glow {
+    mix-blend-mode: normal;
+  }
+
+  :root .dr-image-light-drift {
+    opacity: 0.5;
+  }
+
+  :root .dw-accent-glow {
+    opacity: 0.45;
+  }
+
+  /* Film grain at 3-5% opacity, stepping across the whole screen: invisible as grain, expensive as a blend. */
+  :root .dr-image-grain,
+  :root .dw-grain {
+    display: none;
+  }
+
+  /* ---- 4. Full-screen backgrounds are sized to the LARGE viewport and pinned to the top: when the browser's address bar
+          slides away while the page scrolls they keep their size, so the picture is never re-cropped mid-scroll. ---- */
+  :root .dream-stage-bg-layer {
+    inset: 0 0 auto 0;
+    height: 100vh;
+    height: 100lvh;
+  }
+}
+
+/* ---- The Dream Stage (the clouds) completely covers the room behind it. The room's two looping videos, its animated canvas and
+        its vignette are invisible at that point, but they were still being drawn and composited under the clouds for as long as
+        the dream and its interpretation were on screen — on a phone that is two extra full-screen video planes for nothing.
+        They are simply not painted while the clouds are up, and come back the moment the clouds leave (every size). ---- */
+.hero-dream:has(.dream-stage-bg-layer[data-active='true']) :is(.dream-video, .memory-veil, .hero-vignette) {
+  visibility: hidden;
+}

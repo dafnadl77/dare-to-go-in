@@ -47,6 +47,9 @@ function GlobalNavLinks({ active, onMyDreams, onPackages, onAbout }: GlobalNavLi
     // language) mirroring under Hebrew exactly like the original
     // .top-right-nav always did.
     <nav className="gh-nav" dir={language === 'he' ? 'rtl' : 'ltr'}>
+      {/* The three page links form ONE group (.gh-links) and the language switcher another (.gh-lang): on a phone they sit on
+          two rows (brand + language on the first, the links on the second), on a wide screen they are one row as before. */}
+      <div className="gh-links">
       <button
         type="button"
         className={`gh-link${active === 'myDreams' ? ' gh-link--active' : ''}`}
@@ -80,10 +83,13 @@ function GlobalNavLinks({ active, onMyDreams, onPackages, onAbout }: GlobalNavLi
       >
         {t('hero.aboutNav')}
       </button>
-      <span className="gh-divider" aria-hidden="true">
+      </div>
+      <span className="gh-divider gh-divider--lang" aria-hidden="true">
         |
       </span>
-      <LanguageSwitcher />
+      <div className="gh-lang">
+        <LanguageSwitcher />
+      </div>
     </nav>
   );
 }

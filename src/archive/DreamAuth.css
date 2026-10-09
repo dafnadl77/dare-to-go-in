@@ -22,20 +22,34 @@
   position: fixed;
   inset: 0;
   z-index: 40;
-  overflow: hidden;
+  /* The screen scrolls when its content is taller than the screen (a short phone, a long Hebrew label): the form and the footer
+     links are always reachable and never sit on top of each other. The footer is the last item of this column, not pinned. */
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
   opacity: 0;
   animation: auth-screen-in 1.4s var(--ease-memory) forwards;
 }
 
+/* Opacity only — a filter in this animation is kept by its fill as blur(0px), which would make this scrolling box the
+   containing block of the fixed cloud background below (it would then scroll away with the form). */
 @keyframes auth-screen-in {
   from {
     opacity: 0;
-    filter: blur(10px);
   }
   to {
     opacity: 1;
-    filter: blur(0);
   }
+}
+
+.dream-auth .dream-stage-bg-layer {
+  position: fixed;
+}
+
+.dream-auth .app-footer--pinned {
+  position: static;
+  flex: none;
 }
 
 /* .auth-back (the fixed top-left brand lockup) used to live here — this
@@ -46,13 +60,13 @@
 .auth-content {
   position: relative;
   z-index: 1;
-  min-height: 100%;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 1.8rem;
-  padding: 8vh 6vw 6vh;
+  padding: max(8vh, calc(var(--gh-h) + 1.25rem)) 6vw 6vh;
   text-align: center;
 }
 
@@ -340,7 +354,7 @@
 
 @media (max-width: 480px) {
   .auth-content {
-    padding: 10vh 7vw 7vh;
+    padding: max(10vh, calc(var(--gh-h) + 1.25rem)) 7vw 7vh;
     gap: 1.5rem;
   }
 }

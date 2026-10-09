@@ -1175,7 +1175,7 @@
      fixed-px + safe-area formula (not vh-based) since that's what it
      actually needs to clear, plus a comfortable fixed gap on top. */
   .dream-arrival[data-step='reflecting'] .da-content {
-    margin-top: calc(max(20px, env(safe-area-inset-top, 0px)) + 40px);
+    margin-top: calc(var(--gh-h) + 8px);
   }
 
   /* Interpretation screens: the dream's title (.dr-anchor, the chosen
@@ -1185,7 +1185,7 @@
      part of that row. Starts the flow 22px below the row instead. */
   .dream-reflection[data-step='interpreting'],
   .dream-reflection[data-step='reflection'] {
-    padding-top: calc(max(20px, env(safe-area-inset-top, 0px)) + 32px + 22px);
+    padding-top: calc(var(--gh-h) + 12px);
   }
 
   /* ...and on the reflection screen it is styled as the real heading it is:
@@ -1328,7 +1328,7 @@
     justify-content: flex-start;
     align-items: stretch;
     gap: 0;
-    padding: calc(max(20px, env(safe-area-inset-top, 0px)) + 32px + 22px) 0 0;
+    padding: calc(var(--gh-h) + 12px) 0 0;
   }
 
   .dream-reflection[data-step='reflection'] > .dr-anchor {

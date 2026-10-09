@@ -33,6 +33,30 @@
   pointer-events: none;
 }
 
+/* A soft dark band behind the header on every screen whose content scrolls beneath it (everything except the Hero landing,
+   which never scrolls; the interpretation screen is the one Hero phase that does). Without it, scrolled text ran straight
+   through the menu. The band fades out below the header, so it reads as a shadow rather than a bar. */
+.global-header::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--gh-h) + 14px);
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(to bottom, rgba(3, 6, 14, 0.96) 0%, rgba(3, 6, 14, 0.92) 72%, rgba(3, 6, 14, 0) 100%);
+}
+
+/* Phones and tablets only: on a wide screen the header has always floated over the page exactly as designed. */
+@media (max-width: 900px), (max-height: 500px), (pointer: coarse) {
+  body:not(:has(.hero-dream)) .global-header::before,
+  body:has(.dream-reflection) .global-header::before {
+    opacity: 1;
+  }
+}
+
 .gh-left,
 .gh-nav {
   display: flex;
@@ -44,6 +68,13 @@
 .gh-nav {
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.gh-links,
+.gh-lang {
+  display: flex;
+  align-items: center;
+  min-width: 0;
 }
 
 /* ---- Brand — text only, no icon/mark (the small "D" was removed per
@@ -63,8 +94,8 @@
   cursor: pointer;
   font-size: 1.326rem;
   color: var(--dream-white);
-  opacity: 0.55;
-  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+  opacity: 0.85;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.7);
   transition: opacity 0.4s var(--ease-soft);
 }
 
@@ -87,12 +118,12 @@
   font-weight: 600;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: var(--dream-white);
-  opacity: 0.55;
-  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
-  transition:
-    opacity 0.4s var(--ease-soft),
-    letter-spacing 0.4s var(--ease-soft);
+  /* Plain white, fully opaque, on every page: these links sit over photographs and video, and a dimmed grey was unreadable. The
+     shadow keeps them legible over the brightest parts of the scene. */
+  color: #ffffff;
+  opacity: 1;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.75), 0 0 2px rgba(0, 0, 0, 0.55);
+  transition: letter-spacing 0.4s var(--ease-soft);
 }
 
 /* Hebrew never takes the wide uppercase tracking — Hebrew has no case,
@@ -104,7 +135,9 @@ html[lang='he'] .gh-link {
 
 .gh-link:hover,
 .gh-link:focus-visible {
-  opacity: 0.9;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  text-decoration-color: rgba(255, 255, 255, 0.6);
 }
 
 html:not([lang='he']) .gh-link:hover,
@@ -115,20 +148,21 @@ html:not([lang='he']) .gh-link:focus-visible {
 /* The subtle "you are here" treatment — a touch brighter plus a quiet
    underline, deliberately not a bright conventional nav tab. */
 .gh-link--active {
-  opacity: 0.95;
+  font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 0.3em;
-  text-decoration-color: rgba(244, 240, 232, 0.45);
+  text-decoration-color: rgba(255, 255, 255, 0.8);
 }
 
 .gh-divider {
-  color: var(--dream-white);
-  opacity: 0.3;
+  color: #ffffff;
+  opacity: 0.55;
   font-size: 0.68rem;
   margin: 0 0.1em;
 }
 
-@media (max-width: 640px), (max-height: 500px) {
+/* ---- Phones, tablets and short landscape screens: readable sizes (never below 16px), tap-sized targets. ---- */
+@media (max-width: 900px), (max-height: 500px), (pointer: coarse) {
   .global-header {
     top: max(14px, env(safe-area-inset-top));
     left: max(14px, env(safe-area-inset-left));
@@ -136,8 +170,64 @@ html:not([lang='he']) .gh-link:focus-visible {
   }
 
   .gh-link {
-    font-size: 0.62rem;
-    padding: 0.35em 0.25em;
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+    padding: 0.55em 0.5em;
+  }
+
+  html:not([lang='he']) .gh-link:hover,
+  html:not([lang='he']) .gh-link:focus-visible {
+    letter-spacing: 0.06em;
+  }
+
+  .gh-divider {
+    font-size: 1rem;
+  }
+}
+
+/* ---- Phones in portrait: TWO rows, so nothing is ever squeezed or overlapped.
+        Row 1: the brand (start) and the language switcher (end).
+        Row 2: MY DREAMS / PACKAGES / ABOUT, aligned to the START of the language's reading direction: left in English,
+        right in Hebrew. The header is a grid whose rows size to their content, so the space it occupies is the --gh-h token
+        (index.css) that every page uses for its own top spacing. ---- */
+@media (max-width: 640px) {
+  .global-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'brand lang'
+      'links links';
+    align-items: center;
+    gap: 0 0.75rem;
+  }
+
+  .gh-left {
+    grid-area: brand;
+  }
+
+  .gh-nav {
+    display: contents;
+  }
+
+  .gh-lang {
+    grid-area: lang;
+    pointer-events: auto;
+    justify-self: end;
+  }
+
+  .gh-links {
+    grid-area: links;
+    pointer-events: auto;
+    flex-wrap: wrap;
+    justify-self: start;
+  }
+
+  html[lang='he'] .gh-links {
+    justify-self: end;
+  }
+
+  .gh-divider--lang {
+    display: none;
   }
 }
 

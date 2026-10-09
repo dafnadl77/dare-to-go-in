@@ -357,7 +357,9 @@
 .central-typing.is-active,
 .central-settled.is-active {
   opacity: 1;
-  filter: blur(0);
+  /* `none`, not blur(0): a panel that holds the text box must not keep a live filter layer once it has settled (it makes the
+     browser re-composite the panel and the video behind it, and a phone can shimmer or mis-place the caret). */
+  filter: none;
   pointer-events: auto;
 }
 
@@ -698,6 +700,9 @@
   background: transparent;
   border: none;
   border-bottom: 1px solid rgba(244, 240, 232, 0.26);
+  /* A soft dark wash so the dream text stays readable over the bright parts of the room video. */
+  background: linear-gradient(rgba(3, 6, 12, 0.36), rgba(3, 6, 12, 0.3));
+  border-radius: 14px 14px 0 0;
   color: var(--dream-white);
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-style: normal;
@@ -707,7 +712,7 @@
   text-align: center;
   resize: none;
   outline: none;
-  padding: 0.5em 0.15em 0.9em;
+  padding: 0.5em 0.6em 0.9em;
   text-shadow: 0 0.04em 0.5em rgba(0, 0, 0, 0.4);
   transition: border-color 0.4s var(--ease-soft);
 }

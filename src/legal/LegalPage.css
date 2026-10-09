@@ -43,7 +43,7 @@
 .legal-column {
   max-width: 840px;
   margin: 0 auto;
-  padding: 12vh 6vw 10vh;
+  padding: max(12vh, calc(var(--gh-h) + 1.25rem)) 6vw 10vh;
 }
 
 /* Breadcrumb — now the shared src/ui/Breadcrumb.tsx/.css component
@@ -174,7 +174,7 @@ html[lang='he'] .legal-return {
      the vw padding already does this; only the top offset shrinks to
      make room for the fixed GlobalHeader brand mark above it. */
   .legal-column {
-    padding: 14vh 6vw 8vh;
+    padding: max(14vh, calc(var(--gh-h) + 1.25rem)) 6vw 8vh;
   }
 }
 
