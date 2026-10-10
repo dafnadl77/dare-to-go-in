@@ -149,13 +149,14 @@ test('no animated dots on a phone or tablet: every star / mote / sparkle / orbit
     'da-choice-sparkle',
     'da-choice-trace-particle',
     'dream-portal-particles',
+    'dc-portal-particles',
     'dc-saving-particles',
     'dc-breaking-particles',
   ];
   for (const cls of removed) assert.ok(group.includes(`.${cls}`), `${cls} is removed on touch`);
   // Every dot-like class that exists in any stylesheet is either removed above or is the individual dot inside a removed layer:
   // a NEW dot-like animation must be handled deliberately (this fails until it is).
-  const insideRemoved = new Set(['dream-stage-star', 'ar-star', 'dw-mote', 'dr-mote', 'dr-writing-spark', 'dc-saving-particle', 'dc-breaking-particle']);
+  const insideRemoved = new Set(['dream-stage-star', 'ar-star', 'dw-mote', 'dr-mote', 'dr-writing-spark', 'dc-portal-particle', 'dc-saving-particle', 'dc-breaking-particle']);
   const found = new Set<string>();
   for (const file of cssFiles('src')) {
     for (const m of noComments(read(file)).matchAll(/\.([\w-]*(?:twinkle|sparkle|-stars?\b|-motes?\b|-spark\b|-sparks\b|particles?\b)[\w-]*)\s*[,{:]/g)) found.add(m[1]);
@@ -202,24 +203,34 @@ test('the owner, credits, payments, recording and dream engine are untouched by 
   }
 });
 
-test('the closing screen: two still, clean buttons — no rotating ring, glow, pulse or particles — with the icons, labels and actions kept', () => {
+test('the closing screen keeps its ORIGINAL round buttons; only the endless ring rotation (and the ring/halo pulses) stopped', () => {
   const tsx = read('src/hero/DreamClosing.tsx');
   const css = noComments(read('src/hero/DreamClosing.css'));
   const choices = tsx.slice(tsx.indexOf('<div className="dc-choices">'), tsx.indexOf('{saveFailed && ('));
-  assert.match(choices, /className="dc-choice-btn dc-choice-btn--keep"[^>]*onClick=\{onSave\}/);
-  assert.match(choices, /className="dc-choice-btn dc-choice-btn--let-go"[^>]*onClick=\{onLetGo\}/);
-  assert.equal((choices.match(/<svg className="dc-choice-btn-icon"/g) ?? []).length, 2, 'both icons kept');
+  // the original round buttons, layers, icons and labels, wired to the same actions
+  assert.match(choices, /className="dc-portal dc-portal--keep"[^>]*onClick=\{onSave\}/);
+  assert.match(choices, /className="dc-portal dc-portal--let-go"[^>]*onClick=\{onLetGo\}/);
+  for (const layer of ['dc-portal-glow', 'dc-portal-arcs', 'dc-portal-core', 'dc-portal-particles', 'dc-portal-icon', 'dc-portal-label']) {
+    assert.equal((choices.match(new RegExp(`className="${layer}[ "]`, 'g')) ?? []).length, 2, `${layer} on both buttons`);
+  }
+  assert.match(choices, /<DispersingLetters text=\{t\('closing\.letItGo'\)\} \/>/, 'the let-go label disperses letter by letter on hover');
   assert.match(choices, /closing\.keepThisDream/);
-  assert.match(choices, /closing\.letItGo/);
-  for (const gone of ['dc-portal', 'arc', 'core', 'glow', 'particle']) assert.ok(!choices.includes(gone), `no ${gone} layer in the choices`);
-  // nothing in the button styles moves on its own or on hover
-  const buttons = css.slice(css.indexOf('.dc-choice-btn {'), css.indexOf('.dc-choice-btn-label {'));
-  assert.ok(!/animation|@keyframes|transform|filter|infinite/.test(buttons), 'no animation, transform or filter on the choice buttons');
-  assert.ok(!/dc-portal/.test(css), 'the portal styles are gone');
-  assert.match(css, /\.dc-choice-btn--keep \{\s*border: 1\.5px solid rgba\(var\(--dream-gold-rgb, 214, 178, 110\), 0\.85\);/);
-  assert.match(css, /@media \(max-width: 640px\) \{\s*\.dc-choices \{\s*flex-direction: column;/);
-  // the other outcomes (the saving flash, letting go) are unchanged
+  // original size and frame
+  assert.match(css, /\.dc-portal \{[^}]*width: min\(28vw, 230px\);[^}]*height: min\(28vw, 230px\);/);
+  assert.match(css, /\.dc-portal-arc \{[^}]*border-top-color: rgba\(var\(--accent-rgb\), 0\.75\);/);
+  // THE ONE CHANGE: the ring does not rotate, and neither the ring's glow nor its core pulse by themselves
+  assert.ok(!/dc-arcs-spin/.test(block(css, '.dc-portal-arcs {')), 'the ring is static');
+  assert.ok(!/animation/.test(block(css, '.dc-portal-glow {')), 'the glow is static');
+  assert.ok(!/animation/.test(block(css, '.dc-portal-core {')), 'the core is static');
+  assert.ok(!/animation:[^;]*infinite/.test(block(css, '.dc-portal-arc {')));
+  // the original hover / focus effects, including the letters, are all still there (they only run on interaction)
+  assert.match(css, /\.dc-portal--let-go:hover \.dc-letter:nth-child\(4n \+ 1\),\s*\.dc-portal--let-go:focus-visible \.dc-letter:nth-child\(4n \+ 1\) \{\s*transform: translate\(-3px, 3px\) rotate\(-4deg\);/);
+  assert.match(css, /\.dc-portal--let-go:hover \.dc-letter,\s*\.dc-portal--let-go:focus-visible \.dc-letter \{\s*opacity: 0\.4;\s*filter: blur\(1\.5px\);/);
+  assert.match(css, /\.dc-portal--let-go:hover \.dc-portal-arc:nth-child\(1\)/);
+  assert.match(css, /\.dc-portal--keep:hover,\s*\.dc-portal--keep:focus-visible \{\s*--orbit-radius: min\(8\.6vw, 65px\);/);
+  // touch screens: no sticky hover — a tap acts at once on the resting circles
+  assert.match(css, /@media \(hover: none\) \{[\s\S]*\.dc-portal--let-go:hover \.dc-letter:nth-child\(n\) \{\s*opacity: 1;\s*filter: none;\s*transform: none;/);
+  // the other outcomes (saving flash, letting go) are untouched
   assert.match(tsx, /dc-saving-portal/);
   assert.match(tsx, /dc-breaking-portal/);
 });
-
