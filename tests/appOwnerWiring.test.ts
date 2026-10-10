@@ -33,7 +33,7 @@ test('the role is read only through the verified account id, server-side, and an
   assert.match(credits, /const owner = await isAppOwner\(verified\.userId\);\s*if \(owner === true && orderId === undefined\)/, 'only a definite true is the owner');
 
   const transcription = code('server/routes/dreamTranscription.ts');
-  assert.match(transcription, /resolved\.identity\.kind === 'user' && \(await isAppOwner\(resolved\.identity\.userId\)\) !== true/, 'unknown or false keeps the balance check');
+  assert.match(transcription, /const ownerCheck = resolved\.identity\.kind === 'user' \? await isAppOwner\(resolved\.identity\.userId\) : null;\s*if \(resolved\.identity\.kind === 'user' && ownerCheck !== true\)/, 'unknown or false keeps the balance check');
 });
 
 test('no route, no client code and no API handler can write or change the owner role', () => {

@@ -3,6 +3,7 @@ import { getOpenAIClient } from '../openaiClient.js';
 import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpResult.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
 import { reserveTrialTranscription, refundTrialTranscription, getCreditBalance, isAppOwner } from '../dreamAttempts.js';
+import { databaseRateLimitStore, enforceRateLimits, transcriptionRules } from '../rateLimit.js';
 import { CREDITS_REQUIRED_MESSAGE, FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 
 // Was gpt-4o-mini-transcribe. Root-caused a real production report of a
@@ -141,13 +142,24 @@ export async function handleDreamTranscription(rawBody: unknown, requestHeaders:
   // would only be free AI spend. There is deliberately no per-credit
   // transcription quota; recordings stay bounded by the per-request size cap.
   // The app owner (decided server-side from the verified account) records without a balance check.
-  if (resolved.identity.kind === 'user' && (await isAppOwner(resolved.identity.userId)) !== true) {
+  const ownerCheck = resolved.identity.kind === 'user' ? await isAppOwner(resolved.identity.userId) : null;
+  if (resolved.identity.kind === 'user' && ownerCheck !== true) {
     const balance = await getCreditBalance(resolved.identity.userId);
     if (balance === null) {
       return withHeaders(errorResult(503, 'not_configured', 'Credit tracking is not configured.'), cookieHeaders);
     }
     if (balance < 1) {
       return withHeaders(errorResult(402, 'credits_required', CREDITS_REQUIRED_MESSAGE), cookieHeaders);
+    }
+    // A paying account is also bounded in HOW OFTEN it may send a recording (shared across all server instances, see rateLimit.ts), so one
+    // credit can never become unbounded AI spend. Generous for real use: a recording and a retry or two per dream. The app owner is
+    // exempt, as everywhere (unlimited dreams); an undetermined role is limited like anyone else.
+    const decision = await enforceRateLimits(databaseRateLimitStore, 'transcribe', resolved.identity.userId, transcriptionRules(), console.warn);
+    if (!decision.allowed) {
+      return withHeaders(errorResult(429, 'rate_limited', 'Too many recordings in a short time. Please wait a moment and try again.'), {
+        ...cookieHeaders,
+        'Retry-After': String(decision.retryAfterSeconds),
+      });
     }
   }
   let reservedTranscription = false;

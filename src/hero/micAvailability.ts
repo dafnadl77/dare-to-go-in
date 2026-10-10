@@ -74,6 +74,8 @@ interface MicAvailabilityApi {
   markNone: () => void;
   /** A recording really started: there is a microphone. */
   markAvailable: () => void;
+  /** Looks again now (the dreamer says they connected a microphone). Never opens a permission prompt. */
+  recheck: () => void;
 }
 
 export function useMicAvailability(): MicAvailabilityApi {
@@ -99,5 +101,5 @@ export function useMicAvailability(): MicAvailabilityApi {
 
   const markNone = useCallback(() => setAvailability('none'), []);
   const markAvailable = useCallback(() => setAvailability('available'), []);
-  return { availability, markNone, markAvailable };
+  return { availability, markNone, markAvailable, recheck };
 }

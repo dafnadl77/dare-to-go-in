@@ -284,6 +284,40 @@
   opacity: 0.6;
 }
 
+/* Visible but inactive: with no microphone the circle cannot be pressed (it says why, just below, and writing is offered). */
+.htr-circle.is-no-mic {
+  cursor: not-allowed;
+}
+
+/* "I connected a microphone — check again": a quiet underlined text button under the explanation, tap-sized. */
+.htr-recheck {
+  min-height: 2.75rem;
+  padding: 0.35em 0.6em;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--dream-white);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  text-decoration-color: rgba(244, 240, 232, 0.55);
+  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.55);
+  transition: opacity 0.4s var(--ease-soft);
+}
+
+.htr-recheck:hover,
+.htr-recheck:focus-visible {
+  text-decoration-color: var(--dream-white);
+}
+
+.htr-recheck:focus-visible {
+  box-shadow: 0 0 0 3px var(--dream-btn-glow);
+  border-radius: 6px;
+}
+
 /* "Press and hold while you speak" — a short, quiet clarification that
    the circle needs a real press-and-hold, not a tap. Sits below I'D
    RATHER TYPE, deliberately smaller than HOLD TO TELL ME itself so it

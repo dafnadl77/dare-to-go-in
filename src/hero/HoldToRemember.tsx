@@ -120,6 +120,8 @@ function describeTranscriptionFailure(reason: TranscriptionErrorReason, t: (path
       return t('hold.transcriptionNetwork');
     case 'timeout':
       return t('hold.transcriptionTimeout');
+    case 'rate_limited':
+      return t('hold.transcriptionRateLimited');
     default:
       return t('hold.transcriptionFailed');
   }
@@ -161,7 +163,7 @@ export default function HoldToRemember({
   // Which kind of failure it was: a missing microphone is a calm "write it instead", not an error, and needs no extra hint line.
   const [micFailureKind, setMicFailureKind] = useState<MicFailureKind | null>(null);
   // Whether there is a microphone at all, learned without opening one (no permission prompt) and kept current as hardware changes.
-  const { availability: micAvailability, markNone: markMicNone, markAvailable: markMicAvailable } = useMicAvailability();
+  const { availability: micAvailability, markNone: markMicNone, markAvailable: markMicAvailable, recheck: recheckMic } = useMicAvailability();
   const noMicrophone = micAvailability === 'none';
   // Set only when a recorded clip failed to come back as usable text —
   // separate from micErrorMessage since it's a different failure (the mic
@@ -284,6 +286,8 @@ export default function HoldToRemember({
   }, [recorder, holdRef, setCentralMode, setMicUnavailable, t, livePreview, markMicNone, markMicAvailable]);
 
   const beginHold = useCallback(() => {
+    // No microphone is known to exist (and none has been plugged in): the circle is visible but inactive. Writing is offered instead.
+    if (noMicrophone) return;
     if (centralMode !== 'hold' || committedRef.current) return;
     // Unlock audio synchronously within this real gesture — iOS Safari in
     // particular refuses to do this from the delayed commit below.
@@ -305,7 +309,7 @@ export default function HoldToRemember({
       setIsListening(true);
       commitToListening();
     }, FILL_MS);
-  }, [centralMode, holdRef, tick, commitToListening, recorder]);
+  }, [noMicrophone, centralMode, holdRef, tick, commitToListening, recorder]);
 
   const endHold = useCallback(() => {
     if (!holdRef.current?.active) return;
@@ -814,6 +818,7 @@ export default function HoldToRemember({
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
         aria-label={t('hold.holdAria')}
+        aria-disabled={noMicrophone ? true : undefined}
       >
         <svg className="htr-ring" viewBox="0 0 96 96" aria-hidden="true">
           <circle className="htr-ring-track" cx="48" cy="48" r={RADIUS} />
@@ -867,6 +872,11 @@ export default function HoldToRemember({
       <p className="htr-hold-hint" aria-hidden={isHoldFaded} role={noMicrophone ? 'status' : undefined}>
         {noMicrophone ? t('hold.micNoDevice') : t('hold.pressAndHoldHint')}
       </p>
+      {noMicrophone && (
+        <button type="button" className="htr-recheck" data-cursor-hover tabIndex={isHoldFaded ? -1 : 0} aria-hidden={isHoldFaded} onClick={recheckMic}>
+          {t('hold.micRecheck')}
+        </button>
+      )}
 
       <div
         className={`central-recording${centralMode === 'recording' ? ' is-active' : ''}${finishing ? ' is-finishing' : ''}`}
