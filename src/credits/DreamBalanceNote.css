@@ -1,0 +1,42 @@
+/* The "how many dreams are left" line (archive heading, packages screen). Quiet and readable, in the same ivory/white language as the
+   subtitles around it; the optional action is a plain underlined text button with a comfortable tap size. */
+.dream-balance {
+  margin: 0.9rem 0 0;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: clamp(1rem, 2vw, 1.1rem);
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.6);
+}
+
+.dream-balance--quiet {
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.dream-balance-action {
+  display: inline-block;
+  min-height: 2.75rem;
+  padding: 0.35em 0.2em;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  text-decoration-color: rgba(255, 255, 255, 0.6);
+}
+
+.dream-balance-action:hover,
+.dream-balance-action:focus-visible {
+  text-decoration-color: #ffffff;
+}
+
+.dream-balance-action:focus-visible {
+  box-shadow: 0 0 0 3px var(--dream-btn-glow);
+  border-radius: 6px;
+}

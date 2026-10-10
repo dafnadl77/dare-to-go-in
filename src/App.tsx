@@ -471,6 +471,7 @@ function App() {
     screen = (
       <DreamArchive
         onBack={() => setView('dream')}
+        onOpenPackages={() => setView('pricing')}
         onOpenEntry={(entry) => {
           setOpenEntry(entry);
           setView('detail');

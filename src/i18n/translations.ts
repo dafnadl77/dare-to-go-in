@@ -207,6 +207,20 @@ export interface Translations {
     settingsOwnerValue: string;
     settingsDreamsLabel: string;
     settingsDreamsUnlimited: string;
+    settingsDreamsPurchasedLabel: string;
+    settingsDreamsRemainingLabel: string;
+    balanceLoading: string;
+    balanceError: string;
+    balanceRetry: string;
+    balanceOwner: string;
+    balanceRemaining: string;
+    balanceOne: string;
+    balanceAcross: string;
+    balanceOneAcross: string;
+    balanceNone: string;
+    balanceFreeUsed: string;
+    balanceFreeNone: string;
+    balanceBuyMore: string;
     settingsLanguageLabel: string;
     settingsAddressLabel: string;
     settingsAddressFeminine: string;
@@ -348,6 +362,8 @@ export interface Translations {
     freeLabel: string;
     creditsRequiredNotice: string;
     ownerUnlimitedNotice: string;
+    yourPackageRemaining: string;
+    yourPackageRemainingOne: string;
     /** "{count} Dreams" — {count} is replaced with the package's real dream count. */
     dreamsCountLabel: string;
     /** The free tier's display name, shown as the account's package when it has never purchased one. */
@@ -593,6 +609,20 @@ export const en: Translations = {
     settingsOwnerValue: 'App owner',
     settingsDreamsLabel: 'Dreams',
     settingsDreamsUnlimited: 'Unlimited ∞',
+    settingsDreamsPurchasedLabel: 'Dreams purchased',
+    settingsDreamsRemainingLabel: 'Dreams remaining',
+    balanceLoading: 'Checking your dreams…',
+    balanceError: 'We couldn’t load your dream balance right now.',
+    balanceRetry: 'Try again',
+    balanceOwner: 'Unlimited dreams ∞',
+    balanceRemaining: 'You have {remaining} of {total} dreams left in your package',
+    balanceOne: 'You have 1 of {total} dreams left in your package',
+    balanceAcross: 'You have {remaining} dreams left across your packages',
+    balanceOneAcross: 'You have 1 dream left across your packages',
+    balanceNone: 'No dreams left in your package',
+    balanceFreeUsed: 'Your free dream has been used',
+    balanceFreeNone: 'You have no dreams yet. Choose a package to begin.',
+    balanceBuyMore: 'Get another package',
     settingsLanguageLabel: 'Language',
     settingsAddressLabel: 'How should DARE address me?',
     settingsAddressFeminine: 'Feminine',
@@ -738,6 +768,8 @@ export const en: Translations = {
     freeLabel: 'Free',
     creditsRequiredNotice: 'Your free dream has been used. Choose a package to keep dreaming.',
     ownerUnlimitedNotice: 'You already have unlimited access to every dream. No package is needed.',
+    yourPackageRemaining: 'Your package — {remaining} dreams left',
+    yourPackageRemainingOne: 'Your package — 1 dream left',
     dreamsCountLabel: '{count} Dreams',
     planFree: 'Free',
     yourPackage: 'This is your package',
@@ -1002,6 +1034,20 @@ export const he: Translations = {
     settingsOwnerValue: 'בעלת האפליקציה',
     settingsDreamsLabel: 'חלומות',
     settingsDreamsUnlimited: 'ללא הגבלה ∞',
+    settingsDreamsPurchasedLabel: 'חלומות שנרכשו',
+    settingsDreamsRemainingLabel: 'חלומות שנותרו',
+    balanceLoading: 'בודקים את יתרת החלומות…',
+    balanceError: 'לא הצלחנו לטעון את יתרת החלומות כרגע.',
+    balanceRetry: 'נסו שוב',
+    balanceOwner: 'חלומות ללא הגבלה ∞',
+    balanceRemaining: 'נותרו לך {remaining} מתוך {total} חלומות בחבילה',
+    balanceOne: 'נותר לך חלום אחד מתוך {total} חלומות בחבילה',
+    balanceAcross: 'נותרו לך {remaining} חלומות מכל החבילות שרכשת',
+    balanceOneAcross: 'נותר לך חלום אחד מכל החבילות שרכשת',
+    balanceNone: 'לא נותרו חלומות בחבילה',
+    balanceFreeUsed: 'החלום החינמי שלך נוצל',
+    balanceFreeNone: 'אין לך עדיין חלומות. בחרו חבילה כדי להתחיל.',
+    balanceBuyMore: 'לרכישת חבילה נוספת',
     settingsLanguageLabel: 'שפה',
     settingsAddressLabel: 'איך לפנות אליי?',
     settingsAddressFeminine: 'לשון נקבה',
@@ -1145,6 +1191,8 @@ export const he: Translations = {
     freeLabel: 'חינם',
     creditsRequiredNotice: 'החלום החינמי שלך נוצל. בחרו חבילה כדי להמשיך לחלום.',
     ownerUnlimitedNotice: 'כבר יש לך גישה בלתי מוגבלת לכל החלומות. אין צורך ברכישת חבילה.',
+    yourPackageRemaining: 'החבילה שלך — נותרו {remaining} חלומות',
+    yourPackageRemainingOne: 'החבילה שלך — נותר חלום אחד',
     dreamsCountLabel: '{count} חלומות',
     planFree: 'חינמי',
     yourPackage: 'זו החבילה שלך',

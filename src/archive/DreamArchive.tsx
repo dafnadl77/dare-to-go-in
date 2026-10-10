@@ -30,6 +30,8 @@ import { useAuth } from '../auth/AuthContext';
 import { fullNameOfUser, firstNameOf, normalizeDisplayName, MAX_DISPLAY_NAME_LENGTH } from '../auth/displayName';
 import { useAccountPlan } from '../credits/useAccountPlan';
 import { planDisplayName } from '../pricing/planName';
+import DreamBalanceNote from '../credits/DreamBalanceNote';
+import { useDreamBalance } from '../credits/useDreamBalance';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
 import Breadcrumb from '../ui/Breadcrumb';
@@ -63,6 +65,8 @@ interface DreamArchiveProps {
   onBack: () => void;
   onOpenEntry: (entry: ArchiveEntry) => void;
   onOpenLegal: (key: LegalKey) => void;
+  /** Opens the packages screen (offered when no dreams are left). */
+  onOpenPackages?: () => void;
 }
 
 /**
@@ -90,7 +94,7 @@ interface DreamArchiveProps {
  * - Settings: the account email already known from auth, the language
  *   switcher already in the header, and sign out — nothing invented.
  */
-export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: DreamArchiveProps) {
+export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onOpenPackages }: DreamArchiveProps) {
   const { t, language, setLanguage } = useLanguage();
   const { user, signOut, updateAddressPreference, updateDisplayName } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -163,6 +167,8 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
   const fullName = fullNameOfUser(user);
   const firstName = firstNameOf(fullName);
   const accountPlan = useAccountPlan(activeSection === 'settings' ? user?.id : undefined);
+  // How many dreams are left, from the server (the credits mechanism): shown under the heading and in Settings.
+  const dreamBalance = useDreamBalance(user?.id);
   const [nameEditing, setNameEditing] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
   const [nameStatus, setNameStatus] = useState<'idle' | 'saving' | 'error'>('idle');
@@ -585,6 +591,9 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
                     <EditorialTitle text={activeSection === 'favorites' ? t('archive.navFavorites') : t('archive.pageHeading')} />
                   </h1>
                   <p className="ar-subtitle">{t('archive.pageSubtitle')}</p>
+                  {activeSection === 'all' && (
+                    <DreamBalanceNote state={dreamBalance.state} retry={dreamBalance.retry} onGetPackage={onOpenPackages} variant="archive" />
+                  )}
                 </div>
                 {/* A real action, not a fake one — "a new dream" starts from
                     the same HOLD/TYPE capture the whole app already has, so
@@ -822,10 +831,28 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal }: Dream
                   </div>
                 </>
               ) : (
-                <div className="ar-settings-row">
-                  <span className="ar-settings-label">{t('archive.settingsPlanLabel')}</span>
-                  <span className="ar-settings-value">{accountPlan.status === 'ready' ? planDisplayName(accountPlan.plan, t) : '—'}</span>
-                </div>
+                <>
+                  <div className="ar-settings-row">
+                    <span className="ar-settings-label">{t('archive.settingsPlanLabel')}</span>
+                    <span className="ar-settings-value">{accountPlan.status === 'ready' ? planDisplayName(accountPlan.plan, t) : '—'}</span>
+                  </div>
+                  <div className="ar-settings-row">
+                    <span className="ar-settings-label">{t('archive.settingsDreamsPurchasedLabel')}</span>
+                    <span className="ar-settings-value">
+                      {dreamBalance.state.status === 'loading'
+                        ? '…'
+                        : dreamBalance.state.status === 'ready' && dreamBalance.state.summary.grantedCredits !== undefined
+                          ? dreamBalance.state.summary.grantedCredits
+                          : '—'}
+                    </span>
+                  </div>
+                  <div className="ar-settings-row">
+                    <span className="ar-settings-label">{t('archive.settingsDreamsRemainingLabel')}</span>
+                    <span className="ar-settings-value">
+                      {dreamBalance.state.status === 'loading' ? '…' : dreamBalance.state.status === 'ready' ? dreamBalance.state.summary.balance : '—'}
+                    </span>
+                  </div>
+                </>
               )}
               <div className="ar-settings-row">
                 <span className="ar-settings-label">{t('archive.settingsLanguageLabel')}</span>

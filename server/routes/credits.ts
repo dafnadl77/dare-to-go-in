@@ -3,6 +3,7 @@ import { verifyBearerToken, type RequestHeaders } from '../callerIdentity.js';
 import { getCreditBalance, isAppOwner } from '../dreamAttempts.js';
 import { getPaymentOrderState } from '../payments/orderStore.js';
 import { getPurchasedPackage } from '../payments/purchasedPackage.js';
+import { getCreditHistory } from '../creditHistory.js';
 
 /**
  * GET /api/credits — the signed-in account's server-side dream-credit balance.
@@ -50,5 +51,10 @@ export async function handleCredits(requestHeaders: RequestHeaders, orderId?: st
     console.warn('owner_check_unavailable');
     return okResult({ balance, ...(purchasedPackage === undefined ? {} : { purchasedPackage }), roleUnknown: true });
   }
+  // What the dream-balance display shows besides the balance: how many credits were ever given to the account (so "2 of 3" is exact, and several
+  // purchases are counted as several), and whether the free dream was used. Read-only, from the existing ledger; if it cannot be
+  // read the fields are simply left out and the display shows only what it knows.
+  const history = await getCreditHistory(verified.userId);
+  if (history) return okResult({ balance, ...(purchasedPackage === undefined ? {} : { purchasedPackage }), ...history });
   return okResult(purchasedPackage === undefined ? { balance } : { balance, purchasedPackage });
 }

@@ -7,6 +7,8 @@ import { DREAM_PACKAGES, type DreamPackageDef, type PackageId } from './packages
 import CheckoutDialog from '../payments/CheckoutDialog';
 import { useAuth } from '../auth/AuthContext';
 import { useAccountPlan } from '../credits/useAccountPlan';
+import DreamBalanceNote from '../credits/DreamBalanceNote';
+import { useDreamBalance } from '../credits/useDreamBalance';
 import type { PaidPackageId } from '../payments/checkout';
 import './PricingPage.css';
 
@@ -148,6 +150,8 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
   const { t } = useLanguage();
   const { user } = useAuth();
   const accountPlan = useAccountPlan(signedIn ? user?.id : undefined);
+  // "Your package — N dreams left", from the server (shown only when signed in).
+  const dreamsLeft = useDreamBalance(signedIn ? user?.id : undefined);
   // The app owner already has unlimited dreams: no packages are offered, and the page says so.
   const isOwner = accountPlan.status === 'owner';
   // The package whose checkout dialog is open. Nothing is asked of the customer before they choose to buy.
@@ -217,6 +221,7 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
                 {t('pricing.ownerUnlimitedNotice')}
               </p>
             )}
+            {signedIn && <DreamBalanceNote state={dreamsLeft.state} retry={dreamsLeft.retry} variant="pricing" hideFree={creditsRequired} />}
             {creditsRequired && !isOwner && (
               <p className="pr-subtitle" role="status">
                 {t('pricing.creditsRequiredNotice')}

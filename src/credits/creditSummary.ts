@@ -17,18 +17,32 @@ export interface CreditSummary {
   owner?: true;
   /** The server could not tell whether this is the app owner: never act on a zero balance. Present only when true. */
   roleUnknown?: true;
+  /** Every credit the account was ever granted, and in how many grants (server-read from the credit ledger). Absent = not known. */
+  grantedCredits?: number;
+  grantCount?: number;
+  /** The account's one free dream was already completed. Absent = not known. */
+  freeDreamUsed?: boolean;
 }
 
 const PURCHASABLE: readonly PackageId[] = ['go_deeper_3', 'explore_10', 'dive_in_25'];
 
 export function parseCreditSummary(data: unknown): CreditSummary | null {
   if (!data || typeof data !== 'object') return null;
-  const body = data as { balance?: unknown; purchasedPackage?: unknown; owner?: unknown; roleUnknown?: unknown };
+  const body = data as { balance?: unknown; purchasedPackage?: unknown; owner?: unknown; roleUnknown?: unknown; grantedCredits?: unknown; grantCount?: unknown; freeDreamUsed?: unknown };
   if (typeof body.balance !== 'number' || !Number.isFinite(body.balance)) return null;
   let plan: PackageId | null = null;
   if (body.purchasedPackage === null) plan = 'first_dream';
   else if (typeof body.purchasedPackage === 'string' && (PURCHASABLE as readonly string[]).includes(body.purchasedPackage)) plan = body.purchasedPackage as PackageId;
   if (body.owner === true) return { balance: body.balance, plan, owner: true };
   if (body.roleUnknown === true) return { balance: body.balance, plan, roleUnknown: true };
-  return { balance: body.balance, plan };
+  const summary: CreditSummary = { balance: body.balance, plan };
+  const count = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : undefined);
+  const granted = count(body.grantedCredits);
+  const grants = count(body.grantCount);
+  if (granted !== undefined && grants !== undefined) {
+    summary.grantedCredits = granted;
+    summary.grantCount = grants;
+  }
+  if (typeof body.freeDreamUsed === 'boolean') summary.freeDreamUsed = body.freeDreamUsed;
+  return summary;
 }
