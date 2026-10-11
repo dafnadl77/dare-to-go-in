@@ -28,7 +28,7 @@ test('sign-up stores the validated name under the same metadata key the app alre
 
 test('the existing sign-in, Google, reset and recovery calls are unchanged', () => {
   assert.match(auth, /signInWithPassword\(\{ email, password \}\)/);
-  assert.match(auth, /options: \{ redirectTo: postAuthRedirectUrl\(\), queryParams: \{ prompt: 'select_account' \} \}/);
+  assert.match(auth, /options: \{ redirectTo: postAuthRedirectUrl\(afterAuth\), queryParams: \{ prompt: 'select_account' \} \}/);
   assert.match(auth, /signInWithPassword: \(email: string, password: string\) => Promise<AuthActionResult>;/);
   const google = auth.slice(auth.indexOf('async signInWithGoogle'), auth.indexOf('async resetPasswordForEmail'));
   assert.ok(!/displayName|DISPLAY_NAME/.test(google));
@@ -42,7 +42,7 @@ test('the form: a name field only in sign-up mode, validated with the same rule 
   assert.ok(submit.indexOf("t('auth.errorNameRequired')") < submit.indexOf('looksLikeEmail(trimmedEmail)'));
   assert.match(submit, /if \(isSignUp\) \{\s*if \(name\.trim\(\) === ''\)/);
   assert.match(submit, /normalizeDisplayName\(name\) === null[\s\S]*?t\('auth\.errorInvalidName'\)/);
-  assert.match(submit, /await signUpWithPassword\(trimmedEmail, password, name\)/);
+  assert.match(submit, /await signUpWithPassword\(trimmedEmail, password, name, startDream \? WRITE_VIEW_VALUE : undefined\)/);
   // sign-in keeps its two-argument call
   assert.match(submit, /await signInWithPassword\(trimmedEmail, password\)/);
 });

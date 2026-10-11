@@ -9,7 +9,7 @@ import { saveDreamRemote } from './hero/dreamRemoteStorage';
 import { getPendingDreamSave, setPendingDreamSave, clearPendingDreamSave } from './hero/pendingDreamSave';
 import { supabase } from './auth/supabaseClient';
 import ResetPassword from './archive/ResetPassword';
-import { useAuth, POST_AUTH_REDIRECT_PARAM, POST_AUTH_REDIRECT_VALUE, RESET_PASSWORD_VIEW_VALUE } from './auth/AuthContext';
+import { useAuth, POST_AUTH_REDIRECT_PARAM, POST_AUTH_REDIRECT_VALUE, RESET_PASSWORD_VIEW_VALUE, WRITE_VIEW_VALUE } from './auth/AuthContext';
 import { useLanguage } from './i18n/LanguageContext';
 import LegalPage from './legal/LegalPage';
 import type { LegalKey } from './legal/legalContent';
@@ -64,6 +64,9 @@ function getInitialView(): AppView {
   // here persists for the rest of this page load even if Supabase's own
   // client later cleans its params out of the URL.
   if (value === RESET_PASSWORD_VIEW_VALUE) return 'reset-password';
+  // /?view=write: a dreamer who signed up / signed in in order to START a dream (the e-mail confirmation link and the Google return carry it).
+  // The home screen is the view; the writing screen is opened on top of it by openWriting, but only once a real session is confirmed.
+  if (value === WRITE_VIEW_VALUE) return 'dream';
   if (value === 'about') return 'about';
   if (value === 'pricing') return 'pricing';
   if (value && (LEGAL_VIEWS as string[]).includes(value)) return value as LegalKey;
@@ -165,6 +168,12 @@ function App() {
   const [authSessionNotice, setAuthSessionNotice] = useState(false);
   // The current screen came from the page address (a refresh or a link), not from anything the dreamer chose in this visit.
   const viewFromUrlRef = useRef(getInitialView() !== 'dream');
+  // The visitor pressed START a dream while signed out: sign-up / sign-in is open for that, and afterwards they return to the writing screen.
+  const [startDreamIntent, setStartDreamIntent] = useState(false);
+  // Ask the home screen to open the writing screen (once). True on arrival at /?view=write and right after signing in for a start.
+  const [openWriting, setOpenWriting] = useState(() => new URLSearchParams(window.location.search).get(POST_AUTH_REDIRECT_PARAM) === WRITE_VIEW_VALUE);
+  // True only while the request came from the ADDRESS (/?view=write) and a session has not been confirmed yet.
+  const writeArrivalRef = useRef(openWriting);
   // A signed-in account with no dream credit was sent to Pricing (see the gate
   // effect below and HeroDream's onCreditsRequired).
   const [creditsNotice, setCreditsNotice] = useState(false);
@@ -195,6 +204,7 @@ function App() {
 
   const setView = (next: AppView) => {
     if (next !== 'auth') {
+      setStartDreamIntent(false);
       setAuthFreeDreamNotice(false);
       setAuthSessionNotice(false);
     }
@@ -300,6 +310,22 @@ function App() {
     setView('auth');
   };
 
+  // HeroDream's gate: a visitor who is not signed in pressed START. Sign-up (with sign-in one tap away) opens; nothing is recorded or analyzed.
+  const handleStartRequiresSignIn = () => {
+    setAuthMode('signup');
+    setAuthFreeDreamNotice(false);
+    setAuthSessionNotice(false);
+    setView('auth');
+    setStartDreamIntent(true);
+  };
+
+  // The writing screen opened (or cannot, below): the request is spent, and the address stops saying /?view=write.
+  const handleWritingOpened = () => {
+    writeArrivalRef.current = false;
+    setOpenWriting(false);
+    writeViewToUrl('dream');
+  };
+
   // The server refused the signed-in account's token. If Supabase confirms the session is really gone (and this device has just
   // dropped it), say so on the sign-in screen; if the session is fine, this was not an expired session and nothing changes.
   const handleSessionExpired = async (): Promise<boolean> => {
@@ -377,6 +403,18 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, view, user?.id, paymentReturn]);
 
+  // A request to open the writing screen is honoured only for a confirmed session on the home screen. Arriving at /?view=write signed out
+  // (a stale link, a confirmation that did not sign in) just shows the home screen; leaving the home screen drops the request.
+  useEffect(() => {
+    if (!openWriting) return;
+    // Signed out on arrival is judged only once the session check has finished; a start just completed here is never judged that way.
+    if (view !== 'dream' || (writeArrivalRef.current && !loading && !user)) {
+      writeArrivalRef.current = false;
+      setOpenWriting(false);
+      if (new URLSearchParams(window.location.search).get(POST_AUTH_REDIRECT_PARAM) === WRITE_VIEW_VALUE) writeViewToUrl('dream');
+    }
+  }, [openWriting, view, loading, user]);
+
   let screen: ReactNode;
 
   if (pendingSaveState === 'resuming' || pendingSaveState === 'error') {
@@ -421,6 +459,7 @@ function App() {
       <DreamAuth
         freeDreamNotice={authFreeDreamNotice}
         sessionExpiredNotice={authSessionNotice}
+        startDream={startDreamIntent}
         mode={authMode}
         onSwitchMode={setAuthMode}
         onBack={() => {
@@ -440,6 +479,14 @@ function App() {
           setView('dream');
         }}
         onAuthenticated={() => {
+          if (startDreamIntent) {
+            // Signed in to START a dream: straight back to the writing screen, no further navigation.
+            writeArrivalRef.current = false;
+            setOpenWriting(true);
+            setView('dream');
+            setReturnToPricingAfterAuth(false);
+            return;
+          }
           setView(returnToPricingAfterAuth ? 'pricing' : 'archive');
           setReturnToPricingAfterAuth(false);
         }}
@@ -497,6 +544,9 @@ function App() {
         }}
         onSessionExpired={handleSessionExpired}
         onUnsavedDreamChange={setUnsavedDream}
+        onStartRequiresSignIn={handleStartRequiresSignIn}
+        openWriting={openWriting && !!user}
+        onWritingOpened={handleWritingOpened}
       />
     );
   }

@@ -256,6 +256,8 @@ export interface Translations {
     backToDare: string;
     keepYourDreams: string;
     createArchiveTagline: string;
+    startDreamTagline: string;
+    startDreamSigninTagline: string;
     freeDreamUsedNotice: string;
     sessionExpiredNotice: string;
     welcomeBack: string;
@@ -669,6 +671,8 @@ export const en: Translations = {
     backToDare: 'Back to DARE',
     keepYourDreams: 'KEEP YOUR DREAMS',
     createArchiveTagline: 'Create your private dream archive.',
+    startDreamTagline: 'Create your account to tell your first dream — it is on us.',
+    startDreamSigninTagline: 'Sign in to tell your dream.',
     freeDreamUsedNotice: 'Your first dream was free. To continue with more dreams, sign in or create an account.',
     sessionExpiredNotice: 'Your sign-in has ended. Sign in again to continue — what you wrote is waiting for you.',
     welcomeBack: 'WELCOME BACK, DREAMER.',
@@ -703,7 +707,7 @@ export const en: Translations = {
     checkYourEmailTitle: 'CHECK YOUR EMAIL',
     checkYourEmailMessage: 'I sent a confirmation link to {email}. Open it to finish creating your archive.',
     signupCheckEmailTitle: 'CHECK YOUR EMAIL',
-    signupCheckEmailBody: 'If you’re new to DARE, a link to confirm your account is on its way.',
+    signupCheckEmailBody: 'If this address can receive a verification message, a link to continue will be sent to it.',
     signupCheckEmailBodyNext: 'Already have an account? Sign in, or reset your password.',
     signupCheckEmailSignIn: 'Sign in',
     signupCheckEmailForgot: 'Forgot password',
@@ -1105,6 +1109,8 @@ export const he: Translations = {
     backToDare: 'חזרה ל-DARE',
     keepYourDreams: 'שמרו את החלומות שלכם',
     createArchiveTagline: 'צרו את ארכיון החלומות הפרטי שלכם.',
+    startDreamTagline: 'צרו חשבון כדי לספר את החלום הראשון שלכם — הוא במתנה.',
+    startDreamSigninTagline: 'התחברו כדי לספר את החלום שלכם.',
     freeDreamUsedNotice: 'החלום הראשון שלך היה במתנה. כדי להמשיך לחלומות נוספים, יש להתחבר או ליצור חשבון.',
     sessionExpiredNotice: 'ההתחברות שלך הסתיימה. התחברו מחדש כדי להמשיך — מה שכתבת מחכה לך.',
     welcomeBack: 'ברוכים השבים, חולמים.',
@@ -1139,7 +1145,7 @@ export const he: Translations = {
     checkYourEmailTitle: 'בדקו את תיבת המייל',
     checkYourEmailMessage: 'נשלח קישור אישור אל {email}. פתחו אותו כדי להשלים את יצירת הארכיון.',
     signupCheckEmailTitle: 'בדקי את המייל שלך',
-    signupCheckEmailBody: 'אם זו הפעם הראשונה שלך ב-DARE, יישלח אלייך קישור לאישור החשבון.',
+    signupCheckEmailBody: 'אם הכתובת יכולה לקבל הודעת אימות, יישלח אליה קישור להמשך.',
     signupCheckEmailBodyNext: 'כבר יש לך חשבון? התחברי או אפסי סיסמה.',
     signupCheckEmailSignIn: 'התחברות',
     signupCheckEmailForgot: 'שכחתי סיסמה',

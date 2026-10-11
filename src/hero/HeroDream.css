@@ -117,6 +117,16 @@
   }
 }
 
+/* The writing panel grew (a long dream, a message under the buttons) and would run into the decorative title and prompt above it: they
+   fade away for as long as that is true (useTypingPanelFit.ts toggles .is-crowded). visibility, not display, so nothing shifts. */
+.hero-ui-stack:has(.hold-to-remember.is-crowded) .memory-title,
+.hero-ui-stack:has(.hold-to-remember.is-crowded) .dream-prompt {
+  /* !important: the title's own reveal rules (.is-revealed / .is-settled) set their opacity with more specificity. */
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.35s var(--ease-soft), visibility 0s linear 0.35s;
+}
+
 /* .dare-home (the fixed top-left "way back" during reconstruction) used
    to live here — the shared GlobalHeader (src/ui/GlobalHeader.tsx/.css)
    now provides that persistent brand mark on every screen, including

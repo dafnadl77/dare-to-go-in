@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -13,9 +14,11 @@ import type { CentralMode } from './centralMode';
 import type { useDreamRecorder } from './useDreamRecorder';
 import type { DreamInput } from './dreamInput';
 import { transcribeDreamAudio, type TranscriptionErrorReason } from './dreamTranscription';
-import { takeDreamDraft } from './dreamDraft';
+import { saveDreamDraft, takeDreamDraft } from './dreamDraft';
 import { classifyMicFailure, MIC_FAILURE_MESSAGE_KEY, type MicFailureKind } from './micFailure';
 import { useMicAvailability } from './micAvailability';
+import { useKeyboardViewport } from './useKeyboardViewport';
+import { useTypingPanelFit } from './useTypingPanelFit';
 import { hasDreamText, submitTypedDream } from './dreamEntry';
 import {
   STALL_SPEECH_MS,
@@ -61,6 +64,12 @@ interface HoldToRememberProps {
   onRetryAnalysis?: () => void;
   /** The exact text the failed analysis was run on. EDIT puts it back into the typing field so the dreamer never has to retype it. */
   capturedDreamText?: string;
+  /** Called when the dreamer tries to START (press the circle, choose to write, or send their words). true = go ahead. false = the app took over
+      (a visitor who is not signed in is sent to sign-up / sign-in first). Absent = always allowed. */
+  onStartAttempt?: () => boolean;
+  /** Open the writing screen as soon as the home screen is ready (after sign-in or e-mail confirmation: /?view=write). Consumed once through onWritingOpened. */
+  openWriting?: boolean;
+  onWritingOpened?: () => void;
 }
 
 const FILL_MS = 800;
@@ -142,10 +151,14 @@ export default function HoldToRemember({
   analysisUncertain = false,
   onRetryAnalysis,
   capturedDreamText = '',
+  onStartAttempt,
+  openWriting = false,
+  onWritingOpened,
 }: HoldToRememberProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const ringRef = useRef<SVGCircleElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const typingPanelRef = useRef<HTMLDivElement>(null);
   const orbRef = useRef<HTMLDivElement>(null);
   const rippleRef = useRef<HTMLDivElement>(null);
   const [isHolding, setIsHolding] = useState(false);
@@ -289,6 +302,8 @@ export default function HoldToRemember({
     // No microphone is known to exist (and none has been plugged in): the circle is visible but inactive. Writing is offered instead.
     if (noMicrophone) return;
     if (centralMode !== 'hold' || committedRef.current) return;
+    // Signed out: sign-up / sign-in opens instead (nothing is recorded, no permission is asked).
+    if (onStartAttempt && !onStartAttempt()) return;
     // Unlock audio synchronously within this real gesture — iOS Safari in
     // particular refuses to do this from the delayed commit below.
     recorder.primeAudio();
@@ -309,7 +324,7 @@ export default function HoldToRemember({
       setIsListening(true);
       commitToListening();
     }, FILL_MS);
-  }, [noMicrophone, centralMode, holdRef, tick, commitToListening, recorder]);
+  }, [noMicrophone, centralMode, holdRef, tick, commitToListening, recorder, onStartAttempt]);
 
   const endHold = useCallback(() => {
     if (!holdRef.current?.active) return;
@@ -381,6 +396,27 @@ export default function HoldToRemember({
     onTypedTranscriptChange(draft);
     setCentralMode('typing');
   }, [revealed, onTypedTranscriptChange, setCentralMode]);
+
+  // While the writing screen is open: the panel follows the visible area when a phone keyboard is up (see useKeyboardViewport.ts), and the
+  // writing box grows with what is written (up to the cap set in CSS), then scrolls inside itself — a long dream never pushes the buttons away.
+  useKeyboardViewport(centralMode === 'typing', typingPanelRef);
+  // ...and is measured: nudged back inside the usable band if its size pushed it over the menu or past the bottom, with the decorative
+  // title/prompt fading only while they would collide with it (see useTypingPanelFit.ts).
+  useTypingPanelFit(centralMode === 'typing', typingPanelRef, [entry, doneBlocked, micUnavailable, transcriptionErrorMessage, canRetryTranscription]);
+  useLayoutEffect(() => {
+    const box = textareaRef.current;
+    if (!box || centralMode !== 'typing') return;
+    box.style.height = 'auto';
+    box.style.height = `${box.scrollHeight}px`;
+  }, [entry, centralMode]);
+
+  // The writing screen opens by itself when the app asks (after sign-in or e-mail confirmation: /?view=write). Once, and only from the home
+  // state, so it never interrupts a recording or a dream already under way.
+  useEffect(() => {
+    if (!openWriting || !revealed || centralMode !== 'hold') return;
+    setCentralMode('typing');
+    onWritingOpened?.();
+  }, [openWriting, revealed, centralMode, setCentralMode, onWritingOpened]);
 
   // Live voice-reactive breathing: mirrors the mic level into the shared
   // holdRef (MemoryVeil reads it) and the ambient listening orb, every
@@ -476,6 +512,11 @@ export default function HoldToRemember({
   // On success the box is cleared: if that dream is later discarded (LET IT GO) and the screen returns to 'hold' for a new one, TYPE
   // re-mounts empty instead of with the PREVIOUS dream's text; onDreamCapture already received its own copy of the text.
   const handleDoneTyping = () => {
+    // Words typed while signed out (a kept draft) are not sent anywhere: they wait while the dreamer signs in.
+    if (dreamHasText && onStartAttempt && !onStartAttempt()) {
+      saveDreamDraft(entry);
+      return;
+    }
     const outcome = submitTypedDream(entry, {
       onCapture: onDreamCapture,
       onSubmitted: () => {
@@ -859,7 +900,10 @@ export default function HoldToRemember({
         data-cursor-hover
         tabIndex={isHoldFaded ? -1 : 0}
         aria-hidden={isHoldFaded}
-        onClick={() => setCentralMode('typing')}
+        onClick={() => {
+          if (onStartAttempt && !onStartAttempt()) return;
+          setCentralMode('typing');
+        }}
       >
         {noMicrophone ? t('hold.writeYourDream') : t('hold.idRatherType')}
       </button>
@@ -950,6 +994,7 @@ export default function HoldToRemember({
       </div>
 
       <div
+        ref={typingPanelRef}
         className={`central-typing${centralMode === 'typing' ? ' is-active' : ''}`}
         aria-hidden={centralMode !== 'typing'}
       >
@@ -963,6 +1008,38 @@ export default function HoldToRemember({
         >
           ×
         </button>
+        <p className="central-typing-heading">{t('hold.tellMeWhatHappened')}</p>
+        <textarea
+          ref={textareaRef}
+          className="central-typing-textarea"
+          placeholder={t('hold.typingPlaceholder')}
+          value={entry}
+          onChange={handleEntryChange}
+          tabIndex={centralMode === 'typing' ? 0 : -1}
+          rows={4}
+          dir="auto"
+        />
+        <div className="central-typing-actions">
+          <button
+            type="button"
+            className="central-back"
+            data-cursor-hover
+            tabIndex={centralMode === 'typing' ? 0 : -1}
+            onClick={handleBack}
+          >
+            {t('hold.back')}
+          </button>
+          <button
+            type="button"
+            className="central-done"
+            data-cursor-hover
+            tabIndex={centralMode === 'typing' ? 0 : -1}
+            aria-disabled={!dreamHasText}
+            onClick={handleDoneTyping}
+          >
+            {t('hold.imDone')}
+          </button>
+        </div>
         {(micUnavailable || transcriptionErrorMessage || (doneBlocked && !dreamHasText)) && (
           <div className="central-mic-notice">
             {micUnavailable && (
@@ -1001,38 +1078,6 @@ export default function HoldToRemember({
             )}
           </div>
         )}
-        <p className="central-typing-heading">{t('hold.tellMeWhatHappened')}</p>
-        <textarea
-          ref={textareaRef}
-          className="central-typing-textarea"
-          placeholder={t('hold.typingPlaceholder')}
-          value={entry}
-          onChange={handleEntryChange}
-          tabIndex={centralMode === 'typing' ? 0 : -1}
-          rows={4}
-          dir="auto"
-        />
-        <div className="central-typing-actions">
-          <button
-            type="button"
-            className="central-back"
-            data-cursor-hover
-            tabIndex={centralMode === 'typing' ? 0 : -1}
-            onClick={handleBack}
-          >
-            {t('hold.back')}
-          </button>
-          <button
-            type="button"
-            className="central-done"
-            data-cursor-hover
-            tabIndex={centralMode === 'typing' ? 0 : -1}
-            aria-disabled={!dreamHasText}
-            onClick={handleDoneTyping}
-          >
-            {t('hold.imDone')}
-          </button>
-        </div>
       </div>
 
       <div

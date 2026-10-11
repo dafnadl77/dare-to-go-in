@@ -339,14 +339,19 @@ test('the permission prompt gets 30 seconds, and its expiry says it was not answ
 
 test('the notice sits below the buttons, out of the centred panel\'s flow, so it cannot overlap the prompt, the heading, the text box or the buttons', () => {
   const css = read('src/hero/HoldToRemember.css');
-  // out of flow: it cannot grow the (vertically centred) panel upward over the "What do you remember..." line
-  assert.match(css, /\.central-mic-notice \{[\s\S]*?position: absolute;[\s\S]*?top: 100%;[\s\S]*?left: 0;[\s\S]*?right: 0;[\s\S]*?flex-direction: column;/);
+  // in the panel's flow, after the buttons. The panel is height-capped and scrolls, so the notice is always reachable (it used to hang below the
+  // panel, which on a short screen put it past the bottom edge or under the keyboard).
+  const notice = css.slice(css.indexOf('.central-mic-notice {'), css.indexOf('.central-mic-notice .central-mic-note'));
+  assert.match(notice, /width: 100%;[\s\S]*?margin-top: 1\.2rem;[\s\S]*?flex-direction: column;/);
+  assert.ok(!/position: absolute/.test(notice), 'no longer out of flow');
   assert.match(css, /\.central-retry \{/);
   // both kinds of notice (microphone and transcription) use that one container, after the buttons in the layout
   const hold = read('src/hero/HoldToRemember.tsx');
   // ONE container for every kind of notice (two absolute containers would sit on top of each other under the buttons)
   assert.equal((hold.match(/className="central-mic-notice"/g) ?? []).length, 1);
   assert.ok(!/<p className="central-mic-note">/.test(hold), 'no bare in-flow note remains');
+  // it comes AFTER the action buttons inside the panel
+  assert.ok(hold.indexOf('className="central-typing-actions"') < hold.indexOf('className="central-mic-notice"'));
 });
 
 test('the engine, packages, credits and payments are untouched by the recording fix', () => {

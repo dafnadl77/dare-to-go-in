@@ -386,6 +386,31 @@
   }
 }
 
+/* THE WRITING PANEL. It keeps its place (centred, same look) and now also:
+   - never taller than the room below the header: it scrolls inside itself instead of running over the menu, the title or the buttons;
+   - follows the visible area while a phone keyboard is open (.is-kb, set by useKeyboardViewport), so the box and the buttons stay in sight;
+   - is a little wider, so the writing area is not cramped. */
+.central-typing {
+  width: min(90vw, 520px);
+  /* The room below the menu. The panel is centred on the home screen's own centre (below the title), so useTypingPanelFit nudges it
+     (--htr-shift) back inside this band when its size would push it over the menu or past the bottom. */
+  max-height: var(--htr-room, calc(100dvh - var(--gh-h, 4.25rem) - 1.5rem));
+  transform: translate(-50%, calc(-50% + var(--htr-shift, 0px)));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  box-sizing: border-box;
+  padding: 0.5rem 0.35rem;
+}
+
+.central-typing.is-kb {
+  position: fixed;
+  top: calc(var(--htr-vv-top, 0px) + var(--htr-vv-h, 100dvh) / 2);
+  max-height: var(--htr-room, calc(var(--htr-vv-h, 100dvh) - 1.25rem));
+}
+
 .central-recording.is-active,
 .central-transcribing.is-active,
 .central-typing.is-active,
@@ -666,16 +691,13 @@
   opacity: 0.9;
 }
 
-/* The notice (a mic or transcription message, optionally with "try again") sits BELOW the buttons, out of the panel's flow. The
-   panel is centred on the screen, so a notice in the flow (above the heading) grew the panel upward and ran over the
-   "What do you remember from your dream?" line; out of flow it cannot move the heading, the text box or the buttons at all, and
-   a long message simply wraps inside the panel's width in the free space under them. */
+/* The notice (a mic or transcription message, optionally with "try again") sits BELOW the buttons, inside the panel. It used to hang
+   outside the panel (absolute, top: 100%) so it could not move the heading — but on a short screen that put it past the bottom edge,
+   over the footer, or under the keyboard. Inside the panel it is always reachable: the panel is height-capped and scrolls, so the
+   message, the box and the buttons can never run into one another (see the .central-typing rules below). */
 .central-mic-notice {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin-top: 1.6rem;
+  width: 100%;
+  margin-top: 1.2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -730,7 +752,12 @@
    to still read fine for a real multi-line dream description. */
 .central-typing-textarea {
   width: 100%;
-  min-height: 5.2em;
+  box-sizing: border-box;
+  min-height: 7em;
+  /* Grows with the dream (see the layout effect in HoldToRemember.tsx) up to this, then scrolls inside itself. */
+  max-height: min(42dvh, 22rem);
+  overflow-y: auto;
+  flex: 0 1 auto;
   background: transparent;
   border: none;
   border-bottom: 1px solid rgba(244, 240, 232, 0.26);
@@ -768,10 +795,31 @@
 
 .central-typing-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 2.4rem;
-  margin-top: 1.6rem;
+  gap: 0.9rem 1.8rem;
+  margin-top: 1.5rem;
+  flex: none;
+}
+
+/* Both buttons are comfortable touch targets and can never sit on top of each other, however narrow the screen. */
+.central-typing-actions .central-back,
+.central-typing-actions .central-done {
+  min-height: 2.75rem;
+}
+
+/* A short screen: the same panel, with tighter spacing, so most of the height is the writing box. */
+@media (max-height: 560px) {
+  .central-typing-heading {
+    margin-bottom: 0.8rem;
+  }
+  .central-typing-actions {
+    margin-top: 1rem;
+  }
+  .central-mic-notice {
+    margin-top: 0.8rem;
+  }
 }
 
 /* BACK — was bare uppercase text next to a filled teal pill (I'M DONE),

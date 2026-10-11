@@ -113,10 +113,16 @@ interface HeroDreamProps {
   onSessionExpired: () => Promise<boolean>;
   /** Reports whether a meaningfully UNSAVED dream is on screen (analyzed, not saved, not let go), so App can guard refresh and in-app navigation. Called with false when this screen unmounts. */
   onUnsavedDreamChange: (unsaved: boolean) => void;
+  /** A visitor who is not signed in tried to START a dream (the circle, "write your dream", or sending words): App opens sign-up / sign-in
+      and brings them back to the writing screen afterwards. Nothing is analyzed for them first. */
+  onStartRequiresSignIn: () => void;
+  /** App asks for the writing screen to open (after sign-in or e-mail confirmation: /?view=write). Consumed once through onWritingOpened. */
+  openWriting?: boolean;
+  onWritingOpened?: () => void;
 }
 
-export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal, onRegisterHomeHandler, onFreeDreamUsed, onCreditsRequired, onSessionExpired, onUnsavedDreamChange }: HeroDreamProps) {
-  const { user } = useAuth();
+export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal, onRegisterHomeHandler, onFreeDreamUsed, onCreditsRequired, onSessionExpired, onUnsavedDreamChange, onStartRequiresSignIn, openWriting = false, onWritingOpened }: HeroDreamProps) {
+  const { user, loading: authLoading } = useAuth();
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
   const uiLayerRef = useRef<HTMLDivElement>(null);
@@ -283,7 +289,22 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     );
   }, [epoch]);
 
+  // May a dream be STARTED now? Signed in: yes. Signed out: no — sign-up / sign-in opens instead, and the dreamer returns to the writing
+  // screen afterwards. While the session is still being read nothing starts (a moment, never a wrong redirect for a signed-in dreamer).
+  const handleStartAttempt = (): boolean => {
+    if (authLoading) return false;
+    if (user) return true;
+    onStartRequiresSignIn();
+    return false;
+  };
+
   const runAnalysis = (input: DreamInput) => {
+    // Safety net behind the entry gate: words are never analyzed for a visitor who is not signed in; they are kept for their return.
+    if (!user && !authLoading) {
+      saveDreamDraft(dreamInputSourceText(input));
+      onStartRequiresSignIn();
+      return;
+    }
     const seq = ++analysisSeqRef.current;
     // The SAME submitted dream (unchanged text, still unanswered) keeps the same key, so a retry after a
     // timeout is recognised by the server as the same paid request; a new or changed dream gets a new key.
@@ -880,6 +901,9 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
             setMicUnavailable={setMicUnavailable}
             onTypedTranscriptChange={setTypedTranscript}
             onDreamCapture={handleDreamCapture}
+            onStartAttempt={handleStartAttempt}
+            openWriting={openWriting}
+            onWritingOpened={onWritingOpened}
             reconstructing={isReconstructing}
             analysisFailed={analysisResult?.status === 'error'}
             analysisUncertain={!!user && analysisUncertain}

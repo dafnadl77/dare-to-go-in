@@ -37,12 +37,12 @@ interface AuthContextValue {
       new sign-up returns no session at all until the dreamer clicks the
       link Supabase just emailed them — the caller (DreamAuth) must show
       that as its own state, never treat it as "signed in". */
-  signUpWithPassword: (email: string, password: string, name: string) => Promise<AuthActionResult>;
+  signUpWithPassword: (email: string, password: string, name: string, afterAuth?: AfterAuthView) => Promise<AuthActionResult>;
   /** Starts the real Google OAuth redirect — the browser navigates away
       to Google, then to Supabase, then back here. Only returns (with an
       error) if the redirect itself couldn't even start; a successful
       call never "returns" in the normal sense, the page just leaves. */
-  signInWithGoogle: () => Promise<AuthActionResult>;
+  signInWithGoogle: (afterAuth?: AfterAuthView) => Promise<AuthActionResult>;
   /** The official Supabase password-recovery request — always resolves
       to a generic success (Supabase itself never reveals whether the
       email is actually registered, so this app doesn't either; see
@@ -76,6 +76,11 @@ const AuthContext = createContext<AuthContextValue | null>(null);
     param is the whole mechanism, not a route. */
 export const POST_AUTH_REDIRECT_PARAM = 'view';
 export const POST_AUTH_REDIRECT_VALUE = 'archive';
+/** The view for a dreamer who signed up / signed in in order to START a dream: the writing screen (see App.tsx's getInitialView). It rides in the
+    address, so it survives opening the confirmation link in another tab, browser or device. */
+export const WRITE_VIEW_VALUE = 'write';
+/** Where a freshly authenticated dreamer lands: the archive (the default), or the writing screen when they came to start a dream. */
+export type AfterAuthView = typeof WRITE_VIEW_VALUE;
 /** The view App.tsx shows for a password-recovery link — see
     ResetPassword.tsx. Exported so App.tsx's getInitialView() recognizes
     it without either file guessing the other's string literal. */
@@ -88,8 +93,8 @@ export const RESET_PASSWORD_VIEW_VALUE = 'reset-password';
     change. Used for the Google OAuth redirect and the sign-up
     confirmation-email link, so a confirmed/authenticated dreamer always
     lands back on the archive instead of the bare homepage. */
-function postAuthRedirectUrl(): string {
-  return `${window.location.origin}/?${POST_AUTH_REDIRECT_PARAM}=${POST_AUTH_REDIRECT_VALUE}`;
+function postAuthRedirectUrl(afterAuth?: AfterAuthView): string {
+  return `${window.location.origin}/?${POST_AUTH_REDIRECT_PARAM}=${afterAuth ?? POST_AUTH_REDIRECT_VALUE}`;
 }
 
 /** Same never-hardcoded-origin approach as postAuthRedirectUrl, pointed
@@ -158,7 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error) return { ok: false, error };
         return { ok: true, sessionCreated: true };
       },
-      async signUpWithPassword(email, password, name) {
+      async signUpWithPassword(email, password, name, afterAuth) {
         // The name is required for a new email account and is stored on the new user's own metadata under the same `displayName`
         // key Settings edits and the greeting reads (see displayName.ts). It is validated here as well as in the form; an unusable
         // name creates nothing. Sign-in and Google are untouched.
@@ -174,7 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: postAuthRedirectUrl(), data: { [DISPLAY_NAME_METADATA_KEY]: cleanName } },
+          options: { emailRedirectTo: postAuthRedirectUrl(afterAuth), data: { [DISPLAY_NAME_METADATA_KEY]: cleanName } },
         });
         if (error) return { ok: false, error };
         // A real session comes back immediately only when the project's
@@ -182,7 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // until the dreamer follows the link in their inbox.
         return { ok: true, sessionCreated: data.session !== null };
       },
-      async signInWithGoogle() {
+      async signInWithGoogle(afterAuth) {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           // prompt: 'select_account' forces Google's own native account
@@ -195,7 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // session restoration for an already-authenticated DARE user,
           // which goes through getSession()/onAuthStateChange and never
           // calls this at all.
-          options: { redirectTo: postAuthRedirectUrl(), queryParams: { prompt: 'select_account' } },
+          options: { redirectTo: postAuthRedirectUrl(afterAuth), queryParams: { prompt: 'select_account' } },
         });
         if (error) return { ok: false, error };
         // On success the browser is already navigating to Google — there
