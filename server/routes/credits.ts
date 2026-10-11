@@ -4,11 +4,14 @@ import { getCreditBalance, isAppOwner } from '../dreamAttempts.js';
 import { getPaymentOrderState } from '../payments/orderStore.js';
 import { getPurchasedPackage } from '../payments/purchasedPackage.js';
 import { getCreditHistory } from '../creditHistory.js';
+import { ensureFreeDreamDecision } from '../freeDream.js';
 
 /**
  * GET /api/credits — the signed-in account's server-side dream-credit balance.
- * Read-only and advisory for the client (it lets the UI send a zero-credit
- * account to Pricing before they record anything); the real enforcement is the
+ * Advisory for the client (it lets the UI send a zero-credit account to Pricing
+ * before they record anything); the only thing a read can ever do besides answer
+ * is settle the account's ONE-TIME free-dream decision (idempotent, see
+ * freeDream.ts), so the answer already includes a free dream that is theirs. The real enforcement is the
  * atomic spend inside /api/dream-analysis. Requires a verified bearer token —
  * the account is always the token's own, never anything the client names — and
  * there is no route that lets a client set, add or spend credits.
@@ -31,6 +34,9 @@ export async function handleCredits(requestHeaders: RequestHeaders, orderId?: st
     // Pricing — can never send the owner there.
     return okResult({ balance: Math.max((await getCreditBalance(verified.userId)) ?? 0, 1), owner: true });
   }
+  // The one-time free-dream decision is settled BEFORE the balance is read (see freeDream.ts): idempotent, so asking again changes nothing,
+  // and never throws. The payment-return poll (orderId) skips it.
+  if (orderId === undefined && owner !== true) await ensureFreeDreamDecision(verified.userId, requestHeaders.cookie);
   const balance = await getCreditBalance(verified.userId);
   if (balance === null) {
     return errorResult(503, 'not_configured', 'Credit tracking is not configured.');

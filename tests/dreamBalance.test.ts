@@ -109,8 +109,15 @@ test('the wording: exact sentences in both languages, singular and plural, and t
   assert.equal(say(he, two, 'pricing'), 'החבילה שלך — נותרו 2 חלומות');
   assert.equal(say(en, two, 'pricing'), 'Your package — 2 dreams left');
   assert.equal(say(he, { ...two, remaining: 1 }, 'pricing'), 'החבילה שלך — נותר חלום אחד');
-  assert.equal(say(he, { kind: 'across', remaining: 12, total: 13 }), 'נותרו לך 12 חלומות מכל החבילות שרכשת');
-  assert.equal(say(en, { kind: 'across', remaining: 12, total: 13 }), 'You have 12 dreams left across your packages');
+  // several purchases: the total purchased AND the total remaining, from the same server answer
+  assert.equal(say(he, { kind: 'across', remaining: 12, total: 13 }), 'נותרו לך 12 מתוך 13 חלומות מכל החבילות שרכשת');
+  assert.equal(say(en, { kind: 'across', remaining: 12, total: 13 }), 'You have 12 of 13 dreams left across your packages');
+  assert.equal(say(en, { kind: 'across', remaining: 1, total: 13 }), 'You have 1 of 13 dreams left across your packages');
+  assert.equal(say(en, { kind: 'across', remaining: 7, total: null }), 'You have 7 dreams left across your packages', 'no total known: only what is left');
+  assert.equal(say(en, { kind: 'across-free', remaining: 3, total: 4 }), 'You have 3 of 4 dreams left, including your free dream');
+  assert.equal(say(he, { kind: 'across-free', remaining: 3, total: 4 }), 'נותרו לך 3 מתוך 4 חלומות, כולל החלום החינמי');
+  assert.equal(say(he, { kind: 'free-available', remaining: 1, total: null }), 'החלום החינמי שלך מחכה לך');
+  assert.equal(say(en, { kind: 'free-available', remaining: 1, total: null }), 'Your free dream is waiting for you');
   assert.equal(say(he, { kind: 'none-purchased', remaining: 0, total: 3 }), 'לא נותרו חלומות בחבילה');
   assert.equal(say(he, { kind: 'owner', remaining: 0, total: null }), 'חלומות ללא הגבלה ∞');
   assert.equal(say(en, { kind: 'owner', remaining: 0, total: null }), 'Unlimited dreams ∞');
@@ -143,7 +150,8 @@ test('summarizeGrants: only positive deltas of grants count, bad rows make it un
 // ---------------------------------------------------------------- wiring
 test('the server reads the figures from the existing ledger and trial record, read-only, and a failed read leaves the fields out', () => {
   const history = code('server/creditHistory.ts');
-  assert.match(history, /from\('credit_ledger'\)\.select\('delta'\)\.eq\('owner_id', userId\)\.in\('reason', GRANT_REASONS\)/);
+  assert.match(history, /from\('credit_ledger'\)\.select\('delta, reason'\)\.eq\('owner_id', userId\)/);
+  assert.match(history, /GRANT_REASONS\.includes\(/, 'purchased dreams are counted from purchase / backfill / admin grants only; the free dream is counted apart');
   assert.ok(!/\.(insert|update|delete|upsert|rpc)\(/.test(history), 'read-only');
   const route = code('server/routes/credits.ts');
   assert.match(route, /const history = await getCreditHistory\(verified\.userId\);\s*if \(history\) return okResult\(\{ balance,/);

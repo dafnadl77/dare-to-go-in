@@ -65,6 +65,8 @@ interface PackageCardProps {
   onSelectPaid: (id: PackageId) => void;
   /** The signed-in account holds this package (server-read from its completed purchases, never from the balance). */
   isCurrent?: boolean;
+  /** The account has bought more than one package, so this one is only the LATEST (its ribbon says so). */
+  isLatestOfSeveral?: boolean;
 }
 
 /** Only ever called with a paid package (see the .filter in the grid below),
@@ -72,7 +74,7 @@ interface PackageCardProps {
     that's what gives the three cards their equal height/baseline; EXPLORE's
     emphasis comes only from .pr-card--hero's border/glow/width, never from
     extra height or a vertical offset. */
-function PackageCard({ pkg, onSelectPaid, isCurrent = false }: PackageCardProps) {
+function PackageCard({ pkg, onSelectPaid, isCurrent = false, isLatestOfSeveral = false }: PackageCardProps) {
   const { t } = useLanguage();
   const copyKey = PACKAGE_COPY_KEY[pkg.id];
   const scene = PACKAGE_SCENE_IMAGE[pkg.id as Exclude<PackageId, 'first_dream'>];
@@ -84,7 +86,7 @@ function PackageCard({ pkg, onSelectPaid, isCurrent = false }: PackageCardProps)
         {isCurrent ? (
           <div className="pr-card-ribbon">
             <span className="pr-card-ribbon-band">
-              <span>{t('pricing.yourPackage')}</span>
+              <span>{t(isLatestOfSeveral ? 'pricing.yourLatestPackage' : 'pricing.yourPackage')}</span>
             </span>
           </div>
         ) : (
@@ -251,7 +253,7 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
           {!isOwner && (
           <div className="pr-grid">
             {PAID_PACKAGES.map((pkg) => (
-              <PackageCard key={pkg.id} pkg={pkg} onSelectPaid={handleSelectPaidPackage} isCurrent={accountPlan.status === 'ready' && accountPlan.plan === pkg.id} />
+              <PackageCard key={pkg.id} pkg={pkg} onSelectPaid={handleSelectPaidPackage} isCurrent={accountPlan.status === 'ready' && accountPlan.plan === pkg.id} isLatestOfSeveral={accountPlan.status === 'ready' && accountPlan.several} />
             ))}
           </div>
           )}

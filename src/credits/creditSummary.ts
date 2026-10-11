@@ -22,13 +22,17 @@ export interface CreditSummary {
   grantCount?: number;
   /** The account's one free dream was already completed. Absent = not known. */
   freeDreamUsed?: boolean;
+  /** The free dream the account was given as a credit (0 or 1; counted apart from purchased ones). Absent = none. */
+  freeGranted?: number;
+  /** 'available' = the free dream is still waiting for the account; 'used' = it was used. Absent = not known. */
+  freeDream?: 'available' | 'used';
 }
 
 const PURCHASABLE: readonly PackageId[] = ['go_deeper_3', 'explore_10', 'dive_in_25'];
 
 export function parseCreditSummary(data: unknown): CreditSummary | null {
   if (!data || typeof data !== 'object') return null;
-  const body = data as { balance?: unknown; purchasedPackage?: unknown; owner?: unknown; roleUnknown?: unknown; grantedCredits?: unknown; grantCount?: unknown; freeDreamUsed?: unknown };
+  const body = data as { balance?: unknown; purchasedPackage?: unknown; owner?: unknown; roleUnknown?: unknown; grantedCredits?: unknown; grantCount?: unknown; freeDreamUsed?: unknown; freeGranted?: unknown; freeDream?: unknown };
   if (typeof body.balance !== 'number' || !Number.isFinite(body.balance)) return null;
   let plan: PackageId | null = null;
   if (body.purchasedPackage === null) plan = 'first_dream';
@@ -44,5 +48,8 @@ export function parseCreditSummary(data: unknown): CreditSummary | null {
     summary.grantCount = grants;
   }
   if (typeof body.freeDreamUsed === 'boolean') summary.freeDreamUsed = body.freeDreamUsed;
+  const free = count(body.freeGranted);
+  if (free !== undefined && free > 0) summary.freeGranted = free;
+  if (body.freeDream === 'available' || body.freeDream === 'used') summary.freeDream = body.freeDream;
   return summary;
 }

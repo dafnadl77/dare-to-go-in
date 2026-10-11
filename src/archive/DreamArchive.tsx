@@ -834,7 +834,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onOpenP
                 <>
                   <div className="ar-settings-row">
                     <span className="ar-settings-label">{t('archive.settingsPlanLabel')}</span>
-                    <span className="ar-settings-value">{accountPlan.status === 'ready' ? planDisplayName(accountPlan.plan, t) : '—'}</span>
+                    <span className="ar-settings-value">{accountPlan.status === 'ready' ? (accountPlan.several ? t('archive.settingsPlanSeveral') : planDisplayName(accountPlan.plan, t)) : '—'}</span>
                   </div>
                   <div className="ar-settings-row">
                     <span className="ar-settings-label">{t('archive.settingsDreamsPurchasedLabel')}</span>
@@ -852,6 +852,14 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onOpenP
                       {dreamBalance.state.status === 'loading' ? '…' : dreamBalance.state.status === 'ready' ? dreamBalance.state.summary.balance : '—'}
                     </span>
                   </div>
+                  {dreamBalance.state.status === 'ready' && dreamBalance.state.summary.freeDream && (
+                    <div className="ar-settings-row">
+                      <span className="ar-settings-label">{t('archive.settingsFreeDreamLabel')}</span>
+                      <span className="ar-settings-value">
+                        {dreamBalance.state.summary.freeDream === 'available' ? t('archive.settingsFreeDreamAvailable') : t('archive.settingsFreeDreamUsed')}
+                      </span>
+                    </div>
+                  )}
                 </>
               )}
               <div className="ar-settings-row">

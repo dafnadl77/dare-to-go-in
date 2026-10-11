@@ -145,7 +145,7 @@ test('the new UI reads the package from the server summary and the name from the
 test('the Pricing card marks only the held package, and the free fallback never renders undefined/null', () => {
   const pricing = read('src/pricing/PricingPage.tsx');
   assert.match(pricing, /isCurrent=\{accountPlan\.status === 'ready' && accountPlan\.plan === pkg\.id\}/);
-  assert.match(pricing, /t\('pricing\.yourPackage'\)/);
+  assert.match(pricing, /t\(isLatestOfSeveral \? 'pricing\.yourLatestPackage' : 'pricing\.yourPackage'\)/);
   assert.equal(en.pricing.yourPackage, 'This is your package');
   assert.equal(he.pricing.yourPackage, 'זו החבילה שלך');
   assert.equal(he.archive.greeting.replace('{name}', 'דנה'), 'שלום דנה');

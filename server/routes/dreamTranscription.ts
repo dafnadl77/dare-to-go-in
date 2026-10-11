@@ -3,6 +3,7 @@ import { getOpenAIClient } from '../openaiClient.js';
 import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpResult.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
 import { reserveTrialTranscription, refundTrialTranscription, getCreditBalance, isAppOwner } from '../dreamAttempts.js';
+import { freeDreamGrantedNow } from '../freeDream.js';
 import { databaseRateLimitStore, enforceRateLimits, transcriptionRules } from '../rateLimit.js';
 import { CREDITS_REQUIRED_MESSAGE, FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 
@@ -144,7 +145,11 @@ export async function handleDreamTranscription(rawBody: unknown, requestHeaders:
   // The app owner (decided server-side from the verified account) records without a balance check.
   const ownerCheck = resolved.identity.kind === 'user' ? await isAppOwner(resolved.identity.userId) : null;
   if (resolved.identity.kind === 'user' && ownerCheck !== true) {
-    const balance = await getCreditBalance(resolved.identity.userId);
+    let balance = await getCreditBalance(resolved.identity.userId);
+    // No credit yet may still mean "owed the ONE free dream" (decided once, in the database, from the request's own guest cookie).
+    if (balance === 0 && (await freeDreamGrantedNow(resolved.identity.userId, requestHeaders.cookie))) {
+      balance = await getCreditBalance(resolved.identity.userId);
+    }
     if (balance === null) {
       return withHeaders(errorResult(503, 'not_configured', 'Credit tracking is not configured.'), cookieHeaders);
     }

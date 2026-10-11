@@ -19,6 +19,7 @@ import {
   completeUserAnalysis,
 } from '../dreamAttempts.js';
 import { startAnalysisAttempt, type AnalysisStartDeps } from '../analysisStart.js';
+import { freeDreamGrantedNow } from '../freeDream.js';
 import { CREDITS_REQUIRED_MESSAGE, FREE_DREAM_USED_MESSAGE, TEMPORARILY_UNAVAILABLE_MESSAGE } from '../trialAllowance.js';
 
 /** The format a client idempotency key must have (also enforced by a CHECK constraint in the database). */
@@ -68,6 +69,8 @@ export interface DreamAnalysisDeps {
   abandon: typeof abandonAttempt;
   complete: typeof completeUserAnalysis;
   runModel: (client: OpenAI, sourceText: string) => ReturnType<typeof runAnalysisModel>;
+  /** true = the account's one free dream was given just now (see freeDream.ts). Optional: without it nothing is settled. */
+  settleFreeDream?: (userId: string, cookieHeader: string | null | undefined) => Promise<boolean>;
 }
 
 const realDeps: DreamAnalysisDeps = {
@@ -81,6 +84,7 @@ const realDeps: DreamAnalysisDeps = {
   abandon: abandonAttempt,
   complete: completeUserAnalysis,
   runModel: runAnalysisModel,
+  settleFreeDream: freeDreamGrantedNow,
 };
 
 /**
@@ -146,7 +150,14 @@ export async function handleDreamAnalysis(
   // to protect, and those rules are untouched). Signed-in accounts spend ONE credit atomically with the
   // attempt and are refused with credits_required at zero.
   const inputHash = createHash('sha256').update(sourceText).digest('hex');
-  const started = await startAnalysisAttempt(resolved.identity, idempotencyKey, inputHash, deps.start);
+  let started = await startAnalysisAttempt(resolved.identity, idempotencyKey, inputHash, deps.start);
+  // A signed-in account that has no credit may still be owed its ONE free dream (decided once, in the database, from the request's own
+  // signed guest cookie). Only when that decision has JUST given it the credit does the start run once more; otherwise nothing changes.
+  if (started.kind === 'refused' && started.reason === 'credits_required' && resolved.identity.kind === 'user' && deps.settleFreeDream) {
+    if (await deps.settleFreeDream(resolved.identity.userId, requestHeaders.cookie)) {
+      started = await startAnalysisAttempt(resolved.identity, idempotencyKey, inputHash, deps.start);
+    }
+  }
 
   if (started.kind === 'replay') {
     // Already analyzed (e.g. the client timed out but the server finished): hand back the SAME attempt and

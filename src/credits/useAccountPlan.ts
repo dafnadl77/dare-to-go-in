@@ -6,7 +6,7 @@ export type AccountPlanState =
   | { status: 'loading' }
   | { status: 'unavailable' }
   | { status: 'owner' }
-  | { status: 'ready'; plan: PackageId };
+  | { status: 'ready'; plan: PackageId; /** More than one purchase: the package shown is only the latest one. */ several: boolean; /** The account's free dream: 'available' or 'used' (absent = not known). */ freeDream?: 'available' | 'used' };
 
 /** The package the signed-in account holds (see CreditSummary.plan), fetched once when the screen mounts for that account. */
 export function useAccountPlan(userId: string | undefined): AccountPlanState {
@@ -17,7 +17,7 @@ export function useAccountPlan(userId: string | undefined): AccountPlanState {
     let cancelled = false;
     fetchCreditSummary().then((summary) => {
       if (cancelled) return;
-      setState({ forUser: userId, value: summary?.owner ? { status: 'owner' } : summary?.plan ? { status: 'ready', plan: summary.plan } : { status: 'unavailable' } });
+      setState({ forUser: userId, value: summary?.owner ? { status: 'owner' } : summary?.plan ? { status: 'ready', plan: summary.plan, several: (summary.grantCount ?? 0) > 1, ...(summary.freeDream ? { freeDream: summary.freeDream } : {}) } : { status: 'unavailable' } });
     });
     return () => {
       cancelled = true;

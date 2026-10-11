@@ -205,6 +205,10 @@ export interface Translations {
     settingsNameError: string;
     settingsEmailLabel: string;
     settingsPlanLabel: string;
+    settingsPlanSeveral: string;
+    settingsFreeDreamLabel: string;
+    settingsFreeDreamAvailable: string;
+    settingsFreeDreamUsed: string;
     settingsAccountTypeLabel: string;
     settingsOwnerValue: string;
     settingsDreamsLabel: string;
@@ -219,6 +223,10 @@ export interface Translations {
     balanceOne: string;
     balanceAcross: string;
     balanceOneAcross: string;
+    balanceAcrossOf: string;
+    balanceOneAcrossOf: string;
+    balanceAcrossFreeOf: string;
+    balanceFreeAvailable: string;
     balanceNone: string;
     balanceFreeUsed: string;
     balanceFreeNone: string;
@@ -372,6 +380,7 @@ export interface Translations {
     planFree: string;
     /** Marks the package card the signed-in account holds. */
     yourPackage: string;
+    yourLatestPackage: string;
     checkout: {
       title: string;
       intro: string;
@@ -609,6 +618,10 @@ export const en: Translations = {
     settingsNameError: "Couldn't save that name — please check it and try again.",
     settingsEmailLabel: 'Email',
     settingsPlanLabel: 'My package',
+    settingsPlanSeveral: 'Several packages',
+    settingsFreeDreamLabel: 'Free dream',
+    settingsFreeDreamAvailable: 'Available',
+    settingsFreeDreamUsed: 'Used',
     settingsAccountTypeLabel: 'Account type',
     settingsOwnerValue: 'App owner',
     settingsDreamsLabel: 'Dreams',
@@ -623,6 +636,10 @@ export const en: Translations = {
     balanceOne: 'You have 1 of {total} dreams left in your package',
     balanceAcross: 'You have {remaining} dreams left across your packages',
     balanceOneAcross: 'You have 1 dream left across your packages',
+    balanceAcrossOf: 'You have {remaining} of {total} dreams left across your packages',
+    balanceOneAcrossOf: 'You have 1 of {total} dreams left across your packages',
+    balanceAcrossFreeOf: 'You have {remaining} of {total} dreams left, including your free dream',
+    balanceFreeAvailable: 'Your free dream is waiting for you',
     balanceNone: 'No dreams left in your package',
     balanceFreeUsed: 'Your free dream has been used',
     balanceFreeNone: 'You have no dreams yet. Choose a package to begin.',
@@ -777,6 +794,7 @@ export const en: Translations = {
     dreamsCountLabel: '{count} Dreams',
     planFree: 'Free',
     yourPackage: 'This is your package',
+    yourLatestPackage: 'This is your latest package',
     checkout: {
       title: 'Complete your purchase',
       intro: 'Two details are needed to create your secure payment page.',
@@ -1036,6 +1054,10 @@ export const he: Translations = {
     settingsNameError: 'לא הצלחנו לשמור את השם — בדקו אותו ונסו שוב.',
     settingsEmailLabel: 'אימייל',
     settingsPlanLabel: 'החבילה שלי',
+    settingsPlanSeveral: 'כמה חבילות',
+    settingsFreeDreamLabel: 'חלום חינמי',
+    settingsFreeDreamAvailable: 'זמין',
+    settingsFreeDreamUsed: 'נוצל',
     settingsAccountTypeLabel: 'סוג חשבון',
     settingsOwnerValue: 'בעלת האפליקציה',
     settingsDreamsLabel: 'חלומות',
@@ -1050,6 +1072,10 @@ export const he: Translations = {
     balanceOne: 'נותר לך חלום אחד מתוך {total} חלומות בחבילה',
     balanceAcross: 'נותרו לך {remaining} חלומות מכל החבילות שרכשת',
     balanceOneAcross: 'נותר לך חלום אחד מכל החבילות שרכשת',
+    balanceAcrossOf: 'נותרו לך {remaining} מתוך {total} חלומות מכל החבילות שרכשת',
+    balanceOneAcrossOf: 'נותר לך חלום אחד מתוך {total} חלומות מכל החבילות שרכשת',
+    balanceAcrossFreeOf: 'נותרו לך {remaining} מתוך {total} חלומות, כולל החלום החינמי',
+    balanceFreeAvailable: 'החלום החינמי שלך מחכה לך',
     balanceNone: 'לא נותרו חלומות בחבילה',
     balanceFreeUsed: 'החלום החינמי שלך נוצל',
     balanceFreeNone: 'אין לך עדיין חלומות. בחרו חבילה כדי להתחיל.',
@@ -1202,6 +1228,7 @@ export const he: Translations = {
     dreamsCountLabel: '{count} חלומות',
     planFree: 'חינמי',
     yourPackage: 'זו החבילה שלך',
+    yourLatestPackage: 'זו החבילה האחרונה שלך',
     checkout: {
       title: 'השלמת הרכישה',
       intro: 'נדרשים שני פרטים כדי ליצור את דף התשלום המאובטח שלך.',

@@ -2,6 +2,7 @@ import { errorResult, okResult, type HandlerResult } from '../httpResult.js';
 import { verifyBearerToken, type RequestHeaders } from '../callerIdentity.js';
 import { readTrialIdFromCookieHeader } from '../trialIdentity.js';
 import { claimTrialForUser } from '../dreamAttempts.js';
+import { ensureFreeDreamDecision } from '../freeDream.js';
 
 /**
  * POST /api/claim-trial — called once right after a real sign-in/sign-up
@@ -31,6 +32,12 @@ export async function handleClaimTrial(_rawBody: unknown, requestHeaders: Reques
   if (!verified.ok) {
     return errorResult(verified.status, verified.reason, verified.message);
   }
+
+  // The account's one free dream is decided together with the claim (see freeDream.ts): the guest this browser was is linked to the
+  // account in the same atomic step that decides what the account is still entitled to. If the daily cap (or an unconfirmed e-mail) defers
+  // it, nothing is claimed yet, so the decision still sees the guest's dream later. Fails safe: no decision means the claim below behaves exactly as before.
+  const decision = await ensureFreeDreamDecision(verified.userId, requestHeaders.cookie);
+  if (decision?.status === 'unavailable' || decision?.status === 'unconfirmed') return okResult({ claimed: false, outcome: 'deferred' });
 
   const trialId = readTrialIdFromCookieHeader(requestHeaders.cookie);
   if (!trialId) {
