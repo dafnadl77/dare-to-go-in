@@ -34,7 +34,6 @@ export interface Translations {
   hold: {
     holdToTellMe: string;
     holdAria: string;
-    pressAndHoldHint: string;
     idRatherType: string;
     listening: string;
     privacyNote: string;
@@ -92,7 +91,6 @@ export interface Translations {
     couldntSeeAllOfIt: string;
     restart: string;
     thisIsWhatIFound: string;
-    isThisHowItFelt: string;
     yesTakeMeIn: string;
     notQuite: string;
     whatDidIGetWrong: string;
@@ -108,8 +106,9 @@ export interface Translations {
     howToDescribeDifferently: string;
   };
   reflection: {
-    thisIsYourDream: string;
-    chooseTheMoment: string;
+    momentQuestion: string;
+    momentHint: string;
+    chosenMoment: string;
     reflectionQuestionPrefix: string;
     reflectionQuestionSuffix: string;
     writingPlaceholder: string;
@@ -448,7 +447,6 @@ export const en: Translations = {
   hold: {
     holdToTellMe: 'HOLD TO TELL ME',
     holdAria: 'Hold to tell me about your dream',
-    pressAndHoldHint: 'Press and hold while you speak',
     idRatherType: 'I’D RATHER TYPE',
     listening: 'Listening…',
     privacyNote: 'Your dream stays yours.',
@@ -505,9 +503,8 @@ export const en: Translations = {
     remembering: 'REMEMBERING…',
     couldntSeeAllOfIt: 'I COULDN’T SEE ALL OF IT.',
     restart: 'RESTART',
-    thisIsWhatIFound: 'THIS IS WHAT I FOUND.',
-    isThisHowItFelt: 'IS THIS HOW IT FELT?',
-    yesTakeMeIn: 'YES — TAKE ME IN',
+    thisIsWhatIFound: 'IS THIS HOW YOUR DREAM LOOKED?',
+    yesTakeMeIn: 'TAKE ME INSIDE',
     notQuite: 'NOT QUITE',
     whatDidIGetWrong: 'WHAT DID I GET WRONG?',
     correctionPlaceholder: 'Tell me what to change...',
@@ -522,11 +519,12 @@ export const en: Translations = {
     howToDescribeDifferently: 'HOW SHOULD I DESCRIBE IT DIFFERENTLY?',
   },
   reflection: {
-    thisIsYourDream: 'THIS IS YOUR DREAM',
-    chooseTheMoment: 'Choose the moment that stands out to you',
+    momentQuestion: 'Which moment in the dream stayed with you most?',
+    momentHint: 'Choose one moment that especially caught your attention.',
+    chosenMoment: 'The moment you chose',
     reflectionQuestionPrefix: 'WHEN YOU THINK ABOUT',
     reflectionQuestionSuffix: 'NOW —\nWHAT COMES UP?',
-    writingPlaceholder: 'TYPE WHAT COMES TO MIND...',
+    writingPlaceholder: 'Write whatever comes to mind...',
     continue: 'CONTINUE',
     reflecting: 'REFLECTING…',
     couldntGatherThoughts: 'I COULDN’T QUITE GATHER MY THOUGHTS.',
@@ -544,7 +542,7 @@ export const en: Translations = {
     psychodynamic: 'PSYCHODYNAMIC',
   },
   closing: {
-    dontLetItDisappear: 'DON’T LET IT DISAPPEAR.',
+    dontLetItDisappear: 'DON’T LET THE DREAM DISAPPEAR.',
     keepThisDream: 'KEEP THIS\nDREAM',
     letItGo: 'LET IT GO',
     theChoiceIsYours: 'THE CHOICE IS YOURS.',
@@ -887,7 +885,6 @@ export const he: Translations = {
   hold: {
     holdToTellMe: 'לחצי והחזיקי כדי לספר',
     holdAria: 'לחצי והחזיקי כדי לספר על החלום',
-    pressAndHoldHint: 'לחצי והחזיקי בזמן שאת מדברת',
     idRatherType: 'אעדיף להקליד',
     listening: 'מקשיב…',
     privacyNote: 'החלום נשאר שלך בלבד.',
@@ -944,9 +941,8 @@ export const he: Translations = {
     remembering: 'היזכרות…',
     couldntSeeAllOfIt: 'לא הצלחתי לראות את הכל.',
     restart: 'התחלה מחדש',
-    thisIsWhatIFound: 'זה מה שמצאתי.',
-    isThisHowItFelt: 'כך זה הרגיש?',
-    yesTakeMeIn: 'כן — קחו אותי פנימה',
+    thisIsWhatIFound: 'ככה נראה החלום שלכם?',
+    yesTakeMeIn: 'קחו אותי פנימה',
     notQuite: 'לא בדיוק',
     whatDidIGetWrong: 'במה טעיתי?',
     correctionPlaceholder: 'ספרו מה לשנות...',
@@ -961,11 +957,12 @@ export const he: Translations = {
     howToDescribeDifferently: 'איך לתאר את זה אחרת?',
   },
   reflection: {
-    thisIsYourDream: 'זהו החלום שלך',
-    chooseTheMoment: 'בחרו את הרגע שבולט לכם',
+    momentQuestion: 'איזה רגע בחלום הכי נשאר איתכם?',
+    momentHint: 'בחרו רגע אחד שמשך את תשומת לבכם במיוחד.',
+    chosenMoment: 'הרגע שבחרתם',
     reflectionQuestionPrefix: 'כשחושבים על',
     reflectionQuestionSuffix: 'עכשיו —\nמה עולה?',
-    writingPlaceholder: 'כתבו מה שעולה לראש...',
+    writingPlaceholder: 'כתבו מה שעולה לכם לראש...',
     continue: 'המשך',
     reflecting: 'התבוננות…',
     couldntGatherThoughts: 'המחשבות לא הסתדרו הפעם.',
@@ -983,7 +980,7 @@ export const he: Translations = {
     psychodynamic: 'פסיכודינמי',
   },
   closing: {
-    dontLetItDisappear: 'אל תתנו לזה להיעלם.',
+    dontLetItDisappear: 'אל תתנו לחלום להיעלם.',
     keepThisDream: 'לשמור\nעל החלום',
     letItGo: 'שחררו אותו',
     theChoiceIsYours: 'הבחירה בידך.',

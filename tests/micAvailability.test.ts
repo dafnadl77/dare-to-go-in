@@ -90,7 +90,7 @@ test('without a microphone: the kind message, a clear "Write your dream" button,
 
   const hold = read('src/hero/HoldToRemember.tsx');
   assert.match(hold, /\{noMicrophone \? t\('hold\.writeYourDream'\) : t\('hold\.idRatherType'\)\}/);
-  assert.match(hold, /\{noMicrophone \? t\('hold\.micNoDevice'\) : t\('hold\.pressAndHoldHint'\)\}/);
+  assert.match(hold, /\{noMicrophone && \(\s*<p className="htr-hold-hint"[^>]*>\s*\{t\('hold\.micNoDevice'\)\}/);
   assert.match(hold, /htr-type-link\$\{noMicrophone \? ' htr-type-link--primary' : ''\}/);
   // writing is always one tap away, in every state: the button is never conditional on a microphone
   // (the only addition is the sign-in gate for a visitor who is not signed in: it never depends on a microphone)

@@ -115,9 +115,9 @@
   padding: 0.4em 0.3em;
   cursor: pointer;
   font-family: inherit;
-  font-size: 0.68rem;
+  font-size: 1rem;
   font-weight: 600;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   /* Plain white, fully opaque, on every page: these links sit over photographs and video, and a dimmed grey was unreadable. The
      shadow keeps them legible over the brightest parts of the scene. */
@@ -143,7 +143,7 @@ html[lang='he'] .gh-link {
 
 html:not([lang='he']) .gh-link:hover,
 html:not([lang='he']) .gh-link:focus-visible {
-  letter-spacing: 0.3em;
+  letter-spacing: 0.18em;
 }
 
 /* The subtle "you are here" treatment — a touch brighter plus a quiet
@@ -158,7 +158,7 @@ html:not([lang='he']) .gh-link:focus-visible {
 .gh-divider {
   color: #ffffff;
   opacity: 0.55;
-  font-size: 0.68rem;
+  font-size: 1rem;
   margin: 0 0.1em;
 }
 

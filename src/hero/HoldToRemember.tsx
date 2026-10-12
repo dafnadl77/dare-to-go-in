@@ -912,14 +912,13 @@ export default function HoldToRemember({
         {noMicrophone ? t('hold.writeYourDream') : t('hold.idRatherType')}
       </button>
 
-      {/* A short, plain-language clarification that the circle above
-          needs a press-and-hold, not a tap — added because the hold
-          gesture alone wasn't obvious enough on its own. Fades with the
-          circle/type-link (same is-mode-* rule in HoldToRemember.css),
-          never shown once a gesture has actually started. */}
-      <p className="htr-hold-hint" aria-hidden={isHoldFaded} role={noMicrophone ? 'status' : undefined}>
-        {noMicrophone ? t('hold.micNoDevice') : t('hold.pressAndHoldHint')}
-      </p>
+      {/* Only the no-microphone notice: with a microphone the circle already says "press and hold to tell me", so a second line
+          repeating it was redundant clutter. */}
+      {noMicrophone && (
+        <p className="htr-hold-hint" aria-hidden={isHoldFaded} role="status">
+          {t('hold.micNoDevice')}
+        </p>
+      )}
       {noMicrophone && (
         <button type="button" className="htr-recheck" data-cursor-hover tabIndex={isHoldFaded ? -1 : 0} aria-hidden={isHoldFaded} onClick={recheckMic}>
           {t('hold.micRecheck')}

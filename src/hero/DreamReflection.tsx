@@ -175,9 +175,9 @@ export default function DreamReflection({
             {(step === 'prompt' || step === 'choices' || step === 'selected') && (
               <>
                 <h2 className="da-title">
-                  <EditorialTitle text={t('reflection.thisIsYourDream')} />
+                  <EditorialTitle text={t('reflection.momentQuestion')} />
                 </h2>
-                <p className="da-subtitle">{t('reflection.chooseTheMoment')}</p>
+                <p className="da-subtitle">{t('reflection.momentHint')}</p>
               </>
             )}
 
@@ -256,7 +256,13 @@ export default function DreamReflection({
         </div>
       )}
 
-      {showAnchor && <p className="dr-anchor">{selectedElement}</p>}
+      {showAnchor && (
+        <>
+          <p className="dr-anchor-label">{t('reflection.chosenMoment')}</p>
+          <p className="dr-anchor">{selectedElement}</p>
+          <span className="dr-anchor-rule" aria-hidden="true" />
+        </>
+      )}
 
       <div className={`dr-scroll-cue${showScrollCue ? ' is-visible' : ''}`} aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none">

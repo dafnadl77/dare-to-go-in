@@ -386,7 +386,6 @@ export default function DreamReconstruction({
       {(phase === 'reveal' || phase === 'entering') && (
         <div className="dr-reveal" data-light-bg={revealTextOnLight ? 'true' : 'false'}>
           <p className="dr-line dr-line--found">{t('reconstruction.thisIsWhatIFound')}</p>
-          <p className="dr-line dr-line--felt">{t('reconstruction.isThisHowItFelt')}</p>
           {regenNotice && (
             <p className="dr-regen-notice" role="status">
               {t(regenNotice === 'limit' ? 'reconstruction.regenLimit' : regenNotice === 'rejected' ? 'reconstruction.regenRejected' : 'reconstruction.regenFailed')}

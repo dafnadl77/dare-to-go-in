@@ -63,7 +63,7 @@ const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
-    const initial = readStoredLanguage() ?? 'en';
+    const initial = readStoredLanguage() ?? 'he';
     // Applied synchronously here (not just in the effect below) so the
     // very first paint already has the right dir="rtl"/lang="he" — an
     // effect-only application would flash LTR for one frame first.

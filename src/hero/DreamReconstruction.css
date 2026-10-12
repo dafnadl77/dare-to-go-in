@@ -898,19 +898,6 @@
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
 }
 
-.dr-line--felt {
-  margin-top: 0.9rem;
-  font-size: clamp(1rem, 2.3vw, 1.35rem);
-  color: var(--dream-warm-neutral);
-  opacity: 0;
-  transition: opacity 1s var(--ease-memory);
-}
-
-.is-phase-reveal .dr-line--felt {
-  opacity: 1;
-  transition-delay: 1.6s;
-}
-
 .dr-choices {
   display: flex;
   align-items: center;
@@ -922,7 +909,7 @@
 
 .is-phase-reveal .dr-choices {
   opacity: 1;
-  transition-delay: 2.6s;
+  transition-delay: 1.4s;
 }
 
 /* ---- Real buttons, not bare text — this class is shared across
@@ -941,9 +928,9 @@
   align-items: center;
   justify-content: center;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.82rem;
+  font-size: 1.0625rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--dream-white);
   text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.6);
@@ -998,10 +985,6 @@
   text-shadow: 0 0.05em 0.6em rgba(244, 240, 232, 0.55);
 }
 
-.dr-reveal[data-light-bg='true'] .dr-line--felt {
-  color: var(--dream-warm-neutral-dark);
-}
-
 .dr-correct-textarea {
   width: 100%;
   min-height: 4.2em;
@@ -1042,7 +1025,6 @@
   .dr-reveal,
   .dr-correct,
   .dr-image-error,
-  .dr-line--felt,
   .dr-choices,
   .dr-choice,
   .dr-correct-textarea {
