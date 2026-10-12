@@ -80,6 +80,8 @@ before(async () => {
   await db.exec(sql('20261009_app_owner_cap_saturation.sql'));
   await db.exec(TRIAL_SQL);
   await db.exec(sql('20261011_account_free_dream.sql'));
+  // the correction made after the first real sign-up (2026-10-12): a cookie that belongs to ANOTHER account never decides anything
+  await db.exec(sql('20261012_free_dream_ignore_foreign_cookie.sql'));
 });
 after(async () => {
   await db.close();
@@ -240,11 +242,89 @@ test('a second device (with its own guest cookie) cannot add another one to the 
   assert.equal(await balance(user), 1);
 });
 
-test('a browser whose guest was already claimed by ANOTHER account gives a second account no free dream', async () => {
+test('a guest cookie that already belongs to ANOTHER account never costs a new person their free dream (the real 2026-10-12 failure)', async () => {
   const first = await newUser(); const second = await newUser(); const trial = await newTrial();
   assert.equal((await decide(first, trial)).outcome, 'granted');
-  assert.deepEqual(await decide(second, trial), { status: 'decided', outcome: 'browser_used', new: true, balance: 0 });
-  assert.equal(await freeRows(second), 0);
+  // the same browser, a different person: no denial, and the trial stays exactly as it was (still the first account's)
+  assert.deepEqual(await decide(second, trial), { status: 'decided', outcome: 'granted', new: true, balance: 1 });
+  assert.equal(await freeRows(second), 1);
+  assert.equal((await db.query('select 1 from public.trial_identities where id = $1 and converted_user_id = $2', [trial, first])).rows.length, 1);
+  assert.equal(await balance(first), 1, 'and the first account is untouched');
+});
+
+test('PRODUCTION REPLICA: a brand-new verified account in the OWNER\'s browser (cookie = the owner\'s old, completed, claimed trial) gets its free dream', async () => {
+  const trial = await newTrial();
+  const finished = await guestFinishes(trial);
+  // exactly how production holds it: the owner claimed this trial long ago, and its finished dream became the owner's
+  await db.query('update public.trial_identities set converted_user_id = $2, claimed_at = now() where id = $1', [trial, OWNER_ID]);
+  await db.query('update public.dream_attempts set owner_id = $2, trial_id = null where id = $1', [finished, OWNER_ID]);
+  assert.equal((await db.query('select 1 from public.dream_attempts where id = $1 and owner_id = $2 and completed_at is not null', [finished, OWNER_ID])).rows.length, 1);
+  const ownerAttemptsBefore = (await db.query('select count(*)::int as c from public.dream_attempts where owner_id = $1', [OWNER_ID])).rows[0].c;
+  const ownerLedgerBefore = (await ledgerRows(OWNER_ID)).length;
+
+  const newcomer = await newUser();
+  assert.deepEqual(await decide(newcomer, trial), { status: 'decided', outcome: 'granted', new: true, balance: 1 });
+  assert.equal(await balance(newcomer), 1);
+  assert.deepEqual((await ledgerRows(newcomer)).map((r) => [r.delta, r.reason]), [[1, 'free']]);
+  assert.equal(say(await summaryFor(newcomer), 'he'), 'החלום החינמי שלך מחכה לך');
+  // she can really write: the dream starts through the ordinary path and spends exactly that credit
+  assert.equal((await startDream(newcomer)).status, 'created');
+  assert.equal(await balance(newcomer), 0);
+  assert.equal((await startDream(newcomer)).status, 'credits_required');
+  // the owner's records, the owner's trial and the owner's role are exactly as they were
+  assert.equal((await db.query('select 1 from public.trial_identities where id = $1 and converted_user_id = $2', [trial, OWNER_ID])).rows.length, 1);
+  assert.equal((await db.query<{ c: number }>('select count(*)::int as c from public.dream_attempts where owner_id = $1', [OWNER_ID])).rows[0].c, ownerAttemptsBefore);
+  assert.equal((await ledgerRows(OWNER_ID)).length, ownerLedgerBefore);
+  assert.equal((await db.query<{ r: boolean }>('select public.is_app_owner($1) as r', [OWNER_ID])).rows[0].r, true);
+});
+
+test('a leftover "consumed" guest cookie (the trial flag set by an account deletion, with no finished dream behind it) does not cost a new person their dream', async () => {
+  const trial = await newTrial();
+  await db.query('update public.trial_identities set free_dream_completed_at = now() where id = $1', [trial]);
+  const user = await newUser();
+  assert.deepEqual(await decide(user, trial), { status: 'decided', outcome: 'granted', new: true, balance: 1 });
+});
+
+test('...while a guest who REALLY finished a dream and then signs up still gets nothing more, whichever cookie is in the browser afterwards', async () => {
+  const trial = await newTrial(); const other = await newTrial();
+  await guestFinishes(trial);
+  const user = await newUser();
+  assert.equal((await decide(user, trial)).outcome, 'used_as_guest');
+  assert.equal((await decide(user, other)).outcome, 'used_as_guest', 'decided once, for good');
+  assert.equal(await freeRows(user), 0);
+});
+
+test('a wrong "browser_used" decision left by the earlier rule is corrected by removing that one row: the next look grants the dream, exactly once', async () => {
+  const user = await newUser(); const bystander = await newUser(); const ownerTrial = await newTrial();
+  await db.query('update public.trial_identities set converted_user_id = $2, claimed_at = now(), free_dream_completed_at = now() where id = $1', [ownerTrial, OWNER_ID]);
+  await decide(bystander); // an unrelated account with its own decision: must not move
+  // the state production was left in
+  await db.query("insert into public.free_dream_decisions (owner_id, outcome, trial_id) values ($1, 'browser_used', $2)", [user, ownerTrial]);
+  assert.equal(await balance(user), 0);
+  assert.equal(say(await summaryFor(user), 'he'), 'החלום החינמי שלך נוצל', 'what the dreamer was wrongly told');
+  const bystanderBefore = await ledgerRows(bystander);
+  await db.query("delete from public.free_dream_decisions where owner_id = $1 and outcome = 'browser_used'", [user]);
+  assert.deepEqual(await decide(user, ownerTrial), { status: 'decided', outcome: 'granted', new: true, balance: 1 });
+  assert.deepEqual(await decide(user, ownerTrial), { status: 'decided', outcome: 'granted', new: false, balance: 1 });
+  assert.equal(await freeRows(user), 1);
+  assert.deepEqual(await ledgerRows(bystander), bystanderBefore);
+});
+
+test('the three ways in all give a clean, confirmed account its dream: no cookie, a fresh cookie, a cookie of a deleted guest; and the owner, a used account and an unconfirmed one still behave', async () => {
+  const noCookie = await newUser();
+  const fresh = await newUser(); const freshTrial = await newTrial();
+  const stale = await newUser(); const staleTrial = await newTrial();
+  await db.query('update public.trial_identities set free_dream_completed_at = now() where id = $1', [staleTrial]);
+  for (const [u, t] of [[noCookie, null], [fresh, freshTrial], [stale, staleTrial]] as const) {
+    assert.equal((await decide(u, t)).outcome, 'granted');
+    assert.equal(await balance(u), 1);
+  }
+  const unconfirmed = await newUser(false);
+  assert.deepEqual(await decide(unconfirmed, null), { status: 'unconfirmed' });
+  assert.equal((await decide(OWNER_ID, null)).outcome, 'owner');
+  const used = await newUser();
+  await db.query('insert into public.dream_attempts (owner_id) values ($1)', [used]);
+  assert.equal((await decide(used, null)).outcome, 'legacy_used');
 });
 
 test('an account that already received a free dream the old way (an attempt that never spent a credit) is not given another', async () => {
@@ -271,7 +351,10 @@ test('an account with purchased credits keeps every one of them, gets the free o
 
 test('the app owner never gets or needs a free credit, and nothing about the owner changes', async () => {
   const before = await balance(OWNER_ID);
-  assert.deepEqual(await decide(OWNER_ID), { status: 'decided', outcome: 'owner', new: true, balance: before });
+  const decided = await decide(OWNER_ID);
+  assert.equal(decided.status, 'decided');
+  assert.equal(decided.outcome, 'owner');
+  assert.equal(decided.balance, before);
   assert.equal(await freeRows(OWNER_ID), 0);
   for (let i = 0; i < 4; i += 1) assert.equal((await startDream(OWNER_ID)).status, 'created');
   assert.equal(await balance(OWNER_ID), before);
@@ -419,7 +502,10 @@ test('route: a guest (trial) identity never triggers the account free-dream deci
 
 test('wiring: credits, claim-trial and transcription settle the decision where it must happen, and never for the owner or a payment poll', () => {
   const credits = code('server/routes/credits.ts');
-  assert.match(credits, /if \(orderId === undefined && owner !== true\) await ensureFreeDreamDecision\(verified\.userId, requestHeaders\.cookie\);/);
+  assert.match(credits, /const freeDream = orderId === undefined && owner !== true \? await ensureFreeDreamDecision\(verified\.userId, requestHeaders\.cookie\) : undefined;/);
+  // an unsettled decision is reported as such, so the app never acts on the zero it may have left (it must not send a new account to Packages)
+  assert.match(credits, /const undecided = freeDream !== undefined && freeDream\?\.status !== 'decided';/);
+  assert.equal((credits.match(/withUndecided\(/g) ?? []).length, 3, 'all three answers carry it');
   assert.ok(credits.indexOf('owner === true && orderId === undefined') < credits.indexOf('ensureFreeDreamDecision('), 'the owner is answered before any of this');
   assert.ok(credits.indexOf('ensureFreeDreamDecision(') < credits.indexOf('getCreditBalance(verified.userId)', credits.indexOf('ensureFreeDreamDecision(')), 'decided BEFORE the balance is read');
   const claim = code('server/routes/claimTrial.ts');
@@ -477,6 +563,19 @@ test('the entry gate lets an account with its free dream in (a balance of 1), an
   const app = code('src/App.tsx');
   assert.match(app, /fetchCreditBalance\(\)\.then\(\(balance\) => \{\s*if \(cancelled \|\| balance !== 0\) return;/);
   assert.equal(describeBalance(parseCreditSummary({ balance: 1, grantedCredits: 0, grantCount: 0, freeGranted: 1, freeDream: 'available' })!).remaining, 1);
+});
+
+test('a free-dream decision that could not be settled is never mistaken for "no dreams": the answer says so and the entry gate does not act on its zero', () => {
+  assert.equal(parseCreditSummary({ balance: 0, freeDreamUndecided: true })?.freeDreamUndecided, true);
+  assert.equal(parseCreditSummary({ balance: 0, freeDreamUndecided: 'yes' })?.freeDreamUndecided, undefined, 'only a real true counts');
+  assert.equal(parseCreditSummary({ balance: 0 })?.freeDreamUndecided, undefined, 'a settled answer is unchanged');
+  // the gate: balance is read through fetchCreditBalance, which hides a zero that may only mean "not decided yet"
+  const credits = code('src/credits/credits.ts');
+  assert.match(credits, /!summary\.owner && !summary\.roleUnknown && !summary\.freeDreamUndecided \? summary\.balance : null/);
+  // it is the SERVER that decides what is owed, from verified data, before the balance is read; the browser never decides it
+  const route = code('server/routes/credits.ts');
+  assert.ok(route.indexOf('ensureFreeDreamDecision(') < route.indexOf('const balance = await getCreditBalance(verified.userId)'));
+  assert.ok(!/localStorage|document\.cookie/.test(code('src/credits/credits.ts') + code('src/credits/creditSummary.ts')));
 });
 
 test('an owner is shown unlimited, whatever else is in the answer', () => {

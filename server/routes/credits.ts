@@ -36,7 +36,11 @@ export async function handleCredits(requestHeaders: RequestHeaders, orderId?: st
   }
   // The one-time free-dream decision is settled BEFORE the balance is read (see freeDream.ts): idempotent, so asking again changes nothing,
   // and never throws. The payment-return poll (orderId) skips it.
-  if (orderId === undefined && owner !== true) await ensureFreeDreamDecision(verified.userId, requestHeaders.cookie);
+  const freeDream = orderId === undefined && owner !== true ? await ensureFreeDreamDecision(verified.userId, requestHeaders.cookie) : undefined;
+  // If that decision could not be settled (the database hiccuped, or the daily cap deferred it) the balance read next may be a 0 that only means
+  // "not decided yet": the answer says so, and the app never acts on such a zero (it must not send a new account to Packages).
+  const undecided = freeDream !== undefined && freeDream?.status !== 'decided';
+  const withUndecided = <T extends object>(answer: T) => (undecided ? { ...answer, freeDreamUndecided: true } : answer);
   const balance = await getCreditBalance(verified.userId);
   if (balance === null) {
     return errorResult(503, 'not_configured', 'Credit tracking is not configured.');
@@ -55,12 +59,12 @@ export async function handleCredits(requestHeaders: RequestHeaders, orderId?: st
     // The role could not be determined (never "not the owner" by assumption): enforcement stays with the server's own atomic
     // checks, but the UI is told not to act on a zero balance — it is not allowed to send a possible owner to Pricing.
     console.warn('owner_check_unavailable');
-    return okResult({ balance, ...(purchasedPackage === undefined ? {} : { purchasedPackage }), roleUnknown: true });
+    return okResult(withUndecided({ balance, ...(purchasedPackage === undefined ? {} : { purchasedPackage }), roleUnknown: true }));
   }
   // What the dream-balance display shows besides the balance: how many credits were ever given to the account (so "2 of 3" is exact, and several
   // purchases are counted as several), and whether the free dream was used. Read-only, from the existing ledger; if it cannot be
   // read the fields are simply left out and the display shows only what it knows.
   const history = await getCreditHistory(verified.userId);
-  if (history) return okResult({ balance, ...(purchasedPackage === undefined ? {} : { purchasedPackage }), ...history });
-  return okResult(purchasedPackage === undefined ? { balance } : { balance, purchasedPackage });
+  if (history) return okResult(withUndecided({ balance, ...(purchasedPackage === undefined ? {} : { purchasedPackage }), ...history }));
+  return okResult(withUndecided(purchasedPackage === undefined ? { balance } : { balance, purchasedPackage }));
 }

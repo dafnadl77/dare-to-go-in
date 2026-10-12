@@ -26,13 +26,15 @@ export interface CreditSummary {
   freeGranted?: number;
   /** 'available' = the free dream is still waiting for the account; 'used' = it was used. Absent = not known. */
   freeDream?: 'available' | 'used';
+  /** The server could not settle the account's free-dream decision just now: a balance of 0 may only mean "not decided yet", so nothing may act on it. */
+  freeDreamUndecided?: true;
 }
 
 const PURCHASABLE: readonly PackageId[] = ['go_deeper_3', 'explore_10', 'dive_in_25'];
 
 export function parseCreditSummary(data: unknown): CreditSummary | null {
   if (!data || typeof data !== 'object') return null;
-  const body = data as { balance?: unknown; purchasedPackage?: unknown; owner?: unknown; roleUnknown?: unknown; grantedCredits?: unknown; grantCount?: unknown; freeDreamUsed?: unknown; freeGranted?: unknown; freeDream?: unknown };
+  const body = data as { balance?: unknown; purchasedPackage?: unknown; owner?: unknown; roleUnknown?: unknown; grantedCredits?: unknown; grantCount?: unknown; freeDreamUsed?: unknown; freeGranted?: unknown; freeDream?: unknown; freeDreamUndecided?: unknown };
   if (typeof body.balance !== 'number' || !Number.isFinite(body.balance)) return null;
   let plan: PackageId | null = null;
   if (body.purchasedPackage === null) plan = 'first_dream';
@@ -51,5 +53,6 @@ export function parseCreditSummary(data: unknown): CreditSummary | null {
   const free = count(body.freeGranted);
   if (free !== undefined && free > 0) summary.freeGranted = free;
   if (body.freeDream === 'available' || body.freeDream === 'used') summary.freeDream = body.freeDream;
+  if (body.freeDreamUndecided === true) summary.freeDreamUndecided = true;
   return summary;
 }

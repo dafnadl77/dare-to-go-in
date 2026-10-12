@@ -154,7 +154,7 @@ test('the server reads the figures from the existing ledger and trial record, re
   assert.match(history, /GRANT_REASONS\.includes\(/, 'purchased dreams are counted from purchase / backfill / admin grants only; the free dream is counted apart');
   assert.ok(!/\.(insert|update|delete|upsert|rpc)\(/.test(history), 'read-only');
   const route = code('server/routes/credits.ts');
-  assert.match(route, /const history = await getCreditHistory\(verified\.userId\);\s*if \(history\) return okResult\(\{ balance,/);
+  assert.match(route, /const history = await getCreditHistory\(verified\.userId\);\s*if \(history\) return okResult\(withUndecided\(\{ balance,/);
   assert.match(route, /purchasedPackage === undefined \? \{ balance \} : \{ balance, purchasedPackage \}/, 'the previous answer is still given when the history cannot be read');
   assert.ok(!/grant_credits|complete_payment_order|start_user_attempt/.test(history + route));
 });

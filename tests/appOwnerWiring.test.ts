@@ -77,7 +77,7 @@ test('/api/credits tells the owner so, and every other account gets the unchange
 
 test('the owner is never sent to Pricing by a zero balance, and the UI shows unlimited dreams without a credit number', () => {
   const credits = code('src/credits/credits.ts');
-  assert.match(credits, /return summary && !summary\.owner && !summary\.roleUnknown \? summary\.balance : null;/);
+  assert.match(credits, /return summary && !summary\.owner && !summary\.roleUnknown && !summary\.freeDreamUndecided \? summary\.balance : null;/);
   const plan = code('src/credits/useAccountPlan.ts');
   assert.match(plan, /summary\?\.owner \? \{ status: 'owner' \}/);
 
@@ -115,7 +115,7 @@ test('an undetermined role is reported as such, and the UI never acts on a zero 
   assert.match(credits, /if \(owner === null\) \{[\s\S]*owner_check_unavailable[\s\S]*roleUnknown: true/);
   assert.deepEqual(parseCreditSummary({ balance: 0, roleUnknown: true }), { balance: 0, plan: null, roleUnknown: true });
   assert.equal(parseCreditSummary({ balance: 0, roleUnknown: 'yes' })?.roleUnknown, undefined);
-  assert.match(code('src/credits/credits.ts'), /summary && !summary\.owner && !summary\.roleUnknown \? summary\.balance : null/);
+  assert.match(code('src/credits/credits.ts'), /summary && !summary\.owner && !summary\.roleUnknown && !summary\.freeDreamUndecided \? summary\.balance : null/);
   // a definite regular account is unchanged: balance 0 is still a definite 0
   assert.deepEqual(parseCreditSummary({ balance: 0, purchasedPackage: 'go_deeper_3' }), { balance: 0, plan: 'go_deeper_3' });
 });
