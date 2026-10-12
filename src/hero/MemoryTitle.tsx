@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from 'react';
 import type { PointerState } from './usePointerRef';
+import { openingScale } from './useOpeningSequence';
 import './MemoryTitle.css';
 
 interface MemoryTitleProps {
@@ -30,12 +31,14 @@ export default function MemoryTitle({ revealed, dissolving = false, reconstructi
 
   const words = useMemo(() => TITLE.split(' '), []);
   const [settled, setSettled] = useState(false);
+  // The letters' own timings follow the opening's speed (quicker when the opening is replayed within a visit).
+  const [scale] = useState(openingScale);
 
   useEffect(() => {
     if (!revealed) return;
-    const timer = setTimeout(() => setSettled(true), 4000);
+    const timer = setTimeout(() => setSettled(true), 2400 * scale);
     return () => clearTimeout(timer);
-  }, [revealed]);
+  }, [revealed, scale]);
 
   useEffect(() => {
     let raf = 0;
@@ -101,8 +104,8 @@ export default function MemoryTitle({ revealed, dissolving = false, reconstructi
             const i = globalIndex++;
             const seed = hashSeed(i + 1);
             const variant = VARIANTS[Math.floor(seed * VARIANTS.length)];
-            const delay = 0.05 + seed * 1.7;
-            const duration = 1.5 + hashSeed(i + 99) * 0.6;
+            const delay = (0.05 + seed * 1.7) * 0.6 * scale;
+            const duration = (1.5 + hashSeed(i + 99) * 0.6) * 0.6 * scale;
             return (
               <span
                 key={ci}

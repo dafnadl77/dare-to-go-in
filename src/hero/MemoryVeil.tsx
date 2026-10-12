@@ -1,7 +1,7 @@
 import { useEffect, useRef, type RefObject } from 'react';
 import { createFbmNoise2D, clamp01 } from './noise';
 import { createGrainTile } from './grain';
-import { PHASE_START_MS } from './useOpeningSequence';
+import { phaseStartMs } from './useOpeningSequence';
 import { CONSOLE_EXCLUDE_ZONE, isInsideRect } from './dreamEchoZones';
 import { DREAM_EVENT_REGIONS, type DreamEventRegion } from './dreamEventRegions';
 import { dreamEventEnvelope, type DreamEventState, type DreamEventType } from './dreamEventState';
@@ -208,14 +208,19 @@ export default function MemoryVeil({
     // Dream Event images (bed/art/mirror) — small local masked crossfades,
     // never the whole background. Preloaded once; the composite for the
     // currently active event is (re)built only when that event starts.
+    const openingMarks = phaseStartMs();
     const dreamEventImages: Record<DreamEventType, HTMLImageElement> = {
       bed: new Image(),
       art: new Image(),
       mirror: new Image(),
     };
-    (Object.keys(DREAM_EVENT_REGIONS) as DreamEventType[]).forEach((key) => {
-      dreamEventImages[key].src = DREAM_EVENT_REGIONS[key].src;
-    });
+    // ~2.5MB of pictures that are only needed once a dream event starts: loaded after the opening has finished, so the title and the
+    // circle never wait behind them. An event whose picture has not arrived is simply skipped (see the `complete` check below).
+    const eventImageTimer = window.setTimeout(() => {
+      (Object.keys(DREAM_EVENT_REGIONS) as DreamEventType[]).forEach((key) => {
+        dreamEventImages[key].src = DREAM_EVENT_REGIONS[key].src;
+      });
+    }, openingMarks.idle + 500);
     let cachedEventType: DreamEventType | null = null;
     let cachedEventStartTime = 0;
     let cachedComposite: EventComposite | null = null;
@@ -248,7 +253,7 @@ export default function MemoryVeil({
       const loopFrame = loop.update(now);
 
       const elapsedMs = now - startTime;
-      const introRaw = clamp01((elapsedMs - PHASE_START_MS.emerging) / (PHASE_START_MS.title - PHASE_START_MS.emerging));
+      const introRaw = clamp01((elapsedMs - openingMarks.emerging) / (openingMarks.title - openingMarks.emerging));
       const introEased = 1 - Math.pow(1 - introRaw, 3);
       const introAmount = introEased * (1 + REVEAL_BAND);
 
@@ -450,6 +455,7 @@ export default function MemoryVeil({
     raf = requestAnimationFrame(frame);
 
     return () => {
+      window.clearTimeout(eventImageTimer);
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
       hoverMql.removeEventListener('change', updateHoverCapability);

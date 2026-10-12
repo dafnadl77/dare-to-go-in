@@ -2,7 +2,7 @@
   margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 500;
-  font-size: clamp(0.7rem, 1.4vw, 0.85rem);
+  font-size: clamp(0.9375rem, 1.4vw, 0.9375rem);
   letter-spacing: 0.26em;
   text-transform: uppercase;
   color: var(--dream-white);

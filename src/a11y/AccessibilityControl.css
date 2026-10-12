@@ -78,7 +78,7 @@
 .a11y-panel-title {
   margin: 0 0 0.7rem;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.62rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   letter-spacing: 0.2em;
   color: var(--dream-warm-neutral-dim);
@@ -114,7 +114,7 @@ html[lang='he'] .a11y-panel-title {
 
 .a11y-row-label {
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 500;
   color: var(--dream-white);
 }
@@ -133,7 +133,7 @@ html[lang='he'] .a11y-panel-title {
   border: 1px solid rgba(244, 240, 232, 0.2);
   color: var(--dream-white);
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.3s var(--ease-soft), border-color 0.3s var(--ease-soft), opacity 0.3s var(--ease-soft);
@@ -211,7 +211,7 @@ html[lang='he'] .a11y-panel-title {
   border-bottom: none;
   cursor: pointer;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;

@@ -45,14 +45,14 @@
 
 .pp-updated {
   margin: 0 0 1rem;
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: var(--dream-warm-neutral);
 }
 
 .pp-intro,
 .pp-body {
   margin: 0 0 0.8rem;
-  font-size: 0.93rem;
+  font-size: 1rem;
   line-height: 1.6;
   color: var(--dream-warm-neutral);
   overflow-wrap: anywhere;
@@ -71,7 +71,7 @@
 
 .pp-draft {
   margin: 1.4rem 0 0;
-  font-size: 0.8rem;
+  font-size: 1rem;
   line-height: 1.5;
   color: var(--dream-warm-neutral);
   opacity: 0.8;

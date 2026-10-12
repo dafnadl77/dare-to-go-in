@@ -10,7 +10,7 @@
   gap: 0.35em;
   margin: 0 0 clamp(1.4rem, 3vw, 2.2rem);
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.76rem;
+  font-size: 0.9375rem;
 }
 
 /* .crumb-home/.crumb-home-icon/.crumb-home-words (the row's own leading
@@ -74,6 +74,6 @@
 
 @media (max-width: 640px) {
   .app-breadcrumb {
-    font-size: 0.68rem;
+    font-size: 0.9375rem;
   }
 }

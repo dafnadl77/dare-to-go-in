@@ -9,7 +9,7 @@
   align-items: baseline;
   gap: 0.15rem 0.55rem;
   margin: 0 0 0.9rem;
-  font-size: 0.95rem;
+  font-size: 1.0625rem;
   color: var(--dream-warm-neutral);
 }
 
@@ -17,7 +17,7 @@
   color: var(--dream-white);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  font-size: 0.85rem;
+  font-size: 1rem;
 }
 
 .co-summary-sep {
@@ -38,19 +38,19 @@
 }
 
 .co-label {
-  font-size: 0.85rem;
+  font-size: 1rem;
   letter-spacing: 0.04em;
   color: var(--dream-white);
 }
 
 .co-hint {
-  font-size: 0.8rem;
+  font-size: 1rem;
   line-height: 1.4;
   color: var(--dream-warm-neutral);
 }
 
 .co-error {
-  font-size: 0.82rem;
+  font-size: 1rem;
   line-height: 1.4;
   color: #f0c2bb;
 }
@@ -67,7 +67,7 @@
 
 .co-privacy {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 1rem;
   line-height: 1.5;
   color: var(--dream-warm-neutral);
 }
@@ -100,7 +100,7 @@
 /* The notice shown when the customer comes back from the payment page. */
 .co-return-note {
   margin: 0.8rem 0 0;
-  font-size: 0.85rem;
+  font-size: 1rem;
   line-height: 1.5;
   color: var(--dream-warm-neutral);
 }

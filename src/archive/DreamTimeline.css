@@ -22,7 +22,7 @@
 .dt-month-heading {
   margin: 0 0 1rem;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -143,7 +143,7 @@ html[dir='rtl'] .dt-card {
 .dt-card-date {
   flex: none;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.74rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   color: var(--dream-warm-neutral);
@@ -160,7 +160,7 @@ html[lang='he'] .dt-card-date {
   -webkit-box-orient: vertical;
   overflow: hidden;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.86rem;
+  font-size: 1.0625rem;
   line-height: 1.5;
   color: var(--dream-warm-neutral);
   opacity: 0.9;
@@ -168,7 +168,7 @@ html[lang='he'] .dt-card-date {
 
 .dt-card-keywords {
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.76rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   letter-spacing: 0.04em;
   color: var(--dream-warm-neutral);

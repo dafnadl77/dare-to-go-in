@@ -25,14 +25,14 @@
   margin: 0 0 0.25rem;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 1.0625rem;
   color: var(--dream-white);
 }
 
 .ar-import-body {
   margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: var(--dream-warm-neutral);
   opacity: 0.9;
 }
@@ -40,7 +40,7 @@
 .ar-import-error {
   margin: 0.4rem 0 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: var(--dream-white);
 }
 

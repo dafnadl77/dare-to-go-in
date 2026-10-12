@@ -52,7 +52,7 @@
   border: none;
   outline: none;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -159,7 +159,7 @@
 .dd-date {
   margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.7rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: 0.2em;
   color: var(--dream-warm-neutral);
@@ -288,7 +288,7 @@ html[lang='he'] .dd-eyebrow {
 .dd-disclaimer {
   margin-top: clamp(3rem, 6vw, 4rem);
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: var(--dream-warm-neutral);
   text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.5);
   opacity: 0.85;
@@ -323,7 +323,7 @@ html[lang='he'] .dd-eyebrow {
   outline: none;
   padding: 0.4em 0.1em;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.72rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;

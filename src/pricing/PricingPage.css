@@ -124,7 +124,7 @@
 .pr-eyebrow {
   margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.72rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: 0.34em;
   text-transform: uppercase;
@@ -294,7 +294,7 @@ html[lang='he'] .pr-subtitle {
   border: 1px solid rgba(244, 240, 232, 0.4);
   backdrop-filter: blur(6px);
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.62rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -434,7 +434,7 @@ html[lang='he'] .pr-card-eyebrow {
 .pr-card-note {
   margin: 0.7rem 0 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: clamp(0.9375rem, 1vw, 1rem);
+  font-size: clamp(1rem, 1vw, 1rem);
   line-height: 1.5;
   text-align: center;
   color: rgba(255, 255, 255, 0.88);
@@ -559,7 +559,7 @@ html[lang='he'] .pr-card-eyebrow {
     0 0.5rem 1rem rgba(0, 0, 0, 0.45);
   color: #2b2012;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.92rem;
+  font-size: 1rem;
   font-weight: 800;
   letter-spacing: 0.02em;
   line-height: 1;

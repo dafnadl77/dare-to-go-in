@@ -113,7 +113,7 @@
 .about-eyebrow {
   margin: 1.4rem 0 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.72rem;
+  font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0.32em;
   text-transform: uppercase;
@@ -149,7 +149,7 @@ html[lang='he'] .about-divider {
 .about-body {
   margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 1rem;
+  font-size: 1.125rem;
   line-height: 1.8;
   color: var(--dream-warm-neutral);
 }
@@ -158,7 +158,7 @@ html[lang='he'] .about-divider {
   margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.375rem;
   line-height: 1.6;
   color: var(--dream-white);
 }
@@ -229,7 +229,7 @@ html[lang='he'] .about-divider {
   outline: none;
   cursor: pointer;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--dream-warm-neutral);
   text-decoration: underline;

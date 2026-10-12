@@ -62,7 +62,7 @@
 .legal-updated {
   margin: 0.8rem 0 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.72rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -132,7 +132,7 @@ html[lang='he'] .legal-updated {
   padding-top: 1.6rem;
   border-top: 1px solid rgba(244, 240, 232, 0.14);
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.92rem;
+  font-size: 1rem;
   line-height: 1.75;
   color: var(--dream-warm-neutral-dim);
 }
@@ -146,7 +146,7 @@ html[lang='he'] .legal-updated {
   padding: 0.6em 0.4em;
   cursor: pointer;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.74rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;

@@ -83,7 +83,7 @@
 .auth-tagline {
   margin: -0.9rem 0 0.4rem;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: clamp(0.92rem, 1.75vw, 1.08rem);
+  font-size: clamp(1rem, 1.75vw, 1.08rem);
   font-weight: 400;
   /* Was --dream-warm-neutral — too dark/faint against bright cloud areas,
      and this text carries real instructions on the CHECK YOUR EMAIL
@@ -117,7 +117,7 @@
   border: 1px solid rgba(244, 240, 232, 0.28);
   color: var(--dream-white);
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.82rem;
+  font-size: 1rem;
   font-weight: 500;
   letter-spacing: 0.04em;
   cursor: pointer;
@@ -165,7 +165,7 @@
 
 .auth-divider span {
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.64rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: 0.22em;
   color: var(--dream-warm-neutral-dim);
@@ -221,7 +221,7 @@
   margin: -0.3rem 0 0;
   padding: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.84rem;
+  font-size: 1rem;
   font-weight: 500;
   line-height: 1.5;
   text-align: center;
@@ -250,7 +250,7 @@
   outline: none;
   padding: 0.85em 1.8em;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.86rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--dream-white);
@@ -294,7 +294,7 @@
   background: none;
   border: none;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--dream-white);
   opacity: 0.7;
@@ -319,7 +319,7 @@
 .auth-switch {
   margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.86rem;
+  font-size: 1rem;
   /* Was --dream-warm-neutral-dim — the least readable text on this whole
      screen against a bright cloud area ("Already have an archive?"). */
   color: var(--dream-white);
