@@ -331,6 +331,12 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
           onFreeDreamUsed();
           return;
         }
+        // The server says an account is needed to start a dream (a stale page, a guest cookie): sign-up opens and the words wait for the return.
+        if (result.status === 'error' && result.reason === 'sign_in_required') {
+          saveDreamDraft(dreamInputSourceText(input));
+          onStartRequiresSignIn();
+          return;
+        }
         if (result.status === 'error' && result.reason === 'credits_required') {
           saveDreamDraft(dreamInputSourceText(input));
           onCreditsRequired();

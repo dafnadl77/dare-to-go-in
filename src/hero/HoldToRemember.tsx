@@ -123,6 +123,8 @@ function describeTranscriptionFailure(reason: TranscriptionErrorReason, t: (path
       return t('hold.transcriptionSessionExpired');
     case 'credits_required':
       return t('hold.transcriptionCreditsRequired');
+    case 'sign_in_required':
+      return t('hold.transcriptionSignInRequired');
     case 'too_large':
       return t('hold.transcriptionTooLarge');
     case 'network':
@@ -791,6 +793,8 @@ export default function HoldToRemember({
             onTypedTranscriptChange(text);
             setTranscriptionErrorMessage(null);
           } else {
+            // An account is needed to start a dream: sign-up opens (nothing is lost: the words stay in the box).
+            if (result.reason === 'sign_in_required') onStartAttempt?.();
             setTranscriptionErrorMessage(keepLiveWords() ? t('hold.liveWordsKept') : describeTranscriptionFailure(result.reason, t));
             setCanRetryTranscription(RETRYABLE_TRANSCRIPTION_FAILURES.has(result.reason));
           }
@@ -807,7 +811,7 @@ export default function HoldToRemember({
         },
       );
     },
-    [onTypedTranscriptChange, setCentralMode, t, keepLiveWords],
+    [onTypedTranscriptChange, setCentralMode, t, keepLiveWords, onStartAttempt],
   );
 
   // The real audio blob shows up asynchronously via MediaRecorder's onstop, after handleFinishDream already returns. Once it

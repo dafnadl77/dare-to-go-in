@@ -63,7 +63,7 @@ test('an invalid bearer is never downgraded to a trial; a valid cookie whose row
 test('/api/trial-session establishes the trial (Set-Cookie) exactly once and is idempotent for a browser that already has a session', async () => {
   const { deps, created } = identityDeps();
   const mintStore: TrialMintStore = { countTrialsSince: async () => 0 };
-  const first = await handleTrialSession({}, { identity: deps, mintStore });
+  const first = await handleTrialSession({}, { identity: deps, mintStore, guestsAllowed: true });
   assert.equal(first.status, 200);
   assert.equal(first.headers?.['Set-Cookie'], 'dare_trial=new; HttpOnly');
   assert.equal(created.length, 1);
@@ -95,9 +95,9 @@ test('the mint backstop is an emergency stop: below it minting works, at it mint
   assert.equal(sinceSeen, new Date(now - 60 * 60 * 1000).toISOString(), 'counts the rolling last hour');
 
   const { deps, created } = identityDeps();
-  const full = await handleTrialSession({}, { identity: deps, mintStore: { countTrialsSince: async () => 50 }, mintBackstopPerHour: 50 });
+  const full = await handleTrialSession({}, { identity: deps, mintStore: { countTrialsSince: async () => 50 }, mintBackstopPerHour: 50, guestsAllowed: true });
   assert.equal(full.status, 429);
-  const down = await handleTrialSession({}, { identity: deps, mintStore: { countTrialsSince: async () => null } });
+  const down = await handleTrialSession({}, { identity: deps, mintStore: { countTrialsSince: async () => null }, guestsAllowed: true });
   assert.equal(down.status, 503);
   assert.equal(created.length, 0, 'nothing was minted in either refused case');
 });

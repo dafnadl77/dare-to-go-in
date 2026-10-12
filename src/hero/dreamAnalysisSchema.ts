@@ -116,6 +116,7 @@ export type AnalysisErrorReason =
   | 'limit_reached'
   | 'free_dream_used'
   | 'credits_required'
+  | 'sign_in_required'
   | 'analysis_in_progress'
   | 'idempotency_conflict'
   | 'analysis_expired'

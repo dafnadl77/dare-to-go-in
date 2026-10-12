@@ -2,11 +2,14 @@ import { okResult, errorResult, type HandlerResult } from '../httpResult.js';
 import { resolveCallerIdentity, mintTrialIdentity, type IdentityDeps, type RequestHeaders } from '../callerIdentity.js';
 import { checkTrialMintBackstop, trialMintBackstopPerHour, type TrialMintStore } from '../anonymousSafetyValves.js';
 import { trialMintStore } from '../dreamAttempts.js';
+import { guestDreamsAllowed, SIGN_IN_REQUIRED_MESSAGE, SIGN_IN_REQUIRED_REASON } from '../guestPolicy.js';
 
 export interface TrialSessionDeps {
   identity?: IdentityDeps;
   mintStore?: TrialMintStore;
   mintBackstopPerHour?: number;
+  /** Whether new guest identities may be minted (default: the DARE_GUEST_DREAMS setting, which keeps them closed). */
+  guestsAllowed?: boolean;
 }
 
 /**
@@ -28,6 +31,10 @@ export async function handleTrialSession(requestHeaders: RequestHeaders, deps: T
   const resolved = await resolveCallerIdentity(requestHeaders, deps.identity);
   if (resolved.ok) return okResult({ kind: resolved.identity.kind });
   if (resolved.reason !== 'trial_required') return errorResult(resolved.status, resolved.reason, resolved.message);
+
+  // A browser with no account and no valid guest cookie: starting a dream needs an account, so no new guest identity is minted (the
+  // mint backstop is not even consulted). A valid existing cookie, or a signed-in account, was already answered above.
+  if (!(deps.guestsAllowed ?? guestDreamsAllowed())) return errorResult(403, SIGN_IN_REQUIRED_REASON, SIGN_IN_REQUIRED_MESSAGE);
 
   const backstop = await checkTrialMintBackstop(deps.mintStore ?? trialMintStore, deps.mintBackstopPerHour ?? trialMintBackstopPerHour());
   if (backstop === 'backstop_reached') return errorResult(429, 'rate_limited', 'Too many new sessions right now. Please try again shortly.');

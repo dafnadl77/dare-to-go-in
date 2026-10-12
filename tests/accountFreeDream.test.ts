@@ -495,6 +495,7 @@ test('route: when no free dream is owed, the answer is the same credits_required
 test('route: a guest (trial) identity never triggers the account free-dream decision', async () => {
   let asked = 0;
   const h = analysisHarness(async () => (asked += 1, true), { kind: 'trial', trialId: 't-1' });
+  h.deps.guestsAllowed = () => true; // guests are closed by default now (guestClosure.test.ts); this test is about the ACCOUNT decision only
   const res = await post(h.deps);
   assert.equal(asked, 0);
   assert.equal(res.status, 402);

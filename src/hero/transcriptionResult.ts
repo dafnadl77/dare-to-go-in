@@ -17,6 +17,7 @@ export type TranscriptionErrorReason =
   | 'not_authenticated'
   | 'free_dream_used'
   | 'credits_required'
+  | 'sign_in_required'
   | 'limit_reached'
   | 'too_large'
   | 'network'
@@ -37,6 +38,7 @@ const SERVER_REASONS: readonly TranscriptionErrorReason[] = [
   'not_authenticated',
   'free_dream_used',
   'credits_required',
+  'sign_in_required',
   'limit_reached',
 ];
 

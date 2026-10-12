@@ -4,6 +4,7 @@ import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpR
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
 import { reserveTrialTranscription, refundTrialTranscription, getCreditBalance, isAppOwner } from '../dreamAttempts.js';
 import { freeDreamGrantedNow } from '../freeDream.js';
+import { guestDreamsAllowed, SIGN_IN_REQUIRED_MESSAGE, SIGN_IN_REQUIRED_REASON } from '../guestPolicy.js';
 import { databaseRateLimitStore, enforceRateLimits, transcriptionRules } from '../rateLimit.js';
 import { CREDITS_REQUIRED_MESSAGE, FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 
@@ -99,6 +100,11 @@ export async function handleDreamTranscription(rawBody: unknown, requestHeaders:
     return errorResult(resolved.status, resolved.reason, resolved.message);
   }
   const cookieHeaders = resolved.setCookieHeader ? { 'Set-Cookie': resolved.setCookieHeader } : undefined;
+
+  // A recording starts a dream: it needs an account. A guest cookie is refused before the body is read and before any usage is reserved.
+  if (resolved.identity.kind === 'trial' && !guestDreamsAllowed()) {
+    return withHeaders(errorResult(401, SIGN_IN_REQUIRED_REASON, SIGN_IN_REQUIRED_MESSAGE), cookieHeaders);
+  }
 
   const body = (rawBody ?? {}) as { audioBase64?: unknown; mimeType?: unknown; language?: unknown };
 

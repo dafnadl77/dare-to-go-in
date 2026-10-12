@@ -93,10 +93,8 @@ test('this route changes nothing about the free dream, credits, payments, Owner 
   for (const file of ['server/freeDream.ts', 'server/dreamAttempts.ts', 'server/trialAllowance.ts', 'server/callerIdentity.ts', 'server/routes/credits.ts', 'server/routes/claimTrial.ts', 'server/payments/paymentComplete.ts', 'server/payments/checkoutStart.ts']) {
     assert.ok(!/WRITE_VIEW_VALUE|view=write|startDream|onStartAttempt/.test(read(file)), file);
   }
-  // decision 4: new guest identities are NOT blocked in this step
-  const session = read('server/routes/trialSession.ts');
-  assert.ok(!/GUEST|guest_dreams|sign_in_required/i.test(session));
-  assert.match(session, /const minted = await mintTrialIdentity\(deps\.identity\);/);
+  // (the guest machinery itself is intact: new guest identities were closed in the NEXT step, behind an explicit lever, see guestClosure.test.ts)
+  assert.match(read('server/routes/trialSession.ts'), /const minted = await mintTrialIdentity\(deps\.identity\);/);
   // the entry gate still sends only a definite zero balance to Packages (an account with its free credit has a balance of 1)
   assert.match(code('src/App.tsx'), /fetchCreditBalance\(\)\.then\(\(balance\) => \{\s*if \(cancelled \|\| balance !== 0\) return;/);
 });

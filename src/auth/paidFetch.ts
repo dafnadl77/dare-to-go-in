@@ -23,11 +23,25 @@ export class RequestTimeoutError extends Error {
   }
 }
 
+/** The server no longer hands out guest sessions: starting a dream needs an account. */
+export class SignInRequiredError extends Error {
+  serverMessage: string;
+  constructor(serverMessage: string) {
+    super('Signing in is required to start a dream.');
+    this.name = 'SignInRequiredError';
+    this.serverMessage = serverMessage;
+  }
+}
+
 export function ensureTrialSession(): Promise<void> {
   if (!inFlight) {
     inFlight = fetch('/api/trial-session', { method: 'POST' })
-      .then((res) => {
-        if (!res.ok) throw new Error(`trial-session responded with HTTP ${res.status}`);
+      .then(async (res) => {
+        if (res.ok) return;
+        const body: unknown = await res.json().catch(() => null);
+        const reason = body && typeof body === 'object' ? (body as { reason?: unknown }).reason : null;
+        if (reason === 'sign_in_required') throw new SignInRequiredError(typeof (body as { message?: unknown }).message === 'string' ? (body as { message: string }).message : '');
+        throw new Error(`trial-session responded with HTTP ${res.status}`);
       })
       .finally(() => {
         inFlight = null;
@@ -53,7 +67,14 @@ async function runPaidFetch(input: string, init: RequestInit | undefined): Promi
   if (reason !== 'trial_required') return res;
   try {
     await ensureTrialSession();
-  } catch {
+  } catch (error) {
+    // No guest session is available any more: the caller is told, in the server's own words, that an account is needed.
+    if (error instanceof SignInRequiredError) {
+      return new Response(JSON.stringify({ reason: 'sign_in_required', message: error.serverMessage || 'Please sign in or create an account to start a dream.' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     return res;
   }
   return fetch(input, init);

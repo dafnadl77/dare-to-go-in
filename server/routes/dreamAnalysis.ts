@@ -20,6 +20,7 @@ import {
 } from '../dreamAttempts.js';
 import { startAnalysisAttempt, type AnalysisStartDeps } from '../analysisStart.js';
 import { freeDreamGrantedNow } from '../freeDream.js';
+import { guestDreamsAllowed, SIGN_IN_REQUIRED_MESSAGE, SIGN_IN_REQUIRED_REASON } from '../guestPolicy.js';
 import { CREDITS_REQUIRED_MESSAGE, FREE_DREAM_USED_MESSAGE, TEMPORARILY_UNAVAILABLE_MESSAGE } from '../trialAllowance.js';
 
 /** The format a client idempotency key must have (also enforced by a CHECK constraint in the database). */
@@ -71,6 +72,8 @@ export interface DreamAnalysisDeps {
   runModel: (client: OpenAI, sourceText: string) => ReturnType<typeof runAnalysisModel>;
   /** true = the account's one free dream was given just now (see freeDream.ts). Optional: without it nothing is settled. */
   settleFreeDream?: (userId: string, cookieHeader: string | null | undefined) => Promise<boolean>;
+  /** Whether a guest (cookie) may start a new dream. Default: the DARE_GUEST_DREAMS setting, which keeps that closed. */
+  guestsAllowed?: () => boolean;
 }
 
 const realDeps: DreamAnalysisDeps = {
@@ -109,6 +112,12 @@ export async function handleDreamAnalysis(
     return errorResult(resolved.status, resolved.reason, resolved.message);
   }
   const cookieHeaders = resolved.setCookieHeader ? { 'Set-Cookie': resolved.setCookieHeader } : undefined;
+
+  // Starting a NEW dream needs an account: a guest cookie (which can still finish a dream already in progress through image, labels and
+  // reflection) can no longer create the attempt everything else hangs on. Refused before anything is read or any model is called.
+  if (resolved.identity.kind === 'trial' && !(deps.guestsAllowed ?? guestDreamsAllowed)()) {
+    return withHeaders(errorResult(401, SIGN_IN_REQUIRED_REASON, SIGN_IN_REQUIRED_MESSAGE), cookieHeaders);
+  }
 
   const body = (rawBody ?? {}) as { sourceText?: unknown; inputMode?: unknown; idempotencyKey?: unknown };
   const sourceText = typeof body.sourceText === 'string' ? body.sourceText.trim() : '';

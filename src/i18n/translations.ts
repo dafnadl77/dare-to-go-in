@@ -72,6 +72,7 @@ export interface Translations {
     transcriptionFreeDreamUsed: string;
     transcriptionSessionExpired: string;
     transcriptionCreditsRequired: string;
+    transcriptionSignInRequired: string;
     cancelRecording: string;
     cancelTranscription: string;
     cancelTyping: string;
@@ -485,6 +486,7 @@ export const en: Translations = {
     transcriptionFreeDreamUsed: 'Your free dream has been used. You can keep typing here, and sign in or create an account to continue.',
     transcriptionSessionExpired: 'Your sign-in has ended. You can keep typing here and sign in again to continue.',
     transcriptionCreditsRequired: 'You have no dreams left in your package. You can keep typing here, and choose a package to continue.',
+    transcriptionSignInRequired: 'Please sign in or create an account to start a dream. Your words stay here.',
     cancelRecording: 'Cancel recording',
     cancelTranscription: 'Cancel transcription',
     cancelTyping: 'Cancel typing',
@@ -923,6 +925,7 @@ export const he: Translations = {
     transcriptionFreeDreamUsed: 'החלום החינמי שלך כבר נוצל. אפשר להמשיך להקליד כאן, ולהתחבר או ליצור חשבון כדי להמשיך.',
     transcriptionSessionExpired: 'ההתחברות שלך הסתיימה. אפשר להמשיך להקליד כאן ולהתחבר מחדש כדי להמשיך.',
     transcriptionCreditsRequired: 'לא נשארו לך חלומות בחבילה. אפשר להמשיך להקליד כאן ולבחור חבילה כדי להמשיך.',
+    transcriptionSignInRequired: 'כדי להתחיל חלום צריך להתחבר או ליצור חשבון. המילים שלך נשארות כאן.',
     cancelRecording: 'ביטול הקלטה',
     cancelTranscription: 'ביטול תמלול',
     cancelTyping: 'ביטול הקלדה',
