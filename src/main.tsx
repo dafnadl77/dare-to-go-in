@@ -1,3 +1,4 @@
+import './demo/earlyDemo.ts' // must stay first: in demo builds it fences off the network before anything else starts
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'

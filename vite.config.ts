@@ -10,6 +10,11 @@ const DREAM_ANALYSIS_BACKEND_PORT = 8787
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // Demo mode (src/demo) exists in every build EXCEPT Vercel production: there this is the constant false and the demo code is
+  // removed from the bundle.
+  define: {
+    __DARE_DEMO_BUILD__: JSON.stringify(process.env.VERCEL_ENV !== 'production'),
+  },
   server: {
     proxy: {
       '/api': {

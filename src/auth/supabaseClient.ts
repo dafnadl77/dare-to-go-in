@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { isDemoActive, demoSupabaseUrl, DEMO_ANON_KEY } from '../demo/demoFlag';
 
 /**
  * One Supabase client for the whole app — real production auth (see
@@ -14,8 +15,11 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
  * (OPENAI_API_KEY has no VITE_ prefix specifically so it can never end up
  * here).
  */
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Demo mode (src/demo, never in a production build) points the client at the demo's own in-browser stand-in instead of any real project.
+// (the build flag is spelled out here, not hidden behind a function, so a production build can drop the whole branch)
+const demo = typeof __DARE_DEMO_BUILD__ !== 'undefined' && __DARE_DEMO_BUILD__ && isDemoActive();
+const supabaseUrl = demo ? demoSupabaseUrl() : import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = demo ? DEMO_ANON_KEY : import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   // Loud in dev, not a thrown error in prod — a misconfigured deployment
