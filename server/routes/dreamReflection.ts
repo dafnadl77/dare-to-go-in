@@ -7,6 +7,7 @@ import {
   DREAM_REFLECTION_JSON_SCHEMA,
   getGroundingStatement,
   validateDreamReflectionResult,
+  feelingsTextLooksDiagnostic,
 } from '../../src/hero/dreamReflectionSchema.js';
 import type { AppLanguage } from '../../src/hero/appLanguage.js';
 import { emotionNamesForModel, normalizeEmotions, type EmotionId } from '../../src/hero/dreamEmotions.js';
@@ -51,6 +52,7 @@ export function buildReflectionInput(
   reflectionResponse: string,
   reconstructionCorrections: string[],
   emotions: readonly EmotionId[] = [],
+  language: AppLanguage = 'en',
 ): string {
   const correctionsLine = reconstructionCorrections.length
     ? `\n- Corrections the dreamer made to the reconstruction afterward: ${reconstructionCorrections.join('; ')}`
@@ -70,7 +72,7 @@ THE ELEMENT THE DREAMER CHOSE AS STANDING OUT TO THEM: ${selectedElement}
 
 THE DREAMER'S OWN ASSOCIATION WITH THAT ELEMENT (their exact words): "${reflectionResponse}"${
     emotions.length
-      ? `\n\nFEELINGS THE DREAMER REPORTED (their own report, chosen from a fixed list after the dream; NOT part of what happened in the dream): ${emotionNamesForModel(emotions)}`
+      ? `\n\nFEELINGS THE DREAMER REPORTED (their own report, chosen from a fixed list after the dream; NOT part of what happened in the dream): ${emotionNamesForModel(emotions, language)}`
       : ''
   }`;
 }
@@ -146,7 +148,7 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
     );
   }
 
-  const input = buildReflectionInput(dreamAnalysis, selectedElement, reflectionResponse, reconstructionCorrections, emotions);
+  const input = buildReflectionInput(dreamAnalysis, selectedElement, reflectionResponse, reconstructionCorrections, emotions, language);
 
   // Everything the dreamer themselves wrote — quoting it in another script
   // is legitimate, so it's the context the language-integrity check excuses.
@@ -203,6 +205,9 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
     if (emotions.length === 0) validated.emotionReflection = null;
     if (typeof validated.emotionReflection === 'string' && validated.emotionReflection.trim() === '') validated.emotionReflection = null;
     if (typeof validated.summary === 'string' && validated.summary.trim() === '') validated.summary = null;
+    // Never keep a line that reads as a diagnosis of the dreamer's state of mind (see feelingsTextLooksDiagnostic).
+    if (feelingsTextLooksDiagnostic(validated.emotionReflection)) validated.emotionReflection = null;
+    if (feelingsTextLooksDiagnostic(validated.summary)) validated.summary = null;
 
     // THE completion point of an anonymous dreamer's ONE free dream: the
     // grounded reflection is generated and about to be delivered. Marked

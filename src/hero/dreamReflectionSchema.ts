@@ -117,8 +117,8 @@ Build the reflection from exactly these layers:
    - jungian: a symbolic/archetypal reading, offered strictly as a theoretical lens.
    - psychodynamic: a cautious relational/conflict-oriented reading.
    If a lens genuinely doesn't apply, set it to null rather than forcing one in. Do not use NLP framing. Do not use CBT as a dream-symbol interpretation framework — CBT belongs to later coping/action work for recurring nightmares, never to "what this dream means."
-6. EMOTION REFLECTION — ONLY when the input contains a section named FEELINGS THE DREAMER REPORTED. Those feelings are what the dreamer says they felt, chosen from a fixed list: they are the dreamer's own report, NOT part of what happened in the dream, and NEVER a sign of anyone's mental state. Write one or two sentences in emotionReflection that say plainly these are the dreamer's own reported feelings, keep them clearly separate from the dream's events, and let them shape the reading: which possible thread you choose and the tone of the question. Use possibility language only. Never diagnose, never say what a feeling "indicates", "reveals" or "means about you", and never add a feeling that was not listed. If that section is absent, emotionReflection MUST be null.
-7. SUMMARY — one short personal sentence (about 25 words at most) that gathers the chosen moment, the dreamer's association and, if present, the reported feelings. Possibility language, nothing new, never a conclusion or a diagnosis.
+6. EMOTION REFLECTION — ONLY when the input contains a section named FEELINGS THE DREAMER REPORTED. Those feelings are what the dreamer says they felt, chosen from a fixed list: they are the dreamer's own report, NOT part of what happened in the dream, and NEVER a sign of anyone's mental state. Write one or two sentences in emotionReflection that say plainly these are the dreamer's own reported feelings, keep them clearly separate from the dream's events, and let them shape the reading: which possible thread you choose and the tone of the question. Always attribute the feelings to the dreamer's own report (for example "You named fear and longing" in English, or "בחרתם לציין פחד וגעגוע" in Hebrew, using the exact words listed and always saying who named them: the dreamer; never an impersonal phrasing such as "a feeling of ... was received"). Never infer a state of mind from the feelings: do not use "indicate", "suggest that you are", "point to", "reveal" about the dreamer, nor words such as "conflict", "inner conflict", "coping", "unresolved" (in Hebrew: "להעיד על", "מעיד", "מצביע על", "קונפליקט", "התמודדות עם", "מטריד"). Say only what the dreamer named, and offer with "perhaps" (in Hebrew "אולי") how it might sit beside the chosen moment, and never say the dream "contains", "has", "shows" or "is full of" these feelings or present them as events of the dream. Use possibility language only. Never diagnose, never say what a feeling "indicates", "reveals" or "means about you", and never add a feeling that was not listed. If that section is absent, emotionReflection MUST be null.
+7. SUMMARY — one short personal sentence (about 25 words at most) that gathers the chosen moment, the dreamer's association and, if present, the reported feelings. Possibility language, nothing new, never a conclusion or a diagnosis. If the summary mentions the feelings, it must say that the dreamer named them, never that the dream evoked or contained them.
 
 ${languageParagraph}
 
@@ -133,6 +133,23 @@ Keep every field short: observation and possibleThread are 1-2 sentences; person
 For groundingStatement, write a short, calm, non-alarmist line making clear this is a reflection, not a diagnosis or definitive interpretation (exact wording is not critical — it will be normalized).
 
 Respond with only the DreamReflectionResult JSON object matching the provided schema — no prose outside it.`;
+}
+
+/**
+ * A last, deterministic safety net for the two texts that talk about the dreamer's REPORTED feelings. The prompt forbids inferring a
+ * state of mind from them, but a language model does not always obey (a Hebrew sample said the feelings "may indicate coping with
+ * inner conflicts"). Any of these phrases and that text is dropped, so a diagnostic-sounding line is never shown or saved; the rest of
+ * the reflection is untouched.
+ */
+const DIAGNOSTIC_PATTERNS: RegExp[] = [
+  /\b(indicat\w*|diagnos\w*|disorder\w*|symptom\w*|suffer\w*|depress\w*|traumat\w*|inner conflict\w*|unresolved (issues|conflict)\w*|coping with)\b/i,
+  /\b(suggest|suggests|suggesting) that you (are|have|may be|might be)\b/i,
+  /(להעיד על|מעיד על|מעידים על|עשויים להעיד|עשוי להעיד|מצביע על|מצביעים על|הפרעה|אבחנ|דיכאון|טראומ|קונפליקט|התמודדות עם|סובל)/,
+];
+
+export function feelingsTextLooksDiagnostic(text: string | null | undefined): boolean {
+  if (typeof text !== 'string' || text.trim() === '') return false;
+  return DIAGNOSTIC_PATTERNS.some((pattern) => pattern.test(text));
 }
 
 /**

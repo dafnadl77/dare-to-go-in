@@ -53,11 +53,11 @@ const en: LegalContent = {
       },
       {
         heading: 'What you share with DARE',
-        body: 'When you record or type a dream, that text (and, where voice input is used, the audio captured to transcribe it) is submitted so DARE can reconstruct and reflect on it. If you save a dream to your archive, the dream text, any correction you make to it, the elements you choose to focus on, your own written associations, and the reflection generated for you are stored against your account.',
+        body: 'When you record or type a dream, that text (and, where voice input is used, the audio captured to transcribe it) is submitted so DARE can reconstruct and reflect on it. If you save a dream to your archive, the dream text, any correction you make to it, the elements you choose to focus on, your own written associations, the feelings you choose to name (if you choose any), and the reflection generated for you are stored against your account.',
       },
       {
         heading: 'AI processing',
-        body: 'Turning what you share into a reconstructed dream, an image, and a reflection involves sending that text (and transcribed audio) to OpenAI, a third-party AI provider, for processing. OpenAI processes this content to generate the results DARE shows you; DARE does not control OpenAI\'s own retention practices beyond what OpenAI publishes, and does not use your dream content to train any model of our own.',
+        body: 'Turning what you share into a reconstructed dream, an image, and a reflection involves sending that text (and transcribed audio) to OpenAI, a third-party AI provider, for processing. OpenAI processes this content to generate the results DARE shows you; DARE does not control OpenAI\'s own retention practices beyond what OpenAI publishes, and does not use your dream content to train any model of our own. Any feelings you choose to name are sent with your dream in the same request, and are stored with it only if you save the dream.',
       },
       {
         heading: 'Generated content',
@@ -198,11 +198,11 @@ const he: LegalContent = {
       },
       {
         heading: 'מה משתפים עם DARE',
-        body: 'כשמקליטים או מקלידים חלום, הטקסט הזה (ובמקרה של קלט קולי, גם ההקלטה שמשמשת לתמלול) נשלח כדי ש-DARE תוכל לשחזר את החלום ולהציע התבוננות עליו. שמירת חלום בארכיון שומרת את טקסט החלום, כל תיקון שנעשה בו, האלמנטים שנבחרו, האסוציאציות הכתובות, וההתבוננות שנוצרה — משויכים לחשבון.',
+        body: 'כשמקליטים או מקלידים חלום, הטקסט הזה (ובמקרה של קלט קולי, גם ההקלטה שמשמשת לתמלול) נשלח כדי ש-DARE תוכל לשחזר את החלום ולהציע התבוננות עליו. שמירת חלום בארכיון שומרת את טקסט החלום, כל תיקון שנעשה בו, האלמנטים שנבחרו, האסוציאציות הכתובות, התחושות שבחרתם לציין (אם בחרתם), וההתבוננות שנוצרה — משויכים לחשבון.',
       },
       {
         heading: 'עיבוד באמצעות בינה מלאכותית',
-        body: 'הפיכת מה ששיתפתם לחלום משוחזר, לתמונה ולהתבוננות כרוכה בשליחת הטקסט (וההקלטה המתומללת) אל OpenAI, ספק בינה מלאכותית חיצוני, לעיבוד. OpenAI מעבדת את התוכן כדי ליצור את התוצאות שמוצגות באפליקציה; DARE לא שולטת במדיניות השמירה של OpenAI מעבר למה שהיא עצמה מפרסמת, ולא משתמשת בתוכן החלומות לאימון מודל כלשהו משלה.',
+        body: 'הפיכת מה ששיתפתם לחלום משוחזר, לתמונה ולהתבוננות כרוכה בשליחת הטקסט (וההקלטה המתומללת) אל OpenAI, ספק בינה מלאכותית חיצוני, לעיבוד. OpenAI מעבדת את התוכן כדי ליצור את התוצאות שמוצגות באפליקציה; DARE לא שולטת במדיניות השמירה של OpenAI מעבר למה שהיא עצמה מפרסמת, ולא משתמשת בתוכן החלומות לאימון מודל כלשהו משלה. התחושות שבחרתם לציין נשלחות יחד עם החלום באותה בקשה, ונשמרות איתו רק אם שומרים את החלום.',
       },
       {
         heading: 'תוכן שנוצר',

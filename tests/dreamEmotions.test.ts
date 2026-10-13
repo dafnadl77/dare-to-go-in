@@ -148,3 +148,26 @@ test('the route reads the feelings only through normalizeEmotions and forces the
   assert.match(route, /if \(emotions\.length === 0\) validated\.emotionReflection = null/);
   assert.equal((route.match(/responses\.create\(/g) ?? []).length, 1, 'still exactly one model call in the reflection route');
 });
+
+test('the feelings text is dropped when it reads as a diagnosis of the dreamer, and kept when it only reports what they named', async () => {
+  const { feelingsTextLooksDiagnostic } = await import('../src/hero/dreamReflectionSchema.ts');
+  // from a real sample of the model: it said the feelings "may indicate coping with inner conflicts"
+  assert.equal(feelingsTextLooksDiagnostic('תחושות חוסר האונים והפליאה שציינת, עשויים להעיד על התמודדות עם קונפליקטים פנימיים.'), true);
+  assert.equal(feelingsTextLooksDiagnostic('Your fear may indicate that you are coping with inner conflict.'), true);
+  assert.equal(feelingsTextLooksDiagnostic('This suggests that you are depressed.'), true);
+  assert.equal(feelingsTextLooksDiagnostic('You named feelings of fear and longing, which might connect to the warmth of the door.'), false);
+  assert.equal(feelingsTextLooksDiagnostic('בחרתם לציין פחד וגעגוע, ואולי הם יושבים לצד הדלת הפתוחה.'), false);
+  assert.equal(feelingsTextLooksDiagnostic(null), false);
+  assert.equal(feelingsTextLooksDiagnostic(''), false);
+  const route = read('server/routes/dreamReflection.ts');
+  assert.match(route, /if \(feelingsTextLooksDiagnostic\(validated\.emotionReflection\)\) validated\.emotionReflection = null/);
+  assert.match(route, /if \(feelingsTextLooksDiagnostic\(validated\.summary\)\) validated\.summary = null/);
+});
+
+test('a Hebrew reflection is given the Hebrew words the dreamer saw, not a free translation', () => {
+  assert.equal(emotionNamesForModel(['helplessness', 'wonder'], 'he'), 'חוסר אונים, פליאה');
+  assert.equal(emotionNamesForModel(['helplessness', 'wonder']), 'helplessness, wonder');
+  const input = buildReflectionInput(analysis(), 'הים', 'שקט', [], ['wonder'], 'he');
+  assert.match(input, /NOT part of what happened in the dream\): פליאה/);
+  for (const id of EMOTION_IDS) assert.equal(emotionNamesForModel([id], 'he'), he.reflection.emotions[id], `Hebrew label of ${id} matches the screen`);
+});

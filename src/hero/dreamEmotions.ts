@@ -58,6 +58,23 @@ const EMOTION_NAME_FOR_MODEL: Record<EmotionId, string> = {
   excitement: 'excitement',
 };
 
-export function emotionNamesForModel(ids: readonly EmotionId[]): string {
-  return ids.map((id) => EMOTION_NAME_FOR_MODEL[id]).join(', ');
+/** The same words the dreamer saw on screen, so a Hebrew reading uses the Hebrew label ("פליאה") and not a free translation ("השתוממות"). */
+const EMOTION_NAME_FOR_MODEL_HE: Record<EmotionId, string> = {
+  fear: 'פחד',
+  joy: 'שמחה',
+  calm: 'שלווה',
+  love: 'אהבה',
+  longing: 'געגוע',
+  confusion: 'בלבול',
+  anger: 'כעס',
+  sadness: 'עצב',
+  wonder: 'פליאה',
+  freedom: 'חופש',
+  helplessness: 'חוסר אונים',
+  excitement: 'התרגשות',
+};
+
+export function emotionNamesForModel(ids: readonly EmotionId[], language: 'en' | 'he' = 'en'): string {
+  const names = language === 'he' ? EMOTION_NAME_FOR_MODEL_HE : EMOTION_NAME_FOR_MODEL;
+  return ids.map((id) => names[id]).join(', ');
 }
