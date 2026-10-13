@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { buildReflectionQuestion } from './dreamElements';
 import { usePointerParallax } from './usePointerParallax';
 import { useReflectionDisplay } from './useReflectionDisplay';
@@ -137,7 +137,7 @@ export default function DreamReflection({
   onRetryReflection,
   onContinue,
 }: DreamReflectionProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const showAiText = useReflectionDisplay(reflectionResult);
   const [responseText, setResponseText] = useState('');
   const [lensesVisible, setLensesVisible] = useState(false);
@@ -160,6 +160,40 @@ export default function DreamReflection({
   const fragments = fragmentsFor(reflectionResult);
   // The last stage is the terminal one: every thought has resolved and the question holds.
   const lastStage = fragments.length;
+
+  // FIT CHECK. The fixed interpretation layout (an absolutely placed column of thoughts above a closing line) was drawn for four short
+  // thoughts. A longer reflection, a fifth thought (the feelings), the one-line summary, English wording or a shorter screen can make the
+  // last thought run into the closing line. So after the FIXED layout has rendered, its own thoughts are measured against the box they were
+  // given, and only when they do not fit does the interpretation flow and scroll instead (the same way it already does on a phone).
+  // Re-checked when the content or the window changes; the measurement is always taken on a fixed-layout render, so it cannot flip-flop.
+  const pathRef = useRef<HTMLDivElement>(null);
+  const [viewport, setViewport] = useState(() => (typeof window === 'undefined' ? '' : `${window.innerWidth}x${window.innerHeight}`));
+  useEffect(() => {
+    let timer = 0;
+    const onResize = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setViewport(`${window.innerWidth}x${window.innerHeight}`), 150);
+    };
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('resize', onResize);
+    };
+  }, []);
+  const fitKey = `${step}|${viewport}|${language}|${fragments.length}|${reflectionResult ? [reflectionResult.observation, reflectionResult.personalAssociation, reflectionResult.emotionReflection ?? '', reflectionResult.possibleThread, reflectionResult.continuityQuestion, reflectionResult.summary ?? ''].join('|').length : 0}`;
+  const [fit, setFit] = useState({ key: '', flow: false });
+  useLayoutEffect(() => {
+    if (fit.key !== fitKey) setFit({ key: fitKey, flow: false });
+  }, [fit.key, fitKey]);
+  useLayoutEffect(() => {
+    if (fit.key !== fitKey || fit.flow || step !== 'reflection' || !reflectionResult) return;
+    const path = pathRef.current;
+    if (!path || !window.matchMedia('(min-width: 641px) and (min-height: 501px)').matches) return;
+    const rows = path.querySelectorAll('.dr-node-row');
+    const last = rows[rows.length - 1];
+    if (last && last.getBoundingClientRect().bottom > path.getBoundingClientRect().bottom + 4) setFit({ key: fitKey, flow: true });
+  });
+  const flowLayout = fit.key === fitKey && fit.flow;
 
   // The cinematic reveal sequence — stage 0 = nothing shown yet, 1..3 = that
   // thought is the active/focused one, 4 = the question holds as the final,
@@ -201,7 +235,7 @@ export default function DreamReflection({
     : [];
 
   return (
-    <div className="dream-reflection" data-step={step} data-extended={step === 'reflection' && fragments.length > BASE_FRAGMENTS.length ? 'true' : undefined} style={{ '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties}>
+    <div className="dream-reflection" data-step={step} data-flow={step === 'reflection' && flowLayout ? 'true' : undefined} style={{ '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties}>
       {ARRIVAL_STEPS.has(step) && (
         <div className="dream-arrival" data-step={step}>
           <div className="da-content">
@@ -372,7 +406,7 @@ export default function DreamReflection({
           {/* A single reflection path — four glowing nodes connected by one
               light that travels down as each thought resolves. Previous
               nodes stay visible, just quieter, never removed. */}
-          <div className="dr-node-path" style={{ left: `${NODE_LEFT_VW}vw` } as CSSProperties}>
+          <div className="dr-node-path" ref={pathRef} style={{ left: `${NODE_LEFT_VW}vw` } as CSSProperties}>
             <div className="dr-node-line" aria-hidden="true">
               <div className="dr-node-line-fill">
                 <span className="dr-node-line-spark" />

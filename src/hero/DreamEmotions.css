@@ -121,7 +121,7 @@
 
 /* Three are chosen: the others rest. They are not removed, and a chosen one can still be un-chosen. */
 .de-chip.is-muted {
-  --chip-op: 0.62;
+  --chip-op: 0.74;
   cursor: default;
 }
 
@@ -231,11 +231,11 @@
   }
 }
 
-/* A reflection with the extra feelings node has five thoughts instead of four. On a desktop screen that is not very tall they no longer fit
-   the fixed band (rows touched, the last one met the closing line), so there the interpretation flows and scrolls like it does on a phone.
-   Four-node reflections, and tall screens, keep the approved fixed layout untouched. */
-@media (min-width: 900px) and (min-height: 501px) and (max-height: 800px) {
-  .dream-reflection[data-step='reflection'][data-extended='true'] {
+/* When the thoughts do not fit the fixed band (DreamReflection.tsx measures this and sets data-flow), the interpretation flows and scrolls
+   like it does on a phone: a fifth thought, a long reflection, English wording or a shorter screen. A reflection that fits keeps the approved
+   fixed layout untouched. */
+@media (min-width: 641px) and (min-height: 501px) {
+  .dream-reflection[data-step='reflection'][data-flow='true'] {
     justify-content: flex-start;
     gap: 0.1rem;
     overflow-x: hidden;
@@ -245,7 +245,7 @@
     padding-bottom: calc(3vh + env(safe-area-inset-bottom, 0px));
   }
 
-  .dream-reflection[data-step='reflection'][data-extended='true'] .dream-thought-sequence {
+  .dream-reflection[data-step='reflection'][data-flow='true'] .dream-thought-sequence {
     position: relative;
     inset: auto;
     height: auto;
@@ -256,7 +256,7 @@
     margin: 1rem 15vw 0 11vw;
   }
 
-  .dream-reflection[data-step='reflection'][data-extended='true'] .dr-node-path {
+  .dream-reflection[data-step='reflection'][data-flow='true'] .dr-node-path {
     position: relative;
     top: auto;
     bottom: auto;
@@ -270,12 +270,12 @@
     gap: 1.6rem;
   }
 
-  .dream-reflection[data-step='reflection'][data-extended='true'] .dr-thought-text,
-  .dream-reflection[data-step='reflection'][data-extended='true'] .dr-thought-summary {
+  .dream-reflection[data-step='reflection'][data-flow='true'] .dr-thought-text,
+  .dream-reflection[data-step='reflection'][data-flow='true'] .dr-thought-summary {
     max-width: none;
   }
 
-  .dream-reflection[data-step='reflection'][data-extended='true'] .dr-lenses-wrap {
+  .dream-reflection[data-step='reflection'][data-flow='true'] .dr-lenses-wrap {
     position: relative;
     left: auto;
     right: auto;
@@ -285,7 +285,7 @@
     margin-top: 1.2rem;
   }
 
-  .dream-reflection[data-step='reflection'][data-extended='true'] .dr-grounding {
+  .dream-reflection[data-step='reflection'][data-flow='true'] .dr-grounding {
     position: relative;
     left: auto;
     bottom: auto;
@@ -295,7 +295,7 @@
   }
 
   /* Always reachable: CONTINUE stays at the bottom edge while the thoughts scroll beneath it. */
-  .dream-reflection[data-step='reflection'][data-extended='true'] .dr-continue-wrap {
+  .dream-reflection[data-step='reflection'][data-flow='true'] .dr-continue-wrap {
     position: sticky;
     left: auto;
     bottom: 0;
@@ -303,8 +303,8 @@
     z-index: 6;
     display: flex;
     justify-content: center;
-    margin-top: 1rem;
-    padding: 1.4rem 0 0.8rem;
-    background: linear-gradient(to top, rgba(6, 8, 18, 0.88) 55%, rgba(6, 8, 18, 0));
+    margin-top: 0.6rem;
+    padding: 0.9rem 0 0.7rem;
+    background: linear-gradient(to top, rgba(6, 8, 18, 0.8) 60%, rgba(6, 8, 18, 0));
   }
 }
