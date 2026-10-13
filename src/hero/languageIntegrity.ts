@@ -1,4 +1,5 @@
 import type { AppLanguage } from './appLanguage.js';
+import type { AddressPreference } from './addressPreference.js';
 
 /**
  * Language integrity for AI-generated, user-facing text — shared by every
@@ -52,6 +53,8 @@ export function buildLanguageIntegrityRetryNote(intrusion: ScriptIntrusion): str
 // hyphen/digit-joined tokens never match.
 const STRAY_LATIN_WORD = /(?<![A-Za-z0-9_@./:#-])[a-z]{3,}(?![A-Za-z0-9_@./:-])/g;
 const QUOTED_SPAN = /["“„«][^"“„«”»]*["”»]/g;
+// The same, but for every Latin word of 3+ letters whatever its capitalisation (opt-in, see `strictLatin`).
+const ANY_LATIN_WORD = /(?<![A-Za-z0-9_@./:#-])[A-Za-z]{3,}(?![A-Za-z0-9_@./:-])/g;
 
 const LETTER_OR_MARK = new RegExp('[\\p{L}\\p{M}]', 'u');
 const NEUTRAL = new RegExp('[\\p{Script=Common}\\p{Script=Inherited}]', 'u');
@@ -111,7 +114,12 @@ export interface ScriptIntrusion {
  * `language: null` means "the dream's own language" (dream analysis): only
  * Latin plus whatever scripts the dream text itself uses.
  */
-export function findScriptIntrusion(texts: readonly string[], language: AppLanguage | null, contextText: string): ScriptIntrusion | null {
+export function findScriptIntrusion(
+  texts: readonly string[],
+  language: AppLanguage | null,
+  contextText: string,
+  options: { strictLatin?: boolean } = {},
+): ScriptIntrusion | null {
   const allowedScripts = new Set<string>(['Latin']);
   if (language === 'he') allowedScripts.add('Hebrew');
   // Letters from scripts outside the named list can't be compared by script,
@@ -144,10 +152,16 @@ export function findScriptIntrusion(texts: readonly string[], language: AppLangu
     const contextWords = new Set((contextText.toLowerCase().match(/[a-z]{3,}/g) ?? []));
     for (const text of texts) {
       const quoted = [...text.matchAll(QUOTED_SPAN)].map((m) => [m.index, m.index + m[0].length] as const);
-      for (const match of text.matchAll(STRAY_LATIN_WORD)) {
+      for (const match of text.matchAll(options.strictLatin ? ANY_LATIN_WORD : STRAY_LATIN_WORD)) {
         const start = match.index;
         const inQuote = quoted.some(([from, to]) => start >= from && start < to);
         if (inQuote && contextWords.has(match[0])) continue;
+        if (options.strictLatin) {
+          // Strict mode also catches a capitalised English word ("Warmth"), but still lets through acronyms (AI, DARE) and any name or word
+          // that comes from the dreamer's own text.
+          if (match[0] === match[0].toUpperCase() && match[0].length <= 6) continue;
+          if (contextWords.has(match[0].toLowerCase())) continue;
+        }
         found.add('Latin words');
         if (samples.size < 3) samples.add(match[0]);
         count += 1;
@@ -155,6 +169,25 @@ export function findScriptIntrusion(texts: readonly string[], language: AppLangu
     }
   }
   return count > 0 ? { scripts: [...found], count, samples: [...samples] } : null;
+}
+
+/**
+ * A Hebrew reflection must not address a dreamer who never said they are a man with the masculine singular pronoun "אתה" (a real sample did:
+ * "אתה ציינת"). The check is deliberately narrow: only that unambiguous pronoun, outside quotation marks. (The feminine pronoun is spelled like
+ * the object marker "את", so it cannot be checked by spelling.) Reports only; the caller regenerates with the returned note and never edits text.
+ */
+const MASCULINE_YOU = /(?<![\u0590-\u05FF])אתה(?![\u0590-\u05FF])/;
+
+export function findAddressViolation(texts: readonly string[], language: AppLanguage | null, preference: AddressPreference): string | null {
+  if (language !== 'he' || preference === 'masculine') return null;
+  for (const text of texts) {
+    const unquoted = text.replace(QUOTED_SPAN, ' ');
+    if (!MASCULINE_YOU.test(unquoted)) continue;
+    return preference === 'feminine'
+      ? '\n\nCORRECTION: your previous attempt addressed the dreamer with the masculine pronoun "אתה", but this dreamer asked to be addressed in FEMININE Hebrew. Regenerate the entire response from scratch with feminine forms only, or with the plural product voice ("אתם", "שלכם"), never a masculine singular form.'
+      : '\n\nCORRECTION: your previous attempt addressed the dreamer with the masculine pronoun "אתה", but this dreamer\'s grammatical gender is unknown. Regenerate the entire response from scratch. Address the dreamer only with the plural product voice ("אתם", "שלכם", "בחרתם לציין") or with impersonal wording, never "אתה" or any masculine singular form.';
+  }
+  return null;
 }
 
 /** Every string anywhere inside a JSON-like value (arrays, nested objects). */

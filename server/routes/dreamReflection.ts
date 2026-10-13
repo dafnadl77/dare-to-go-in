@@ -8,10 +8,11 @@ import {
   getGroundingStatement,
   validateDreamReflectionResult,
   feelingsTextLooksDiagnostic,
+  diagnosticWordingNote,
 } from '../../src/hero/dreamReflectionSchema.js';
 import type { AppLanguage } from '../../src/hero/appLanguage.js';
-import { emotionNamesForModel, normalizeEmotions, type EmotionId } from '../../src/hero/dreamEmotions.js';
-import { collectStrings } from '../../src/hero/languageIntegrity.js';
+import { emotionNamesForModel, mentionsUnlistedFeeling, normalizeEmotions, type EmotionId } from '../../src/hero/dreamEmotions.js';
+import { collectStrings, findAddressViolation } from '../../src/hero/languageIntegrity.js';
 import { normalizeAddressPreference, type AddressPreference } from '../../src/hero/addressPreference.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { resolveCallerIdentity, type RequestHeaders, type CallerIdentity } from '../callerIdentity.js';
@@ -181,7 +182,15 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
       // groundingStatement is overwritten by the server below, so it isn't
       // model prose worth checking.
       (result) => collectStrings({ ...result, groundingStatement: '' }),
-      { route: 'dream-reflection', language, context: dreamerText },
+      {
+        route: 'dream-reflection',
+        language,
+        context: dreamerText,
+        // Hebrew only: an untranslated capitalised word, or the masculine "אתה" for someone who never chose masculine, regenerates (never edited).
+        strictLatin: true,
+        extraCheck: (result) =>
+          findAddressViolation(collectStrings({ ...result, groundingStatement: '' }), language, addressPreference) ?? diagnosticWordingNote(result),
+      },
     );
     if (outcome.status !== 'ok') {
       await refundReflectionAttempt(attemptId);
@@ -205,6 +214,9 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
     if (emotions.length === 0) validated.emotionReflection = null;
     if (typeof validated.emotionReflection === 'string' && validated.emotionReflection.trim() === '') validated.emotionReflection = null;
     if (typeof validated.summary === 'string' && validated.summary.trim() === '') validated.summary = null;
+    // Neither text may name a feeling the dreamer did not name (it is dropped, never rewritten).
+    if (emotions.length > 0 && mentionsUnlistedFeeling(validated.emotionReflection, emotions, language)) validated.emotionReflection = null;
+    if (emotions.length > 0 && mentionsUnlistedFeeling(validated.summary, emotions, language)) validated.summary = null;
     // Never keep a line that reads as a diagnosis of the dreamer's state of mind (see feelingsTextLooksDiagnostic).
     if (feelingsTextLooksDiagnostic(validated.emotionReflection)) validated.emotionReflection = null;
     if (feelingsTextLooksDiagnostic(validated.summary)) validated.summary = null;

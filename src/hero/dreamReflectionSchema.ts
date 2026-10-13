@@ -62,6 +62,25 @@ export function getGroundingStatement(language: AppLanguage): string {
 }
 
 /**
+ * Hebrew only. A language model's Hebrew reads like a translation unless it is told otherwise: stiff noun chains, calques ("הדימוי כולל",
+ * "התקבלה תחושה"), mixed grammatical address, and the odd untranslated English word. This is guidance for the one generation that already
+ * happens; the output checks (findScriptIntrusion with strictLatin, findAddressViolation) regenerate when it is not followed.
+ */
+function buildHebrewStyleInstruction(preference: AddressPreference): string {
+  const address =
+    preference === 'neutral'
+      ? 'When you address the dreamer directly, use the plural voice that the whole product uses ("אתם", "שלכם", "בחרתם לציין"); never the singular "אתה" or "את".'
+      : 'Address the dreamer in the singular, exactly as the grammatical-address instruction below requires; do not use the plural "אתם"/"שלכם".';
+  const example =
+    preference === 'neutral'
+      ? '{"observation": "בחלום עליתם במדרגות ארוכות, ובקצה חיכתה דלת סגורה.", "personalAssociation": "אמרתם שהמדרגות מזכירות לכם את הבית של סבא.", "emotionReflection": "בחרתם לציין געגוע ופחד. אפשר לשאול אם הם יושבים זה לצד זה כשמתקרבים לדלת.", "possibleThread": "אולי יש כאן קרבה למשהו מוכר שעדיין לא נפתח.", "continuityQuestion": "האם יש משהו בחיים עכשיו שאתם מתקרבים אליו ועוד לא פותחים?", "summary": "מדרגות, דלת סגורה, וגעגוע שבחרתם לציין."}'
+      : '{"observation": "בחלום עלית במדרגות ארוכות, ובקצה חיכתה דלת סגורה.", "personalAssociation": "אמרת שהמדרגות מזכירות לך את הבית של סבא.", "emotionReflection": "בחרת לציין געגוע ופחד. אפשר לשאול אם הם יושבים זה לצד זה כשמתקרבים לדלת.", "possibleThread": "אולי יש כאן קרבה למשהו מוכר שעדיין לא נפתח.", "continuityQuestion": "האם יש משהו בחיים עכשיו שאתה מתקרב אליו ועוד לא פותח?", "summary": "מדרגות, דלת סגורה, וגעגוע שבחרת לציין."}';
+  return `HEBREW STYLE (Hebrew output only): write the way a thoughtful Hebrew speaker would say it aloud, never as a translation from English. Use short, plain, active sentences (about 20 words at most, one idea each) and ordinary everyday words; if a phrase does not sound like something a Hebrew speaker would really say, rewrite it simply. Avoid stiff noun chains and calques such as "הדימוי כולל", "התקבלה תחושה", "מה שיכול להוות מקור ל", "להשתף פעולה עם", and do not repeat "במהלך החלום" or "מייצג". Check every verb and noun: use only real Hebrew words with their correct meaning, and never invent an institution, person or event that is not in the dream. ${address} Write the feelings with exactly the Hebrew words given in the input and say who named them ("בחרתם לציין פחד וגעגוע"); in the summary, if you mention the feelings, say that the dreamer named them, never that the dreamer is "experiencing" or "feeling" them now. Use Hebrew letters only: no English word anywhere, not even in parentheses, and no English word written in Hebrew letters either (for example "מיינד"); the only Latin letters allowed are a name taken from the dreamer's own text. Mention only the feelings the dreamer named, never another one.
+
+Example of the TONE and LENGTH only (a different dream; never reuse its content or its sentences): ${example}`;
+}
+
+/**
  * The exact instruction the reflection backend uses, as a function of the
  * requested output language rather than a fixed English-only constant —
  * per "don't rewrite prompts unless necessary," only the "Language:"
@@ -122,6 +141,8 @@ Build the reflection from exactly these layers:
 
 ${languageParagraph}
 
+${language === 'he' ? buildHebrewStyleInstruction(addressPreference) : ''}
+
 ${language === 'he' ? buildHebrewAddressInstruction(addressPreference) : ''}
 
 ${buildLanguageIntegrityInstruction(language)}
@@ -150,6 +171,15 @@ const DIAGNOSTIC_PATTERNS: RegExp[] = [
 export function feelingsTextLooksDiagnostic(text: string | null | undefined): boolean {
   if (typeof text !== 'string' || text.trim() === '') return false;
   return DIAGNOSTIC_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+/**
+ * For the two REQUIRED interpretive fields (the thread and the question) a diagnostic-sounding phrase cannot simply be dropped, so it asks for
+ * a regeneration instead (the optional feelings text and summary are dropped by the caller). Returns the correction note, or null.
+ */
+export function diagnosticWordingNote(result: Pick<DreamReflectionResult, 'possibleThread' | 'continuityQuestion'>): string | null {
+  if (!feelingsTextLooksDiagnostic(result.possibleThread) && !feelingsTextLooksDiagnostic(result.continuityQuestion)) return null;
+  return '\n\nCORRECTION: your previous attempt used wording that infers a state of mind or a conflict in the dreamer ("indicate", "point to", "conflict", "להעיד על", "קונפליקט" and similar). Regenerate the entire response from scratch, offering only possibilities in plain words ("perhaps", "אולי") and never concluding anything about the dreamer.';
 }
 
 /**

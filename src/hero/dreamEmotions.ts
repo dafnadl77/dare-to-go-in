@@ -74,6 +74,26 @@ const EMOTION_NAME_FOR_MODEL_HE: Record<EmotionId, string> = {
   excitement: 'התרגשות',
 };
 
+/**
+ * True when a text that is supposed to talk about the dreamer's NAMED feelings mentions another of the twelve (a real Hebrew sample
+ * summarised "שמחה שבחרתם לציין" for someone who had named calm, longing and fear). Matches the exact label, in either language, as a
+ * whole word (a Hebrew prefix letter such as ו/ב/ל/ה/ש is allowed). The caller drops that optional text; it is never rewritten.
+ */
+export function mentionsUnlistedFeeling(text: string | null | undefined, named: readonly EmotionId[], language: 'en' | 'he'): boolean {
+  if (typeof text !== 'string' || text.trim() === '') return false;
+  const names = language === 'he' ? EMOTION_NAME_FOR_MODEL_HE : EMOTION_NAME_FOR_MODEL;
+  for (const id of EMOTION_IDS) {
+    if (named.includes(id)) continue;
+    const label = names[id];
+    const pattern =
+      language === 'he'
+        ? new RegExp(`(?<![\\u0590-\\u05FF])[ובכלמשה]{0,2}${label}(?![\\u0590-\\u05FF])`)
+        : new RegExp(`(?<![A-Za-z])${label}(?![A-Za-z])`, 'i');
+    if (pattern.test(text)) return true;
+  }
+  return false;
+}
+
 export function emotionNamesForModel(ids: readonly EmotionId[], language: 'en' | 'he' = 'en'): string {
   const names = language === 'he' ? EMOTION_NAME_FOR_MODEL_HE : EMOTION_NAME_FOR_MODEL;
   return ids.map((id) => names[id]).join(', ');

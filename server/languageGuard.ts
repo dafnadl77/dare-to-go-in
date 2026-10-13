@@ -1,5 +1,5 @@
 import type { AppLanguage } from '../src/hero/appLanguage.js';
-import { buildLanguageIntegrityRetryNote, findScriptIntrusion, type ScriptIntrusion } from '../src/hero/languageIntegrity.js';
+import { buildLanguageIntegrityRetryNote, findScriptIntrusion } from '../src/hero/languageIntegrity.js';
 
 // gpt-4o-mini drifts into a foreign script in ~1 of 8 Hebrew reflections regardless of prompt wording; independent attempts make 3 leave ~0.2% falling through to the client retry UI.
 const MAX_ATTEMPTS = 3;
@@ -23,18 +23,32 @@ export type LanguageGuardOutcome<T> = { status: 'ok'; value: T } | { status: 'in
 export async function runWithLanguageIntegrity<T>(
   produce: (retryNote: string) => Promise<T | null>,
   collect: (value: T) => string[],
-  policy: { route: string; language: AppLanguage | null; context: string },
+  policy: {
+    route: string;
+    language: AppLanguage | null;
+    context: string;
+    /** Also catches a capitalised untranslated word inside Hebrew (see findScriptIntrusion). Off by default. */
+    strictLatin?: boolean;
+    /** Runs on an otherwise accepted result; a returned note means "regenerate with this note" (e.g. a mismatched grammatical address). */
+    extraCheck?: (value: T) => string | null;
+  },
 ): Promise<LanguageGuardOutcome<T>> {
-  let previous: ScriptIntrusion | null = null;
+  let retryNote = '';
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
-    const value = await produce(previous ? buildLanguageIntegrityRetryNote(previous) : '');
+    const value = await produce(retryNote);
     if (value === null) return { status: 'invalid' };
-    const intrusion = findScriptIntrusion(collect(value), policy.language, policy.context);
-    if (!intrusion) return { status: 'ok', value };
-    previous = intrusion;
-    console.warn(
-      `[language-integrity] ${policy.route}: attempt ${attempt} contained unexpected script(s) ${intrusion.scripts.join(',')} (${intrusion.count} chars)${attempt < MAX_ATTEMPTS ? ' — regenerating' : ' — giving up'}`,
-    );
+    const intrusion = findScriptIntrusion(collect(value), policy.language, policy.context, { strictLatin: policy.strictLatin });
+    if (intrusion) {
+      retryNote = buildLanguageIntegrityRetryNote(intrusion);
+      console.warn(
+        `[language-integrity] ${policy.route}: attempt ${attempt} contained unexpected script(s) ${intrusion.scripts.join(',')} (${intrusion.count} chars)${attempt < MAX_ATTEMPTS ? ' — regenerating' : ' — giving up'}`,
+      );
+      continue;
+    }
+    const extraNote = policy.extraCheck ? policy.extraCheck(value) : null;
+    if (!extraNote) return { status: 'ok', value };
+    retryNote = extraNote;
+    console.warn(`[language-integrity] ${policy.route}: attempt ${attempt} used a mismatched grammatical address${attempt < MAX_ATTEMPTS ? ' — regenerating' : ' — giving up'}`);
   }
   return { status: 'language_intrusion' };
 }
