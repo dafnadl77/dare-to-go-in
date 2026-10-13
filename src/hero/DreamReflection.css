@@ -380,7 +380,7 @@
   font-weight: 400;
   /* The vw multiplier shrinks as more real elements are extracted (up to
      6) so the whole row keeps fitting on one line without wrapping. */
-  font-size: clamp(0.85rem, calc(2.3vw - var(--choice-count, 3) * 0.16vw), 1.5rem);
+  font-size: clamp(1rem, calc(2.3vw - var(--choice-count, 3) * 0.16vw), 1.5rem);
   letter-spacing: 0.01em;
   color: var(--dream-white);
   white-space: nowrap;
@@ -408,6 +408,22 @@
 
   .da-choice {
     max-width: 80vw;
+  }
+}
+
+/* Tablet and small laptops: six English labels do not fit one line (two whole choices were clipped at 768px). They wrap and stay tappable, as on a phone. */
+@media (min-width: 641px) and (max-width: 1100px) {
+  .da-choice-row {
+    flex-wrap: wrap;
+    row-gap: 0.9rem;
+  }
+
+  .da-choice-text {
+    white-space: normal;
+  }
+
+  .da-choice {
+    max-width: 70vw;
   }
 }
 
