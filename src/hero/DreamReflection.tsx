@@ -259,7 +259,7 @@ export default function DreamReflection({
                   const traceColor = palette[i % palette.length];
                   return (
                     <button
-                      key={el}
+                      key={`${i}-${el}`}
                       type="button"
                       className={`da-choice${selectedElement === el ? ' is-selected' : ''}${
                         selectedElement && selectedElement !== el ? ' is-fading' : ''

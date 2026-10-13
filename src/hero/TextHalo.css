@@ -1,0 +1,89 @@
+/* =====================================================================
+   LOCAL DARKENING BEHIND TEXT (contrast, WCAG 4.5:1 for normal text).
+
+   The journey's text floats straight on the cloud footage, and parts of
+   that footage are very bright (the lit cloud banks at the sides and the
+   horizon glow). Measured against the real rendered backgrounds, several
+   lines fell well below 4.5:1 there. A text-shadow does not count towards
+   contrast and buttons must stay unfilled (an approved decision), so the
+   fix is a soft, edge-less wash of the night-sky colour directly behind the
+   words: no fill, no border, no visible shape, the clouds stay visible
+   around it. Pseudo-elements only; the words, layout and motion are
+   untouched.
+   ===================================================================== */
+.dr-thought,
+.da-subtitle,
+.de-subtitle,
+.de-count,
+.dc-choice-hint,
+.de-skip {
+  position: relative;
+  isolation: isolate;
+}
+
+.dr-grounding,
+.dr-choice,
+.htr-type-link,
+.dr-lenses-toggle,
+.dc-portal-label,
+.da-choice-row {
+  isolation: isolate;
+}
+
+/* a soft band behind lines of text */
+.dr-thought::before,
+.da-subtitle::before,
+.de-subtitle::before,
+.de-count::before,
+.dc-choice-hint::before,
+.dr-grounding::before,
+.da-choice-row::before {
+  content: '';
+  position: absolute;
+  inset: -0.5rem -1.1rem;
+  z-index: -1;
+  border-radius: 22px;
+  background: rgba(5, 7, 16, 0.58);
+  filter: blur(11px);
+  pointer-events: none;
+}
+
+/* a soft pill behind a button's or link's label (the button itself stays unfilled) */
+.dr-choice::before,
+.htr-type-link::before,
+.de-skip::before,
+.dr-lenses-toggle::before,
+.dc-portal-label::before {
+  content: '';
+  position: absolute;
+  inset: -0.45rem -1.1rem;
+  z-index: -1;
+  border-radius: 999px;
+  background: rgba(5, 7, 16, 0.6);
+  filter: blur(9px);
+  pointer-events: none;
+}
+
+/* The opening screen's heading and the hold button's label: both are already transformed (scaled), which makes them the
+   containing block of the wash, so no extra positioning is needed. Sizes are in em because the text is scaled as a whole. */
+.dream-prompt::before,
+.htr-label::before {
+  content: '';
+  position: absolute;
+  inset: -0.7em -1.4em;
+  z-index: -1;
+  border-radius: 999px;
+  background: rgba(5, 7, 16, 0.55);
+  filter: blur(0.9em);
+  pointer-events: none;
+}
+
+.dream-prompt,
+.htr-label {
+  isolation: isolate;
+}
+
+/* the choices row is wide: a little more room above and below it */
+.da-choice-row::before {
+  inset: -0.9rem -1.6rem;
+}
