@@ -1,0 +1,310 @@
+/* =====================================================================
+   THE OPTIONAL "WHICH FEELING STAYED WITH YOU?" STEP — between the
+   association and the reflection. Same cloud/night world as every other
+   screen of the journey; the twelve feelings are rounded, thin-lined words
+   (never square cards, never emoji), at most three can be chosen, a chosen
+   one can be un-chosen, and the whole step can be skipped.
+   ===================================================================== */
+.dream-arrival[data-step='emotions'] .da-content {
+  top: calc(var(--gh-h) + 3vh);
+  bottom: 2vh;
+  max-width: 54rem;
+  margin-inline: auto;
+  justify-content: center;
+  gap: 1.1rem;
+  overflow-y: auto;
+  scrollbar-width: none;
+  pointer-events: auto;
+}
+
+.dream-arrival[data-step='emotions'] .da-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* The step has no image to wait for: its words arrive straight away. */
+.dream-arrival[data-step='emotions'] .da-title {
+  animation-delay: 0.1s;
+  text-wrap: balance;
+}
+
+.dream-arrival[data-step='emotions'] .da-subtitle {
+  margin: 0;
+  max-width: 36em;
+  text-wrap: balance;
+  animation-delay: 0.3s;
+}
+
+.de-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 0.8rem;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.de-chip {
+  --chip-op: 1;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  padding: 0.6em 1.3em;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.5em rgba(0, 0, 0, 0.6);
+  background: rgba(6, 8, 18, 0.6);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(244, 240, 232, 0.45);
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: de-chip-in 0.7s var(--ease-memory) calc(0.3s + var(--ei, 0) * 0.05s) forwards;
+  transition:
+    background 0.3s var(--ease-soft),
+    border-color 0.3s var(--ease-soft),
+    box-shadow 0.4s var(--ease-soft),
+    color 0.3s var(--ease-soft);
+}
+
+@keyframes de-chip-in {
+  to {
+    opacity: var(--chip-op, 1);
+    transform: translateY(0);
+  }
+}
+
+.de-chip:hover,
+.de-chip:focus-visible {
+  border-color: rgba(244, 240, 232, 0.85);
+  background: rgba(244, 240, 232, 0.1);
+}
+
+.de-chip:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 3px;
+}
+
+/* The check is part of the chip, so a chosen feeling is told apart by shape and weight as well as by light. */
+.de-chip-check {
+  width: 0;
+  height: 1em;
+  opacity: 0;
+  transition:
+    width 0.25s var(--ease-soft),
+    margin 0.25s var(--ease-soft),
+    opacity 0.25s var(--ease-soft);
+}
+
+.de-chip.is-selected {
+  font-weight: 700;
+  color: #fff;
+  border-color: rgba(244, 240, 232, 0.95);
+  background: rgba(60, 56, 70, 0.72);
+  box-shadow:
+    0 0 1.6rem rgba(var(--accent-rgb, 244, 240, 232), 0.5),
+    inset 0 0 0.9rem rgba(244, 240, 232, 0.12);
+}
+
+.de-chip.is-selected .de-chip-check {
+  width: 1em;
+  margin-inline-end: 0.45em;
+  opacity: 1;
+}
+
+/* Three are chosen: the others rest. They are not removed, and a chosen one can still be un-chosen. */
+.de-chip.is-muted {
+  --chip-op: 0.62;
+  cursor: default;
+}
+
+.de-count {
+  margin: 0;
+  min-height: 1.5em;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 1rem;
+  color: var(--dream-white);
+  text-align: center;
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.7);
+}
+
+.de-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.2rem;
+}
+
+.de-skip {
+  margin: 0;
+  padding: 0.5em 0.9em;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: var(--dream-white);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.7);
+  text-decoration: underline;
+  text-decoration-color: rgba(244, 240, 232, 0.5);
+  text-underline-offset: 0.3em;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.de-skip:hover,
+.de-skip:focus-visible {
+  text-decoration-color: rgba(255, 255, 255, 0.95);
+}
+
+.de-skip:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* The reflection's last thought, one personal sentence under the question. */
+.dr-thought-summary {
+  margin: 0.7rem 0 0;
+  max-width: min(54vw, 32em);
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: clamp(18px, 1.4vw, 22px);
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--dream-white);
+  text-shadow: 0 0.06em 0.8em rgba(0, 0, 0, 0.75);
+}
+
+.dr-thought-summary-label {
+  font-weight: 700;
+  margin-inline-end: 0.35em;
+  color: var(--dream-warm-neutral);
+}
+
+/* Phones and short landscape screens: the step flows with the page like the other journey screens. */
+@media (max-width: 640px), (max-height: 500px) {
+  .dream-arrival[data-step='emotions'] .da-content {
+    position: static;
+    max-width: none;
+    margin-top: 0.4rem;
+    padding: 0;
+    overflow: visible;
+    gap: 0.9rem;
+  }
+
+  .dream-arrival[data-step='emotions'] .da-title {
+    font-size: clamp(1.6rem, 7vw, 2rem);
+  }
+
+  .de-chips {
+    gap: 0.6rem 0.6rem;
+  }
+
+  .de-chip {
+    padding: 0.55em 1.05em;
+  }
+
+  .dr-thought-summary {
+    max-width: none;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 899px) and (min-height: 501px) {
+  .dr-thought-summary {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .de-chip {
+    animation: none;
+    opacity: var(--chip-op, 1);
+    transform: none;
+  }
+}
+
+/* A reflection with the extra feelings node has five thoughts instead of four. On a desktop screen that is not very tall they no longer fit
+   the fixed band (rows touched, the last one met the closing line), so there the interpretation flows and scrolls like it does on a phone.
+   Four-node reflections, and tall screens, keep the approved fixed layout untouched. */
+@media (min-width: 900px) and (min-height: 501px) and (max-height: 800px) {
+  .dream-reflection[data-step='reflection'][data-extended='true'] {
+    justify-content: flex-start;
+    gap: 0.1rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+    pointer-events: auto;
+    scrollbar-width: thin;
+    padding-bottom: calc(3vh + env(safe-area-inset-bottom, 0px));
+  }
+
+  .dream-reflection[data-step='reflection'][data-extended='true'] .dream-thought-sequence {
+    position: relative;
+    inset: auto;
+    height: auto;
+    width: auto;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    margin: 1rem 15vw 0 11vw;
+  }
+
+  .dream-reflection[data-step='reflection'][data-extended='true'] .dr-node-path {
+    position: relative;
+    top: auto;
+    bottom: auto;
+    left: auto !important;
+    right: auto;
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 1.6rem;
+  }
+
+  .dream-reflection[data-step='reflection'][data-extended='true'] .dr-thought-text,
+  .dream-reflection[data-step='reflection'][data-extended='true'] .dr-thought-summary {
+    max-width: none;
+  }
+
+  .dream-reflection[data-step='reflection'][data-extended='true'] .dr-lenses-wrap {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    max-width: none;
+    align-self: flex-start;
+    margin-top: 1.2rem;
+  }
+
+  .dream-reflection[data-step='reflection'][data-extended='true'] .dr-grounding {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    max-width: none;
+    margin: 1.2rem auto 0;
+  }
+
+  /* Always reachable: CONTINUE stays at the bottom edge while the thoughts scroll beneath it. */
+  .dream-reflection[data-step='reflection'][data-extended='true'] .dr-continue-wrap {
+    position: sticky;
+    left: auto;
+    bottom: 0;
+    transform: none;
+    z-index: 6;
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+    padding: 1.4rem 0 0.8rem;
+    background: linear-gradient(to top, rgba(6, 8, 18, 0.88) 55%, rgba(6, 8, 18, 0));
+  }
+}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { DreamAnalysis } from './dreamAnalysisSchema';
 import type { ReconstructionBrief } from './reconstructionBrief';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
+import type { EmotionId } from './dreamEmotions';
 import { deriveVisualCues } from './reconstructionVisualCues';
 import { deriveDreamWorldEffects } from './dreamWorldEffects';
 import { usePointerParallax } from './usePointerParallax';
@@ -38,6 +39,7 @@ export type InsideStep =
   | 'choices'
   | 'selected'
   | 'reflecting'
+  | 'emotions'
   | 'interpreting'
   | 'reflection'
   | 'closing'
@@ -46,7 +48,7 @@ export type InsideStep =
   | 'letting-go'
   | 'gone';
 
-const REFLECTION_ENGINE_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting', 'interpreting', 'reflection']);
+const REFLECTION_ENGINE_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting', 'emotions', 'interpreting', 'reflection']);
 const CLOSING_STEPS = new Set<InsideStep>(['closing', 'saving', 'saved', 'letting-go', 'gone']);
 const DISSOLVING_STEPS = new Set<InsideStep>(['letting-go', 'gone']);
 const SAVING_STEPS = new Set<InsideStep>(['saving']);
@@ -92,6 +94,8 @@ interface DreamReconstructionProps {
   onPortalComplete: () => void;
   onSelectElement: (element: string) => void;
   onSubmitReflection: (text: string) => void;
+  /** The optional feelings step: an empty list means the dreamer skipped it. */
+  onSubmitEmotions: (emotions: EmotionId[]) => void;
   onRetryReflection: () => void;
   onContinueFromReflection: () => void;
   onSaveDream: () => void;
@@ -135,6 +139,7 @@ export default function DreamReconstruction({
   onPortalComplete,
   onSelectElement,
   onSubmitReflection,
+  onSubmitEmotions,
   onRetryReflection,
   onContinueFromReflection,
   onSaveDream,
@@ -439,6 +444,7 @@ export default function DreamReconstruction({
           dreamPalette={dreamPalette}
           onSelect={onSelectElement}
           onSubmitReflection={onSubmitReflection}
+          onSubmitEmotions={onSubmitEmotions}
           onRetryReflection={onRetryReflection}
           onContinue={onContinueFromReflection}
         />

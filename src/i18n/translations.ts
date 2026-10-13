@@ -109,6 +109,31 @@ export interface Translations {
     momentQuestion: string;
     momentHint: string;
     chosenMoment: string;
+    /** The optional "which feeling stayed with you?" step. */
+    emotionsTitle: string;
+    emotionsDescription: string;
+    emotionsContinue: string;
+    emotionsSkip: string;
+    /** "{count}" is replaced with how many feelings are chosen so far (the limit is shown in the text). */
+    emotionsCount: string;
+    emotionsGroupAria: string;
+    /** Labels of the interpretation's feelings node and its closing one-line summary. */
+    theFeelingsYouNamed: string;
+    inShort: string;
+    emotions: {
+      fear: string;
+      joy: string;
+      calm: string;
+      love: string;
+      longing: string;
+      confusion: string;
+      anger: string;
+      sadness: string;
+      wonder: string;
+      freedom: string;
+      helplessness: string;
+      excitement: string;
+    };
     reflectionQuestionPrefix: string;
     reflectionQuestionSuffix: string;
     writingPlaceholder: string;
@@ -244,6 +269,9 @@ export interface Translations {
     returnToTheRoom: string;
     theDream: string;
     whatStoodOut: string;
+    /** The feelings the dreamer named, and the dream's one-line summary (both only when the dream has them). */
+    yourFeelings: string;
+    inShort: string;
     yourAssociation: string;
     aPossibleThread: string;
     aQuestionWorthSittingWith: string;
@@ -522,6 +550,28 @@ export const en: Translations = {
     momentQuestion: 'Which moment in the dream stayed with you most?',
     momentHint: 'Choose one moment that especially caught your attention.',
     chosenMoment: 'The moment you chose',
+    emotionsTitle: 'Which feeling stayed with you from the dream?',
+    emotionsDescription: 'Sometimes the feeling tells us something the words can’t. Choose up to three feelings that were with you in the dream.',
+    emotionsContinue: 'DISCOVER WHAT THE DREAM IS TELLING',
+    emotionsSkip: 'Not sure what you felt? You can continue',
+    emotionsCount: '{count} of 3 chosen',
+    emotionsGroupAria: 'Feelings from the dream, choose up to three',
+    theFeelingsYouNamed: 'THE FEELINGS YOU NAMED',
+    inShort: 'IN SHORT',
+    emotions: {
+      fear: 'Fear',
+      joy: 'Joy',
+      calm: 'Calm',
+      love: 'Love',
+      longing: 'Longing',
+      confusion: 'Confusion',
+      anger: 'Anger',
+      sadness: 'Sadness',
+      wonder: 'Wonder',
+      freedom: 'Freedom',
+      helplessness: 'Helplessness',
+      excitement: 'Excitement',
+    },
     reflectionQuestionPrefix: 'WHEN YOU THINK ABOUT',
     reflectionQuestionSuffix: 'NOW —\nWHAT COMES UP?',
     writingPlaceholder: 'Write whatever comes to mind...',
@@ -659,6 +709,8 @@ export const en: Translations = {
     returnToTheRoom: 'RETURN TO THE ROOM',
     theDream: 'The Dream',
     whatStoodOut: 'The Moment You Chose',
+    yourFeelings: 'The Feelings You Named',
+    inShort: 'In Short',
     yourAssociation: 'Your Association',
     aPossibleThread: 'A Possible Thread',
     aQuestionWorthSittingWith: 'A Question Worth Sitting With',
@@ -960,6 +1012,28 @@ export const he: Translations = {
     momentQuestion: 'איזה רגע בחלום הכי נשאר איתכם?',
     momentHint: 'בחרו רגע אחד שמשך את תשומת לבכם במיוחד.',
     chosenMoment: 'הרגע שבחרתם',
+    emotionsTitle: 'איזו תחושה נשארה איתכם מהחלום?',
+    emotionsDescription: 'לפעמים דווקא הרגש מגלה לנו משהו שהמילים לא מצליחות לספר. בחרו עד שלוש תחושות שליוו אתכם בחלום.',
+    emotionsContinue: 'לגלות מה החלום מספר',
+    emotionsSkip: 'לא בטוחים מה הרגשנו? אפשר להמשיך',
+    emotionsCount: '{count} מתוך 3 נבחרו',
+    emotionsGroupAria: 'תחושות מהחלום, אפשר לבחור עד שלוש',
+    theFeelingsYouNamed: 'התחושות שבחרתם',
+    inShort: 'בקצרה',
+    emotions: {
+      fear: 'פחד',
+      joy: 'שמחה',
+      calm: 'שלווה',
+      love: 'אהבה',
+      longing: 'געגוע',
+      confusion: 'בלבול',
+      anger: 'כעס',
+      sadness: 'עצב',
+      wonder: 'פליאה',
+      freedom: 'חופש',
+      helplessness: 'חוסר אונים',
+      excitement: 'התרגשות',
+    },
     reflectionQuestionPrefix: 'כשחושבים על',
     reflectionQuestionSuffix: 'עכשיו —\nמה עולה?',
     writingPlaceholder: 'כתבו מה שעולה לכם לראש...',
@@ -1097,6 +1171,8 @@ export const he: Translations = {
     returnToTheRoom: 'חזרה לחדר',
     theDream: 'החלום',
     whatStoodOut: 'הרגע שבחרתם',
+    yourFeelings: 'התחושות שבחרתם',
+    inShort: 'בקצרה',
     yourAssociation: 'האסוציאציה שלך',
     aPossibleThread: 'כיוון שכדאי לחקור',
     aQuestionWorthSittingWith: 'שאלה להתבוננות פנימה',

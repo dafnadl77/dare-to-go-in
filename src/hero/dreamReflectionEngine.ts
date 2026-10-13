@@ -4,6 +4,7 @@ import { validateDreamReflectionResult, type ReflectionResult, type ReflectionEr
 import { getAppLanguage, type AppLanguage } from './appLanguage';
 import { REFLECTION_TIMEOUT_MS } from './requestTimeouts';
 import { getAuthHeader } from '../auth/getAccessToken';
+import type { EmotionId } from './dreamEmotions';
 
 const KNOWN_REASONS: ReflectionErrorReason[] = [
   'not_configured',
@@ -20,6 +21,8 @@ export interface DreamReflectionRequest {
   selectedElement: string;
   reflectionResponse: string;
   reconstructionCorrections: string[];
+  /** The feelings the dreamer named (up to three), if any. Sent in the SAME request: no extra AI call, no extra credit. */
+  emotions?: EmotionId[];
   /** The dream's own /api/dream-analysis attemptId — required so the
       server can enforce the max-3 reflection limit against the right
       dream (see server/routes/dreamReflection.ts). */

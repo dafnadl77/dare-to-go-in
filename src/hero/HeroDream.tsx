@@ -29,6 +29,7 @@ import { deriveDreamElements, wholeDreamReference } from './dreamElements';
 import { getDisplayLabels } from './dreamElementLabels';
 import { generateDreamImage, type ImageResult } from './dreamImage';
 import { getDreamReflection, type DreamReflectionRequest } from './dreamReflectionEngine';
+import type { EmotionId } from './dreamEmotions';
 import type { ReflectionResult } from './dreamReflectionSchema';
 import { buildSavedDream, type SavedDream } from './dreamStorage';
 import { saveDreamRemote } from './dreamRemoteStorage';
@@ -178,6 +179,8 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // "still loading" apart from "genuinely nothing to choose from".
   const [elementsResolved, setElementsResolved] = useState(false);
   const [reflectionResponse, setReflectionResponse] = useState<string | null>(null);
+  // The feelings the dreamer named at the optional feelings step (empty when skipped).
+  const [selectedEmotions, setSelectedEmotions] = useState<EmotionId[]>([]);
 
   // JOURNEY EPOCH — see journeyEpoch.ts. Every async result below is applied only if it
   // still belongs to the journey that started it. Bumped when the journey is abandoned
@@ -581,15 +584,24 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     setInsideStep('selected');
   };
 
+  // The association is saved; the optional feelings step comes next. The single reflection request starts only after it.
   const handleSubmitReflection = (text: string) => {
     setReflectionResponse(text);
+    setSelectedEmotions([]);
+    setInsideStep('emotions');
+  };
+
+  // Feelings chosen (or skipped: an empty list) -> the ONE existing reflection request, now carrying the feelings.
+  const handleSubmitEmotions = (emotions: EmotionId[]) => {
+    setSelectedEmotions(emotions);
     setInsideStep('interpreting');
-    if (analysisResult?.status === 'ok' && selectedElement) {
+    if (analysisResult?.status === 'ok' && selectedElement && reflectionResponse) {
       startReflectionEngine('initial', {
         dreamAnalysis: analysisResult.analysis,
         selectedElement,
-        reflectionResponse: text,
+        reflectionResponse,
         reconstructionCorrections: corrections,
+        emotions,
         attemptId: analysisResult.attemptId,
       });
     }
@@ -614,6 +626,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       selectedElement,
       reflectionResponse,
       reconstructionCorrections: corrections,
+      emotions: selectedEmotions,
       attemptId: analysisResult.attemptId,
     });
   };
@@ -648,6 +661,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         reflectionResponse,
         dreamReflection: reflectionEngineResult.reflection,
         corrections,
+        emotions: selectedEmotions,
         appLanguage: journeyLanguageRef.current ?? undefined,
       }));
     if (!user) {
@@ -803,6 +817,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     setElementsResolved(false);
     setRegenNotice(null);
     setReflectionResponse(null);
+    setSelectedEmotions([]);
     setCorrections([]);
     setDisplayedImageUrl(null);
     setAccentColor(null);
@@ -951,6 +966,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         onPortalComplete={handlePortalComplete}
         onSelectElement={handleSelectElement}
         onSubmitReflection={handleSubmitReflection}
+        onSubmitEmotions={handleSubmitEmotions}
         onRetryReflection={handleRetryReflection}
         onContinueFromReflection={handleContinueFromReflection}
         onSaveDream={handleSaveDream}

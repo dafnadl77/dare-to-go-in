@@ -5,10 +5,12 @@ import { useReflectionDisplay } from './useReflectionDisplay';
 import { useScrollCue } from './useScrollCue';
 import { FALLBACK_ACCENT, type AccentColor } from './dreamAccentColor';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
+import { EMOTION_IDS, MAX_EMOTIONS, type EmotionId } from './dreamEmotions';
 import type { InsideStep } from './DreamReconstruction';
 import { useLanguage } from '../i18n/LanguageContext';
 import EditorialTitle from '../ui/EditorialTitle';
 import './DreamReflection.css';
+import './DreamEmotions.css';
 
 interface DreamReflectionProps {
   step: InsideStep;
@@ -23,6 +25,8 @@ interface DreamReflectionProps {
   dreamPalette: AccentColor[] | null;
   onSelect: (element: string) => void;
   onSubmitReflection: (text: string) => void;
+  /** The optional feelings step. An empty list means the dreamer skipped it. */
+  onSubmitEmotions: (emotions: EmotionId[]) => void;
   onRetryReflection: () => void;
   onContinue: () => void;
 }
@@ -54,11 +58,15 @@ const NODE_ICONS: ReactNode[] = [
     <path d="M12.5 12.5c0-2 1.6-3.5 3.6-3.5s3.6 1.4 3.6 3.2c0 2.6-3.6 2.6-3.6 5.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
     <circle cx="16.1" cy="21.6" r="0.9" fill="currentColor" />
   </svg>,
+  // THE FEELINGS YOU NAMED — a soft wave.
+  <svg key="wave" viewBox="0 0 32 32" fill="none">
+    <path d="M4 18c3-6 5-6 8 0s5 6 8 0 5-6 8 0" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+  </svg>,
 ];
 
 const CHOICE_STEPS = new Set<InsideStep>(['choices', 'selected']);
 const QUESTION_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting']);
-const ARRIVAL_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting']);
+const ARRIVAL_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting', 'emotions']);
 
 // Translation-key lookup (not the literal label itself — see t() calls at
 // render time) for each lens name to the i18n key that holds its display
@@ -77,21 +85,33 @@ const NODE_LEFT_VW = 11;
 
 // `labelKey` is an i18n path (see LENS_LABEL_KEYS above for the same
 // pattern), resolved via t() at render time — not the literal text.
-const REFLECTION_FRAGMENTS: {
-  key: keyof Pick<DreamReflectionResult, 'observation' | 'personalAssociation' | 'possibleThread' | 'continuityQuestion'>;
+interface ReflectionFragment {
+  key: keyof Pick<DreamReflectionResult, 'observation' | 'personalAssociation' | 'emotionReflection' | 'possibleThread' | 'continuityQuestion'>;
   labelKey: string;
   tier: 'body' | 'thread' | 'question';
-}[] = [
-  { key: 'observation', labelKey: 'reflection.whatINotice', tier: 'body' },
-  { key: 'personalAssociation', labelKey: 'reflection.yourAssociation', tier: 'body' },
-  { key: 'possibleThread', labelKey: 'reflection.onePossibleThread', tier: 'thread' },
-  { key: 'continuityQuestion', labelKey: 'reflection.aQuestionWorthKeeping', tier: 'question' },
-];
+  /** Index into NODE_ICONS. */
+  icon: number;
+}
+
+const OBSERVATION: ReflectionFragment = { key: 'observation', labelKey: 'reflection.whatINotice', tier: 'body', icon: 0 };
+const ASSOCIATION: ReflectionFragment = { key: 'personalAssociation', labelKey: 'reflection.yourAssociation', tier: 'body', icon: 1 };
+const FEELINGS: ReflectionFragment = { key: 'emotionReflection', labelKey: 'reflection.theFeelingsYouNamed', tier: 'body', icon: 4 };
+const THREAD: ReflectionFragment = { key: 'possibleThread', labelKey: 'reflection.onePossibleThread', tier: 'thread', icon: 2 };
+const QUESTION: ReflectionFragment = { key: 'continuityQuestion', labelKey: 'reflection.aQuestionWorthKeeping', tier: 'question', icon: 3 };
+
+const BASE_FRAGMENTS: ReflectionFragment[] = [OBSERVATION, ASSOCIATION, THREAD, QUESTION];
+
+/** The path has four nodes. A fifth, the feelings the dreamer named, joins it only when the reflection has something to say about them (never for a dreamer who skipped that step, nor for a dream saved before it existed). */
+function fragmentsFor(result: DreamReflectionResult | null): ReflectionFragment[] {
+  const text = result?.emotionReflection;
+  return typeof text === 'string' && text.trim() !== '' ? [OBSERVATION, ASSOCIATION, FEELINGS, THREAD, QUESTION] : BASE_FRAGMENTS;
+}
 
 // How long each thought stays the active/focused one before the next
 // resolves in — a hold long enough to read, per stage. The thread (the
 // interpretive turn) gets a beat longer, matching its larger emphasis.
-const STAGE_HOLD_MS = [4200, 4200, 4800];
+const HOLD_MS = 4200;
+const THREAD_HOLD_MS = 4800;
 
 /**
  * WHAT STANDS OUT TO YOU? → pick one real dream element → a reflection
@@ -113,6 +133,7 @@ export default function DreamReflection({
   dreamPalette,
   onSelect,
   onSubmitReflection,
+  onSubmitEmotions,
   onRetryReflection,
   onContinue,
 }: DreamReflectionProps) {
@@ -122,6 +143,13 @@ export default function DreamReflection({
   const [lensesVisible, setLensesVisible] = useState(false);
   // The short explanation of the symbols-and-meanings lens opens only when the dreamer asks for it.
   const [lensInfoOpen, setLensInfoOpen] = useState(false);
+  // The optional feelings step: which of the twelve are chosen (at most three).
+  const [selectedEmotions, setSelectedEmotions] = useState<EmotionId[]>([]);
+  const toggleEmotion = (id: EmotionId) =>
+    setSelectedEmotions((current) => (current.includes(id) ? current.filter((x) => x !== id) : current.length >= MAX_EMOTIONS ? current : [...current, id]));
+  useEffect(() => {
+    if (step === 'emotions') setSelectedEmotions([]);
+  }, [step]);
   const fieldRef = useRef<HTMLDivElement>(null);
   const sequenceRef = useRef<HTMLDivElement>(null);
   const continueWrapRef = useRef<HTMLDivElement>(null);
@@ -129,6 +157,9 @@ export default function DreamReflection({
   usePointerParallax(sequenceRef, 10, step === 'reflection');
   const accent = accentColor ?? FALLBACK_ACCENT;
   const palette = dreamPalette && dreamPalette.length > 0 ? dreamPalette : [accent, accent, accent, accent];
+  const fragments = fragmentsFor(reflectionResult);
+  // The last stage is the terminal one: every thought has resolved and the question holds.
+  const lastStage = fragments.length;
 
   // The cinematic reveal sequence — stage 0 = nothing shown yet, 1..3 = that
   // thought is the active/focused one, 4 = the question holds as the final,
@@ -144,15 +175,17 @@ export default function DreamReflection({
   }, [step]);
 
   useEffect(() => {
-    if (stage < 1 || stage > 3) return;
-    const t = setTimeout(() => setStage((s) => s + 1), STAGE_HOLD_MS[stage - 1]);
-    return () => clearTimeout(t);
-  }, [stage]);
+    if (stage < 1 || stage >= lastStage) return;
+    const hold = fragments[stage - 1].tier === 'thread' ? THREAD_HOLD_MS : HOLD_MS;
+    const timer = setTimeout(() => setStage((s) => s + 1), hold);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, lastStage]);
 
   // Mobile-only orientation cue: the interpretation can end near the bottom
   // of the screen with CONTINUE just below the fold — this only tells the
   // reader more is there. Never moves or pins anything (see useScrollCue).
-  const showScrollCue = useScrollCue(step === 'reflection' && stage >= 4, continueWrapRef);
+  const showScrollCue = useScrollCue(step === 'reflection' && stage >= lastStage, continueWrapRef);
 
   const questionText = QUESTION_STEPS.has(step) && selectedElement ? buildReflectionQuestion(selectedElement, t) : null;
   const showAnchor = selectedElement && (step === 'interpreting' || step === 'reflection');
@@ -168,7 +201,7 @@ export default function DreamReflection({
     : [];
 
   return (
-    <div className="dream-reflection" data-step={step} style={{ '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties}>
+    <div className="dream-reflection" data-step={step} data-extended={step === 'reflection' && fragments.length > BASE_FRAGMENTS.length ? 'true' : undefined} style={{ '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties}>
       {ARRIVAL_STEPS.has(step) && (
         <div className="dream-arrival" data-step={step}>
           <div className="da-content">
@@ -252,6 +285,49 @@ export default function DreamReflection({
                 </div>
               </>
             )}
+
+            {step === 'emotions' && (
+              <>
+                <h2 className="da-title de-title">
+                  <EditorialTitle text={t('reflection.emotionsTitle')} />
+                </h2>
+                <p className="da-subtitle de-subtitle">{t('reflection.emotionsDescription')}</p>
+                <div className="de-chips" role="group" aria-label={t('reflection.emotionsGroupAria')}>
+                  {EMOTION_IDS.map((id, i) => {
+                    const on = selectedEmotions.includes(id);
+                    const muted = !on && selectedEmotions.length >= MAX_EMOTIONS;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        className={`de-chip${on ? ' is-selected' : ''}${muted ? ' is-muted' : ''}`}
+                        aria-pressed={on}
+                        aria-disabled={muted}
+                        data-cursor-hover
+                        style={{ '--ei': i } as CSSProperties}
+                        onClick={() => toggleEmotion(id)}
+                      >
+                        <svg className="de-chip-check" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                          <path d="M3.5 8.4l3 3 6-6.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <span className="de-chip-text">{t(`reflection.emotions.${id}`)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="de-count" aria-live="polite">
+                  {t('reflection.emotionsCount').replace('{count}', String(selectedEmotions.length))}
+                </p>
+                <div className="de-actions">
+                  <button type="button" className="dr-choice" data-cursor-hover onClick={() => onSubmitEmotions(selectedEmotions)}>
+                    {t('reflection.emotionsContinue')}
+                  </button>
+                  <button type="button" className="de-skip" data-cursor-hover onClick={() => onSubmitEmotions([])}>
+                    {t('reflection.emotionsSkip')}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -289,7 +365,7 @@ export default function DreamReflection({
           style={
             {
               '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}`,
-              '--lit-fraction': String(Math.max(0, Math.min(1, (stage - 1) / (REFLECTION_FRAGMENTS.length - 1)))),
+              '--lit-fraction': String(Math.max(0, Math.min(1, (stage - 1) / (fragments.length - 1)))),
             } as CSSProperties
           }
         >
@@ -302,27 +378,32 @@ export default function DreamReflection({
                 <span className="dr-node-line-spark" />
               </div>
             </div>
-            {REFLECTION_FRAGMENTS.map((f, i) => {
+            {fragments.map((f, i) => {
               const stageNumber = i + 1;
               const state = stageNumber > stage ? 'pending' : stageNumber === stage ? 'active' : 'settled';
               return (
                 <div key={f.key} className="dr-node-row" data-state={state}>
                   <span className="dr-node-icon" aria-hidden="true">
                     <span className="dr-node-icon-glow" />
-                    {NODE_ICONS[i]}
+                    {NODE_ICONS[f.icon]}
                   </span>
                   <div className={`dr-thought dr-thought--${f.tier}`}>
                     <h3 className="dr-thought-label">
                       <EditorialTitle text={t(f.labelKey)} />
                     </h3>
-                    <p className="dr-thought-text">{showAiText(reflectionResult[f.key])}</p>
+                    <p className="dr-thought-text">{showAiText(reflectionResult[f.key] ?? '')}</p>
+                    {i === fragments.length - 1 && reflectionResult.summary && reflectionResult.summary.trim() !== '' && (
+                      <p className="dr-thought-summary">
+                        <span className="dr-thought-summary-label">{t('reflection.inShort')}</span> {showAiText(reflectionResult.summary)}
+                      </p>
+                    )}
                   </div>
                 </div>
               );
             })}
           </div>
 
-          {stage >= 4 && activeLenses.length > 0 && (
+          {stage >= lastStage && activeLenses.length > 0 && (
             <div className="dr-lenses-wrap">
               <button type="button" className="dr-lenses-toggle" data-cursor-hover onClick={() => setLensesVisible((v) => !v)}>
                 {lensesVisible ? t('reflection.hideOtherLenses') : t('reflection.seeOtherLenses')}
@@ -358,9 +439,9 @@ export default function DreamReflection({
             </div>
           )}
 
-          {stage >= 4 && <p className="dr-grounding">{reflectionResult.groundingStatement}</p>}
+          {stage >= lastStage && <p className="dr-grounding">{reflectionResult.groundingStatement}</p>}
 
-          {stage >= 4 && (
+          {stage >= lastStage && (
             <div ref={continueWrapRef} className={`dr-continue-wrap${continueVisible ? ' is-visible' : ''}`}>
               <button type="button" className="dr-choice dr-choice--yes" data-cursor-hover onClick={onContinue}>
                 {t('reflection.continue')}

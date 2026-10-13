@@ -27,6 +27,10 @@ export interface DreamReflectionResult {
   /** Up to three optional perspectives — never truths. Null when a lens doesn't meaningfully apply. */
   lenses: DreamReflectionLenses;
   confidenceNotes: string[];
+  /** Only when the dreamer named feelings: how those REPORTED feelings colour the reading, kept apart from what happened in the dream. Null or absent otherwise (and absent on every dream saved before this existed). */
+  emotionReflection?: string | null;
+  /** One short, personal sentence that gathers the reading. Absent on dreams saved before this existed. */
+  summary?: string | null;
   /** Fixed, non-alarmist grounding line — the server always enforces the exact required wording. */
   groundingStatement: string;
 }
@@ -113,6 +117,8 @@ Build the reflection from exactly these layers:
    - jungian: a symbolic/archetypal reading, offered strictly as a theoretical lens.
    - psychodynamic: a cautious relational/conflict-oriented reading.
    If a lens genuinely doesn't apply, set it to null rather than forcing one in. Do not use NLP framing. Do not use CBT as a dream-symbol interpretation framework — CBT belongs to later coping/action work for recurring nightmares, never to "what this dream means."
+6. EMOTION REFLECTION — ONLY when the input contains a section named FEELINGS THE DREAMER REPORTED. Those feelings are what the dreamer says they felt, chosen from a fixed list: they are the dreamer's own report, NOT part of what happened in the dream, and NEVER a sign of anyone's mental state. Write one or two sentences in emotionReflection that say plainly these are the dreamer's own reported feelings, keep them clearly separate from the dream's events, and let them shape the reading: which possible thread you choose and the tone of the question. Use possibility language only. Never diagnose, never say what a feeling "indicates", "reveals" or "means about you", and never add a feeling that was not listed. If that section is absent, emotionReflection MUST be null.
+7. SUMMARY — one short personal sentence (about 25 words at most) that gathers the chosen moment, the dreamer's association and, if present, the reported feelings. Possibility language, nothing new, never a conclusion or a diagnosis.
 
 ${languageParagraph}
 
@@ -122,7 +128,7 @@ ${buildLanguageIntegrityInstruction(language)}
 
 Scientific discipline: never use generic internet dream-dictionary meanings (e.g. "water = emotion", "teeth = anxiety", "snake = sexuality"). Ground everything primarily in the dream's own context and the dreamer's own stated words — never a symbol lookup table. Never invent an event, detail, or feeling that is not in the dream or in the dreamer's own response.
 
-Keep every field short: observation and possibleThread are 1-2 sentences; personalAssociation is one short sentence; continuityQuestion is exactly one question; each present lens is 1-2 sentences, clearly framed as a possibility.
+Keep every field short: observation and possibleThread are 1-2 sentences; personalAssociation is one short sentence; continuityQuestion is exactly one question; emotionReflection is 1-2 sentences when present; summary is exactly one sentence; each present lens is 1-2 sentences, clearly framed as a possibility.
 
 For groundingStatement, write a short, calm, non-alarmist line making clear this is a reflection, not a diagnosis or definitive interpretation (exact wording is not critical — it will be normalized).
 
@@ -145,6 +151,9 @@ export function validateDreamReflectionResult(candidate: unknown): DreamReflecti
   if (typeof c.continuityQuestion !== 'string') return null;
   if (typeof c.groundingStatement !== 'string') return null;
   if (!Array.isArray(c.confidenceNotes) || !c.confidenceNotes.every((n) => typeof n === 'string')) return null;
+  // Added later: a reflection saved or returned without them stays valid.
+  if (c.emotionReflection !== undefined && c.emotionReflection !== null && typeof c.emotionReflection !== 'string') return null;
+  if (c.summary !== undefined && c.summary !== null && typeof c.summary !== 'string') return null;
 
   if (typeof c.lenses !== 'object' || c.lenses === null) return null;
   const lenses = c.lenses as Record<string, unknown>;
@@ -164,7 +173,7 @@ export function validateDreamReflectionResult(candidate: unknown): DreamReflecti
 export const DREAM_REFLECTION_JSON_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['observation', 'personalAssociation', 'possibleThread', 'continuityQuestion', 'lenses', 'confidenceNotes', 'groundingStatement'],
+  required: ['observation', 'personalAssociation', 'possibleThread', 'continuityQuestion', 'lenses', 'confidenceNotes', 'emotionReflection', 'summary', 'groundingStatement'],
   properties: {
     observation: { type: 'string' },
     personalAssociation: { type: 'string' },
@@ -181,6 +190,8 @@ export const DREAM_REFLECTION_JSON_SCHEMA = {
       },
     },
     confidenceNotes: { type: 'array', items: { type: 'string' } },
+    emotionReflection: { type: ['string', 'null'] },
+    summary: { type: ['string', 'null'] },
     groundingStatement: { type: 'string' },
   },
 } as const;

@@ -9,6 +9,7 @@ import {
   validateDreamReflectionResult,
 } from '../../src/hero/dreamReflectionSchema.js';
 import type { AppLanguage } from '../../src/hero/appLanguage.js';
+import { emotionNamesForModel, normalizeEmotions, type EmotionId } from '../../src/hero/dreamEmotions.js';
 import { collectStrings } from '../../src/hero/languageIntegrity.js';
 import { normalizeAddressPreference, type AddressPreference } from '../../src/hero/addressPreference.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
@@ -44,11 +45,12 @@ function actionPhrase(a: DreamAnalysis['actions'][number]): string {
   return [a.subject, a.action, a.target].filter(Boolean).join(' ').trim();
 }
 
-function buildReflectionInput(
+export function buildReflectionInput(
   dreamAnalysis: DreamAnalysis,
   selectedElement: string,
   reflectionResponse: string,
   reconstructionCorrections: string[],
+  emotions: readonly EmotionId[] = [],
 ): string {
   const correctionsLine = reconstructionCorrections.length
     ? `\n- Corrections the dreamer made to the reconstruction afterward: ${reconstructionCorrections.join('; ')}`
@@ -66,7 +68,11 @@ STRUCTURED FACTS FROM THE DREAM (already extracted, use only these — do not in
 
 THE ELEMENT THE DREAMER CHOSE AS STANDING OUT TO THEM: ${selectedElement}
 
-THE DREAMER'S OWN ASSOCIATION WITH THAT ELEMENT (their exact words): "${reflectionResponse}"`;
+THE DREAMER'S OWN ASSOCIATION WITH THAT ELEMENT (their exact words): "${reflectionResponse}"${
+    emotions.length
+      ? `\n\nFEELINGS THE DREAMER REPORTED (their own report, chosen from a fixed list after the dream; NOT part of what happened in the dream): ${emotionNamesForModel(emotions)}`
+      : ''
+  }`;
 }
 
 export async function handleDreamReflection(rawBody: unknown, requestHeaders: RequestHeaders): Promise<HandlerResult> {
@@ -81,6 +87,8 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
     selectedElement?: unknown;
     reflectionResponse?: unknown;
     reconstructionCorrections?: unknown;
+    /** Optional: up to three feeling ids the dreamer named. Unknown or malformed values are dropped. */
+    emotions?: unknown;
     language?: unknown;
     attemptId?: unknown;
   };
@@ -106,6 +114,7 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
   const reconstructionCorrections = Array.isArray(body.reconstructionCorrections)
     ? body.reconstructionCorrections.filter((c): c is string => typeof c === 'string')
     : [];
+  const emotions = normalizeEmotions(body.emotions);
   const attemptId = typeof body.attemptId === 'string' ? body.attemptId : '';
   if (!attemptId) {
     return withHeaders(errorResult(400, 'invalid_response', 'attemptId is required.'), cookieHeaders);
@@ -137,7 +146,7 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
     );
   }
 
-  const input = buildReflectionInput(dreamAnalysis, selectedElement, reflectionResponse, reconstructionCorrections);
+  const input = buildReflectionInput(dreamAnalysis, selectedElement, reflectionResponse, reconstructionCorrections, emotions);
 
   // Everything the dreamer themselves wrote — quoting it in another script
   // is legitimate, so it's the context the language-integrity check excuses.
@@ -190,6 +199,10 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
     // The grounding line's exact wording/tone is safety-relevant — always
     // enforced by the server, never left to the model's own phrasing.
     validated.groundingStatement = getGroundingStatement(language);
+    // The feelings section exists only when the dreamer named feelings: without them there is nothing to reflect, whatever the model wrote.
+    if (emotions.length === 0) validated.emotionReflection = null;
+    if (typeof validated.emotionReflection === 'string' && validated.emotionReflection.trim() === '') validated.emotionReflection = null;
+    if (typeof validated.summary === 'string' && validated.summary.trim() === '') validated.summary = null;
 
     // THE completion point of an anonymous dreamer's ONE free dream: the
     // grounded reflection is generated and about to be delivered. Marked

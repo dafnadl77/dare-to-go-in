@@ -27,6 +27,8 @@ const keyOf = (language: AppLanguage, text: string) => `${language}|${text}`;
 function reflectionTexts(result: DreamReflectionResult | null): string[] {
   if (!result) return [];
   const texts = [result.observation, result.personalAssociation, result.possibleThread, result.continuityQuestion];
+  if (typeof result.emotionReflection === 'string') texts.push(result.emotionReflection);
+  if (typeof result.summary === 'string') texts.push(result.summary);
   for (const lens of Object.values(result.lenses ?? {})) if (typeof lens === 'string') texts.push(lens);
   return [...new Set(texts.filter((t) => typeof t === 'string' && t.trim().length > 0))];
 }

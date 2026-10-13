@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import DreamStageBackground from '../hero/DreamStageBackground';
 import { sanitizeAiTextForDisplay, containsHebrew } from '../hero/appLanguage';
+import { normalizeEmotions } from '../hero/dreamEmotions';
 import { formatEntryDayMonth, formatEntryYear, titleFromSavedDream, type ArchiveEntry } from './archiveData';
 import { cacheLabel, cacheTitle, getCachedLabel, getCachedTitle, needsTranslation, savedTitleSource } from './dreamTitleTranslation';
 import { useDreamImageSrc } from './useDreamImageSrc';
@@ -36,7 +37,7 @@ interface DreamDetailProps {
     only `display` is, which is either the original (already English), the
     resolved translation, or a plain loading/error placeholder — so raw
     Hebrew never reaches an English page, even for a moment. */
-type FieldKey = 'dream' | 'stoodOut' | 'association' | 'title' | 'thread' | 'question';
+type FieldKey = 'dream' | 'stoodOut' | 'association' | 'title' | 'thread' | 'question' | 'feelings' | 'summary';
 
 type TranslationState = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -92,6 +93,10 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
   const currentLanguageTitle = savedDream ? titleFromSavedDream(savedDream, language) : entry.title;
   const threadRaw = reflection?.possibleThread ?? null;
   const questionRaw = reflection?.continuityQuestion ?? null;
+  // Only dreams saved with the optional feelings step have these; every older dream simply shows none of them.
+  const feelingsRaw = reflection?.emotionReflection && reflection.emotionReflection.trim() ? reflection.emotionReflection : null;
+  const summaryRaw = reflection?.summary && reflection.summary.trim() ? reflection.summary : null;
+  const namedFeelings = normalizeEmotions(savedDream?.emotions);
 
   const [translationState, setTranslationState] = useState<TranslationState>('idle');
   const [translated, setTranslated] = useState<Partial<Record<FieldKey, string>>>({});
@@ -119,6 +124,8 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
     if (needsTranslation(ownTitle, language) && !getCachedTitle(ownTitle, language)) items.push({ key: 'title', text: ownTitle });
     if (threadRaw && needsTranslation(threadRaw, language)) items.push({ key: 'thread', text: threadRaw });
     if (questionRaw && needsTranslation(questionRaw, language)) items.push({ key: 'question', text: questionRaw });
+    if (feelingsRaw && needsTranslation(feelingsRaw, language)) items.push({ key: 'feelings', text: feelingsRaw });
+    if (summaryRaw && needsTranslation(summaryRaw, language)) items.push({ key: 'summary', text: summaryRaw });
     if (items.length === 0) return;
 
     let cancelled = false;
@@ -202,6 +209,8 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
       : null;
   const threadText = threadRaw ? resolveAi('thread', threadRaw) : null;
   const questionText = questionRaw ? resolveAi('question', questionRaw) : null;
+  const feelingsText = feelingsRaw ? resolveAi('feelings', feelingsRaw) : null;
+  const summaryText = summaryRaw ? resolveAi('summary', summaryRaw) : null;
   // Same cache as the archive list, so the two always show the same title.
   const displayTitle = needsTranslation(ownTitle, language) ? (getCachedTitle(ownTitle, language) ?? currentLanguageTitle) : ownTitle;
 
@@ -285,6 +294,23 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
                 )}
               </section>
 
+              {(namedFeelings.length > 0 || feelingsRaw) && (
+                <section className="dd-block">
+                  <p className="dd-eyebrow">
+                    <EditorialTitle text={t('dreamDetail.yourFeelings')} />
+                  </p>
+                  {namedFeelings.length > 0 && (
+                    <p className="dd-body dd-body--feelings">{namedFeelings.map((id) => t(`reflection.emotions.${id}`)).join(' · ')}</p>
+                  )}
+                  {feelingsRaw &&
+                    (feelingsText ? (
+                      <p className="dd-body">{feelingsText}</p>
+                    ) : (
+                      <p className="dd-body dd-body--loading">{t('dreamDetail.translating')}</p>
+                    ))}
+                </section>
+              )}
+
               <section className="dd-block">
                 <p className="dd-eyebrow">
                   <EditorialTitle text={t('dreamDetail.aPossibleThread')} />
@@ -306,6 +332,19 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
                   <p className="dd-body dd-body--loading">{t('dreamDetail.translating')}</p>
                 )}
               </section>
+
+              {summaryRaw && (
+                <section className="dd-block">
+                  <p className="dd-eyebrow">
+                    <EditorialTitle text={t('dreamDetail.inShort')} />
+                  </p>
+                  {summaryText ? (
+                    <p className="dd-body">{summaryText}</p>
+                  ) : (
+                    <p className="dd-body dd-body--loading">{t('dreamDetail.translating')}</p>
+                  )}
+                </section>
+              )}
 
               <p className="dd-disclaimer">{t('dreamDetail.disclaimer')}</p>
             </div>

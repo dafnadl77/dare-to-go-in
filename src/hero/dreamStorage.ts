@@ -1,6 +1,7 @@
 import type { DreamAnalysis } from './dreamAnalysisSchema';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
 import { getAppLanguage, type AppLanguage } from './appLanguage';
+import { normalizeEmotions, type EmotionId } from './dreamEmotions';
 
 /**
  * A single saved dream, capturing everything MY DREAMS (and
@@ -42,6 +43,8 @@ export interface SavedDream {
   dreamReflection: DreamReflectionResult;
   corrections: string[];
   appLanguage: AppLanguage;
+  /** The feelings the dreamer named (stable ids, up to three). Absent on every dream saved before this existed, and when the step was skipped: both read as "not recorded". Stored inside the dream's jsonb payload, so no database migration. */
+  emotions?: EmotionId[];
   /** Optional so every dream saved before this field existed still parses
       fine from localStorage (`undefined` reads as "not favorited") — no
       migration needed for existing stored data. */
@@ -153,14 +156,18 @@ export function buildSavedDream(params: {
   reflectionResponse: string;
   dreamReflection: DreamReflectionResult;
   corrections: string[];
+  /** The feelings the dreamer named; an empty list (skipped) is simply not stored. */
+  emotions?: EmotionId[];
   /** The language the journey's content was generated in; defaults to the current app language. */
   appLanguage?: AppLanguage;
 }): SavedDream {
-  const { appLanguage, ...rest } = params;
+  const { appLanguage, emotions, ...rest } = params;
+  const normalized = normalizeEmotions(emotions);
   return {
     id: randomId(),
     createdAt: new Date().toISOString(),
     ...rest,
+    ...(normalized.length > 0 ? { emotions: normalized } : {}),
     appLanguage: appLanguage ?? getAppLanguage(),
   };
 }
