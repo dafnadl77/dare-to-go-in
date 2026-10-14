@@ -1,8 +1,8 @@
 .dream-prompt {
   margin: 0;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-weight: 500;
-  /* Scaled up 1.9x when revealed (see .is-revealed): the size here is the pre-scale size, so it is deliberately small. */
+  font-weight: 700;
+  /* Scaled up 2.3x when revealed (see .is-revealed): the size here is the pre-scale size, so it is deliberately small. */
   font-size: clamp(0.7rem, 1.4vw, 0.85rem);
   letter-spacing: 0.26em;
   text-transform: uppercase;
@@ -24,9 +24,9 @@
 }
 
 .dream-prompt.is-revealed {
-  opacity: 0.94;
+  opacity: 1;
   filter: blur(0);
-  transform: translateY(-4px) scale(1.9);
+  transform: translateY(-4px) scale(2.3);
 }
 
 .dream-prompt.is-revealed.is-quiet {
@@ -62,7 +62,7 @@
   }
 
   .dream-prompt.is-revealed {
-    transform: translateY(-4px) scale(1.3);
+    transform: translateY(-4px) scale(1.6);
   }
 
   .dream-prompt.is-revealed.is-quiet {
@@ -83,7 +83,7 @@
   }
 
   .dream-prompt.is-revealed {
-    transform: translateY(-4px) scale(1.2);
+    transform: translateY(-4px) scale(1.4);
   }
 
   .dream-prompt.is-revealed.is-quiet {

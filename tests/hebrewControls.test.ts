@@ -118,8 +118,8 @@ test('each preference gets an example in its own grammar (a feminine reader is n
     return prompt.slice(prompt.indexOf('{"observation"'), prompt.indexOf('\n', prompt.indexOf('{"observation"')));
   };
   assert.doesNotMatch(grab('feminine'), /אתה/);
-  assert.match(grab('feminine'), /שאת מתקרבת/);
-  assert.match(grab('masculine'), /שאתה מתקרב/);
+  assert.match(grab('feminine'), /את מתקרבת אליה/);
+  assert.match(grab('masculine'), /אתה מתקרב אליה/);
 });
 
 test('the Hebrew style guidance keeps the dreamer\'s own actions and keeps every reading a possibility', () => {
@@ -135,4 +135,20 @@ test('the retry notes after a masculine "אתה" no longer ask for the plural vo
   const feminine = findAddressViolation(['אתה ציינת פחד'], 'he', 'feminine');
   assert.ok(neutral && /singular/.test(neutral) && !/אתם/.test(neutral));
   assert.ok(feminine && !/אתם/.test(feminine));
+});
+
+test('the Hebrew reflection is personal to the dream: concrete details required, and no stock opening to copy (five of five collected samples opened the closing question with the same line)', () => {
+  const he = buildDreamReflectionSystemPrompt('he', 'neutral');
+  assert.match(he, /names something concrete from it/);
+  assert.match(he, /could be pasted unchanged into another dream is not allowed/);
+  assert.match(he, /do not open it with the stock line/);
+  for (const p of ['neutral', 'feminine', 'masculine'] as const) {
+    const prompt = buildDreamReflectionSystemPrompt('he', p);
+    const example = prompt.slice(prompt.indexOf('{"observation"'), prompt.indexOf('\n', prompt.indexOf('{"observation"')));
+    assert.doesNotMatch(example, /"continuityQuestion": "האם יש משהו/, `${p}: the example no longer models the stock question`);
+    assert.doesNotMatch(example, /"possibleThread": "אולי יש כאן/, `${p}: nor the stock thread`);
+  }
+  // the guard rails are unchanged: possibility language, no diagnosis, no invented events
+  assert.match(he, /never present a psychological explanation as a fact/);
+  assert.match(he, /never invent an event, detail, or feeling/i);
 });

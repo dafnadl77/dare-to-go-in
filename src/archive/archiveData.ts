@@ -479,7 +479,7 @@ function motifCandidatesFromSavedDream(dream: SavedDream): string[] {
     display-only concern handled by the caller (see DreamArchive.tsx's
     own motif-label localization) — it never changes what's counted or
     which dreams a motif points at. */
-export function getRecurringMotifs(entries: ArchiveEntry[]): RecurringMotif[] | null {
+export function getRecurringMotifs(entries: ArchiveEntry[], limit: number = 12): RecurringMotif[] | null {
   const real = entries.filter((e): e is Extract<ArchiveEntry, { kind: 'real' }> => e.kind === 'real');
   if (real.length < 2) return null;
 
@@ -511,7 +511,7 @@ export function getRecurringMotifs(entries: ArchiveEntry[]): RecurringMotif[] | 
       dreams: [...v.dreams].sort((a, b) => b.date.getTime() - a.date.getTime()),
     }))
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
-    .slice(0, 12);
+    .slice(0, limit);
   return recurring;
 }
 
@@ -523,6 +523,9 @@ const byDateDesc = (a: RecurringMotifDream, b: RecurringMotifDream) => b.date.ge
 const labelForm = (text: string) => text.trim().toLowerCase().replace(/^["'.,:;!?()\-–—\s]+|["'.,:;!?()\-–—\s]+$/g, '');
 
 const MAX_INSIGHT_ROWS = 24;
+/** A history long enough to fill the page with older, higher-count themes must never hide the themes of the dream just saved: the rows
+    the newest dream belongs to are kept (at most this many beyond what the ordinary cut would already show). */
+const MAX_NEWEST_DREAM_ROWS = 8;
 
 /**
  * The one list Insights shows: the literal recurring motifs (getRecurringMotifs,
@@ -544,7 +547,8 @@ const MAX_INSIGHT_ROWS = 24;
  * owner), so no dream content or concept ever crosses accounts.
  */
 export function getRecurringInsights(entries: ArchiveEntry[]): RecurringMotif[] | null {
-  const motifs = getRecurringMotifs(entries);
+  // Uncut here: the one cut happens at the end, where it can keep the newest dream's rows.
+  const motifs = getRecurringMotifs(entries, Number.POSITIVE_INFINITY);
   if (motifs === null) return null;
 
   const real = entries.filter((e): e is Extract<ArchiveEntry, { kind: 'real' }> => e.kind === 'real');
@@ -588,9 +592,15 @@ export function getRecurringInsights(entries: ArchiveEntry[]): RecurringMotif[] 
     twin.count = twin.dreams.length;
   }
 
-  return [...conceptRows, ...motifRows]
-    .sort((a, b) => b.count - a.count || Number(!!b.conceptId) - Number(!!a.conceptId) || a.key.localeCompare(b.key))
-    .slice(0, MAX_INSIGHT_ROWS);
+  const order = (a: RecurringMotif, b: RecurringMotif) => b.count - a.count || Number(!!b.conceptId) - Number(!!a.conceptId) || a.key.localeCompare(b.key);
+  const all = [...conceptRows, ...motifRows].sort(order);
+  if (all.length <= MAX_INSIGHT_ROWS) return all;
+
+  const newestId = [...real].sort((a, b) => b.date.getTime() - a.date.getTime())[0]?.id;
+  const top = all.slice(0, MAX_INSIGHT_ROWS);
+  const cutButNewest = newestId ? all.slice(MAX_INSIGHT_ROWS).filter((row) => row.dreams.some((d) => d.id === newestId)).slice(0, MAX_NEWEST_DREAM_ROWS) : [];
+  if (cutButNewest.length === 0) return top;
+  return [...top.slice(0, MAX_INSIGHT_ROWS - cutButNewest.length), ...cutButNewest].sort(order);
 }
 
 /**

@@ -10,6 +10,12 @@
    words: no fill, no border, no visible shape, the clouds stay visible
    around it. Pseudo-elements only; the words, layout and motion are
    untouched.
+
+   REVISED 2026-10-14: the first version (alpha .58, 11px blur) also put a wash behind every journey BUTTON, and it showed as a dark smudge
+   under the buttons. Buttons now have no wash at all (only the opening screen's own "I'd rather type" control keeps one: that screen is
+   not touched). The wash behind plain TEXT stays, because it is what keeps the lines over the bright cloud banks readable, but it is
+   lighter and softer: measured on the same paused frame of the interpretation screen, no wash left six lines at 2.6 to 4.2:1 (need
+   4.5), this lighter wash keeps every line at 6.0:1 or better, and the first version gave 7.5:1 or better.
    ===================================================================== */
 .dr-thought,
 .da-subtitle,
@@ -22,10 +28,7 @@
 }
 
 .dr-grounding,
-.dr-choice,
 .htr-type-link,
-.dr-lenses-toggle,
-.dc-portal-label,
 .da-choice-row {
   isolation: isolate;
 }
@@ -40,20 +43,16 @@
 .da-choice-row::before {
   content: '';
   position: absolute;
-  inset: -0.5rem -1.1rem;
+  inset: -0.4rem -1rem;
   z-index: -1;
   border-radius: 22px;
-  background: rgba(5, 7, 16, 0.58);
-  filter: blur(11px);
+  background: rgba(5, 7, 16, 0.48);
+  filter: blur(14px);
   pointer-events: none;
 }
 
-/* a soft pill behind a button's or link's label (the button itself stays unfilled) */
-.dr-choice::before,
-.htr-type-link::before,
-.de-skip::before,
-.dr-lenses-toggle::before,
-.dc-portal-label::before {
+/* a soft pill behind the opening screen's "I'd rather type" control only: journey buttons have no wash (see the note at the top) */
+.htr-type-link::before {
   content: '';
   position: absolute;
   inset: -0.45rem -1.1rem;
@@ -81,6 +80,13 @@
 .dream-prompt,
 .htr-label {
   isolation: isolate;
+}
+
+/* the selected-feelings counter sits on the bright horizon glow: it keeps the original, stronger wash (it is plain text, not a button) */
+.de-count::before {
+  background: rgba(5, 7, 16, 0.6);
+  filter: blur(11px);
+  inset: -0.5rem -1.1rem;
 }
 
 /* the choices row is wide: a little more room above and below it */

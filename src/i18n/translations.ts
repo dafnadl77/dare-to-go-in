@@ -1328,7 +1328,7 @@ export const he: Translations = {
     close: 'סגירה',
   },
   howItWorks: {
-    tagline: 'DARE TO GO IN הוא מרחב פרטי לחזור אל חלומות שנשארים: מספרים אותם, רואים אותם, ושואלים אותם שאלות.',
+    tagline: 'DARE TO GO IN הוא מרחב פרטי לחזור אל חלומות שנשארים: מספרים אותם, רואים אותם ושואלים אותם שאלות.',
     trigger: 'איך זה עובד',
     triggerAria: 'איך DARE TO GO IN עובד: פתיחת ההסבר',
     eyebrow: 'איך זה עובד',

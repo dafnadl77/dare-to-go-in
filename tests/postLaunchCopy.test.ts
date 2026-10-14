@@ -52,3 +52,28 @@ test('recording: the code of the recorder, the microphone and the transcription 
   const touched = ['src/hero/HoldToRemember.tsx', 'src/hero/dreamRecorderController.ts', 'src/hero/dreamTranscription.ts', 'src/hero/micAvailability.ts'];
   for (const file of touched) assert.ok(read(file).length > 0, file);
 });
+
+test('home: the Hebrew explanation has no comma before "ושואלים אותם שאלות" and the English is unchanged', () => {
+  assert.equal(he.howItWorks.tagline, 'DARE TO GO IN הוא מרחב פרטי לחזור אל חלומות שנשארים: מספרים אותם, רואים אותם ושואלים אותם שאלות.');
+  assert.match(en.howItWorks.tagline, /tell them, see them, and ask them questions\.$/);
+});
+
+test('home: the opening heading is bold and clearly larger, in a transform so nothing around it moves', () => {
+  const css = read('src/hero/DreamPrompt.css');
+  assert.match(css, /\.dream-prompt \{[^}]*font-weight: 700;/);
+  assert.match(css, /\.dream-prompt\.is-revealed \{[^}]*scale\(2\.3\)/);
+  assert.match(css, /\.dream-prompt\.is-revealed \{\s*transform: translateY\(-4px\) scale\(1\.6\)/);
+});
+
+test('shadows: no journey button has a dark wash behind it; only the opening screen\'s own control and plain text blocks keep one', () => {
+  const css = read('src/hero/TextHalo.css').replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const button of ['dr-choice', 'de-skip', 'dr-lenses-toggle', 'dc-portal-label']) {
+    assert.doesNotMatch(css, new RegExp(`\\.${button}::before`), `.${button} has no wash`);
+  }
+  assert.match(css, /\.htr-type-link::before/, 'the opening screen is untouched');
+  assert.match(css, /\.dream-prompt::before,\s*\.htr-label::before/, 'so are its heading and hold label');
+  const text = /\.dr-thought::before,[\s\S]*?\.da-choice-row::before \{([^}]*)\}/.exec(css);
+  assert.ok(text, 'the text wash is still there');
+  assert.match(text[1], /rgba\(5, 7, 16, 0\.48\)/, 'lighter than the first version (0.58)');
+  assert.match(text[1], /blur\(14px\)/);
+});
