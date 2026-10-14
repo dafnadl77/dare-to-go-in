@@ -82,6 +82,13 @@
   pointer-events: none;
 }
 
+/* My Dreams (the archive and a dream's page) keeps its approved look exactly: no wash behind the header words there. */
+.global-header[data-halo='off'] .gh-brand::before,
+.global-header[data-halo='off'] .gh-links::before,
+.global-header[data-halo='off'] .gh-lang::before {
+  display: none;
+}
+
 .gh-left,
 .gh-nav {
   display: flex;
@@ -149,6 +156,12 @@
   opacity: 1;
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.75), 0 0 2px rgba(0, 0, 0, 0.55);
   transition: letter-spacing 0.4s var(--ease-soft);
+}
+
+/* The FAQ entry is a real link (it leaves the app for the static FAQ page) in the same plain-text style as its neighbours. */
+.gh-link--anchor {
+  display: inline-block;
+  text-decoration: none;
 }
 
 /* Hebrew never takes the wide uppercase tracking — Hebrew has no case,

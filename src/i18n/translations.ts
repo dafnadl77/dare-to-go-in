@@ -29,6 +29,8 @@ export interface Translations {
     dreamPrompt: string;
     myDreamsNav: string;
     aboutNav: string;
+    faqNav: string;
+    faqNavAria: string;
     packagesNav: string;
   };
   hold: {
@@ -381,6 +383,22 @@ export interface Translations {
     reset: string;
     close: string;
   };
+  /** The short explanation on the opening screen and the "how it works" section under it. */
+  howItWorks: {
+    tagline: string;
+    trigger: string;
+    triggerAria: string;
+    eyebrow: string;
+    title: string;
+    intro: string;
+    stepsAria: string;
+    steps: { title: string; text: string }[];
+    note: string;
+    start: string;
+    faq: string;
+    close: string;
+    panelAria: string;
+  };
   about: {
     pageTitle: string;
     pageDescription: string;
@@ -470,6 +488,8 @@ export const en: Translations = {
     dreamPrompt: 'WHAT DO YOU REMEMBER FROM YOUR DREAM?',
     myDreamsNav: 'MY DREAMS',
     aboutNav: 'ABOUT',
+    faqNav: 'FAQ',
+    faqNavAria: 'Questions and answers',
     packagesNav: 'PACKAGES',
   },
   hold: {
@@ -820,6 +840,29 @@ export const en: Translations = {
     reset: 'Reset',
     close: 'Close',
   },
+  howItWorks: {
+    tagline: 'DARE TO GO IN is a private space for returning to the dreams that stay: tell them, see them, and ask them questions.',
+    trigger: 'How it works',
+    triggerAria: 'How DARE TO GO IN works: open the explanation',
+    eyebrow: 'HOW IT WORKS',
+    title: 'Every dream has a story. Come and find yours.',
+    intro:
+      'Write or record your dream, see it come to life in an image, choose the moment that stayed with you, and discover a personal reflection that takes your associations and feelings into account.',
+    stepsAria: 'The six steps',
+    steps: [
+      { title: 'Tell the dream', text: 'Write it or record it, just as you remember it.' },
+      { title: 'See it', text: 'An image created from your dream.' },
+      { title: 'Choose a moment', text: 'The one that stayed with you most.' },
+      { title: 'Share a feeling', text: 'If you like, up to three feelings. You can skip it.' },
+      { title: 'Find meaning', text: 'A personal reflection and a short summary, not a verdict.' },
+      { title: 'Save it', text: 'In a private journal you can return to.' },
+    ],
+    note: 'The reflection is a tool for personal thought, not a diagnosis or a treatment.',
+    start: 'Tell us your dream',
+    faq: 'Questions and answers',
+    close: 'Close',
+    panelAria: 'How it works',
+  },
   about: {
     pageTitle: 'About DARE | DARE TO GO IN',
     pageDescription:
@@ -932,6 +975,8 @@ export const he: Translations = {
     dreamPrompt: 'מה זכור לך מהחלום?',
     myDreamsNav: 'החלומות שלי',
     aboutNav: 'אודות',
+    faqNav: 'שאלות',
+    faqNavAria: 'שאלות ותשובות',
     packagesNav: 'חבילות',
   },
   hold: {
@@ -1281,6 +1326,29 @@ export const he: Translations = {
     reduceMotion: 'הפחתת תנועה',
     reset: 'איפוס',
     close: 'סגירה',
+  },
+  howItWorks: {
+    tagline: 'DARE TO GO IN הוא מרחב פרטי לחזור אל חלומות שנשארים: מספרים אותם, רואים אותם, ושואלים אותם שאלות.',
+    trigger: 'איך זה עובד',
+    triggerAria: 'איך DARE TO GO IN עובד: פתיחת ההסבר',
+    eyebrow: 'איך זה עובד',
+    title: 'לכל חלום יש סיפור. בואו לגלות את שלכם.',
+    intro:
+      'כתבו או הקליטו את החלום, ראו אותו מתעורר לחיים בתמונה, בחרו את הרגע שנשאר איתכם וגלו הרהור אישי שמתחשב באסוציאציות ובתחושות שלכם.',
+    stepsAria: 'ששת הצעדים',
+    steps: [
+      { title: 'מספרים את החלום', text: 'בכתיבה או בהקלטה, בדיוק כפי שזוכרים.' },
+      { title: 'רואים אותו', text: 'תמונה שנוצרת בהשראת החלום.' },
+      { title: 'בוחרים רגע', text: 'הרגע שהכי נשאר איתכם.' },
+      { title: 'משתפים בתחושה', text: 'אם תרצו, עד שלוש תחושות. אפשר גם לדלג.' },
+      { title: 'מגלים משמעות', text: 'הרהור אישי וסיכום קצר, לא פסק דין.' },
+      { title: 'שומרים ביומן', text: 'ביומן פרטי שאפשר לחזור אליו.' },
+    ],
+    note: 'ההרהור הוא כלי למחשבה אישית, לא אבחנה ולא טיפול.',
+    start: 'ספרו לנו את החלום',
+    faq: 'שאלות ותשובות',
+    close: 'סגירה',
+    panelAria: 'איך זה עובד',
   },
   about: {
     pageTitle: 'על DARE | DARE TO GO IN',

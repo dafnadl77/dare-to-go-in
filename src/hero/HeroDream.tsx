@@ -37,6 +37,7 @@ import { extractAccentColor, extractDreamPalette, isImageCenterLight, type Accen
 import type { CentralMode } from './centralMode';
 import { useAuth } from '../auth/AuthContext';
 import AppFooter from '../legal/AppFooter';
+import { HowItWorksPanel, HowItWorksTeaser } from './HowItWorks';
 import type { LegalKey } from '../legal/legalContent';
 import './HeroDream.css';
 import './TextHalo.css';
@@ -140,6 +141,8 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
 
   const recorder = useDreamRecorder();
   const [centralMode, setCentralMode] = useState<CentralMode>('hold');
+  // The "how it works" section that rises from below the opening (HowItWorks.tsx). Only ever opened from the idle opening screen.
+  const [howOpen, setHowOpen] = useState(false);
   const [micUnavailable, setMicUnavailable] = useState(false);
   // Kept wired (though fragments aren't rendered right now) so re-enabling
   // the visual layer later doesn't require touching this plumbing again.
@@ -809,6 +812,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     journeyLanguageRef.current = null;
     firstImageTriesRef.current = 0;
     imageEverSucceededRef.current = false;
+    setHowOpen(false);
     setReconstructionPhase('none');
     setInsideStep('prompt');
     setBrief(null);
@@ -904,7 +908,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       <DreamEchoes pointerRef={pointerRef} echoRef={echoRef} lampStateRef={lampStateRef} />
       <div ref={blackVeilRef} className="intro-black-veil" aria-hidden="true" />
 
-      <div ref={uiLayerRef} className="hero-ui-layer">
+      <div ref={uiLayerRef} className="hero-ui-layer" inert={howOpen}>
         <div className="hero-ui-stack">
           <MemoryTitle
             revealed={TITLE_PHASES.has(phase)}
@@ -997,6 +1001,17 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
           after that. The immersive recording/transcription/reconstruction/
           reflection/closing journey must never share the screen with it. */}
       {centralMode === 'hold' && !isReconstructing && <AppFooter onNavigate={onOpenLegal} pinned />}
+      {/* The short explanation and its "how it works" control: the idle opening only, once the opening has revealed its controls. */}
+      {centralMode === 'hold' && !isReconstructing && INTERACTION_PHASES.has(phase) && !howOpen && <HowItWorksTeaser onOpen={() => setHowOpen(true)} />}
+      {howOpen && (
+        <HowItWorksPanel
+          onClose={() => {
+            setHowOpen(false);
+            // Back on the opening, focus returns to the control the section was opened from.
+            requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.hiw-trigger')?.focus());
+          }}
+        />
+      )}
     </div>
   );
 }

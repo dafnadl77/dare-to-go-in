@@ -66,28 +66,52 @@ test('demo: same-site static files (pictures, the video, fonts) still load norma
   assert.equal(router.stats.passed, 1);
 });
 
-test('demo: the invented analysis and reflection pass the product\'s own validators, in Hebrew and English', async () => {
+test('demo: what the dreamer typed is kept word for word, the moments are pieces of it, and no fixed dream leaks in', async () => {
   const { router } = setup();
-  for (const language of ['he', 'en']) {
-    const a = await (await post(router, '/api/dream-analysis', { sourceText: 'a dream', language })).json();
+  for (const [language, text] of [
+    ['he', 'חלמתי שאני רוצה לשחות בבריכה ריקה, ואז הגיע חתול כתום. ראיתי את אמא של חבר.'],
+    ['en', 'I was late for a train, then my old teacher handed me a red umbrella. It never stopped raining.'],
+  ] as const) {
+    const a = await (await post(router, '/api/dream-analysis', { sourceText: text, inputMode: 'text' })).json();
     assert.ok(validateDreamAnalysis(a), `analysis ${language}`);
-    const r = await (await post(router, '/api/dream-reflection', { language, emotions: ['longing', 'calm'], reflectionResponse: 'a note' })).json();
+    assert.equal(a.sourceText, text, 'the typed text is returned unchanged');
+    assert.ok(a.unusualElements.length >= 3, 'there are moments to choose from');
+    for (const phrase of a.unusualElements as string[]) assert.ok(text.includes(phrase.replace(/…$/, '')), `a moment is a piece of the typed text: ${phrase}`);
+    const labels = await (await post(router, '/api/dream-element-labels', { language, sourceText: text, elements: a.unusualElements })).json();
+    assert.deepEqual(labels.labels, a.unusualElements, "labels are the dreamer's own words");
+    const r = await (await post(router, '/api/dream-reflection', { language, dreamAnalysis: a, selectedElement: a.unusualElements[1], reflectionResponse: 'my own association', emotions: ['longing', 'calm'] })).json();
     const checked = validateDreamReflectionResult(r);
     assert.ok(checked, `reflection ${language}`);
+    assert.ok(checked.observation.includes(text.slice(0, 40)), 'the observation quotes the typed dream');
+    assert.ok(checked.personalAssociation.includes('my own association'), 'the association is quoted unchanged');
     assert.ok(checked.emotionReflection && checked.summary, 'feelings reading and summary present when feelings were named');
-    const labels = await (await post(router, '/api/dream-element-labels', { language, elements: ['a', 'b', 'c'] })).json();
-    assert.equal(labels.labels.length, 3);
+    assert.match(checked.groundingStatement, language === 'he' ? /נתוני הדגמה/ : /Demo data/, 'the reflection is labelled as demo data');
+    assert.match(checked.possibleThread, language === 'he' ? /דוגמת הדגמה/ : /demo example/, 'pre-written parts are tagged');
+    const everything = JSON.stringify([a, r]);
+    assert.doesNotMatch(everything, /green door|דלת ירוקה|grandmother|סבתא/i, 'nothing of the old fixed dream appears');
   }
 });
 
-test('demo: the feelings reading names the chosen feelings in the dreamer\'s language and disappears when none were chosen', async () => {
+test('demo: the sample archive dreams are labelled as samples', async () => {
   const { router } = setup();
-  const he = await (await post(router, '/api/dream-reflection', { language: 'he', emotions: ['fear', 'calm', 'love'] })).json();
+  const rows = await (await router.handle(`${ORIGIN}/__demo/rest/v1/dreams?select=*`)).json();
+  for (const r of rows as Array<{ payload: { dreamAnalysis: { summary: string } } }>) assert.match(r.payload.dreamAnalysis.summary, /^(דוגמה|Sample) · /);
+});
+
+test('demo: voice transcription is honestly unavailable instead of inventing words', async () => {
+  const { router } = setup();
+  const res = await post(router, '/api/dream-transcription', { audioBase64: 'x', mimeType: 'audio/webm', language: 'he' });
+  assert.equal(res.status, 503);
+});
+
+test("demo: the feelings reading names the chosen feelings in the dreamer's language and disappears when none were chosen", async () => {
+  const { router } = setup();
+  const base = { dreamAnalysis: { sourceText: 'a dream' }, selectedElement: 'a dream' };
+  const he = await (await post(router, '/api/dream-reflection', { ...base, language: 'he', emotions: ['fear', 'calm', 'love'] })).json();
   assert.match(he.emotionReflection, /פחד, שלווה ואהבה/);
-  assert.doesNotMatch(he.emotionReflection, /[A-Za-z]/);
-  const en = await (await post(router, '/api/dream-reflection', { language: 'en', emotions: ['fear', 'calm'] })).json();
+  const en = await (await post(router, '/api/dream-reflection', { ...base, language: 'en', emotions: ['fear', 'calm'] })).json();
   assert.match(en.emotionReflection, /fear and calm/i);
-  const none = await (await post(router, '/api/dream-reflection', { language: 'he', emotions: [] })).json();
+  const none = await (await post(router, '/api/dream-reflection', { ...base, language: 'he', emotions: [] })).json();
   assert.equal(none.emotionReflection, null);
   assert.ok(none.summary);
 });

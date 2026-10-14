@@ -1,5 +1,6 @@
 import { createDemoRouter, type DemoNetStats } from './demoRouter';
 import { demoSupabaseUrl } from './demoFlag';
+import { mountDemoPanel } from './demoPanel';
 
 /**
  * Turns the page into the demo: fences off the network, signs in an invented demo account, and shows a small "demo" label.
@@ -45,39 +46,5 @@ export function installDemo(): void {
     /* without storage the demo simply opens signed out */
   }
 
-  mountBadge();
-}
-
-const BADGE_TEXT = {
-  he: { short: 'הדגמה · נתונים מדומים', full: 'הדגמה: חלום מומצא, נתונים מדומים וטקסטים שנכתבו מראש. שום דבר לא נשמר, לא נשלח ולא נחשב בתשלום.' },
-  en: { short: 'Demo · made-up data', full: 'Demo: an invented dream, made-up data and pre-written texts. Nothing is saved, sent or charged.' },
-} as const;
-
-function mountBadge(): void {
-  const el = document.createElement('div');
-  el.id = 'demo-badge';
-  el.setAttribute('role', 'status');
-  Object.assign(el.style, {
-    position: 'fixed',
-    right: '10px',
-    bottom: '10px',
-    zIndex: '70',
-    padding: '6px 12px',
-    borderRadius: '999px',
-    background: 'rgba(5, 7, 16, 0.86)',
-    border: '1px solid rgba(244, 240, 232, 0.45)',
-    color: '#f4f0e8',
-    font: "500 15px/1.2 'Heebo', 'Assistant', system-ui, sans-serif",
-    pointerEvents: 'none',
-    maxWidth: 'calc(100vw - 80px)',
-  } satisfies Partial<CSSStyleDeclaration>);
-  const apply = () => {
-    const lang = document.documentElement.lang === 'en' ? 'en' : 'he';
-    el.textContent = BADGE_TEXT[lang].short;
-    el.setAttribute('aria-label', BADGE_TEXT[lang].full);
-    el.title = BADGE_TEXT[lang].full;
-  };
-  apply();
-  new MutationObserver(apply).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
-  document.body.appendChild(el);
+  mountDemoPanel();
 }

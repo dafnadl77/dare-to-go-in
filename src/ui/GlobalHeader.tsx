@@ -84,6 +84,13 @@ function GlobalNavLinks({ active, onMyDreams, onPackages, onAbout }: GlobalNavLi
       >
         {t('hero.aboutNav')}
       </button>
+      {/* The FAQ is a static, search-friendly page of its own (public/faq, public/en/faq), not a screen of the app: a plain link. */}
+      <span className="gh-divider" aria-hidden="true">
+        |
+      </span>
+      <a className="gh-link gh-link--anchor" href={language === 'he' ? '/faq/' : '/en/faq/'} aria-label={t('hero.faqNavAria')} data-cursor-hover>
+        {t('hero.faqNav')}
+      </a>
       </div>
       <span className="gh-divider gh-divider--lang" aria-hidden="true">
         |
@@ -187,7 +194,7 @@ export default function GlobalHeader({ onHome, onMyDreams, onPackages, onAbout, 
     // convention. Hebrew nav labels still render correctly regardless
     // (Hebrew is inherently RTL at the character level; this only fixes
     // the CONTAINER's own left/right placement).
-    <div className="global-header" dir="ltr" data-under={contentUnder ? 'true' : 'false'}>
+    <div className="global-header" dir="ltr" data-under={contentUnder ? 'true' : 'false'} data-halo={active === 'myDreams' ? 'off' : 'on'}>
       <div className="gh-left">
         <BrandMark onHome={onHome} />
       </div>
