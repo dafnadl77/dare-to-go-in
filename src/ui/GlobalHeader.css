@@ -269,6 +269,24 @@ html:not([lang='he']) .gh-link:focus-visible {
   }
 }
 
+/* English on a narrow phone: four links (the FAQ was added) must still fit on one row, so the tracking and the gaps tighten a little.
+   Hebrew already fits and is left exactly as it was. */
+@media (max-width: 420px) {
+  html:not([lang='he']) .gh-links .gh-link {
+    letter-spacing: 0.02em;
+    padding-inline: 0.45em;
+  }
+
+  html:not([lang='he']) .gh-links .gh-link:hover,
+  html:not([lang='he']) .gh-links .gh-link:focus-visible {
+    letter-spacing: 0.02em;
+  }
+
+  html:not([lang='he']) .gh-links .gh-divider {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .gh-brand,
   .gh-link {
