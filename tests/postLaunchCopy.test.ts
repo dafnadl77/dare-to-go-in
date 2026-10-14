@@ -78,3 +78,14 @@ test('shadows: no journey button has a dark wash behind it; only the opening scr
   assert.match(text[1], /rgba\(5, 7, 16, 0\.48\)/, 'lighter than the first version (0.58)');
   assert.match(text[1], /blur\(14px\)/);
 });
+
+test('feelings screen: the continue button is made readable from inside (a night-tone fill and a clearer border), with no wash or shadow outside it', () => {
+  const css = read('src/hero/DreamEmotions.css').replace(/\/\*[\s\S]*?\*\//g, '');
+  const rule = /\.de-actions \.dr-choice \{([^}]*)\}/.exec(css);
+  assert.ok(rule, 'the button has its own rule');
+  assert.match(rule[1], /background: rgba\(6, 8, 18, 0\.62\)/, 'an inner fill');
+  assert.match(rule[1], /border-color: rgba\(244, 240, 232, 0\.85\)/, 'a clearer border');
+  assert.doesNotMatch(rule[1], /box-shadow|text-shadow|filter: drop-shadow/, 'nothing outside the button');
+  const halo = read('src/hero/TextHalo.css').replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.doesNotMatch(halo, /\.dr-choice::before/, 'and still no wash behind it');
+});
