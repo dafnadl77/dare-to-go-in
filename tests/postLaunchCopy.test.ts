@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { he, en } from '../src/i18n/translations.ts';
 import { collectStrings } from '../src/hero/languageIntegrity.ts';
 
@@ -66,26 +66,30 @@ test('home: the opening heading is bold and clearly larger, in a transform so no
   assert.match(css, /min-width: 641px\) and \(max-width: 1023px\) \{\s*\.dream-prompt\.is-revealed \{\s*transform: translateY\(-4px\) scale\(2\)/, 'a tablet is enlarged less, so the English heading is not cut off');
 });
 
-test('shadows: no journey button has a dark wash behind it; only the opening screen\'s own control and plain text blocks keep one', () => {
-  const css = read('src/hero/TextHalo.css').replace(/\/\*[\s\S]*?\*\//g, '');
-  for (const button of ['dr-choice', 'de-skip', 'dr-lenses-toggle', 'dc-portal-label']) {
-    assert.doesNotMatch(css, new RegExp(`\\.${button}::before`), `.${button} has no wash`);
+test('no halos: the blurred dark washes behind text, titles, buttons, links and the header are gone for good, and nothing replaces them', () => {
+  assert.equal(existsSync(new URL('../src/hero/TextHalo.css', import.meta.url)), false, 'the halo stylesheet is deleted');
+  assert.doesNotMatch(read('src/hero/HeroDream.tsx'), /TextHalo/, 'and no longer imported');
+  const header = read('src/ui/GlobalHeader.css');
+  assert.doesNotMatch(header, /\.gh-(brand|links|lang)::before/, 'no wash behind the header words');
+  assert.doesNotMatch(read('src/ui/GlobalHeader.tsx'), /data-halo/);
+  const hiw = read('src/hero/HowItWorks.css');
+  assert.doesNotMatch(hiw, /\.hiw-(tagline|trigger)::before/, 'no wash behind the explanation or its control');
+  // no pseudo-element in the app's styles is a blurred dark smudge (a blur filter on a ::before/::after that has a dark rgba background)
+  for (const file of readdirSync(new URL('../src/hero/', import.meta.url)).filter((f) => f.endsWith('.css'))) {
+    const css = read(`src/hero/${file}`).replace(/\/\*[\s\S]*?\*\//g, '');
+    for (const m of css.matchAll(/([^{}]*::(?:before|after)[^{}]*)\{([^}]*)\}/g)) {
+      const dark = /background:\s*rgba\(\s*(?:[0-9]|1[0-9]|2[0-9]|3[0-9])\s*,\s*(?:[0-9]|1[0-9]|2[0-9]|3[0-9])\s*,\s*(?:[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9])\s*,\s*0?\.[3-9]/.test(m[2]);
+      const blur = /(?<!backdrop-)filter:\s*blur\(/.test(m[2]);
+      assert.ok(!(dark && blur), `${file}: ${m[1].trim()} is a blurred dark wash`);
+    }
   }
-  assert.match(css, /\.htr-type-link::before/, 'the opening screen is untouched');
-  assert.match(css, /\.dream-prompt::before,\s*\.htr-label::before/, 'so are its heading and hold label');
-  const text = /\.dr-thought::before,[\s\S]*?\.da-choice-row::before \{([^}]*)\}/.exec(css);
-  assert.ok(text, 'the text wash is still there');
-  assert.match(text[1], /rgba\(5, 7, 16, 0\.48\)/, 'lighter than the first version (0.58)');
-  assert.match(text[1], /blur\(14px\)/);
 });
 
-test('feelings screen: the continue button is made readable from inside (a night-tone fill and a clearer border), with no wash or shadow outside it', () => {
+test('feelings screen: the continue button is made readable from inside by a solid night-tone fill and a clearer border, with no blur, wash or shadow', () => {
   const css = read('src/hero/DreamEmotions.css').replace(/\/\*[\s\S]*?\*\//g, '');
   const rule = /\.de-actions \.dr-choice \{([^}]*)\}/.exec(css);
   assert.ok(rule, 'the button has its own rule');
-  assert.match(rule[1], /background: rgba\(6, 8, 18, 0\.62\)/, 'an inner fill');
+  assert.match(rule[1], /background: rgba\(6, 8, 18, 0\.7\)/, 'an inner fill');
   assert.match(rule[1], /border-color: rgba\(244, 240, 232, 0\.85\)/, 'a clearer border');
-  assert.doesNotMatch(rule[1], /box-shadow|text-shadow|filter: drop-shadow/, 'nothing outside the button');
-  const halo = read('src/hero/TextHalo.css').replace(/\/\*[\s\S]*?\*\//g, '');
-  assert.doesNotMatch(halo, /\.dr-choice::before/, 'and still no wash behind it');
+  assert.doesNotMatch(rule[1], /blur|box-shadow|text-shadow|drop-shadow/, 'nothing soft or outside the button');
 });

@@ -144,12 +144,10 @@
 }
 
 /* The "discover what the dream reveals" button sits on the bright horizon glow, where its label measured only 2.3:1 at worst and 3.9:1 at the
-   median. The fix is inside the button, like the feeling chips beside it: a calm night-tone fill with a light blur, and a clearer border.
-   There is no wash or shadow outside the button. Only this button: the other choice buttons of the journey are not changed. */
+   median. The fix is inside the button, like the feeling chips beside it: a calm solid night-tone fill and a clearer border.
+   There is no blur, wash or shadow, inside or outside the button. Only this button: the other choice buttons of the journey are not changed. */
 .de-actions .dr-choice {
-  background: rgba(6, 8, 18, 0.62);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  background: rgba(6, 8, 18, 0.7);
   border-color: rgba(244, 240, 232, 0.85);
   font-weight: 700;
 }

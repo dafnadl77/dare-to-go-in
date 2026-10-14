@@ -54,18 +54,6 @@
   }
 }
 
-.hiw-tagline::before,
-.hiw-trigger::before {
-  content: '';
-  position: absolute;
-  inset: -0.5rem -1.1rem;
-  z-index: -1;
-  border-radius: 22px;
-  background: rgba(5, 7, 16, 0.58);
-  filter: blur(11px);
-  pointer-events: none;
-}
-
 .hiw-trigger {
   position: relative;
   isolation: isolate;

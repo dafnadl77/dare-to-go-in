@@ -194,7 +194,7 @@ export default function GlobalHeader({ onHome, onMyDreams, onPackages, onAbout, 
     // convention. Hebrew nav labels still render correctly regardless
     // (Hebrew is inherently RTL at the character level; this only fixes
     // the CONTAINER's own left/right placement).
-    <div className="global-header" dir="ltr" data-under={contentUnder ? 'true' : 'false'} data-halo={active === 'myDreams' ? 'off' : 'on'}>
+    <div className="global-header" dir="ltr" data-under={contentUnder ? 'true' : 'false'}>
       <div className="gh-left">
         <BrandMark onHome={onHome} />
       </div>

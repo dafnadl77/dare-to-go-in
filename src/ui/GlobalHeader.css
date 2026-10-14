@@ -58,37 +58,6 @@
   }
 }
 
-/* A soft local darkening behind the header's words (wordmark, links, language switch). A text-shadow does not count towards
-   contrast, and on screens that open with a bright picture right under the header (the dream image's lit water and sky) the words
-   measured below 4.5:1. This is an edge-less wash of the night-sky colour: no fill, no border, invisible over the dark sky, and it
-   never covers the content below (a few pixels around the words only). Same wash as src/hero/TextHalo.css. */
-.gh-brand,
-.gh-links,
-.gh-lang {
-  position: relative;
-  isolation: isolate;
-}
-
-.gh-brand::before,
-.gh-links::before,
-.gh-lang::before {
-  content: '';
-  position: absolute;
-  inset: -0.2rem -0.7rem;
-  z-index: -1;
-  border-radius: 999px;
-  background: rgba(5, 7, 16, 0.6);
-  filter: blur(9px);
-  pointer-events: none;
-}
-
-/* My Dreams (the archive and a dream's page) keeps its approved look exactly: no wash behind the header words there. */
-.global-header[data-halo='off'] .gh-brand::before,
-.global-header[data-halo='off'] .gh-links::before,
-.global-header[data-halo='off'] .gh-lang::before {
-  display: none;
-}
-
 .gh-left,
 .gh-nav {
   display: flex;
