@@ -76,10 +76,10 @@ export const FAQ_ITEMS: readonly FaqItem[] = [
     id: 'free-dream',
     q: { he: 'האם החלום הראשון בחינם?', en: 'Is the first dream free?' },
     a: {
-      he: 'כן. בהרשמה מקבלים חלום אחד בחינם, אחד לכל חשבון. מצטרפים בהרשמה קצרה (אימייל וסיסמה, או חשבון Google) ואז מתחילים לספר.',
-      en: 'Yes. When you sign up you get one free dream, one per account. You join with a short sign-up (email and password, or a Google account) and then you start telling.',
+      he: 'כן. בהרשמה מקבלים חלום אחד בחינם, אחד לכל חשבון. אם כבר נוצל חלום חינם מהדפדפן הזה, לא יינתן עוד אחד. מצטרפים בהרשמה קצרה (אימייל וסיסמה, או חשבון Google) ואז מתחילים לספר.',
+      en: 'Yes. When you sign up you get one free dream, one per account. If a free dream has already been used from this browser, another one is not given. You join with a short sign-up (email and password, or a Google account) and then you start telling.',
     },
-    source: 'server/freeDream.ts (decide_account_free_dream: one free dream per account); AuthContext (email or Google)',
+    source: 'server/freeDream.ts (decide_account_free_dream: one free dream per account; outcomes browser_used / used_as_guest give nothing more); AuthContext (email or Google)',
   },
   {
     id: 'subscription',
@@ -121,10 +121,10 @@ export const FAQ_ITEMS: readonly FaqItem[] = [
     id: 'delete',
     q: { he: 'האם אפשר למחוק חלום או חשבון?', en: 'Can I delete a dream or an account?' },
     a: {
-      he: 'כן. אפשר למחוק חלום מהארכיון. חשבון נמחק מההגדרות ("מחיקת חשבון"), וזה מסיר את החשבון, את כל החלומות והתמונות, ההרהורים והחלומות שלא נוצלו בחבילה. הפעולה אינה הפיכה.',
-      en: 'Yes. You can delete a dream from the archive. An account is deleted from Settings ("Delete account"), which removes the account, all dreams and images, the reflections and any unused dreams in a package. This cannot be undone.',
+      he: 'כן. אפשר למחוק חלום מהארכיון. חשבון נמחק מההגדרות ("מחיקת חשבון"), וזה מסיר את החשבון, את כל החלומות והתמונות, ההרהורים והחלומות שלא נוצלו בחבילה. הפעולה אינה הפיכה. רשומות תשלום, אם יש, נשמרות רק בלי קישור לחשבון.',
+      en: 'Yes. You can delete a dream from the archive. An account is deleted from Settings ("Delete account"), which removes the account, all dreams and images, the reflections and any unused dreams in a package. This cannot be undone. Payment records, if any, are kept only without a link to your account.',
     },
-    source: 'DeleteDreamDialog, DeleteAccountDialog / server/accountDeletion.ts; Privacy Policy "Your choices"',
+    source: 'DeleteDreamDialog, DeleteAccountDialog / server/accountDeletion.ts (delete_account_data anonymizes payment records); Privacy Policy "Your choices" and "Payments"',
   },
   {
     id: 'pdf',
