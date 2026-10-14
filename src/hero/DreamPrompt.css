@@ -43,6 +43,14 @@
     transform 2.2s var(--ease-memory);
 }
 
+/* A tablet: the English heading (capital letters, wide letter-spacing) is about 820px wide at the desktop scale and would be cut off at both edges,
+   exactly what the 768px fix in dee3779 had cured, so it is enlarged less here. */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .dream-prompt.is-revealed {
+    transform: translateY(-4px) scale(2);
+  }
+}
+
 /* On narrow viewports the unscaled phrase already wraps close to the
    full available width (confirmed live: ~337px unscaled at 375px wide) —
    the desktop `scale(1.9)`/`scale(1.5)` transforms then render it at

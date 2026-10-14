@@ -63,6 +63,7 @@ test('home: the opening heading is bold and clearly larger, in a transform so no
   assert.match(css, /\.dream-prompt \{[^}]*font-weight: 700;/);
   assert.match(css, /\.dream-prompt\.is-revealed \{[^}]*scale\(2\.3\)/);
   assert.match(css, /\.dream-prompt\.is-revealed \{\s*transform: translateY\(-4px\) scale\(1\.6\)/);
+  assert.match(css, /min-width: 641px\) and \(max-width: 1023px\) \{\s*\.dream-prompt\.is-revealed \{\s*transform: translateY\(-4px\) scale\(2\)/, 'a tablet is enlarged less, so the English heading is not cut off');
 });
 
 test('shadows: no journey button has a dark wash behind it; only the opening screen\'s own control and plain text blocks keep one', () => {
