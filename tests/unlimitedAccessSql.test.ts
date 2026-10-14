@@ -35,7 +35,7 @@ async function freshDb(): Promise<PGlite> {
     );
   `);
   await db.query('insert into auth.users (id, email, email_confirmed_at) values ($1, $2, now())', [ADMIN_ID, ADMIN_EMAIL]);
-  for (const m of ['20260924_credits_entitlement.sql', '20260925_idempotent_analysis.sql', '20261009_app_owner.sql', '20261009_app_owner_cap_saturation.sql', '20261014_unlimited_access.sql']) {
+  for (const m of ['20260924_credits_entitlement.sql', '20260925_idempotent_analysis.sql', '20261009_app_owner.sql', '20261009_app_owner_cap_saturation.sql', '20261014_unlimited_access.sql', '20261015_unlimited_access_keep_limits.sql']) {
     await db.exec(sql(m));
   }
   return db;
@@ -103,18 +103,9 @@ test('a granted account creates dreams without limit and without being charged: 
       const s = await startIdem(u.id, 100 + i, hx(i));
       assert.equal(s.status, 'created', `dream ${i + 1} is created (balance ${startBalance})`);
     }
-    // the other creation route (start_user_attempt) and the per-dream caps (images / reflections / labels) are lifted too
+    // the other creation route (start_user_attempt) is free too; the per-dream technical caps still apply to it (see the next test)
     const direct = await one('select public.start_user_attempt($1) as r', [u.id]);
     assert.equal(direct.status, 'created');
-    const attempt = String(direct.attempt_id);
-    for (let i = 0; i < 5; i += 1) {
-      for (const fn of ['reserve_image_attempt', 'reserve_reflection_attempt']) {
-        const r = await db.query<{ v: number | null }>(`select public.${fn}($1, $2, null) as v`, [attempt, u.id]);
-        assert.notEqual(r.rows[0].v, null, `${fn} #${i + 1} proceeds for an unlimited account`);
-      }
-      const l = await db.query<{ v: number | null }>('select public.reserve_labels_attempt($1, $2, null, 2) as v', [attempt, u.id]);
-      assert.notEqual(l.rows[0].v, null, 'label reservation proceeds');
-    }
     assert.equal(await balance(u.id), startBalance, 'the balance never moved');
     assert.equal(await ledgerCount(u.id), ledgerBefore, 'no ledger row was written');
   }
@@ -249,5 +240,65 @@ test('the rollback script returns every granted account to the regular rules, ke
     assert.equal((await db2.query<{ t: string | null }>("select to_regclass('public.unlimited_dream_access')::text as t")).rows[0].t, null);
   } finally {
     await db2.close();
+  }
+});
+
+test('a granted account stays under the per-dream technical caps like a regular account; only the app owner has them lifted', async () => {
+  const capped = async (who: string) => {
+    const started = await one('select public.start_user_attempt($1) as r', [who]);
+    const attempt = String(started.attempt_id);
+    const seen: Record<string, Array<number | null>> = { image: [], reflection: [], labels: [] };
+    for (let i = 0; i < 6; i += 1) {
+      seen.image.push((await db.query<{ v: number | null }>('select public.reserve_image_attempt($1, $2, null) as v', [attempt, who])).rows[0].v);
+      seen.reflection.push((await db.query<{ v: number | null }>('select public.reserve_reflection_attempt($1, $2, null) as v', [attempt, who])).rows[0].v);
+      seen.labels.push((await db.query<{ v: number | null }>('select public.reserve_labels_attempt($1, $2, null, 3) as v', [attempt, who])).rows[0].v);
+    }
+    return seen;
+  };
+  const regular = await newUser();
+  await addCredits(regular.id, 1, `purchase-${regular.id}`);
+  const granted = await newUser();
+  await grantTo(ADMIN_ID, granted.email);
+
+  const regularSeen = await capped(regular.id);
+  const grantedSeen = await capped(granted.id);
+  const ownerSeen = await capped(ADMIN_ID);
+
+  // regular: 1, 2, 3 and then refused (null) — and the granted account behaves exactly the same
+  assert.deepEqual(regularSeen.image, [1, 2, 3, null, null, null]);
+  assert.deepEqual(regularSeen.reflection, [1, 2, 3, null, null, null]);
+  assert.deepEqual(regularSeen.labels, [1, 2, 3, null, null, null]);
+  assert.deepEqual(grantedSeen, regularSeen, 'a granted account is capped exactly like a regular one');
+  // the owner keeps proceeding past the caps
+  for (const list of Object.values(ownerSeen)) assert.ok(list.every((v) => v !== null), 'the app owner is never stopped by a per-dream cap');
+});
+
+test('is_dream_admin is true for the app owner only, and is_app_owner (no charge) is true for both', async () => {
+  const granted = await newUser();
+  await grantTo(ADMIN_ID, granted.email);
+  const admin = async (id: string) => (await db.query<{ r: boolean }>('select public.is_dream_admin($1) as r', [id])).rows[0].r;
+  assert.equal(await admin(ADMIN_ID), true);
+  assert.equal(await admin(granted.id), false);
+  assert.equal(await isUnlimited(granted.id), true);
+  assert.equal(await isUnlimited(ADMIN_ID), true);
+});
+
+test('after the rollback the per-dream caps work again with the previous definitions: capped for a regular account, lifted for the owner', async () => {
+  const db3 = await freshDb();
+  try {
+    await db3.exec(readFileSync(new URL('../supabase/rollbacks/20261014_unlimited_access_rollback.sql', import.meta.url), 'utf8'));
+    const mk = async (email: string) => (await db3.query<{ id: string }>('insert into auth.users (email, email_confirmed_at) values ($1, now()) returning id', [email])).rows[0].id;
+    const regular = await mk('after-rollback@example.com');
+    const seen = async (who: string) => {
+      const attempt = String(((await db3.query<{ r: { attempt_id: string } }>('select public.start_user_attempt($1) as r', [who])).rows[0].r).attempt_id);
+      const out: Array<number | null> = [];
+      for (let i = 0; i < 5; i += 1) out.push((await db3.query<{ v: number | null }>('select public.reserve_image_attempt($1, $2, null) as v', [attempt, who])).rows[0].v);
+      return out;
+    };
+    await db3.query("select public.grant_credits($1, 1, 'purchase', 'rb-caps')", [regular]);
+    assert.deepEqual(await seen(regular), [1, 2, 3, null, null]);
+    assert.ok((await seen(ADMIN_ID)).every((v) => v !== null), 'the owner is still not stopped by the caps');
+  } finally {
+    await db3.close();
   }
 });

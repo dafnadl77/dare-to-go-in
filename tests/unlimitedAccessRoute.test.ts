@@ -178,3 +178,28 @@ test('the area is named "גישה ללא הגבלה" / "Unlimited access", in bo
   assert.match(he.archive.unlimitedNotRegistered, /לא נוצר חשבון/);
   assert.match(he.archive.balanceOwner, /חלומות ללא הגבלה/, 'a granted account sees "unlimited dreams" in place of the balance');
 });
+
+test('only the app owner is exempt from the usage limits: a granted account, an undetermined role and a regular account are all limited', async () => {
+  const { rateLimitExempt } = await import('../server/unlimitedAccess.ts');
+  assert.equal(rateLimitExempt(true, true), true, 'the app owner is exempt');
+  assert.equal(rateLimitExempt(true, false), false, 'a granted account is not exempt');
+  assert.equal(rateLimitExempt(true, null), false, 'an undetermined admin answer is not an exemption');
+  assert.equal(rateLimitExempt(null, true), false);
+  assert.equal(rateLimitExempt(null, null), false);
+  assert.equal(rateLimitExempt(false, false), false);
+  assert.equal(rateLimitExempt(false, true), false);
+});
+
+test('wiring: the transcription rate limit applies to every signed-in account except the verified app owner; the balance check is still skipped for an unlimited account', () => {
+  const route = code('server/routes/dreamTranscription.ts');
+  // the no-charge rule is unchanged: an unlimited account skips the balance check
+  assert.match(route, /if \(resolved\.identity\.kind === 'user' && ownerCheck !== true\) \{\s*let balance = await getCreditBalance/);
+  // the rate limit is outside that block, for every signed-in account, and exempts only a verified owner
+  assert.match(route, /if \(resolved\.identity\.kind === 'user'\) \{\s*const exempt = rateLimitExempt\(ownerCheck, ownerCheck === true \? await isDreamAdmin\(resolved\.identity\.userId\) : null\);\s*if \(!exempt\) \{\s*const decision = await enforceRateLimits\(/);
+  assert.ok(route.indexOf('const exempt = rateLimitExempt') > route.indexOf('credits_required'), 'the balance check still comes first');
+  assert.equal((route.match(/enforceRateLimits\(databaseRateLimitStore/g) ?? []).length, 1, 'one rate-limit call, no second path');
+  // the database caps use the admin check, not the no-charge check
+  const caps = read('supabase/migrations/20261015_unlimited_access_keep_limits.sql');
+  assert.equal((caps.match(/public\.is_dream_admin\(p_owner_id\)/g) ?? []).length, 3, 'images, reflections and labels');
+  assert.ok(!/public\.is_app_owner\(/.test(caps.replace(/--.*$/gm, '')), 'no cap uses the no-charge check any more');
+});

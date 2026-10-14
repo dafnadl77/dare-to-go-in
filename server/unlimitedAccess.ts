@@ -30,6 +30,15 @@ export async function isDreamAdmin(userId: string): Promise<boolean | null> {
   return error || typeof data !== 'boolean' ? null : data;
 }
 
+/**
+ * Who is exempt from the usage/abuse limits (the transcription rate limit and, in the database, the per-dream technical caps): the app
+ * owner ONLY. An account that was granted unlimited access (`unlimited` true, `admin` false) is not charged, but is limited like anyone
+ * else; an undetermined answer on either side is never an exemption.
+ */
+export function rateLimitExempt(unlimited: boolean | null, admin: boolean | null): boolean {
+  return unlimited === true && admin === true;
+}
+
 export function parseGrantOutcome(data: unknown): GrantOutcome | null {
   if (!isRecord(data) || typeof data.status !== 'string') return null;
   switch (data.status) {

@@ -4,6 +4,7 @@ import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpR
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
 import { reserveTrialTranscription, refundTrialTranscription, getCreditBalance, isAppOwner } from '../dreamAttempts.js';
 import { freeDreamGrantedNow } from '../freeDream.js';
+import { isDreamAdmin, rateLimitExempt } from '../unlimitedAccess.js';
 import { guestDreamsAllowed, SIGN_IN_REQUIRED_MESSAGE, SIGN_IN_REQUIRED_REASON } from '../guestPolicy.js';
 import { databaseRateLimitStore, enforceRateLimits, transcriptionRules } from '../rateLimit.js';
 import { CREDITS_REQUIRED_MESSAGE, FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
@@ -162,15 +163,21 @@ export async function handleDreamTranscription(rawBody: unknown, requestHeaders:
     if (balance < 1) {
       return withHeaders(errorResult(402, 'credits_required', CREDITS_REQUIRED_MESSAGE), cookieHeaders);
     }
-    // A paying account is also bounded in HOW OFTEN it may send a recording (shared across all server instances, see rateLimit.ts), so one
-    // credit can never become unbounded AI spend. Generous for real use: a recording and a retry or two per dream. The app owner is
-    // exempt, as everywhere (unlimited dreams); an undetermined role is limited like anyone else.
-    const decision = await enforceRateLimits(databaseRateLimitStore, 'transcribe', resolved.identity.userId, transcriptionRules(), console.warn);
-    if (!decision.allowed) {
-      return withHeaders(errorResult(429, 'rate_limited', 'Too many recordings in a short time. Please wait a moment and try again.'), {
-        ...cookieHeaders,
-        'Retry-After': String(decision.retryAfterSeconds),
-      });
+  }
+  // A signed-in account is also bounded in HOW OFTEN it may send a recording (shared across all server instances, see rateLimit.ts), so one
+  // credit can never become unbounded AI spend. Generous for real use: a recording and a retry or two per dream. Only the app owner itself
+  // is exempt: an account that was GRANTED unlimited access skips the balance check above (it is not charged) but stays under this limit
+  // like everyone else, and an undetermined role is limited like anyone else.
+  if (resolved.identity.kind === 'user') {
+    const exempt = rateLimitExempt(ownerCheck, ownerCheck === true ? await isDreamAdmin(resolved.identity.userId) : null);
+    if (!exempt) {
+      const decision = await enforceRateLimits(databaseRateLimitStore, 'transcribe', resolved.identity.userId, transcriptionRules(), console.warn);
+      if (!decision.allowed) {
+        return withHeaders(errorResult(429, 'rate_limited', 'Too many recordings in a short time. Please wait a moment and try again.'), {
+          ...cookieHeaders,
+          'Retry-After': String(decision.retryAfterSeconds),
+        });
+      }
     }
   }
   let reservedTranscription = false;
