@@ -308,11 +308,11 @@ export function demoInitialRows(now: number): Json[] {
   const longEn = 'I dreamed that I was flying over an enormous blue sea while golden light spilled from the horizon. '.repeat(7);
   return [
     savedRow('a0000001-0000-4000-8000-000000000001', true, 'דוגמה · עפתי מעל הים', 'חלמתי שאני עפה מעל ים כחול אל בית ישן עם דלת ירוקה.', 1, true, IMAGES[0], now, ['longing', 'calm', 'wonder'], ['flying_falling', 'water', 'home_dwelling']),
-    savedRow('a0000001-0000-4000-8000-000000000002', false, 'Sample · Flying toward a green door', 'I was flying over a blue sea toward an old house with a green door.', 2, false, IMAGES[2], now, ['fear', 'excitement'], ['flying_falling', 'home_dwelling']),
+    savedRow('a0000001-0000-4000-8000-000000000002', false, 'Sample · Flying to a green door', 'I was flying over a blue sea toward an old house with a green door.', 2, false, IMAGES[2], now, ['fear', 'excitement'], ['flying_falling', 'home_dwelling']),
     savedRow('a0000001-0000-4000-8000-000000000003', true, 'דוגמה · ים אינסופי', longHe, 5, false, IMAGES[1], now, undefined, ['water']),
     savedRow('a0000001-0000-4000-8000-000000000004', false, 'Sample · The corridor', 'A long corridor with many doors.', 9, true, IMAGES[1], now),
     savedRow('a0000001-0000-4000-8000-000000000005', true, 'דוגמה · בית ישן', 'חלמתי על בית ישן.', 14, false, null, now, undefined, ['home_dwelling']),
-    savedRow('a0000001-0000-4000-8000-000000000006', false, 'Sample · Golden light over the water', longEn, 20, false, IMAGES[0], now, undefined, ['water']),
+    savedRow('a0000001-0000-4000-8000-000000000006', false, 'Sample · Golden light on water', longEn, 20, false, IMAGES[0], now, undefined, ['water']),
   ];
 }
 
@@ -332,9 +332,9 @@ const GLOSSARY: Array<[he: string, en: string]> = [
   ['דוגמה · עפתי מעל הים', 'Sample · I flew over the sea'],
   ['דוגמה · ים אינסופי', 'Sample · Endless sea'],
   ['דוגמה · בית ישן', 'Sample · An old house'],
-  ['דוגמה · עפה אל דלת ירוקה', 'Sample · Flying toward a green door'],
+  ['דוגמה · עפה אל דלת ירוקה', 'Sample · Flying to a green door'],
   ['דוגמה · המסדרון', 'Sample · The corridor'],
-  ['דוגמה · אור זהוב מעל המים', 'Sample · Golden light over the water'],
+  ['דוגמה · אור זהוב מעל המים', 'Sample · Golden light on water'],
 ];
 
 export function translateSample(text: string, target: 'he' | 'en'): string {

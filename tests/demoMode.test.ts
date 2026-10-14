@@ -209,3 +209,12 @@ test('demo: English shows English and Hebrew shows Hebrew for the sample dreams,
   const typed = 'חלמתי על קיפוד כחול';
   assert.equal(translateSample(typed, 'en'), typed, 'a dream the visitor typed is never altered');
 });
+
+test('demo: English sample titles fit the 34 characters the archive keeps, so their Hebrew form is found and never shows as cut-off English', async () => {
+  const { router } = setup();
+  const rows = (await (await router.handle(`${ORIGIN}/__demo/rest/v1/dreams?select=*`)).json()) as Array<{ payload: { dreamAnalysis: { summary: string } } }>;
+  for (const r of rows) {
+    const title = r.payload.dreamAnalysis.summary;
+    if (/^Sample/.test(title)) assert.ok(title.length <= 34, `"${title}" is ${title.length} characters`);
+  }
+});
