@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400&family=Heebo:wght@400;500;600&display=swap" rel="stylesheet">
-<style>:root{color-scheme:dark;--ink:#f4f0e8;--bg:#060706;--line:rgba(244,240,232,.28)}
+<style>:root{color-scheme:dark;--page-dir:rtl;--ink:#f4f0e8;--bg:#060706;--line:rgba(244,240,232,.28)}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--bg)}
 body{min-height:100vh;color:var(--ink);font-family:'Heebo','Assistant',system-ui,sans-serif;font-size:1.05rem;line-height:1.75;background:radial-gradient(120% 70% at 50% 0%,#101a3a 0%,#0a0f26 38%,#060706 100%) fixed}
@@ -25,11 +25,11 @@ a{color:#fff}
 a:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:4px}
 .skip{position:absolute;inset-inline-start:-999px;top:0;background:#000;color:#fff;padding:.6rem 1rem;z-index:10}
 .skip:focus{inset-inline-start:.5rem;top:.5rem}
-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.6rem 1.4rem;padding:1.1rem max(20px,5vw)}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.6rem 1.4rem;padding:1.1rem max(20px,5vw);direction:ltr}
 .brand{font-family:'Fraunces',Georgia,serif;font-size:1.3rem;letter-spacing:.08em;text-decoration:none;color:var(--ink);direction:ltr}
-nav{display:flex;flex-wrap:wrap;align-items:center;gap:.2rem 1.1rem}
-nav a{font-size:1rem;font-weight:600;text-decoration:none;padding:.35em .2em}
-nav a:hover,nav a[aria-current=page]{text-decoration:underline;text-underline-offset:.3em}
+header nav{display:flex;flex-wrap:wrap;align-items:center;gap:.2rem 1.1rem;direction:var(--page-dir)}
+header nav a{font-size:1rem;font-weight:600;text-decoration:none;padding:.35em .2em}
+header nav a:hover,header nav a[aria-current=page]{text-decoration:underline;text-underline-offset:.3em}
 main{max-width:46rem;margin:0 auto;padding:1.6rem max(20px,5vw) 3rem}
 h1{font-size:clamp(1.9rem,5vw,2.8rem);font-weight:500;line-height:1.2;text-wrap:balance}
 .lead{margin-top:.8rem}
