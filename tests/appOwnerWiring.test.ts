@@ -79,7 +79,8 @@ test('the owner is never sent to Pricing by a zero balance, and the UI shows unl
   const credits = code('src/credits/credits.ts');
   assert.match(credits, /return summary && !summary\.owner && !summary\.roleUnknown && !summary\.freeDreamUndecided \? summary\.balance : null;/);
   const plan = code('src/credits/useAccountPlan.ts');
-  assert.match(plan, /summary\?\.owner \? \{ status: 'owner' \}/);
+  // the owner state may also carry the verified-administrator flag (the unlimited-access area); it is never derived from anything the browser holds
+  assert.match(plan, /summary\?\.owner \? \{ status: 'owner', \.\.\.\(summary\.admin \? \{ admin: true as const \} : \{\}\) \}/);
 
   const archive = read('src/archive/DreamArchive.tsx');
   assert.match(archive, /accountPlan\.status === 'owner'/);

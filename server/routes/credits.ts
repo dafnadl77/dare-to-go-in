@@ -5,6 +5,7 @@ import { getPaymentOrderState } from '../payments/orderStore.js';
 import { getPurchasedPackage } from '../payments/purchasedPackage.js';
 import { getCreditHistory } from '../creditHistory.js';
 import { ensureFreeDreamDecision } from '../freeDream.js';
+import { isDreamAdmin } from '../unlimitedAccess.js';
 
 /**
  * GET /api/credits — the signed-in account's server-side dream-credit balance.
@@ -32,7 +33,10 @@ export async function handleCredits(requestHeaders: RequestHeaders, orderId?: st
     // `balance` is advisory and meaningless for the owner (nothing is ever spent). It is never reported as 0, so a browser tab that
     // is still running a version from before the owner role existed — which sends any account whose balance is exactly 0 to
     // Pricing — can never send the owner there.
-    return okResult({ balance: Math.max((await getCreditBalance(verified.userId)) ?? 0, 1), owner: true });
+    // `admin` is true only for the verified administrator (it shows the unlimited-access area); an account that was GRANTED unlimited access is
+    // an owner for the purposes of dreams and never an admin. An undetermined answer is simply not sent.
+    const admin = await isDreamAdmin(verified.userId);
+    return okResult({ balance: Math.max((await getCreditBalance(verified.userId)) ?? 0, 1), owner: true, ...(admin === true ? { admin: true } : {}) });
   }
   // The one-time free-dream decision is settled BEFORE the balance is read (see freeDream.ts): idempotent, so asking again changes nothing,
   // and never throws. The payment-return poll (orderId) skips it.

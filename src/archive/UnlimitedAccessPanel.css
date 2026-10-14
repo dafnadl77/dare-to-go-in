@@ -1,0 +1,154 @@
+/* The administrator's "Unlimited access" area in Settings. Plain rows and the same pill buttons as the rest of Settings: no wash, blur or shadow. */
+.ua-panel {
+  margin-top: clamp(1.5rem, 3vw, 2.25rem);
+  padding-top: 1.4rem;
+  border-top: 1px solid rgba(244, 240, 232, 0.12);
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  color: var(--dream-white);
+}
+
+.ua-title {
+  margin: 0 0 0.4rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.ua-intro {
+  margin: 0 0 1.1rem;
+  max-width: 40em;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--dream-warm-neutral);
+}
+
+.ua-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.ua-label {
+  font-size: 1rem;
+  color: var(--dream-warm-neutral);
+}
+
+.ua-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.ua-input {
+  flex: 1 1 16rem;
+  min-width: 0;
+  padding: 0.55em 0.9em;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 240, 232, 0.4);
+  background: rgba(6, 8, 18, 0.5);
+  color: var(--dream-white);
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.ua-input:focus-visible {
+  outline: none;
+  border-color: rgba(244, 240, 232, 0.85);
+}
+
+.ua-btn {
+  padding: 0.5em 1.1em;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid rgba(244, 240, 232, 0.4);
+  color: var(--dream-white);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ua-btn:hover:not(:disabled),
+.ua-btn:focus-visible {
+  border-color: rgba(244, 240, 232, 0.8);
+  background: rgba(244, 240, 232, 0.08);
+}
+
+.ua-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ua-btn--primary {
+  background: rgba(244, 240, 232, 0.12);
+  border-color: var(--dream-btn-border);
+}
+
+.ua-btn--danger {
+  border-color: rgba(255, 160, 150, 0.7);
+}
+
+.ua-notice {
+  margin: 0.9rem 0 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.ua-notice--ok {
+  color: var(--dream-white);
+}
+
+.ua-notice--error {
+  color: #ffb4a8;
+}
+
+.ua-list-title {
+  margin: 1.6rem 0 0.4rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.ua-muted {
+  margin: 0.4rem 0 0;
+  font-size: 1rem;
+  color: var(--dream-warm-neutral);
+}
+
+.ua-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ua-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  padding: 0.85em 0;
+  border-bottom: 1px solid rgba(244, 240, 232, 0.12);
+}
+
+.ua-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.ua-item-email {
+  font-size: 1.0625rem;
+  overflow-wrap: anywhere;
+}
+
+.ua-item-date {
+  font-size: 0.9375rem;
+  color: var(--dream-warm-neutral);
+}
+
+.ua-item-confirm {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.7rem;
+}

@@ -240,6 +240,31 @@ export interface Translations {
     settingsOwnerValue: string;
     settingsDreamsLabel: string;
     settingsDreamsUnlimited: string;
+    unlimitedTitle: string;
+    unlimitedIntro: string;
+    unlimitedEmailLabel: string;
+    unlimitedEmailPlaceholder: string;
+    unlimitedGrantButton: string;
+    unlimitedGranting: string;
+    unlimitedGranted: string;
+    unlimitedAlready: string;
+    unlimitedOwnerAccount: string;
+    unlimitedNotRegistered: string;
+    unlimitedInvalid: string;
+    unlimitedError: string;
+    unlimitedForbidden: string;
+    unlimitedListTitle: string;
+    unlimitedListLoading: string;
+    unlimitedListError: string;
+    unlimitedListEmpty: string;
+    unlimitedColEmail: string;
+    unlimitedColDate: string;
+    unlimitedRevoke: string;
+    unlimitedRevokeConfirm: string;
+    unlimitedRevokeKeep: string;
+    unlimitedRevokeNote: string;
+    unlimitedRevoked: string;
+    unlimitedRevokeMissing: string;
     settingsDreamsPurchasedLabel: string;
     settingsDreamsRemainingLabel: string;
     balanceLoading: string;
@@ -698,6 +723,31 @@ export const en: Translations = {
     settingsOwnerValue: 'App owner',
     settingsDreamsLabel: 'Dreams',
     settingsDreamsUnlimited: 'Unlimited ∞',
+    unlimitedTitle: 'Unlimited access',
+    unlimitedIntro: 'Give an existing account permanent, unlimited dream creation. It stays until you revoke it, and the account\'s credits are never changed.',
+    unlimitedEmailLabel: 'Account email',
+    unlimitedEmailPlaceholder: 'name@example.com',
+    unlimitedGrantButton: 'Grant access',
+    unlimitedGranting: 'Granting…',
+    unlimitedGranted: 'Access granted:',
+    unlimitedAlready: 'This account already has unlimited access:',
+    unlimitedOwnerAccount: 'This is the administrator account, which is always unlimited:',
+    unlimitedNotRegistered: 'There is no registered account with this email, and none was created.',
+    unlimitedInvalid: 'Enter a valid email address.',
+    unlimitedError: 'Something went wrong. Nothing was changed. You can try again.',
+    unlimitedForbidden: 'This area is for the administrator only.',
+    unlimitedListTitle: 'Accounts with unlimited access',
+    unlimitedListLoading: 'Loading…',
+    unlimitedListError: 'The list could not be loaded.',
+    unlimitedListEmpty: 'No account has been granted unlimited access yet.',
+    unlimitedColEmail: 'Email',
+    unlimitedColDate: 'Granted on',
+    unlimitedRevoke: 'Revoke access',
+    unlimitedRevokeConfirm: 'Confirm revoke',
+    unlimitedRevokeKeep: 'Keep access',
+    unlimitedRevokeNote: 'The account goes back to its regular credits.',
+    unlimitedRevoked: 'Access revoked:',
+    unlimitedRevokeMissing: 'This account no longer had access.',
     settingsDreamsPurchasedLabel: 'Dreams purchased',
     settingsDreamsRemainingLabel: 'Dreams remaining',
     balanceLoading: 'Checking your dreams…',
@@ -1185,6 +1235,31 @@ export const he: Translations = {
     settingsOwnerValue: 'בעלת האפליקציה',
     settingsDreamsLabel: 'חלומות',
     settingsDreamsUnlimited: 'ללא הגבלה ∞',
+    unlimitedTitle: 'גישה ללא הגבלה',
+    unlimitedIntro: 'אפשר להעניק לחשבון קיים יצירת חלומות ללא הגבלה. ההרשאה נשארת עד שמבטלים אותה, ויתרת הקרדיטים של החשבון לא משתנה.',
+    unlimitedEmailLabel: 'כתובת המייל של החשבון',
+    unlimitedEmailPlaceholder: 'name@example.com',
+    unlimitedGrantButton: 'הענקת הרשאה',
+    unlimitedGranting: 'מעניקים…',
+    unlimitedGranted: 'ההרשאה ניתנה:',
+    unlimitedAlready: 'לחשבון הזה כבר יש גישה ללא הגבלה:',
+    unlimitedOwnerAccount: 'זה חשבון האדמין, שיש לו תמיד גישה ללא הגבלה:',
+    unlimitedNotRegistered: 'אין משתמש רשום בכתובת מייל זו, ולא נוצר חשבון.',
+    unlimitedInvalid: 'יש להזין כתובת מייל תקינה.',
+    unlimitedError: 'משהו השתבש. לא בוצע שינוי. אפשר לנסות שוב.',
+    unlimitedForbidden: 'האזור הזה מיועד לאדמין בלבד.',
+    unlimitedListTitle: 'חשבונות עם גישה ללא הגבלה',
+    unlimitedListLoading: 'טוענים…',
+    unlimitedListError: 'לא ניתן לטעון את הרשימה.',
+    unlimitedListEmpty: 'עדיין לא הוענקה הרשאה לאף חשבון.',
+    unlimitedColEmail: 'כתובת מייל',
+    unlimitedColDate: 'תאריך הענקה',
+    unlimitedRevoke: 'ביטול הרשאה',
+    unlimitedRevokeConfirm: 'אישור הביטול',
+    unlimitedRevokeKeep: 'להשאיר את ההרשאה',
+    unlimitedRevokeNote: 'החשבון חוזר ליתרת הקרדיטים הרגילה שלו.',
+    unlimitedRevoked: 'ההרשאה בוטלה:',
+    unlimitedRevokeMissing: 'לחשבון הזה כבר לא הייתה הרשאה.',
     settingsDreamsPurchasedLabel: 'חלומות שנרכשו',
     settingsDreamsRemainingLabel: 'חלומות שנותרו',
     balanceLoading: 'בודקים את יתרת החלומות…',

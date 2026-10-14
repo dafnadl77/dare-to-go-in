@@ -26,6 +26,7 @@ import { fetchPatternReflection } from './patternReflectionEngine';
 import { PATTERN_REFLECTION_PROMPT_VERSION, type PatternReflectionResult } from './patternReflectionSchema';
 import { addressPreferenceOfUser, type AddressPreference } from '../hero/addressPreference';
 import { useLanguage } from '../i18n/LanguageContext';
+import { UnlimitedAccessPanel } from './UnlimitedAccessPanel';
 import { useAuth } from '../auth/AuthContext';
 import { fullNameOfUser, firstNameOf, normalizeDisplayName, MAX_DISPLAY_NAME_LENGTH } from '../auth/displayName';
 import { useAccountPlan } from '../credits/useAccountPlan';
@@ -823,7 +824,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onOpenP
                 <>
                   <div className="ar-settings-row">
                     <span className="ar-settings-label">{t('archive.settingsAccountTypeLabel')}</span>
-                    <span className="ar-settings-value">{t('archive.settingsOwnerValue')}</span>
+                    <span className="ar-settings-value">{accountPlan.admin ? t('archive.settingsOwnerValue') : t('archive.unlimitedTitle')}</span>
                   </div>
                   <div className="ar-settings-row">
                     <span className="ar-settings-label">{t('archive.settingsDreamsLabel')}</span>
@@ -898,6 +899,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onOpenP
                 </div>
               </div>
               {addressPrefStatus === 'error' && <p className="ar-settings-address-error">{t('archive.settingsAddressError')}</p>}
+              {accountPlan.status === 'owner' && accountPlan.admin && <UnlimitedAccessPanel />}
               <button type="button" className="ar-settings-signout btn btn-secondary" data-cursor-hover onClick={() => signOut()}>
                 {t('auth.signOut')}
               </button>

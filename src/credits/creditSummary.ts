@@ -15,6 +15,8 @@ export interface CreditSummary {
   plan: PackageId | null;
   /** The server says this account is the app owner: unlimited dreams, no credits, no package. Present only when true. */
   owner?: true;
+  /** The server says this account is the ADMINISTRATOR (only ever with owner): it shows the unlimited-access area. An account that was granted unlimited access is an owner, never an admin. */
+  admin?: true;
   /** The server could not tell whether this is the app owner: never act on a zero balance. Present only when true. */
   roleUnknown?: true;
   /** Every credit the account was ever granted, and in how many grants (server-read from the credit ledger). Absent = not known. */
@@ -34,12 +36,12 @@ const PURCHASABLE: readonly PackageId[] = ['go_deeper_3', 'explore_10', 'dive_in
 
 export function parseCreditSummary(data: unknown): CreditSummary | null {
   if (!data || typeof data !== 'object') return null;
-  const body = data as { balance?: unknown; purchasedPackage?: unknown; owner?: unknown; roleUnknown?: unknown; grantedCredits?: unknown; grantCount?: unknown; freeDreamUsed?: unknown; freeGranted?: unknown; freeDream?: unknown; freeDreamUndecided?: unknown };
+  const body = data as { balance?: unknown; purchasedPackage?: unknown; owner?: unknown; admin?: unknown; roleUnknown?: unknown; grantedCredits?: unknown; grantCount?: unknown; freeDreamUsed?: unknown; freeGranted?: unknown; freeDream?: unknown; freeDreamUndecided?: unknown };
   if (typeof body.balance !== 'number' || !Number.isFinite(body.balance)) return null;
   let plan: PackageId | null = null;
   if (body.purchasedPackage === null) plan = 'first_dream';
   else if (typeof body.purchasedPackage === 'string' && (PURCHASABLE as readonly string[]).includes(body.purchasedPackage)) plan = body.purchasedPackage as PackageId;
-  if (body.owner === true) return { balance: body.balance, plan, owner: true };
+  if (body.owner === true) return { balance: body.balance, plan, owner: true, ...(body.admin === true ? { admin: true as const } : {}) };
   if (body.roleUnknown === true) return { balance: body.balance, plan, roleUnknown: true };
   const summary: CreditSummary = { balance: body.balance, plan };
   const count = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : undefined);
