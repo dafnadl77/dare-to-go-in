@@ -275,12 +275,12 @@ async function markDemoImage(dataUrl: string, he: boolean): Promise<string> {
 }
 
 /** The sample dreams differ only in their title, which the archive reads from the setting. */
-function demoRowAnalysis(source: string, he: boolean, title: string): Json {
+function demoRowAnalysis(source: string, he: boolean, title: string, concepts: string[]): Json {
   const base = sampleAnalysis(source, he);
-  return { ...base, summary: title, reconstruction: { ...(base.reconstruction as Json), primarySetting: title } };
+  return { ...base, summary: title, concepts, conceptVersion: 1, reconstruction: { ...(base.reconstruction as Json), primarySetting: title } };
 }
 
-function savedRow(id: string, he: boolean, title: string, source: string, daysAgo: number, favorite: boolean, image: string | null, now: number, emotions?: string[]): Json {
+function savedRow(id: string, he: boolean, title: string, source: string, daysAgo: number, favorite: boolean, image: string | null, now: number, emotions?: string[], concepts: string[] = []): Json {
   const reflection = sampleReflection(he, emotions ?? [], he ? 'זה מזכיר לי את הגינה של סבתא' : "It reminds me of my grandmother's garden");
   if (!emotions) {
     reflection.emotionReflection = null;
@@ -289,7 +289,7 @@ function savedRow(id: string, he: boolean, title: string, source: string, daysAg
   const payload: Json = {
     sourceText: source,
     inputMode: 'text',
-    dreamAnalysis: demoRowAnalysis(source, he, title),
+    dreamAnalysis: demoRowAnalysis(source, he, title, concepts),
     dreamImageDataUrl: image,
     dreamImagePath: null,
     selectedElement: he ? 'דלת ירוקה' : 'GREEN DOOR',
@@ -307,13 +307,43 @@ export function demoInitialRows(now: number): Json[] {
   const longHe = 'חלמתי שאני עפה מעל ים כחול ועצום, ואור זהוב נשפך מהאופק. '.repeat(8);
   const longEn = 'I dreamed that I was flying over an enormous blue sea while golden light spilled from the horizon. '.repeat(7);
   return [
-    savedRow('a0000001-0000-4000-8000-000000000001', true, 'דוגמה · עפתי מעל הים', 'חלמתי שאני עפה מעל ים כחול אל בית ישן עם דלת ירוקה.', 1, true, IMAGES[0], now, ['longing', 'calm', 'wonder']),
-    savedRow('a0000001-0000-4000-8000-000000000002', false, 'Sample · Flying toward a green door', 'I was flying over a blue sea toward an old house with a green door.', 2, false, IMAGES[2], now, ['fear', 'excitement']),
-    savedRow('a0000001-0000-4000-8000-000000000003', true, 'דוגמה · ים אינסופי', longHe, 5, false, IMAGES[1], now),
+    savedRow('a0000001-0000-4000-8000-000000000001', true, 'דוגמה · עפתי מעל הים', 'חלמתי שאני עפה מעל ים כחול אל בית ישן עם דלת ירוקה.', 1, true, IMAGES[0], now, ['longing', 'calm', 'wonder'], ['flying_falling', 'water', 'home_dwelling']),
+    savedRow('a0000001-0000-4000-8000-000000000002', false, 'Sample · Flying toward a green door', 'I was flying over a blue sea toward an old house with a green door.', 2, false, IMAGES[2], now, ['fear', 'excitement'], ['flying_falling', 'home_dwelling']),
+    savedRow('a0000001-0000-4000-8000-000000000003', true, 'דוגמה · ים אינסופי', longHe, 5, false, IMAGES[1], now, undefined, ['water']),
     savedRow('a0000001-0000-4000-8000-000000000004', false, 'Sample · The corridor', 'A long corridor with many doors.', 9, true, IMAGES[1], now),
-    savedRow('a0000001-0000-4000-8000-000000000005', true, 'דוגמה · בית ישן', 'חלמתי על בית ישן.', 14, false, null, now),
-    savedRow('a0000001-0000-4000-8000-000000000006', false, 'Sample · Golden light over the water', longEn, 20, false, IMAGES[0], now),
+    savedRow('a0000001-0000-4000-8000-000000000005', true, 'דוגמה · בית ישן', 'חלמתי על בית ישן.', 14, false, null, now, undefined, ['home_dwelling']),
+    savedRow('a0000001-0000-4000-8000-000000000006', false, 'Sample · Golden light over the water', longEn, 20, false, IMAGES[0], now, undefined, ['water']),
   ];
+}
+
+/**
+ * A tiny glossary for the sample archive. The real product translates labels and titles with the model; the demo has no model, so it only
+ * knows its own samples (anything else, such as a dream the visitor typed, comes back exactly as it went in).
+ */
+const GLOSSARY: Array<[he: string, en: string]> = [
+  ['בית ישן ליד הים', 'An old house by the sea'],
+  ['דלת ירוקה', 'A green door'],
+  ['התרגשות שקטה', 'Quiet wonder'],
+  ['מפתח זהב', 'A golden key'],
+  ['סבתא', 'Grandmother'],
+  ['עפה', 'Flying'],
+  ['עפה מעל הים', 'Flying over the sea'],
+  ['שלווה', 'Calm'],
+  ['דוגמה · עפתי מעל הים', 'Sample · I flew over the sea'],
+  ['דוגמה · ים אינסופי', 'Sample · Endless sea'],
+  ['דוגמה · בית ישן', 'Sample · An old house'],
+  ['דוגמה · עפה אל דלת ירוקה', 'Sample · Flying toward a green door'],
+  ['דוגמה · המסדרון', 'Sample · The corridor'],
+  ['דוגמה · אור זהוב מעל המים', 'Sample · Golden light over the water'],
+];
+
+export function translateSample(text: string, target: 'he' | 'en'): string {
+  const key = text.trim().toLowerCase();
+  for (const [he, en] of GLOSSARY) {
+    if (target === 'en' && he.toLowerCase() === key) return en;
+    if (target === 'he' && en.toLowerCase() === key) return he;
+  }
+  return text;
 }
 
 function demoSession(userMetadata: Json, now: number): Json {
@@ -414,9 +444,25 @@ export function createDemoRouter(deps: DemoRouterDeps) {
     }
     if (path === '/api/dream-translation') {
       const texts = Array.isArray(body.texts) ? body.texts : [];
-      return jsonResponse({ translations: texts.map((t) => String(t)) });
+      const target = body.targetLanguage === 'he' ? 'he' : 'en';
+      return jsonResponse({ translations: texts.map((t) => translateSample(String(t), target)) });
     }
-    if (path === '/api/pattern-reflection') return jsonResponse({ reason: 'request_failed', message: 'Pattern reflections are not part of the demo.' }, 503);
+    if (path === '/api/pattern-reflection') {
+      // Pre-written placeholder text for the Insights page: it shows how the opened pattern looks, and says plainly that it is not from the model.
+      await delay(600);
+      const tag = he ? DEMO_TAG.he : DEMO_TAG.en;
+      const count = Array.isArray(body.dreamIds) ? body.dreamIds.length : 2;
+      return jsonResponse({
+        reflection: {
+          whatRepeats: he ? `(${tag}) כאן יופיע תיאור של מה שחוזר בחלומות שמופיעים מתחת, כפי שהמודל כותב אותו מתוך החלומות שלכם. בהדגמה זה טקסט מוכן מראש.` : `(${tag}) Here a description of what repeats across the dreams listed below, written by the model from your dreams, would appear. In the demo this is pre-written text.`,
+          possibleConnection: he ? `(${tag}) כאן יופיע קשר אפשרי בין הופעות הדפוס, בלשון של אי־ודאות.` : `(${tag}) Here a possible connection between the appearances of the pattern would appear, in the language of uncertainty.`,
+          directionToExplore: he ? `(${tag}) כאן יופיע כיוון צנוע אחד שכדאי לחקור.` : `(${tag}) Here one modest direction worth exploring would appear.`,
+          question: he ? `(${tag}) כאן תופיע שאלה אחת לשמור.` : `(${tag}) Here one question to keep would appear.`,
+        },
+        totalDreamCount: count,
+        synthesizedDreamCount: count,
+      });
+    }
     return jsonResponse({ reason: 'request_failed', message: 'Not part of the demo.' }, 404);
   }
 

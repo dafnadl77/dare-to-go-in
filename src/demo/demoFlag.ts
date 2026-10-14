@@ -11,7 +11,12 @@ export const DEMO_BUILD: boolean = typeof __DARE_DEMO_BUILD__ !== 'undefined' &&
 
 const SESSION_KEY = 'dare-demo';
 
-/** True when this page load should run in demo mode: ?demo=1 turns it on for the tab, ?demo=0 turns it off again. */
+/**
+ * True when this page load should run in demo mode.
+ *   ?demo=1  turns it on for the tab, ?demo=0 turns it off for the tab.
+ *   With neither: a build that has no Supabase configuration (every Vercel Preview, and a local run without .env) opens in the demo,
+ *   because nobody can sign in there and the journey could not start otherwise. A build WITH a Supabase configuration stays real.
+ */
 export function demoRequested(): boolean {
   if (!DEMO_BUILD || typeof window === 'undefined') return false;
   try {
@@ -21,10 +26,13 @@ export function demoRequested(): boolean {
       return true;
     }
     if (value === '0') {
-      window.sessionStorage.removeItem(SESSION_KEY);
+      window.sessionStorage.setItem(SESSION_KEY, '0');
       return false;
     }
-    return window.sessionStorage.getItem(SESSION_KEY) === '1';
+    const remembered = window.sessionStorage.getItem(SESSION_KEY);
+    if (remembered === '1') return true;
+    if (remembered === '0') return false;
+    return !import.meta.env.VITE_SUPABASE_URL;
   } catch {
     return false;
   }

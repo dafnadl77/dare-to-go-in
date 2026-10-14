@@ -19,6 +19,7 @@ const TEXT = {
     archive: 'ארכיון לדוגמה',
     close: 'סגירה',
     working: 'מגיעים למסך התחושות…',
+    insights: 'תובנות לדוגמה',
     failed: 'לא הצלחתי להגיע למסך התחושות אוטומטית. אפשר להמשיך ידנית.',
     sample: 'חלמתי שאני עפה מעל ים כחול. נחתתי ליד בית ישן, ושם הייתה דלת ירוקה.',
     association: 'אסוציאציה לדוגמה (הדגמה)',
@@ -33,6 +34,7 @@ const TEXT = {
     archive: 'Sample archive',
     close: 'Close',
     working: 'Getting to the feelings screen…',
+    insights: 'Sample Insights',
     failed: 'I could not reach the feelings screen automatically. You can carry on by hand.',
     sample: 'I dreamed that I was flying over a blue sea. I landed beside an old house, and there was a green door.',
     association: 'A sample association (demo)',
@@ -158,13 +160,20 @@ export function mountDemoPanel(): void {
   const bSample = document.createElement('button');
   const bJump = document.createElement('button');
   const bArchive = document.createElement('button');
+  const bInsights = document.createElement('button');
+  // The one control a reviewer needs most is never hidden in the menu: a visible button next to the label.
+  const jumpMain = document.createElement('button');
+  jumpMain.type = 'button';
+  jumpMain.id = 'demo-jump';
+  jumpMain.style.borderColor = 'rgba(244,240,232,.95)';
+  jumpMain.style.fontWeight = '600';
   const bClose = document.createElement('button');
   const status = document.createElement('div');
   status.className = 'demo-status';
   status.setAttribute('role', 'status');
-  for (const b of [bSample, bJump, bArchive, bClose]) b.type = 'button';
-  menu.append(title, intro, bSample, bJump, bArchive, status, bClose);
-  root.append(menu, toggle);
+  for (const b of [bSample, bJump, bArchive, bInsights, bClose]) b.type = 'button';
+  menu.append(title, intro, bSample, bJump, bArchive, bInsights, status, bClose);
+  root.append(menu, jumpMain, toggle);
 
   const setOpen = (open: boolean) => {
     menu.hidden = !open;
@@ -188,14 +197,27 @@ export function mountDemoPanel(): void {
     setOpen(false);
     await fillSampleDream();
   });
-  bJump.addEventListener('click', async () => {
+  let jumping = false;
+  const runJump = async () => {
+    if (jumping) return;
+    jumping = true;
+    jumpMain.disabled = true;
+    jumpMain.textContent = TEXT[lang()].working;
     status.textContent = TEXT[lang()].working;
     const ok = await jumpToFeelings();
     status.textContent = ok ? '' : TEXT[lang()].failed;
+    jumping = false;
+    jumpMain.disabled = false;
+    apply();
     if (ok) setOpen(false);
-  });
+  };
+  bJump.addEventListener('click', runJump);
+  jumpMain.addEventListener('click', runJump);
   bArchive.addEventListener('click', () => {
     window.location.href = `${window.location.pathname}?demo=1&view=archive`;
+  });
+  bInsights.addEventListener('click', () => {
+    window.location.href = `${window.location.pathname}?demo=1&view=archive&goto=insights`;
   });
 
   const apply = () => {
@@ -208,10 +230,38 @@ export function mountDemoPanel(): void {
     bSample.textContent = t.sampleDream;
     bJump.textContent = t.jump;
     bArchive.textContent = t.archive;
+    bInsights.textContent = t.insights;
+    if (!jumping) jumpMain.textContent = `${t.jump} ${lang() === 'he' ? '←' : '→'}`;
     bClose.textContent = t.close;
     root.dir = lang() === 'he' ? 'rtl' : 'ltr';
   };
   apply();
   new MutationObserver(apply).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
   document.body.appendChild(root);
+
+  // The jump button is shown only where it can help: on the opening and the early journey, never once the feelings screen or later is reached.
+  const syncJump = () => {
+    const onJourney = !!document.querySelector('.hero-dream');
+    const past = !!document.querySelector('.de-chips, .dr-thought, .dc-title');
+    jumpMain.hidden = !onJourney || past;
+  };
+  syncJump();
+  window.setInterval(syncJump, 600);
+
+  // Direct links: ?goto=feelings runs the jump on arrival; ?goto=insights opens the Insights page of the sample archive.
+  const goto = new URLSearchParams(window.location.search).get('goto');
+  if (goto === 'feelings') {
+    void sleep(1500).then(() => runJump());
+  } else if (goto === 'insights') {
+    void (async () => {
+      for (let i = 0; i < 60; i++) {
+        const items = document.querySelectorAll<HTMLButtonElement>('.ar-nav-item');
+        if (items.length >= 3 && document.querySelector('.dt-card')) {
+          items[2].click();
+          return;
+        }
+        await sleep(300);
+      }
+    })();
+  }
 }

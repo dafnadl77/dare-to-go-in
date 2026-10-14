@@ -5,7 +5,8 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createDemoRouter } from '../src/demo/demoRouter.ts';
+import { createDemoRouter, translateSample } from '../src/demo/demoRouter.ts';
+import { validatePatternReflectionResult } from '../src/archive/patternReflectionSchema.ts';
 import { validateDreamAnalysis } from '../src/hero/dreamAnalysisSchema.ts';
 import { validateDreamReflectionResult } from '../src/hero/dreamReflectionSchema.ts';
 
@@ -175,4 +176,36 @@ test('demo: a Vercel production build contains no trace of demo mode, while any 
     rmSync(out('prod'), { recursive: true, force: true });
     rmSync(out('prev'), { recursive: true, force: true });
   }
+});
+
+test('demo: a Preview without Supabase configuration opens straight into the demo, and a configured build stays real', () => {
+  const flag = read('src/demo/demoFlag.ts');
+  assert.match(flag, /return !import\.meta\.env\.VITE_SUPABASE_URL;/);
+  assert.match(flag, /value === '0'[\s\S]*?setItem\(SESSION_KEY, '0'\)/, '?demo=0 is remembered for the tab');
+  const panel = read('src/demo/demoPanel.ts');
+  assert.match(panel, /jumpMain\.id = 'demo-jump'/, 'the "take me to the feelings screen" button is always on the page, not only inside the menu');
+  assert.match(panel, /goto === 'feelings'/);
+  assert.match(panel, /goto === 'insights'/);
+});
+
+test('demo: the sample archive gives the Insights page real recurring rows, and its sample reflection passes the product validator', async () => {
+  const { router } = setup();
+  const rows = (await (await router.handle(`${ORIGIN}/__demo/rest/v1/dreams?select=*`)).json()) as Array<{ payload: { dreamAnalysis: { concepts: string[] } } }>;
+  const byConcept = new Map<string, number>();
+  for (const r of rows) for (const c of r.payload.dreamAnalysis.concepts) byConcept.set(c, (byConcept.get(c) ?? 0) + 1);
+  assert.ok([...byConcept.values()].some((n) => n >= 2), 'at least one theme recurs in two or more sample dreams');
+  for (const language of ['he', 'en']) {
+    const res = await (await post(router, '/api/pattern-reflection', { conceptId: 'water', dreamIds: ['a', 'b'], language })).json();
+    assert.ok(validatePatternReflectionResult(res.reflection), `pattern reflection ${language}`);
+    assert.match(JSON.stringify(res.reflection), language === 'he' ? /דוגמת הדגמה/ : /demo example/, 'tagged as pre-written');
+    assert.equal(res.totalDreamCount, 2);
+  }
+});
+
+test('demo: English shows English and Hebrew shows Hebrew for the sample dreams, and anything it does not know comes back unchanged', () => {
+  assert.equal(translateSample('דלת ירוקה', 'en'), 'A green door');
+  assert.equal(translateSample('a green door', 'he'), 'דלת ירוקה');
+  assert.equal(translateSample('דוגמה · ים אינסופי', 'en'), 'Sample · Endless sea');
+  const typed = 'חלמתי על קיפוד כחול';
+  assert.equal(translateSample(typed, 'en'), typed, 'a dream the visitor typed is never altered');
 });

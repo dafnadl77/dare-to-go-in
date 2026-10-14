@@ -38,6 +38,14 @@ export function installDemo(): void {
     return (realOpen as (...args: unknown[]) => void).call(this, method, url, ...rest);
   } as typeof XMLHttpRequest.prototype.open;
 
+  // ?lang=en|he opens the demo in that language (the app reads this same key when it starts).
+  try {
+    const lang = new URLSearchParams(window.location.search).get('lang');
+    if (lang === 'en' || lang === 'he') window.localStorage.setItem('dare-language', lang);
+  } catch {
+    /* the app then keeps its own default */
+  }
+
   // An invented demo account, already signed in, in the exact place the Supabase client reads its session from.
   try {
     const host = new URL(demoSupabaseUrl()).hostname.split('.')[0];

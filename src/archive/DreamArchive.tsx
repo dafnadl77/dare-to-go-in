@@ -635,7 +635,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onOpenP
           )}
 
           {activeSection === 'insights' && openMotif && (
-            <div className="ar-panel">
+            <div className="ar-panel ar-panel--insights">
               {/* An explicit action, not just the breadcrumb — a filtered
                   list reached by clicking into a motif needs its own
                   visible way back next to the heading, not only a crumb
@@ -709,7 +709,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onOpenP
           )}
 
           {activeSection === 'insights' && !openMotif && (
-            <div className="ar-panel">
+            <div className="ar-panel ar-panel--insights">
               <h1 className="ar-title">
                 <EditorialTitle text={t('archive.navInsights')} />
               </h1>
