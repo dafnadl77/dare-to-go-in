@@ -93,3 +93,21 @@ test('feelings screen: the continue button is made readable from inside by a sol
   assert.match(rule[1], /border-color: rgba\(244, 240, 232, 0\.85\)/, 'a clearer border');
   assert.doesNotMatch(rule[1], /blur|box-shadow|text-shadow|drop-shadow/, 'nothing soft or outside the button');
 });
+
+test('readable plates: the moment choices, "the choice is yours", the hold label and (on phones) the reflection sit on flat plates: no blur, no shadow, no halo', () => {
+  assert.match(read('src/hero/HeroDream.tsx'), /import '\.\/ReadablePlates\.css';/);
+  const css = read('src/hero/ReadablePlates.css').replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const selector of ['.da-choice-text', '.dc-choice-hint', '.htr-label', '.dr-thought']) {
+    const rule = new RegExp(`${selector.replace('.', '\\.')} \\{([^}]*)\\}`).exec(css);
+    assert.ok(rule, `${selector} has a plate`);
+    assert.match(rule[1], /background: rgba\(6, 8, 18, 0\.(58|62)\)/, `${selector}: flat night-tone fill`);
+    assert.match(rule[1], /border: 1px solid/, `${selector}: a thin border`);
+  }
+  assert.doesNotMatch(css, /blur\(|box-shadow|text-shadow|drop-shadow|filter:/, 'nothing soft, nothing outside a shape');
+  // the hold button: only colours, never its size, behaviour or the circle itself
+  const hold = /\.htr-label \{([^}]*)\}/.exec(css);
+  assert.doesNotMatch(hold[1], /transform|animation|pointer-events|(?<!max-)width:|height:|position/, 'colour and padding-neutral box only');
+  assert.doesNotMatch(css, /\.htr-circle/, 'the circle is not touched');
+  // the reflection plates exist on phones only; a wide screen keeps its original look
+  assert.match(css, /@media \(max-width: 760px\) \{\s*\.dr-thought \{/);
+});

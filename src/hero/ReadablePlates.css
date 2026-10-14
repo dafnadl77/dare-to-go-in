@@ -1,0 +1,71 @@
+/* =====================================================================
+   READABLE TEXT WITHOUT HALOS (contrast, WCAG 4.5:1 for normal text).
+
+   The blurred dark washes behind text were removed from the whole site. Where a line still measured below its ratio over the bright
+   cloud banks, the fix here is a plain, solid plate with a thin border, exactly in the style of the feeling chips and the "discover what
+   the dream reveals" button: a flat night-tone fill, no blur, no shadow, nothing outside the shape.
+
+   Each plate is made of padding that a negative margin of the same size cancels, so no word, line or button moves by a pixel. Only text
+   colour and background colour are touched; nothing in the recorder, the microphone, the transcription or any behaviour is.
+   ===================================================================== */
+
+/* The moment choices (three to six floating words) */
+.da-choice-text {
+  padding: calc(0.2em - 1px) calc(0.75em - 1px);
+  margin: -0.2em -0.75em;
+  border: 1px solid rgba(244, 240, 232, 0.2);
+  border-radius: 999px;
+  background: rgba(6, 8, 18, 0.62);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* "The choice is yours." on the closing screen */
+.dc-choice-hint {
+  width: fit-content;
+  margin-inline: auto;
+  margin-top: calc(1.6rem - 0.3em);
+  margin-bottom: -0.3em;
+  padding: calc(0.3em - 1px) calc(1em - 1px);
+  border: 1px solid rgba(244, 240, 232, 0.2);
+  border-radius: 999px;
+  background: rgba(6, 8, 18, 0.62);
+}
+
+/* The hold button's label: a small plate hugging the words (colour only; the circle, the ring, the orb and the behaviour are untouched) */
+.htr-label {
+  max-width: calc(6.5em + 1.8em);
+  padding: calc(0.5em - 1px) calc(0.9em - 1px);
+  margin: -0.5em -0.9em;
+  border: 1px solid rgba(244, 240, 232, 0.2);
+  border-radius: 14px;
+  background: rgba(6, 8, 18, 0.62);
+}
+
+/* The reflection on phones and small tablets, where the lines run over the brightest cloud banks: each thought (heading, text, closing
+   sentence) and the grounding line sit on one plate. On a wide screen the lines already read well and are left as they were. */
+@media (max-width: 760px) {
+  .dr-thought {
+    padding: calc(0.7rem - 1px) calc(1rem - 1px);
+    margin: -0.7rem -1rem;
+    border: 1px solid rgba(244, 240, 232, 0.16);
+    border-radius: 18px;
+    background: rgba(6, 8, 18, 0.58);
+  }
+
+  /* the grounding line: a flat plate behind it that takes no room (a solid shape, no blur), so the line and the button below stay exactly where they were */
+  .dr-grounding {
+    isolation: isolate;
+  }
+
+  .dr-grounding::before {
+    content: '';
+    position: absolute;
+    inset: -0.45em -1em;
+    z-index: -1;
+    border: 1px solid rgba(244, 240, 232, 0.16);
+    border-radius: 14px;
+    background: rgba(6, 8, 18, 0.58);
+    pointer-events: none;
+  }
+}

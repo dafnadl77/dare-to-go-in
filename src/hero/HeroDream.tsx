@@ -40,6 +40,7 @@ import AppFooter from '../legal/AppFooter';
 import { HowItWorksPanel, HowItWorksTagline, HowItWorksTeaser } from './HowItWorks';
 import type { LegalKey } from '../legal/legalContent';
 import './HeroDream.css';
+import './ReadablePlates.css';
 
 const DISSOLVE_MS = 4200;
 const FRAGMENTS_MS = 3600;
