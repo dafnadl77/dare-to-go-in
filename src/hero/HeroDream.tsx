@@ -37,7 +37,7 @@ import { extractAccentColor, extractDreamPalette, isImageCenterLight, type Accen
 import type { CentralMode } from './centralMode';
 import { useAuth } from '../auth/AuthContext';
 import AppFooter from '../legal/AppFooter';
-import { HowItWorksPanel, HowItWorksTeaser } from './HowItWorks';
+import { HowItWorksPanel, HowItWorksTagline, HowItWorksTeaser } from './HowItWorks';
 import type { LegalKey } from '../legal/legalContent';
 import './HeroDream.css';
 import './TextHalo.css';
@@ -916,6 +916,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
             reconstructing={isReconstructing}
             pointerRef={pointerRef}
           />
+          <HowItWorksTagline shown={centralMode === 'hold' && !isReconstructing && INTERACTION_PHASES.has(phase) && !howOpen} />
           <DreamPrompt revealed={PROMPT_PHASES.has(phase)} quiet={listeningEverStarted} reconstructing={isReconstructing} />
           <HoldToRemember
             revealed={INTERACTION_PHASES.has(phase)}

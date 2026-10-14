@@ -6,7 +6,8 @@ import './HowItWorks.css';
  * The short explanation of DARE and its "how it works" section.
  *
  * Two parts, both on the opening screen only (never on a journey screen):
- *   - HowItWorksTeaser: one quiet line about what DARE is, and a small "How it works" control, above the footer;
+ *   - HowItWorksTagline: one line about what DARE is, set directly under the big title (in the opening's own column, so nothing moves when it fades in);
+ *   - HowItWorksTeaser: a small "How it works" control, above the footer;
  *   - HowItWorksPanel: the section itself, which rises from below the opening: a title, a short introduction, the six steps on a thin
  *     connecting line, and a way back into the journey. The opening underneath is left exactly as it is (and is inert while this is open).
  * Every step described exists in the product; nothing here promises anything the journey does not do.
@@ -45,6 +46,16 @@ const STEP_ICONS: ReactNode[] = [
   </svg>,
 ];
 
+/** Always mounted (its place is reserved either way), faded in only on the idle opening. A short window hides it in CSS: the control stays. */
+export function HowItWorksTagline({ shown }: { shown: boolean }) {
+  const { t } = useLanguage();
+  return (
+    <p className={`hiw-tagline${shown ? ' is-shown' : ''}`} aria-hidden={!shown}>
+      {t('howItWorks.tagline')}
+    </p>
+  );
+}
+
 export function HowItWorksTeaser({ onOpen }: { onOpen: () => void }) {
   const { t } = useLanguage();
   // Both pieces sit just above the pinned footer, whatever height it has (on a phone its links wrap onto several lines).
@@ -61,9 +72,6 @@ export function HowItWorksTeaser({ onOpen }: { onOpen: () => void }) {
   const style = { '--hiw-bottom': footerHeight === null ? '4.4rem' : `${footerHeight}px` } as CSSProperties;
   return (
     <>
-      <p className="hiw-tagline" style={style}>
-        {t('howItWorks.tagline')}
-      </p>
       <div className="hiw-teaser" style={style}>
         <button type="button" className="hiw-trigger" data-cursor-hover aria-haspopup="dialog" aria-label={t('howItWorks.triggerAria')} onClick={onOpen}>
           <span>{t('howItWorks.trigger')}</span>

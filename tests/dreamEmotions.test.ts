@@ -62,9 +62,9 @@ test('every feeling has a label in both languages (Hebrew and English), and the 
     assert.ok(en.reflection.emotions[id].trim().length > 0, `en ${id}`);
     assert.ok(he.reflection.emotions[id].trim().length > 0, `he ${id}`);
   }
-  assert.equal(he.reflection.emotionsTitle, 'איזו תחושה נשארה איתכם מהחלום?');
+  assert.equal(he.reflection.emotionsTitle, 'איזו תחושה נשארה איתך מהחלום?');
   assert.equal(he.reflection.emotionsContinue, 'לגלות מה החלום מספר');
-  assert.equal(he.reflection.emotionsSkip, 'לא בטוחים מה הרגשנו? אפשר להמשיך');
+  assert.equal(he.reflection.emotionsSkip, 'אפשר להמשיך גם בלי לבחור');
   assert.deepEqual(
     EMOTION_IDS.map((id) => he.reflection.emotions[id]),
     ['פחד', 'שמחה', 'שלווה', 'אהבה', 'געגוע', 'בלבול', 'כעס', 'עצב', 'פליאה', 'חופש', 'חוסר אונים', 'התרגשות'],

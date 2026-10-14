@@ -184,8 +184,8 @@ export function findAddressViolation(texts: readonly string[], language: AppLang
     const unquoted = text.replace(QUOTED_SPAN, ' ');
     if (!MASCULINE_YOU.test(unquoted)) continue;
     return preference === 'feminine'
-      ? '\n\nCORRECTION: your previous attempt addressed the dreamer with the masculine pronoun "אתה", but this dreamer asked to be addressed in FEMININE Hebrew. Regenerate the entire response from scratch with feminine forms only, or with the plural product voice ("אתם", "שלכם"), never a masculine singular form.'
-      : '\n\nCORRECTION: your previous attempt addressed the dreamer with the masculine pronoun "אתה", but this dreamer\'s grammatical gender is unknown. Regenerate the entire response from scratch. Address the dreamer only with the plural product voice ("אתם", "שלכם", "בחרתם לציין") or with impersonal wording, never "אתה" or any masculine singular form.';
+      ? '\n\nCORRECTION: your previous attempt addressed the dreamer with the masculine pronoun "אתה", but this dreamer asked to be addressed in FEMININE Hebrew. Regenerate the entire response from scratch with feminine forms only, never a masculine singular form.'
+      : '\n\nCORRECTION: your previous attempt addressed the dreamer with the masculine pronoun "אתה", but this dreamer\'s grammatical gender is unknown. Regenerate the entire response from scratch. Address the dreamer in the singular in a gender-neutral way (the past tense of the second person such as "בחרת לציין", "לך", "שלך", infinitives and impersonal wording), never "אתה" or any masculine singular form.';
   }
   return null;
 }

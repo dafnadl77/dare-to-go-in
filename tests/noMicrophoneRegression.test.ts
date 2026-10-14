@@ -107,7 +107,7 @@ test('the capture screen has exactly ONE way to submit a dream and move on, and 
 });
 
 test('the empty press explains itself kindly, in both languages, and I\'M DONE looks unavailable until there is text', () => {
-  assert.equal(he.hold.writeSomethingFirst, 'כתבו כמה מילים על החלום כדי להמשיך.');
+  assert.equal(he.hold.writeSomethingFirst, 'כדי להמשיך, צריך לכתוב כמה מילים על החלום.');
   assert.equal(en.hold.writeSomethingFirst, 'Write a few words about your dream to continue.');
   const hold = read('src/hero/HoldToRemember.tsx');
   assert.match(hold, /aria-disabled=\{!dreamHasText\}/);

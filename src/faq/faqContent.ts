@@ -76,10 +76,10 @@ export const FAQ_ITEMS: readonly FaqItem[] = [
     id: 'free-dream',
     q: { he: 'האם החלום הראשון בחינם?', en: 'Is the first dream free?' },
     a: {
-      he: 'כן. בהרשמה מקבלים חלום אחד בחינם, אחד לכל חשבון. אם כבר נוצל חלום חינם מהדפדפן הזה, לא יינתן עוד אחד. מצטרפים בהרשמה קצרה (אימייל וסיסמה, או חשבון Google) ואז מתחילים לספר.',
-      en: 'Yes. When you sign up you get one free dream, one per account. If a free dream has already been used from this browser, another one is not given. You join with a short sign-up (email and password, or a Google account) and then you start telling.',
+      he: 'כן. בהרשמה מקבלים חלום אחד בחינם, אחד לכל חשבון. מצטרפים בהרשמה קצרה (אימייל וסיסמה, או חשבון Google) ואז מתחילים לספר.',
+      en: 'Yes. When you sign up you get one free dream, one per account. You join with a short sign-up (email and password, or a Google account) and then you start telling.',
     },
-    source: 'server/freeDream.ts (decide_account_free_dream: one free dream per account; outcomes browser_used / used_as_guest give nothing more); AuthContext (email or Google)',
+    source: 'server/freeDream.ts (decide_account_free_dream: one free dream, one credit with reason free, per account; browser_used is never produced since migration 20261012; checked read-only against the live function and ledger on 2026-10-14); AuthContext (email or Google)',
   },
   {
     id: 'subscription',

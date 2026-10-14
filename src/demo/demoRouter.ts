@@ -99,10 +99,10 @@ function sampleReflection(he: boolean, emotionIds: unknown, reflectionResponse: 
       : 'In the dream you flew over a blue sea and landed beside an old house with a green door, with your grandmother nearby. The house was both a childhood home and a hotel room, and the door never opened.',
     personalAssociation: written
       ? he
-        ? `כתבתם: “${written}”${stop(written)}`
+        ? `כתבת: “${written}”${stop(written)}`
         : `You wrote: “${written}”${stop(written)}`
       : he
-        ? 'כתבתם שהדלת הירוקה מזכירה את הגינה של סבתא.'
+        ? 'כתבת שהדלת הירוקה מזכירה את הגינה של סבתא.'
         : "You said the green door reminds you of your grandmother's garden.",
     possibleThread: he
       ? 'אולי יש כאן חוט של געגוע לעבר שנשאר סגור ולא ידוע, מקום שאפשר להתקרב אליו בלי להיכנס.'
@@ -119,7 +119,7 @@ function sampleReflection(he: boolean, emotionIds: unknown, reflectionResponse: 
     groundingStatement: he ? 'זו השתקפות, לא אבחנה או פרשנות חד־משמעית.' : 'This is a reflection, not a diagnosis or a definitive interpretation.',
     emotionReflection: named
       ? he
-        ? `בחרתם ${named} (זה הדיווח שלכם אחרי החלום, לא חלק ממה שקרה בו). אולי התחושות האלה מאירות את הדלת הסגורה כמשהו שמתקרבים אליו בעדינות.`
+        ? `בחרת ${named} (זה הדיווח שלך אחרי החלום, לא חלק ממה שקרה בו). אולי התחושות האלה מאירות את הדלת הסגורה כמשהו שמתקרבים אליו בעדינות.`
         : `You named ${named} (your own report after the dream, not part of what happened in it). Perhaps those feelings light the closed door as something you approach gently.`
       : null,
     summary: he ? 'דלת ירוקה, גינה של סבתא, וקרבה שעוד לא נפתחת.' : "A green door, a grandmother's garden, and a closeness that has not yet opened.",
@@ -210,32 +210,32 @@ export function demoReflection(he: boolean, input: { sourceText?: unknown; selec
   const written = typeof input.reflectionResponse === 'string' ? input.reflectionResponse.trim() : '';
   const tag = he ? DEMO_TAG.he : DEMO_TAG.en;
   return {
-    observation: he ? `בחלום שתיארתם: “${excerptOf(text, 220)}”${stop(text)}` : `In the dream you described: “${excerptOf(text, 220)}”${stop(text)}`,
+    observation: he ? `בחלום שתיארת: “${excerptOf(text, 220)}”${stop(text)}` : `In the dream you described: “${excerptOf(text, 220)}”${stop(text)}`,
     personalAssociation: written
       ? he
-        ? `כתבתם: “${written}”.`
+        ? `כתבת: “${written}”.`
         : `You wrote: “${written}”.`
       : moment
         ? he
-          ? `בחרתם להתעכב על: “${moment}”.`
+          ? `בחרת להתעכב על: “${moment}”.`
           : `You chose to stay with: “${moment}”.`
         : he
-          ? 'לא כתבתם אסוציאציה.'
+          ? 'לא כתבת אסוציאציה.'
           : 'You did not write an association.',
     possibleThread: he
-      ? `(${tag}) כאן יופיע חוט אפשרי שהמודל כותב מתוך החלום שלכם. בהדגמה זה טקסט מוכן מראש, שלא מבוסס על מה שהקלדתם.`
+      ? `(${tag}) כאן יופיע חוט אפשרי שהמודל כותב מתוך החלום שלך. בהדגמה זה טקסט מוכן מראש, שלא מבוסס על מה שהקלדת.`
       : `(${tag}) Here a possible thread, written by the model from your dream, would appear. In the demo this is pre-written text that is not based on what you typed.`,
     continuityQuestion: he
-      ? `(${tag}) כאן תופיע שאלה להתבוננות שנכתבת מתוך החלום שלכם. בהדגמה זו שאלה מוכנה מראש.`
+      ? `(${tag}) כאן תופיע שאלה להתבוננות שנכתבת מתוך החלום שלך. בהדגמה זו שאלה מוכנה מראש.`
       : `(${tag}) Here a question to sit with, written from your dream, would appear. In the demo it is a pre-written question.`,
     lenses: { cognitive: null, jungian: null, psychodynamic: null },
     confidenceNotes: [],
     groundingStatement: he
-      ? 'נתוני הדגמה: ההרהור כתוב מראש ואינו מבוסס על החלום שהקלדתם. רק הציטוטים הם שלכם. זו השתקפות, לא אבחנה.'
+      ? 'נתוני הדגמה: ההרהור כתוב מראש ואינו מבוסס על החלום שהקלדת. רק הציטוטים הם שלך. זו השתקפות, לא אבחנה.'
       : 'Demo data: this reflection is pre-written and is not based on the dream you typed. Only the quotes are yours. It is a reflection, not a diagnosis.',
     emotionReflection: named
       ? he
-        ? `בחרתם ${named} (זה הדיווח שלכם אחרי החלום, לא חלק ממה שקרה בו). (${tag}) כאן יופיע הרהור על התחושות האלה בהקשר לחלום שלכם.`
+        ? `בחרת ${named} (זה הדיווח שלך אחרי החלום, לא חלק ממה שקרה בו). (${tag}) כאן יופיע הרהור על התחושות האלה בהקשר לחלום שלך.`
         : `You named ${named} (your own report after the dream, not part of what happened in it). (${tag}) Here a reflection on those feelings, in the context of your dream, would appear.`
       : null,
     summary: excerptOf(moment || text, 90) || null,
@@ -267,7 +267,7 @@ async function markDemoImage(dataUrl: string, he: boolean): Promise<string> {
     ctx.textBaseline = 'middle';
     ctx.direction = he ? 'rtl' : 'ltr';
     ctx.font = `500 ${Math.round(bandHeight * 0.46)}px Heebo, Assistant, system-ui, sans-serif`;
-    ctx.fillText(he ? 'תמונת הדגמה · לא נוצרה מהחלום שהקלדתם' : 'Demo image · not made from the dream you typed', canvas.width / 2, canvas.height - bandHeight / 2);
+    ctx.fillText(he ? 'תמונת הדגמה · לא נוצרה מהחלום שהקלדת' : 'Demo image · not made from the dream you typed', canvas.width / 2, canvas.height - bandHeight / 2);
     return canvas.toDataURL('image/jpeg', 0.9);
   } catch {
     return dataUrl;
@@ -454,7 +454,7 @@ export function createDemoRouter(deps: DemoRouterDeps) {
       const count = Array.isArray(body.dreamIds) ? body.dreamIds.length : 2;
       return jsonResponse({
         reflection: {
-          whatRepeats: he ? `(${tag}) כאן יופיע תיאור של מה שחוזר בחלומות שמופיעים מתחת, כפי שהמודל כותב אותו מתוך החלומות שלכם. בהדגמה זה טקסט מוכן מראש.` : `(${tag}) Here a description of what repeats across the dreams listed below, written by the model from your dreams, would appear. In the demo this is pre-written text.`,
+          whatRepeats: he ? `(${tag}) כאן יופיע תיאור של מה שחוזר בחלומות שמופיעים מתחת, כפי שהמודל כותב אותו מתוך החלומות שלך. בהדגמה זה טקסט מוכן מראש.` : `(${tag}) Here a description of what repeats across the dreams listed below, written by the model from your dreams, would appear. In the demo this is pre-written text.`,
           possibleConnection: he ? `(${tag}) כאן יופיע קשר אפשרי בין הופעות הדפוס, בלשון של אי־ודאות.` : `(${tag}) Here a possible connection between the appearances of the pattern would appear, in the language of uncertainty.`,
           directionToExplore: he ? `(${tag}) כאן יופיע כיוון צנוע אחד שכדאי לחקור.` : `(${tag}) Here one modest direction worth exploring would appear.`,
           question: he ? `(${tag}) כאן תופיע שאלה אחת לשמור.` : `(${tag}) Here one question to keep would appear.`,

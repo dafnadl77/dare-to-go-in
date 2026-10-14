@@ -65,7 +65,8 @@ test('the Hebrew style guidance is only in the Hebrew prompt, follows the addres
   const en = buildDreamReflectionSystemPrompt('en', 'neutral');
   assert.match(he, /HEBREW STYLE \(Hebrew output only\)/);
   assert.doesNotMatch(en, /HEBREW STYLE/);
-  assert.match(he, /use the plural voice that the whole product uses/);
+  assert.match(he, /Address the dreamer in the singular, gender-neutral way/);
+  assert.doesNotMatch(he, /use the plural voice that the whole product uses/);
   const feminine = buildDreamReflectionSystemPrompt('he', 'feminine');
   assert.match(feminine, /Address the dreamer in the singular/);
   assert.doesNotMatch(feminine, /use the plural voice that the whole product uses/);
@@ -98,4 +99,40 @@ test('the route wires the strict checks into its one generation and drops texts 
   assert.match(route, /mentionsUnlistedFeeling\(validated\.summary, emotions, language\)\) validated\.summary = null/);
   assert.equal((route.match(/responses\.create\(/g) ?? []).length, 1, 'still exactly one model call per attempt site');
   assert.ok(collectStrings({ a: ['x', { b: 'y' }] }).length === 2);
+});
+
+test('neutral Hebrew address: one instruction, in the singular, with forms that read the same for a man and a woman (no plural voice, no contradicting nominal-only rule)', () => {
+  const he = buildDreamReflectionSystemPrompt('he', 'neutral');
+  assert.match(he, /Address the dreamer in the SINGULAR, in a way that reads the same for a man and a woman/);
+  assert.match(he, /past tense of the second person/);
+  assert.doesNotMatch(he, /prefer a nominalized or impersonal construction/, 'the older shared rule that pushed noun chains is not part of the dream reflection prompt any more');
+  assert.doesNotMatch(he, /use the plural voice/);
+  const example = he.slice(he.indexOf('{"observation"'), he.indexOf('\n', he.indexOf('{"observation"')));
+  assert.doesNotMatch(example, /אתם|שלכם|בחרתם|אתה|אמרתם/, 'the neutral example speaks in neither the plural nor the masculine');
+  assert.match(example, /בחרת לציין/);
+});
+
+test('each preference gets an example in its own grammar (a feminine reader is no longer shown a masculine example)', () => {
+  const grab = (p: 'feminine' | 'masculine' | 'neutral') => {
+    const prompt = buildDreamReflectionSystemPrompt('he', p);
+    return prompt.slice(prompt.indexOf('{"observation"'), prompt.indexOf('\n', prompt.indexOf('{"observation"')));
+  };
+  assert.doesNotMatch(grab('feminine'), /אתה/);
+  assert.match(grab('feminine'), /שאת מתקרבת/);
+  assert.match(grab('masculine'), /שאתה מתקרב/);
+});
+
+test('the Hebrew style guidance keeps the dreamer\'s own actions and keeps every reading a possibility', () => {
+  const he = buildDreamReflectionSystemPrompt('he', 'neutral');
+  assert.match(he, /never change the verb of what the dreamer did/);
+  assert.match(he, /הלכת לאיבוד/);
+  assert.match(he, /never present a psychological explanation as a fact/);
+  assert.doesNotMatch(buildDreamReflectionSystemPrompt('en', 'neutral'), /HEBREW STYLE|הלכת לאיבוד/);
+});
+
+test('the retry notes after a masculine "אתה" no longer ask for the plural voice', () => {
+  const neutral = findAddressViolation(['אתה ציינת פחד'], 'he', 'neutral');
+  const feminine = findAddressViolation(['אתה ציינת פחד'], 'he', 'feminine');
+  assert.ok(neutral && /singular/.test(neutral) && !/אתם/.test(neutral));
+  assert.ok(feminine && !/אתם/.test(feminine));
 });

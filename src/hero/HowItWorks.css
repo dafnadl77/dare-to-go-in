@@ -20,24 +20,38 @@
   pointer-events: auto;
 }
 
-/* On a wide screen the line sits just above the control; on a phone (below) it moves up under the header, where the picture is free. */
+/* The explanation sits directly under the big title, in the opening's own column. The negative margins tuck it between the title and the
+   prompt without adding the column's usual gaps twice; the size follows the window (a phone is limited by its width, a desktop by its height). */
 .hiw-tagline {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(var(--hiw-bottom, 4.4rem) + 3rem);
+  position: relative;
   z-index: 4;
-  width: fit-content;
-  margin-inline: auto;
-  text-align: center;
   isolation: isolate;
-  animation: hiw-teaser-in 1.4s var(--ease-memory) both;
-  max-width: min(60rem, 90vw);
+  width: fit-content;
+  max-width: min(54rem, 90vw);
+  margin: -0.9rem auto -0.8rem;
+  text-align: center;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 1rem;
+  font-size: clamp(1.15rem, min(3.4vw, 3.1vh), 1.65rem);
   font-weight: 400;
-  line-height: 1.55;
+  line-height: 1.5;
   color: var(--dream-white);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.5s var(--ease-soft), visibility 0s linear 0.5s;
+}
+
+.hiw-tagline.is-shown {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 1.4s var(--ease-memory);
+}
+
+/* A phone has less room: the whole opening column lifts a little to make space for the line, and a short phone leaves the line out. */
+@media (max-width: 640px) and (min-height: 790px) {
+  .hero-ui-stack:has(.hiw-tagline) {
+    padding-bottom: calc(6vh + 5.5rem);
+  }
 }
 
 .hiw-tagline::before,
@@ -113,20 +127,28 @@ html:not([lang='he']) .hiw-trigger {
   }
 }
 
-/* A phone: the line goes up under the header (the picture is free there); only a tall phone has the room for it. */
-@media (max-width: 640px) {
+@media (max-width: 640px) and (max-height: 789px) {
   .hiw-tagline {
+    display: none;
+  }
+}
+
+/* English wraps the footer onto more lines, so its phone needs more height before the line fits under the title. */
+@media (max-width: 640px) and (max-height: 869px) {
+  html:not([lang='he']) .hiw-tagline {
+    display: none;
+  }
+  html:not([lang='he']) .hero-ui-stack:has(.hiw-tagline) {
+    padding-bottom: 6vh;
+  }
+  /* Its three-line footer leaves no room above it: the control goes up under the header, where the picture is free (it used to cover the typing button). */
+  html:not([lang='he']) .hiw-teaser {
     bottom: auto;
-    top: calc(var(--gh-h) + 0.4rem);
-    max-width: min(22rem, 86vw);
-    font-size: 1rem;
+    top: calc(var(--gh-h) + 0.5rem);
   }
 }
 
 @media (max-width: 640px) and (max-height: 759px) {
-  .hiw-tagline {
-    display: none;
-  }
   /* A short phone has no room above the footer: the control goes up under the header, where the picture is free. */
   .hiw-teaser {
     bottom: auto;
@@ -145,7 +167,7 @@ html:not([lang='he']) .hiw-trigger {
 }
 
 /* A shorter window keeps only the control: the explanation is one tap away, and the opening keeps all its room. */
-@media (min-width: 641px) and (max-height: 789px) {
+@media (min-width: 641px) and (max-height: 767px) {
   .hiw-tagline {
     display: none;
   }
