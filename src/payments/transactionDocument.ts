@@ -58,7 +58,7 @@ export function buildTransactionDocument(order: DocumentOrder, language: Documen
         `- ביטול: אפשר לבקש ביטול או בירור בהודעה אל ${BUSINESS.email}, עם מספר האסמכתא. זכויות הביטול נקבעות לפי חוק הגנת הצרכן, כמפורט במדיניות ביטולים והחזרים באתר.`,
         '- אחריות / יצרן / ארץ ייצור: אינם רלוונטיים לשירות דיגיטלי זה.',
         '',
-        'חשבונית המס / הקבלה על התשלום נשלחת אליכם בנפרד, בהתאם לדין.',
+        'חשבונית המס / הקבלה על התשלום מופקת ונשלחת אליכם בנפרד על ידי העוסקת, בהתאם למועדים הקבועים בדין.',
       ].join('\n'),
     };
   }
@@ -78,7 +78,7 @@ export function buildTransactionDocument(order: DocumentOrder, language: Documen
       `- Cancellation: you may ask to cancel or check something by writing to ${BUSINESS.email} with the reference. The right to cancel is set by the Consumer Protection Law, as described in the Cancellation and Refund Policy on the site.`,
       '- Warranty / manufacturer / country of manufacture: not applicable to this digital service.',
       '',
-      'The tax invoice / receipt for the payment is sent to you separately, as required by law.',
+      'The tax invoice / receipt for the payment is issued and sent to you separately by the dealer, within the times the law sets.',
     ].join('\n'),
   };
 }

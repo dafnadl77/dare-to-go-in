@@ -192,7 +192,7 @@ const en: LegalContent = {
       },
       {
         heading: 'Tax documents and the transaction details document',
-        body: 'For each payment a tax invoice / receipt is issued as required by law, by Dafna Dalmada (licensed dealer 033868969), using the Morning system, and sent to the email address of the account that made the purchase, within the times required by law. At this stage the documents are issued and sent manually. If you do not receive the document, contact us at daretogoin@gmail.com.\n\nTogether with it you will receive a transaction details document: a summary of the dealer\'s details, what was bought, the price and payment terms, how the credits are delivered, and how to exercise the right to cancel under the law, as required for a remote sale.',
+        body: 'For each payment a tax invoice / receipt is issued as required by law, by Dafna Dalmada (licensed dealer 033868969), using the Morning system, and sent to the email address of the account that made the purchase, within the times the law sets. At this stage the documents are issued and sent manually by the dealer, so they are not sent automatically or instantly. If you do not receive the document, contact us at daretogoin@gmail.com.\n\nTogether with it you will receive a transaction details document: a summary of the dealer\'s details, what was bought, the price and payment terms, how the credits are delivered, and how to exercise the right to cancel under the law, as required for a remote sale.',
       },
       {
         heading: 'Credit validity and use',
@@ -407,7 +407,7 @@ const he: LegalContent = {
       },
       {
         heading: 'מסמכי מס ומסמך פרטי העסקה',
-        body: 'על כל תשלום מופקת חשבונית מס / קבלה בהתאם לדין, על ידי דפנה דלמדה (עוסק מורשה 033868969), באמצעות מערכת Morning, ונשלחת אל כתובת הדוא"ל של החשבון שבו בוצעה הרכישה, בהתאם למועדים הנדרשים בדין. בשלב זה המסמכים מופקים ונשלחים באופן ידני. אם לא קיבלתם את המסמך, פנו אלינו ל-daretogoin@gmail.com.\n\nיחד עם המסמך תקבלו מסמך פרטי העסקה: סיכום של פרטי העוסק, מה נרכש, המחיר ותנאי התשלום, אופן אספקת הקרדיטים, ואופן מימוש זכות הביטול לפי הדין, כנדרש בעסקה מרחוק.',
+        body: 'על כל תשלום מופקת חשבונית מס / קבלה בהתאם לדין, על ידי דפנה דלמדה (עוסק מורשה 033868969), באמצעות מערכת Morning, ונשלחת אל כתובת הדוא"ל של החשבון שבו בוצעה הרכישה, בהתאם למועדים הקבועים בדין. בשלב זה המסמכים מופקים ונשלחים באופן ידני על ידי העוסקת, ולכן אינם נשלחים אוטומטית או מיידית. אם לא קיבלתם את המסמך, פנו אלינו ל-daretogoin@gmail.com.\n\nיחד עם המסמך תקבלו מסמך פרטי העסקה: סיכום של פרטי העוסק, מה נרכש, המחיר ותנאי התשלום, אופן אספקת הקרדיטים, ואופן מימוש זכות הביטול לפי הדין, כנדרש בעסקה מרחוק.',
       },
       {
         heading: 'תוקף הקרדיטים ושימוש בהם',

@@ -183,3 +183,24 @@ test('Hebrew and English carry the same keys for everything added, and the docum
   for (const k of Object.keys(en.pricing).filter((x) => /^(info|link|vat)/.test(x))) assert.ok(k in he.pricing, `pricing.${k}`);
   for (const k of Object.keys(en.archive).filter((x) => x.startsWith('purchases'))) assert.ok(k in he.archive, `archive.${k}`);
 });
+
+test('invoice wording: issued and sent by the dealer within the times the law sets; never promised as automatic or instant', () => {
+  const surfaces: Array<[string, string]> = [
+    ['en pricing', en.pricing.infoInvoice], ['en checkout', en.pricing.checkout.termsInvoice],
+    ['he pricing', he.pricing.infoInvoice], ['he checkout', he.pricing.checkout.termsInvoice],
+  ];
+  for (const [name, s] of surfaces) {
+    assert.match(s, /Dafna Dalmada|דפנה דלמדה/, `${name}: names the dealer who issues it`);
+    assert.match(s, /times the law sets|למועדים הקבועים בדין/, `${name}: within the legal times`);
+    assert.match(s, /not sent automatically or instantly|אינה נשלחת אוטומטית או מיידית|אינה נשלחת אוטומטית או מיידית/, `${name}: not automatic or instant`);
+  }
+  for (const lang of ['he', 'en'] as const) {
+    const t = text(lang, 'terms');
+    assert.match(t, lang === 'he' ? /ולכן אינם נשלחים אוטומטית או מיידית/ : /not sent automatically or instantly/);
+  }
+  const doc = read('src/payments/transactionDocument.ts');
+  assert.match(doc, /issued and sent to you separately by the dealer, within the times the law sets/);
+  assert.match(doc, /מופקת ונשלחת אליכם בנפרד על ידי העוסקת, בהתאם למועדים הקבועים בדין/);
+  // nothing in customer-facing text promises an immediate or automatic invoice
+  for (const s of [en.pricing.infoInvoice, en.pricing.checkout.termsInvoice]) assert.doesNotMatch(s.replace(/not sent automatically or instantly/, ''), /immediately|instantly|automatically/i);
+});

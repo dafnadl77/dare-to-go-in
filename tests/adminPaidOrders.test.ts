@@ -212,3 +212,16 @@ test('wiring: it rides on the credits function, is checked before checkout, adds
   assert.match(read('src/archive/DreamArchive.tsx'), /accountPlan\.status === 'owner' && accountPlan\.admin && <TransactionDocumentsPanel \/>/);
   assert.match(read('server/routes/adminPaidOrders.ts'), /const admin = await deps\.isAdmin\(verified\.userId\);[\s\S]*const result = await deps\.list\(verified\.userId\)/);
 });
+
+test('the rollback removes the function and nothing else; the migration can be applied again afterwards', async () => {
+  const before = await db.query<{ n: number }>('select count(*)::int as n from public.payment_orders');
+  await db.exec(sql('../rollbacks/20261016_admin_paid_orders_rollback.sql'));
+  const gone = await db.query<{ n: number }>("select count(*)::int as n from pg_proc where proname = 'admin_list_paid_orders'");
+  assert.equal(gone.rows[0].n, 0);
+  const after = await db.query<{ n: number }>('select count(*)::int as n from public.payment_orders');
+  assert.equal(after.rows[0].n, before.rows[0].n, 'no order was touched');
+  const alive = await db.query<{ n: number }>("select count(*)::int as n from pg_proc where proname = 'is_dream_admin'");
+  assert.equal(alive.rows[0].n, 1, 'the unlimited-access functions are untouched');
+  await db.exec(sql('20261016_admin_paid_orders.sql'));
+  assert.equal((await list(ADMIN_ID)).status, 'ok');
+});
