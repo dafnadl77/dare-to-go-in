@@ -10,6 +10,7 @@ import { handleDreamTranscription } from './routes/dreamTranscription.js';
 import { handleClaimTrial } from './routes/claimTrial.js';
 import { handleCredits } from './routes/credits.js';
 import { handleUnlimitedAccess } from './routes/adminUnlimitedAccess.js';
+import { handleAdminPaidOrders } from './routes/adminPaidOrders.js';
 import { handleStartCheckout } from './payments/checkoutStart.js';
 import { handlePaymentComplete } from './payments/paymentComplete.js';
 import { handleDeleteAccount } from './routes/deleteAccount.js';
@@ -82,6 +83,7 @@ app.post('/api/payment-complete', async (req, res) => {
 
 app.get('/api/credits', async (req, res) => {
   if (req.query.admin === 'unlimited') return send(res, await handleUnlimitedAccess('GET', undefined, requestHeaders(req)));
+  if (req.query.admin === 'orders') return send(res, await handleAdminPaidOrders('GET', requestHeaders(req)));
   send(res, await handleCredits(requestHeaders(req), typeof req.query.order === 'string' ? req.query.order : undefined));
 });
 

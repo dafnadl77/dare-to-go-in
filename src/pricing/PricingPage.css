@@ -591,3 +591,85 @@ html[lang='he'] .pr-card-ribbon-band .pr-check {
 .pr-card-ribbon-band .pr-check path {
   stroke-width: 2.5;
 }
+
+/* "Purchase details": the final price, one-time payment, credits that do not expire, documents, seller and links. A flat plate with a thin
+   border (no blur, wash or shadow) so the text reads on the photo behind the page. */
+.pr-card-vat {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.pr-info {
+  box-sizing: border-box;
+  width: min(100%, 46rem);
+  margin: clamp(2.2rem, 4vw, 3rem) auto 0;
+  padding: 1.4rem 1.6rem 1.3rem;
+  border: 1px solid rgba(244, 240, 232, 0.2);
+  border-radius: 14px;
+  background: rgba(6, 8, 18, 0.62);
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  color: var(--dream-white);
+}
+
+.pr-info-title {
+  margin: 0 0 0.6rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.pr-info-list {
+  margin: 0 0 1rem;
+  padding-inline-start: 1.3rem;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: rgba(244, 240, 232, 0.92);
+}
+
+.pr-info-list li + li {
+  margin-top: 0.3rem;
+}
+
+.pr-info-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 1.1rem;
+  margin: 0 0 0.9rem;
+  font-size: 1.0625rem;
+}
+
+.pr-info-links-label {
+  color: rgba(244, 240, 232, 0.8);
+}
+
+.pr-info-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--dream-white);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.pr-info-link:focus-visible {
+  outline: 2px solid rgba(244, 240, 232, 0.9);
+  outline-offset: 3px;
+}
+
+.pr-info-operator {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: rgba(244, 240, 232, 0.8);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .pr-info {
+    padding: 1.2rem 1.1rem 1.1rem;
+  }
+}

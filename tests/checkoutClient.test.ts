@@ -168,7 +168,7 @@ test('copy: the form never promises anything untrue (no "secure by DARE", no car
 // ----------------------------------------------------------------------- privacy ----
 
 test('privacy policy (EN + HE) discloses exactly what is true about payments, with no invented retention period', () => {
-  for (const [lang, expected] of [['en', 'Payments'], ['he', 'תשלומים']] as const) {
+  for (const [lang, expected] of [['en', 'Payments and tax documents'], ['he', 'תשלומים ומסמכי מס']] as const) {
     const doc = getLegalDocument(lang, 'privacy');
     const section = doc.sections.find((s) => s.heading === expected);
     assert.ok(section, `${lang}: Payments section`);
@@ -176,25 +176,29 @@ test('privacy policy (EN + HE) discloses exactly what is true about payments, wi
     if (lang === 'en') {
       assert.match(text, /full name/);
       assert.match(text, /mobile phone number/);
-      assert.match(text, /only when you start a payment/);
+      assert.match(text, /only when a payment begins/);
       assert.match(text, /Make/);
       assert.match(text, /Grow/);
-      assert.match(text, /does not store your name or phone number/);
-      assert.match(text, /never receives or stores your card details/);
-      assert.match(text, /anonymized if you delete your account/);
-      assert.match(text, /transaction, accounting, fraud-prevention and support/);
+      assert.match(text, /We do not keep the name or phone in our payment records/);
+      assert.match(text, /do not receive or store card details/);
+      assert.match(text, /link between the payment record and your account is removed if you delete the account/);
+      assert.match(text, /accounting, fraud prevention and support/);
+      assert.match(text, /Morning/);
+      assert.match(text, /tax invoice \/ receipt/);
     } else {
-      for (const needle of ['השם המלא', 'הטלפון הנייד', 'Make', 'Grow', 'אינה שומרת את השם או את מספר הטלפון', 'פרטי כרטיס אשראי', 'מוסר אם תמחקו', 'מניעת הונאות', 'הנהלת חשבונות']) assert.ok(text.includes(needle), `${lang}: ${needle}`);
+      for (const needle of ['שם מלא', 'מספר טלפון נייד', 'Make', 'Grow', 'אנחנו לא שומרים את השם ואת הטלפון ברשומות התשלום שלנו', 'פרטי כרטיס אשראי', 'מוסר אם תמחקו', 'מניעת הונאות', 'הנהלת חשבונות', 'Morning', 'חשבונית מס / קבלה']) assert.ok(text.includes(needle), `${lang}: ${needle}`);
     }
     assert.ok(!/\b\d+\s*(days?|weeks?|months?|years?)\b|\d+\s*(ימים|שבועות|חודשים|שנים)|שנה|year/i.test(text), `${lang}: no invented retention period`);
     assert.match(doc.updated, lang === 'en' ? /October 2026/ : /אוקטובר 2026/);
   }
 });
 
-test('privacy policy: the other two legal documents are untouched by this change', () => {
-  assert.equal(getLegalDocument('en', 'terms').updated, 'Last updated: September 2026');
+test('legal documents: the Accessibility Statement is unchanged; the Terms now cover the purchase and a Cancellation Policy exists', () => {
   assert.equal(getLegalDocument('en', 'accessibility').updated, 'Last updated: September 2026');
-  assert.ok(!getLegalDocument('en', 'terms').sections.some((s) => s.heading === 'Payments'));
+  assert.equal(getLegalDocument('en', 'terms').updated, 'Last updated: October 2026');
+  assert.ok(getLegalDocument('en', 'terms').sections.some((s) => s.heading === 'Payment'));
+  assert.equal(getLegalDocument('en', 'cancellation').title, 'Cancellation and Refund Policy');
+  assert.equal(getLegalDocument('he', 'cancellation').title, 'מדיניות ביטולים והחזרים');
 });
 
 // --------------------------------------------------------------------- secrets / bundle ----
@@ -208,11 +212,11 @@ test('secrets: no browser source mentions the Make webhook, the completion secre
 
 // ------------------------------------------------------ privacy link keeps the customer in the checkout ----
 
-test('privacy link: it opens the Privacy Policy in a modal OVER the checkout; nothing navigates, nothing is closed, nothing is lost', () => {
+test('policy links: each document (terms, privacy, cancellation) opens in a modal OVER the checkout; nothing navigates, nothing is closed, nothing is lost', () => {
   const dialog = strip(read('src/payments/CheckoutDialog.tsx'));
   assert.match(dialog, /import PrivacyPolicyDialog from '\.\.\/legal\/PrivacyPolicyDialog'/);
-  assert.match(dialog, /onClick=\{\(\) => setPrivacyOpen\(true\)\}/);
-  assert.match(dialog, /\{privacyOpen && <PrivacyPolicyDialog closeLabel=\{t\('pricing\.checkout\.privacyClose'\)\} onClose=\{\(\) => setPrivacyOpen\(false\)\} \/>\}/);
+  for (const key of ['terms', 'privacy', 'cancellation']) assert.match(dialog, new RegExp(`onClick=\\{\\(e\\) => openPolicy\\('${key}', e\\.currentTarget\\)\\}`), key);
+  assert.match(dialog, /\{openDoc !== null && <PrivacyPolicyDialog documentKey=\{openDoc\} closeLabel=\{t\('pricing\.checkout\.privacyClose'\)\} onClose=\{\(\) => setOpenDoc\(null\)\} \/>\}/);
   // no navigation of any kind from the checkout, and the old "leave to the legal page" hook is gone everywhere
   assert.ok(!/onOpenLegal|onOpenPrivacy|window\.open|location\.(href|assign|replace)\s*=|history\./.test(dialog.replace(/window\.location\.assign\(result\.paymentUrl\)/, '')));
   assert.equal((dialog.match(/window\.location\.assign\(/g) ?? []).length, 1, 'the ONLY navigation is the validated payment redirect');
@@ -220,12 +224,12 @@ test('privacy link: it opens the Privacy Policy in a modal OVER the checkout; no
   assert.ok(!/onOpenPrivacy/.test(pricing));
   assert.ok(!/setCheckoutFor\(null\);\s*onOpenLegal/.test(pricing), 'opening the policy no longer closes the checkout');
   // the form's state lives in CheckoutDialog, which stays mounted while the modal is open
-  assert.match(dialog, /inert=\{privacyOpen\}/);
+  assert.match(dialog, /inert=\{openDoc !== null\}/);
 });
 
-test('privacy link: the checkout steps aside while the policy is open, and Escape closes ONLY the policy', () => {
+test('policy links: the checkout steps aside while a document is open, and Escape closes ONLY the document', () => {
   const dialog = strip(read('src/payments/CheckoutDialog.tsx'));
-  assert.match(dialog, /if \(privacyOpenRef\.current\) return;/);
+  assert.match(dialog, /if \(openDocRef\.current !== null\) return;/);
   const policy = strip(read('src/legal/PrivacyPolicyDialog.tsx'));
   assert.match(policy, /e\.key === 'Escape'[\s\S]*stopImmediatePropagation\(\)[\s\S]*onCloseRef\.current\(\)/);
   assert.match(policy, /role="dialog"/);
@@ -234,14 +238,16 @@ test('privacy link: the checkout steps aside while the policy is open, and Escap
   assert.match(policy, /onClick=\{\(e\) => \{\s*if \(e\.target === e\.currentTarget\) onClose\(\);/);
 });
 
-test('privacy link: the modal shows the project\'s EXISTING Privacy Policy text (no invented URL, no external page)', () => {
+test('policy links: the modal shows the project\'s EXISTING documents (no invented URL, no external page), through the same renderer as the legal pages', () => {
   const policy = strip(read('src/legal/PrivacyPolicyDialog.tsx'));
-  assert.match(policy, /getLegalDocument\(language, 'privacy'\)/);
+  assert.match(policy, /getLegalDocument\(language, documentKey\)/);
+  assert.match(policy, /documentKey = 'privacy'/, 'the Privacy Policy stays the default');
   assert.ok(!/https?:\/\//.test(policy), 'no URL in the component');
   assert.ok(!/<iframe|dangerouslySetInnerHTML|window\.open|target="_blank"/.test(policy));
-  // same renderer for emails as the Privacy page, now shared
-  assert.match(policy, /linkifyEmails\(paragraph\)/);
-  assert.match(strip(read('src/legal/LegalPage.tsx')), /import \{ linkifyEmails \} from '\.\/linkifyEmails'/);
+  // one renderer (plain text nodes, emails linkified, "- " lines as a list) shared by the page and the modal
+  assert.match(policy, /<LegalBody body=\{section\.body\}/);
+  assert.match(strip(read('src/legal/LegalPage.tsx')), /<LegalBody body=\{section\.body\}/);
+  assert.match(strip(read('src/legal/LegalBody.tsx')), /linkifyEmails\(paragraph\)/);
   // the return button is translated in both languages
   assert.equal(en.pricing.checkout.privacyClose, 'Close and return to payment');
   assert.equal(he.pricing.checkout.privacyClose, 'סגירה וחזרה לתשלום');

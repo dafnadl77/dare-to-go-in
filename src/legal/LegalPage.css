@@ -183,3 +183,17 @@ html[lang='he'] .legal-return {
     animation-duration: 0.01s !important;
   }
 }
+
+/* A bulleted paragraph of a document (lines starting with "- "): same type as the body text, plain disc markers, no card or box. */
+.legal-list {
+  margin: 0 0 1.1rem;
+  padding-inline-start: 1.4rem;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 1.02rem;
+  line-height: 1.85;
+  color: var(--dream-warm-neutral);
+}
+
+.legal-list li + li {
+  margin-top: 0.35rem;
+}

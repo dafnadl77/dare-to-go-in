@@ -37,7 +37,7 @@ import GlobalHeader, { type GlobalNavKey } from './ui/GlobalHeader';
     is the same kind of public, unguarded page as 'about'. */
 type AppView = 'dream' | 'auth' | 'archive' | 'detail' | 'reset-password' | 'about' | 'pricing' | LegalKey;
 
-const LEGAL_VIEWS: LegalKey[] = ['privacy', 'accessibility', 'terms'];
+const LEGAL_VIEWS: LegalKey[] = ['privacy', 'accessibility', 'terms', 'cancellation'];
 
 /** Reflects `view` in the URL as a plain query param (never a route —
     there is still no router) so two real things work without inventing

@@ -240,6 +240,19 @@ export interface Translations {
     settingsOwnerValue: string;
     settingsDreamsLabel: string;
     settingsDreamsUnlimited: string;
+    purchasesTitle: string;
+    purchasesIntro: string;
+    purchasesLanguage: string;
+    purchasesLoading: string;
+    purchasesError: string;
+    purchasesEmpty: string;
+    purchasesRef: string;
+    purchasesCredits: string;
+    purchasesNoAccount: string;
+    purchasesCopy: string;
+    purchasesCopied: string;
+    purchasesCopyFailed: string;
+    purchasesMail: string;
     unlimitedTitle: string;
     unlimitedIntro: string;
     unlimitedEmailLabel: string;
@@ -449,6 +462,20 @@ export interface Translations {
     yourPackageRemainingOne: string;
     /** "{count} Dreams" — {count} is replaced with the package's real dream count. */
     dreamsCountLabel: string;
+    vatIncluded: string;
+    infoTitle: string;
+    infoOneTime: string;
+    infoVat: string;
+    infoNoExpiry: string;
+    infoCredit: string;
+    infoPayment: string;
+    infoInvoice: string;
+    infoRefunds: string;
+    infoDeletion: string;
+    linksLabel: string;
+    linkTerms: string;
+    linkPrivacy: string;
+    linkCancellation: string;
     /** The free tier's display name, shown as the account's package when it has never purchased one. */
     planFree: string;
     /** Marks the package card the signed-in account holds. */
@@ -464,6 +491,19 @@ export interface Translations {
       privacy: string;
       privacyLink: string;
       privacyClose: string;
+      vatIncluded: string;
+      termsTitle: string;
+      termsOneTime: string;
+      termsVat: string;
+      termsNoExpiry: string;
+      termsInvoice: string;
+      docsLead: string;
+      linkTerms: string;
+      linkPrivacy: string;
+      linkCancellation: string;
+      consent: string;
+      errConsent: string;
+      operator: string;
       cancel: string;
       submit: string;
       preparing: string;
@@ -723,6 +763,19 @@ export const en: Translations = {
     settingsOwnerValue: 'App owner',
     settingsDreamsLabel: 'Dreams',
     settingsDreamsUnlimited: 'Unlimited ∞',
+    purchasesTitle: 'Purchase documents',
+    purchasesIntro: 'Completed purchases, so you can send each customer the transaction-details document by hand, together with the tax invoice / receipt from Morning. The document goes to the account\'s email. The customer\'s name is only at Grow.',
+    purchasesLanguage: 'Document language',
+    purchasesLoading: 'Loading…',
+    purchasesError: 'The list could not be loaded.',
+    purchasesEmpty: 'No completed purchases yet.',
+    purchasesRef: 'Reference',
+    purchasesCredits: 'credits',
+    purchasesNoAccount: 'The account was deleted: there is no address to send to.',
+    purchasesCopy: 'Copy document',
+    purchasesCopied: 'Copied',
+    purchasesCopyFailed: 'Copy failed. Use "Open email" instead.',
+    purchasesMail: 'Open email',
     unlimitedTitle: 'Unlimited access',
     unlimitedIntro: 'Give an existing account permanent, unlimited dream creation. It stays until you revoke it, and the account\'s credits are never changed.',
     unlimitedEmailLabel: 'Account email',
@@ -941,6 +994,20 @@ export const en: Translations = {
     yourPackageRemaining: 'Your package — {remaining} dreams left',
     yourPackageRemainingOne: 'Your package — 1 dream left',
     dreamsCountLabel: '{count} Dreams',
+    vatIncluded: 'incl. VAT',
+    infoTitle: 'Purchase details',
+    infoOneTime: 'One-time payment for the package. No subscription and no recurring charge.',
+    infoVat: 'All prices include VAT.',
+    infoNoExpiry: 'Credits do not expire and stay in your account until you use them.',
+    infoCredit: 'One credit = one full dream: the dream journey, an image and a reflection, saved to your archive. Credits are added to your account automatically once the payment is confirmed.',
+    infoPayment: 'Payment is made on a secure Grow payment page and appears as DARE TO GO IN. We do not store card details.',
+    infoInvoice: 'A tax invoice / receipt is sent to your account email, issued manually through Morning, within the times required by law.',
+    infoRefunds: 'We do not have a voluntary refund policy beyond your rights under law. Details are in the Cancellation and Refund Policy and the Terms of Use.',
+    infoDeletion: 'Deleting your account also deletes any unused credit balance.',
+    linksLabel: 'Read before you buy',
+    linkTerms: 'Terms of Use',
+    linkPrivacy: 'Privacy Policy',
+    linkCancellation: 'Cancellation and Refund Policy',
     planFree: 'Free',
     yourPackage: 'This is your package',
     yourLatestPackage: 'This is your latest package',
@@ -954,6 +1021,19 @@ export const en: Translations = {
       privacy: 'Used only to create your payment page. DARE does not store them; they are passed to our payment partners (Make and Grow) to process the payment.',
       privacyLink: 'Privacy Policy',
       privacyClose: 'Close and return to payment',
+      vatIncluded: 'incl. VAT',
+      termsTitle: 'Purchase details',
+      termsOneTime: 'One-time payment. No subscription and no recurring charge.',
+      termsVat: 'The price includes VAT.',
+      termsNoExpiry: 'Credits do not expire.',
+      termsInvoice: 'A tax invoice / receipt is sent to your account email.',
+      docsLead: 'Before you pay you can read:',
+      linkTerms: 'Terms of Use',
+      linkPrivacy: 'Privacy Policy',
+      linkCancellation: 'Cancellation and Refund Policy',
+      consent: 'I have read the Terms of Use, the Privacy Policy and the Cancellation and Refund Policy, and I accept the purchase terms.',
+      errConsent: 'To continue to payment, please accept the purchase terms.',
+      operator: 'Operated by',
       cancel: 'Cancel',
       submit: 'Continue to payment',
       preparing: 'Preparing your payment…',
@@ -1235,6 +1315,19 @@ export const he: Translations = {
     settingsOwnerValue: 'בעלת האפליקציה',
     settingsDreamsLabel: 'חלומות',
     settingsDreamsUnlimited: 'ללא הגבלה ∞',
+    purchasesTitle: 'מסמכי רכישה',
+    purchasesIntro: 'רכישות שהושלמו, כדי לשלוח לכל לקוח בידיים את מסמך פרטי העסקה, יחד עם חשבונית המס / הקבלה מ-Morning. המסמך נשלח לדוא"ל של החשבון. שם הלקוח נמצא רק ב-Grow.',
+    purchasesLanguage: 'שפת המסמך',
+    purchasesLoading: 'טוענים…',
+    purchasesError: 'לא ניתן לטעון את הרשימה.',
+    purchasesEmpty: 'עדיין אין רכישות שהושלמו.',
+    purchasesRef: 'אסמכתא',
+    purchasesCredits: 'קרדיטים',
+    purchasesNoAccount: 'החשבון נמחק: אין כתובת לשליחה.',
+    purchasesCopy: 'העתקת המסמך',
+    purchasesCopied: 'הועתק',
+    purchasesCopyFailed: 'ההעתקה נכשלה. אפשר להשתמש ב"פתיחת מייל".',
+    purchasesMail: 'פתיחת מייל',
     unlimitedTitle: 'גישה ללא הגבלה',
     unlimitedIntro: 'אפשר להעניק לחשבון קיים יצירת חלומות ללא הגבלה. ההרשאה נשארת עד שמבטלים אותה, ויתרת הקרדיטים של החשבון לא משתנה.',
     unlimitedEmailLabel: 'כתובת המייל של החשבון',
@@ -1451,6 +1544,20 @@ export const he: Translations = {
     yourPackageRemaining: 'החבילה שלך — נותרו {remaining} חלומות',
     yourPackageRemainingOne: 'החבילה שלך — נותר חלום אחד',
     dreamsCountLabel: '{count} חלומות',
+    vatIncluded: 'כולל מע"מ',
+    infoTitle: 'פרטי הרכישה',
+    infoOneTime: 'תשלום חד־פעמי עבור החבילה. אין מנוי ואין חיוב חוזר.',
+    infoVat: 'כל המחירים כוללים מע"מ.',
+    infoNoExpiry: 'הקרדיטים אינם פגי תוקף ונשמרים בחשבון עד שמנצלים אותם.',
+    infoCredit: 'קרדיט אחד = חלום אחד מלא: מסע חלום, תמונה והתבוננות, ושמירה בארכיון. הקרדיטים מתווספים לחשבון אוטומטית לאחר אישור התשלום.',
+    infoPayment: 'התשלום מתבצע בדף תשלום מאובטח של Grow ומופיע בשם DARE TO GO IN. אנחנו לא שומרים פרטי כרטיס.',
+    infoInvoice: 'חשבונית מס / קבלה נשלחת לדוא"ל החשבון, בהפקה ידנית באמצעות Morning, בהתאם למועדים הנדרשים בדין.',
+    infoRefunds: 'אין לנו מדיניות החזרים מרצון מעבר לזכויותיכם לפי דין. הפרטים במדיניות הביטולים והחזרים ובתנאי השימוש.',
+    infoDeletion: 'מחיקת חשבון מוחקת גם יתרת קרדיטים שלא נוצלה.',
+    linksLabel: 'לקריאה לפני הרכישה',
+    linkTerms: 'תנאי שימוש',
+    linkPrivacy: 'מדיניות פרטיות',
+    linkCancellation: 'מדיניות ביטולים והחזרים',
     planFree: 'חינמי',
     yourPackage: 'זו החבילה שלך',
     yourLatestPackage: 'זו החבילה האחרונה שלך',
@@ -1464,6 +1571,19 @@ export const he: Translations = {
       privacy: 'משמשים רק ליצירת דף התשלום. DARE אינה שומרת אותם; הם מועברים לשותפי התשלום שלנו (Make ו-Grow) לצורך עיבוד התשלום.',
       privacyLink: 'מדיניות הפרטיות',
       privacyClose: 'סגירה וחזרה לתשלום',
+      vatIncluded: 'כולל מע"מ',
+      termsTitle: 'פרטי הרכישה',
+      termsOneTime: 'תשלום חד־פעמי. אין מנוי ואין חיוב חוזר.',
+      termsVat: 'המחיר כולל מע"מ.',
+      termsNoExpiry: 'הקרדיטים אינם פגי תוקף.',
+      termsInvoice: 'חשבונית מס / קבלה נשלחת לדוא"ל החשבון.',
+      docsLead: 'לפני התשלום אפשר לקרוא:',
+      linkTerms: 'תנאי שימוש',
+      linkPrivacy: 'מדיניות פרטיות',
+      linkCancellation: 'מדיניות ביטולים והחזרים',
+      consent: 'קראתי את תנאי השימוש, מדיניות הפרטיות ומדיניות הביטולים והחזרים, ואני מאשר/ת את תנאי הרכישה.',
+      errConsent: 'כדי להמשיך לתשלום יש לאשר את תנאי הרכישה.',
+      operator: 'מופעל על ידי',
       cancel: 'ביטול',
       submit: 'המשך לתשלום',
       preparing: 'מכינים את התשלום…',

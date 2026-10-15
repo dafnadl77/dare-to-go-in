@@ -6,8 +6,9 @@ import { collectStrings } from '../src/hero/languageIntegrity.ts';
 const all = (t: unknown) => collectStrings(t).join('\n');
 
 test('site claims: no screen of the app promises a subscription, a PDF export or absolute secrecy', () => {
-  const english = all(en);
-  const hebrew = all(he);
+  // The purchase terms say, truthfully, that there is NO subscription: only that negated statement is allowed; any other mention fails.
+  const english = all(en).replace(/\b(no|without) (a )?subscription\b/gi, '');
+  const hebrew = all(he).replace(/(אין|ללא|בלי) מנוי/g, '');
   assert.doesNotMatch(english, /subscription|per month|monthly plan|auto-?renew/i);
   assert.doesNotMatch(hebrew, /מנוי|הוראת קבע|חידוש אוטומטי/);
   assert.doesNotMatch(english, /\bPDF\b/);

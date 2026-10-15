@@ -27,6 +27,7 @@ import { PATTERN_REFLECTION_PROMPT_VERSION, type PatternReflectionResult } from 
 import { addressPreferenceOfUser, type AddressPreference } from '../hero/addressPreference';
 import { useLanguage } from '../i18n/LanguageContext';
 import { UnlimitedAccessPanel } from './UnlimitedAccessPanel';
+import { TransactionDocumentsPanel } from './TransactionDocumentsPanel';
 import { useAuth } from '../auth/AuthContext';
 import { fullNameOfUser, firstNameOf, normalizeDisplayName, MAX_DISPLAY_NAME_LENGTH } from '../auth/displayName';
 import { useAccountPlan } from '../credits/useAccountPlan';
@@ -900,6 +901,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onOpenP
               </div>
               {addressPrefStatus === 'error' && <p className="ar-settings-address-error">{t('archive.settingsAddressError')}</p>}
               {accountPlan.status === 'owner' && accountPlan.admin && <UnlimitedAccessPanel />}
+              {accountPlan.status === 'owner' && accountPlan.admin && <TransactionDocumentsPanel />}
               <button type="button" className="ar-settings-signout btn btn-secondary" data-cursor-hover onClick={() => signOut()}>
                 {t('auth.signOut')}
               </button>

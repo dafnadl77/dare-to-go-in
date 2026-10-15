@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { getLegalDocument, type LegalKey } from './legalContent';
-import { linkifyEmails } from './linkifyEmails';
+import LegalBody from './LegalBody';
 import './LegalPage.css';
 
 
@@ -50,11 +50,7 @@ export default function LegalPage({ documentKey, onBack }: LegalPageProps) {
           {doc.sections.map((section) => (
             <section className="legal-section" key={section.heading}>
               <h2 className="legal-heading">{section.heading}</h2>
-              {section.body.split('\n\n').map((paragraph, i) => (
-                <p className="legal-body" key={i}>
-                  {linkifyEmails(paragraph)}
-                </p>
-              ))}
+              <LegalBody body={section.body} paragraphClass="legal-body" listClass="legal-list" />
             </section>
           ))}
 

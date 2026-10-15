@@ -10,14 +10,17 @@ import type { Language } from '../i18n/LanguageContext';
     dedicated shape for long-form content instead of one-off flat keys.
 
     Every document ends with its own draftNotice — plain, visible, never
-    buried — since none of this has had a real legal review yet. */
+    buried — since none of this has had a real legal review yet. The business
+    details quoted in the Terms, the Privacy Policy and the Cancellation Policy
+    are the ones in businessDetails.ts (a test keeps them identical). */
 
-export type LegalKey = 'privacy' | 'accessibility' | 'terms';
+export type LegalKey = 'privacy' | 'accessibility' | 'terms' | 'cancellation';
 
 export interface LegalSection {
   heading: string;
   /** One or more paragraphs, separated by a blank line — rendered as
-      separate <p> tags (see LegalPage.tsx), never as raw HTML. */
+      separate <p> tags (see LegalPage.tsx), never as raw HTML. A paragraph
+      whose lines all start with "- " is rendered as a bulleted list. */
   body: string;
 }
 
@@ -33,20 +36,20 @@ export interface LegalContent {
   privacy: LegalDocument;
   accessibility: LegalDocument;
   terms: LegalDocument;
+  cancellation: LegalDocument;
 }
-
-const LAST_UPDATED_EN = 'Last updated: September 2026';
-const LAST_UPDATED_HE = 'עודכן לאחרונה: ספטמבר 2026';
-const PRIVACY_UPDATED_EN = 'Last updated: October 2026';
-const PRIVACY_UPDATED_HE = 'עודכן לאחרונה: אוקטובר 2026';
 
 const en: LegalContent = {
   privacy: {
     title: 'Privacy Policy',
-    updated: PRIVACY_UPDATED_EN,
+    updated: 'Last updated: October 2026',
     intro:
       'DARE TO GO IN ("DARE", "we", "the app") is a small, independent dream-journaling app. This page explains, in plain language, what information the app handles and why. It is written for people using DARE, not for lawyers — a fuller, formally reviewed version will replace it before any commercial launch.',
     sections: [
+      {
+        heading: 'Who is responsible for your data',
+        body: 'DARE TO GO IN is a brand operated by Dafna Dalmada, a licensed dealer (osek murshe), business number 033868969, Kiryat Ono, Israel. That business holds the information described in this policy. Privacy enquiries: daretogoin@gmail.com.',
+      },
       {
         heading: 'Account & authentication',
         body: 'Creating an archive uses Supabase, a third-party authentication and database provider, to manage your account. You can sign in with an email address and password, or with your Google account — DARE never sees or stores your Google password, only the confirmation that you signed in. Your session is managed by Supabase; DARE does not keep a separate, parallel record of whether you are logged in.',
@@ -64,12 +67,12 @@ const en: LegalContent = {
         body: 'The reconstructed dream text, dream image, and reflection (observations, associations, and questions) DARE generates are a creative, AI-assisted interpretation — never a factual record of what actually happened in your sleep, and never a diagnosis. They are stored as part of your saved dream, in the language your interface was set to at the time you saved it.',
       },
       {
-        heading: 'How your data is stored',
-        body: 'Account and saved-dream data live in Supabase\'s database, associated with your account. At the time of writing, dreams saved before a real account existed are stored locally on your own device only (in your browser\'s local storage) and are not uploaded automatically — a separate, clearly-announced step will be needed before any such import happens. Separately, when you submit a dream for analysis, DARE may temporarily keep the generated analysis result for up to about 2 hours, only for technical recovery, retrying a request and preventing a duplicate charge. It is then cleared, and it is not kept as part of your archive unless you save the dream.',
+        heading: 'How your data is stored, and for how long',
+        body: '- Account and dreams: account data and saved dreams are stored in the Supabase database, linked to your account, for as long as the account exists or until you delete the dream.\n- Dreams before an account: dreams saved before a real account exists stay only on your device (the browser\'s local storage) and are not uploaded automatically; a separate, clearly stated step would be required before any such transfer.\n- Temporary analysis result: when a dream is sent for analysis we may keep the result temporarily, up to about two hours, only for technical recovery, retrying a request and preventing double charging. It is then deleted, and it is not part of your archive unless you saved the dream.\n- Credits: the credit balance stays on the account until you use it or the account is deleted. Credits do not expire.\n- Deleting the account: removes the account, all saved dreams and images, reflections and patterns, and any unused credit balance.\n- What remains after deletion: a minimal record, with no link to you, that the first free dream was already used from a given browser, so the free-dream limit cannot be bypassed by deleting an account; payment records that are not linked to an account; and tax documents and bookkeeping records, kept for the period required by law.',
       },
       {
-        heading: 'Payments',
-        body: 'When you choose to buy dream credits, DARE asks for your full name and your Israeli mobile phone number. These details are collected only when you start a payment. They are sent to Make (an automation service) and to Grow (our payment provider) so that a payment page can be created and your payment processed. DARE does not store your name or phone number in its own payment records, and DARE never receives or stores your card details: they are entered on the Grow payment page and handled by Grow. Make and Grow process these details under their own terms and privacy policies. DARE keeps limited order and payment information (such as the package you bought, the amount, the payment status and a transaction reference, linked to your account and anonymized if you delete your account) so that it can add your credits, and may retain it for transaction, accounting, fraud-prevention and support purposes.',
+        heading: 'Payments and tax documents',
+        body: 'When you choose to buy credits, DARE asks for your full name and an Israeli mobile phone number, only when a payment begins. These details are sent to Make (an automation service) and to Grow (our payment provider) so a payment page can be created and the payment processed. We do not keep the name or phone in our payment records, and we do not receive or store card details: they are entered on Grow\'s payment page and handled by Grow. Make and Grow process the details under their own terms and privacy policies. Payment is one-time; there is no subscription and no recurring charge.\n\nWe keep limited information about the order and payment: the package, the amount, the payment status and the transaction reference, linked to your account, so the credits can be added.\n\nA tax invoice / receipt for each payment is issued by the business manually using the Morning system and sent to the email address of your account. For this we enter into Morning the details needed to issue the document as required by law, and they are kept there as required by law. Morning processes the details under its own terms and privacy policy.\n\nThe link between the payment record and your account is removed if you delete the account. Tax documents and bookkeeping records are kept for accounting, fraud prevention and support, for the period required by law.',
       },
       {
         heading: 'Technical & session data',
@@ -77,7 +80,7 @@ const en: LegalContent = {
       },
       {
         heading: 'Your choices',
-        body: 'You can sign out at any time from your archive. You can also permanently delete your account yourself: in Settings, choose "Delete account" and confirm. This removes your account, all your saved dreams and their images, your reflections and patterns, and any unused dream credits from DARE\'s live database and storage, and it cannot be undone. A minimal record that the free first dream has already been used from a given browser is kept without any link to you, so that the one-free-dream limit cannot be bypassed by deleting an account; payment records, if any, are kept only without a link to your account. To request an export of your data, or if you cannot use Settings, use the contact details below.',
+        body: 'You can sign out of the archive at any time. You can also delete your account permanently yourself: in Settings choose "Delete account" and confirm. The action removes the account, all saved dreams and their images, reflections and patterns, and any unused dream credit, and cannot be undone. What remains after deletion is described in "How your data is stored, and for how long". To request an export or a copy of your information, or if you cannot use Settings, use the contact details below.',
       },
       {
         heading: 'We do not sell your data',
@@ -89,7 +92,7 @@ const en: LegalContent = {
       },
       {
         heading: 'Contact',
-        body: 'Questions about this policy, or a request about your data, can be sent to daretogoin@gmail.com.',
+        body: 'Questions about this policy or a request about personal information: daretogoin@gmail.com. Location: Kiryat Ono, Israel.',
       },
     ],
     draftNotice:
@@ -97,7 +100,7 @@ const en: LegalContent = {
   },
   accessibility: {
     title: 'Accessibility Statement',
-    updated: LAST_UPDATED_EN,
+    updated: 'Last updated: September 2026',
     intro:
       'DARE TO GO IN is built to be usable by as many people as reasonably possible, including people who rely on assistive technology, keyboard navigation, or adjusted text and contrast settings. This statement describes where things stand today, honestly — including what still needs work.',
     sections: [
@@ -135,10 +138,18 @@ const en: LegalContent = {
   },
   terms: {
     title: 'Terms of Use',
-    updated: LAST_UPDATED_EN,
+    updated: 'Last updated: October 2026',
     intro:
-      'These terms cover using DARE TO GO IN. By using the app, you agree to them. They are written in plain language for a small, early-stage app — a fuller, formally reviewed version will replace them before any commercial launch.',
+      'These terms apply to using DARE TO GO IN and to buying dream packages. Using the site, creating an account or making a purchase means you agree to them. Please read them before you buy. They are written in plain language — a fuller, formally reviewed version will replace them before any commercial launch.',
     sections: [
+      {
+        heading: 'Introduction',
+        body: 'These terms apply to using DARE TO GO IN and to buying dream packages. Using the site, creating an account or making a purchase means you agree to them. Please read them before you buy.',
+      },
+      {
+        heading: 'Who runs DARE',
+        body: 'DARE TO GO IN ("DARE") is a brand operated by Dafna Dalmada, a licensed dealer (osek murshe), business number 033868969. Location: Kiryat Ono, Israel. Contact: daretogoin@gmail.com. In these terms "we" means that business.',
+      },
       {
         heading: 'What DARE is for',
         body: 'DARE is a reflective, personal-wellness journaling tool for exploring your dreams. It is offered for personal reflection and curiosity — not as a service you should depend on for anything time-critical or high-stakes.',
@@ -172,26 +183,88 @@ const en: LegalContent = {
         body: 'DARE is an early-stage, independently-run app. Features, availability, and these terms may change as it develops, and the service may occasionally be unavailable, including for maintenance.',
       },
       {
+        heading: 'Packages, credits and prices',
+        body: 'A dream credit lets you create one full dream: the dream journey, an image and a reflection, saved to your archive. Every account\'s first dream is free (once per account), as described on the Packages page.\n\nPaid packages, at the prices on the Packages page on the day of purchase: 3 dreams for ₪59, 10 dreams for ₪149, 25 dreams for ₪279. All prices include VAT. Prices and packages may change; a purchase already made and the credits you bought are not affected by a later change.\n\nPayment is one-time. There is no subscription and no recurring or automatic charge. Each purchase is a separate transaction.\n\nCredits are personal, belong to the account that bought them, and cannot be transferred to another account.',
+      },
+      {
+        heading: 'Payment',
+        body: 'Payment is made on a secure payment page run by Grow, and appears under the brand name DARE TO GO IN. We do not receive or store card details. Once the payment is confirmed, the credits are added to your account automatically, usually within minutes. If time has passed and they have not appeared, write to us with your account email and the reference number shown when you return from payment, and we will check.',
+      },
+      {
+        heading: 'Tax documents and the transaction details document',
+        body: 'For each payment a tax invoice / receipt is issued as required by law, by Dafna Dalmada (licensed dealer 033868969), using the Morning system, and sent to the email address of the account that made the purchase, within the times required by law. At this stage the documents are issued and sent manually. If you do not receive the document, contact us at daretogoin@gmail.com.\n\nTogether with it you will receive a transaction details document: a summary of the dealer\'s details, what was bought, the price and payment terms, how the credits are delivered, and how to exercise the right to cancel under the law, as required for a remote sale.',
+      },
+      {
+        heading: 'Credit validity and use',
+        body: 'Credits do not expire. They stay in your account until you use them or the account is deleted. One credit is used when a new dream begins. If creating a dream fails because of a fault on our side or at a provider, the credit is returned to your account automatically. Credits cannot be exchanged for money, subject to your rights under law.',
+      },
+      {
+        heading: 'Cancellation and refunds',
+        body: 'We do not have a voluntary refund policy beyond the rights set by law. Nothing here limits your rights as a consumer under any law, including the right to cancel a remote transaction under the Consumer Protection Law, where it applies to the purchase. The full explanation, how to cancel, and the cancellation fees the law allows are set out in the "Cancellation and Refund Policy".',
+      },
+      {
+        heading: 'Saved dreams',
+        body: 'A saved dream stays in your archive for as long as your account exists, or until you delete it, subject to the Privacy Policy (information retention). We work to keep the information secure, but we do not promise uninterrupted availability of the service.',
+      },
+      {
         heading: 'Termination & deletion',
-        body: 'You may stop using DARE and request deletion of your account and data at any time (see the Privacy Policy for how). We may also suspend or end access for use that violates these terms.',
+        body: 'You may stop using DARE and delete your account at any time, in Settings ("Delete account"). Deleting the account permanently removes the account, saved dreams and their images, reflections and patterns, and any unused credit balance, and none of it can be restored. Deleting an account is not a cancellation request and does not entitle you to a refund beyond what the law provides. We may also suspend or end access for use that violates these terms.',
       },
       {
         heading: 'Contact',
-        body: 'Questions about these terms can be sent to daretogoin@gmail.com.',
+        body: 'Questions, requests and enquiries about a purchase, cancellation or these terms: daretogoin@gmail.com. Location: Kiryat Ono, Israel.',
+      },
+      {
+        heading: 'Governing law',
+        body: 'These terms are governed by Israeli law. Nothing here limits your right to turn to the competent court under the law.',
       },
     ],
     draftNotice:
       'This is a draft, written for a small, early-stage app. It has not yet been reviewed by a lawyer and should not be relied on as a complete or final legal document — a properly reviewed version will replace this before any commercial launch.',
+  },
+  cancellation: {
+    title: 'Cancellation and Refund Policy',
+    updated: 'Last updated: October 2026',
+    intro:
+      'This document explains what happens if you want to cancel a purchase on DARE, and the rights the law gives you as a consumer. It is written in plain language — a fuller, formally reviewed version will replace it before any commercial launch.',
+    sections: [
+      {
+        heading: 'In short',
+        body: 'Buying on DARE is a one-time payment, with no subscription and no recurring charge. We do not have a voluntary refund policy beyond the rights set by law. The rights the law gives you as a consumer remain in force, and we will act on them.',
+      },
+      {
+        heading: 'What the law provides (summary, under the Consumer Protection Law, 5741-1981)',
+        body: '- For a transaction concluded remotely (for example through a website) you may, as a rule, cancel within 14 days, counted from the later of the day of the transaction and the day you receive the transaction details document (section 14C).\n- The right to cancel has exceptions set by law, including information as defined in the Computers Law (section 14C(d)). If a particular purchase falls within such an exception under the law, the right does not apply to it.\n- On an ordinary cancellation a cancellation fee may be charged of no more than 5% of the transaction price or ₪100, whichever is lower (section 14E; the Consumer Protection (Cancellation of Transaction) Regulations, 5771-2010).\n- On cancellation because of a defect, a mismatch with what was promised, or non-delivery, no cancellation fee is charged.\n- Consumers who are persons with disabilities, senior citizens or new immigrants may, on the conditions set by law, cancel within four months (section 14C1).',
+      },
+      {
+        heading: 'How to ask for a cancellation or to check something',
+        body: 'Send a message to daretogoin@gmail.com from your account\'s email address, with the payment reference number (shown on the screen you return to after paying, and on the invoice). Please write "cancellation" in the subject. We will reply and handle the request within the times the law sets. Where the law requires a refund, it will be made by the payment method used, less a cancellation fee where the law allows.',
+      },
+      {
+        heading: 'Credits used and unused',
+        body: 'A credit used to create a dream has already been provided, and we will handle it as the law requires. A credit deducted because of a technical failure on our side or at a provider is returned to the account automatically. If you paid and the credits were not added, we will add them or refund the payment.',
+      },
+      {
+        heading: 'Deleting an account and not using credits',
+        body: 'Deleting an account or not using credits is not a cancellation request. An unused credit balance is deleted with the account and is not refundable voluntarily; your rights under the law are not affected. If you are considering cancelling a purchase, please contact us before deleting the account.',
+      },
+    ],
+    draftNotice:
+      'This is a draft cancellation policy, written for a small, early-stage app. It has not yet been reviewed by a lawyer and should not be relied on as a complete or final legal document — a properly reviewed policy will replace this before any commercial launch.',
   },
 };
 
 const he: LegalContent = {
   privacy: {
     title: 'מדיניות פרטיות',
-    updated: PRIVACY_UPDATED_HE,
+    updated: 'עודכן לאחרונה: אוקטובר 2026',
     intro:
       'DARE TO GO IN ("דיר", "האפליקציה") היא אפליקציית יומן חלומות קטנה ועצמאית. הדף הזה מסביר, בשפה פשוטה, אילו מידע האפליקציה מטפלת בו ולמה. הוא נכתב עבור מי שמשתמש ב-DARE, לא עבור עורכי דין — גרסה מלאה ומאושרת משפטית תחליף אותו לפני השקה מסחרית.',
     sections: [
+      {
+        heading: 'מי אחראית על המידע',
+        body: 'DARE TO GO IN הוא מותג הפועל תחת דפנה דלמדה, עוסק מורשה, מספר עוסק 033868969, קריית אונו, ישראל. העוסק הוא המחזיק במידע שמתואר במדיניות זו. פניות בנושא פרטיות: daretogoin@gmail.com.',
+      },
       {
         heading: 'חשבון והתחברות',
         body: 'יצירת ארכיון משתמשת ב-Supabase, ספק חיצוני לאימות ולניהול מסדי נתונים, לניהול החשבון. אפשר להתחבר עם כתובת אימייל וסיסמה, או עם חשבון Google — DARE אף פעם לא רואה או שומרת את סיסמת ה-Google, רק את האישור שההתחברות הצליחה. הסשן מנוהל על ידי Supabase; DARE לא שומרת רישום נפרד ומקביל של מצב ההתחברות.',
@@ -209,12 +282,12 @@ const he: LegalContent = {
         body: 'טקסט החלום המשוחזר, תמונת החלום וההתבוננות (מה שבולט, אסוציאציות ושאלות) שנוצרים על ידי DARE הם פרשנות יצירתית בסיוע בינה מלאכותית — לעולם לא רישום עובדתי של מה שקרה בפועל בשינה, ולעולם לא אבחנה. הם נשמרים כחלק מהחלום השמור, בשפה שהייתה פעילה בממשק בזמן השמירה.',
       },
       {
-        heading: 'איך המידע נשמר',
-        body: 'נתוני חשבון וחלומות שמורים נשמרים במסד הנתונים של Supabase, משויכים לחשבון. נכון לכתיבת שורות אלו, חלומות שנשמרו לפני קיום חשבון אמיתי נשמרים מקומית במכשיר בלבד (באחסון המקומי של הדפדפן) ואינם מועלים באופן אוטומטי — יידרש צעד נפרד ומוצהר בבירור לפני כל העברה כזו. בנוסף, כששולחים חלום לניתוח, DARE עשויה לשמור זמנית את תוצאת הניתוח שנוצרה, עד כשעתיים בערך, רק לצורך התאוששות טכנית, ניסיון חוזר של בקשה ומניעת חיוב כפול. לאחר מכן היא נמחקת, והיא אינה נשמרת כחלק מהארכיון שלכם אלא אם שמרתם את החלום.',
+        heading: 'איך המידע נשמר, וכמה זמן',
+        body: '- חשבון וחלומות: נתוני החשבון והחלומות השמורים נשמרים במסד הנתונים של Supabase, משויכים לחשבון, כל עוד החשבון קיים או עד שתמחקו את החלום.\n- חלומות לפני חשבון: חלומות שנשמרו לפני קיום חשבון אמיתי נשמרים מקומית במכשיר בלבד (באחסון המקומי של הדפדפן) ואינם מועלים אוטומטית; יידרש צעד נפרד ומוצהר בבירור לפני כל העברה כזו.\n- תוצאת ניתוח זמנית: כששולחים חלום לניתוח, אנחנו עשויים לשמור זמנית את התוצאה, עד כשעתיים בערך, רק לצורך התאוששות טכנית, ניסיון חוזר ומניעת חיוב כפול. לאחר מכן היא נמחקת, והיא אינה חלק מהארכיון אלא אם שמרתם את החלום.\n- קרדיטים: יתרת הקרדיטים נשמרת בחשבון עד שמנצלים אותה או עד שהחשבון נמחק. הקרדיטים אינם פגי תוקף.\n- מחיקת חשבון: מוחקת את החשבון, את כל החלומות והתמונות, ההרהורים והדפוסים וכל יתרת קרדיטים שלא נוצלה.\n- מה נשמר גם אחרי המחיקה: רישום מינימלי, ללא כל קישור אליכם, על כך שהחלום הראשון החינמי כבר נוצל מדפדפן מסוים, כדי שלא יהיה אפשר לעקוף את מגבלת החלום החינמי באמצעות מחיקת חשבון; רישומי תשלום שאינם מקושרים לחשבון; ומסמכי מס ורישומי הנהלת חשבונות, שנשמרים לתקופה הנדרשת בדין.',
       },
       {
-        heading: 'תשלומים',
-        body: 'כשבוחרים לרכוש קרדיטים לחלומות, DARE מבקשת את השם המלא ואת מספר הטלפון הנייד הישראלי שלכם. הפרטים האלה נאספים רק כשמתחילים תשלום. הם נשלחים אל Make (שירות אוטומציה) ואל Grow (ספקית התשלומים שלנו) כדי שאפשר יהיה ליצור דף תשלום ולעבד את התשלום. DARE אינה שומרת את השם או את מספר הטלפון ברשומות התשלום שלה, ואינה מקבלת או שומרת פרטי כרטיס אשראי: הם מוזנים בדף התשלום של Grow ומטופלים על ידה. Make ו-Grow מעבדות את הפרטים לפי התנאים ומדיניות הפרטיות שלהן. DARE שומרת מידע מוגבל על ההזמנה והתשלום (כמו החבילה שנרכשה, הסכום, סטטוס התשלום ואסמכתת עסקה, בקישור לחשבון שלכם, והקישור מוסר אם תמחקו את החשבון) כדי שאפשר יהיה להוסיף לכם את הקרדיטים, והיא עשויה לשמור אותו לצורכי עסקאות, הנהלת חשבונות, מניעת הונאות ותמיכה.',
+        heading: 'תשלומים ומסמכי מס',
+        body: 'כשבוחרים לרכוש קרדיטים, DARE מבקשת שם מלא ומספר טלפון נייד ישראלי, ורק כשמתחילים תשלום. הפרטים נשלחים אל Make (שירות אוטומציה) ואל Grow (ספקית התשלומים) כדי ליצור דף תשלום ולעבד את התשלום. אנחנו לא שומרים את השם ואת הטלפון ברשומות התשלום שלנו, ולא מקבלים או שומרים פרטי כרטיס אשראי: הם מוזנים בדף התשלום של Grow ומטופלים אצלה. Make ו-Grow מעבדות את הפרטים לפי התנאים ומדיניות הפרטיות שלהן. התשלום חד־פעמי; אין מנוי ואין חיוב חוזר.\n\nאנחנו שומרים מידע מוגבל על ההזמנה והתשלום: החבילה, הסכום, סטטוס התשלום ואסמכתת העסקה, בקישור לחשבון, כדי להוסיף את הקרדיטים.\n\nחשבונית מס / קבלה על כל תשלום מופקת על ידי העוסק באופן ידני באמצעות מערכת Morning, ונשלחת לכתובת הדוא"ל של החשבון. לצורך זה אנחנו מזינים במערכת Morning את הפרטים הנדרשים להפקת המסמך לפי דין, והם נשמרים שם ולפי הנדרש בדין. Morning מעבדת את הפרטים לפי התנאים ומדיניות הפרטיות שלה.\n\nהקישור בין רשומת התשלום לחשבון מוסר אם תמחקו את החשבון. מסמכי מס ורישומי הנהלת חשבונות נשמרים לצורכי חשבונאות, מניעת הונאות ותמיכה, לתקופה הנדרשת בדין.',
       },
       {
         heading: 'מידע טכני וסשן',
@@ -222,7 +295,7 @@ const he: LegalContent = {
       },
       {
         heading: 'הבחירות שלכם',
-        body: 'ניתן להתנתק בכל עת מהארכיון. אפשר גם למחוק את החשבון בעצמכם לצמיתות: בהגדרות בוחרים ב"מחיקת חשבון" ומאשרים. הפעולה מסירה ממסד הנתונים ומהאחסון החיים של DARE את החשבון, את כל החלומות השמורים והתמונות שלהם, את ההרהורים והדפוסים ואת כל קרדיט חלום שלא נוצל, ואי אפשר לבטל אותה. נשמר רישום מינימלי, ללא כל קישור אליכם, על כך שהחלום הראשון החינמי כבר נוצל מדפדפן מסוים, כדי שלא יהיה אפשר לעקוף את מגבלת החלום החינמי באמצעות מחיקת חשבון; רישומי תשלום, אם יהיו, יישמרו רק ללא קישור לחשבון. לבקשת ייצוא של המידע, או אם אי אפשר להשתמש בהגדרות, יש להשתמש בפרטי הקשר למטה.',
+        body: 'אפשר להתנתק בכל עת מהארכיון. אפשר גם למחוק את החשבון בעצמכם לצמיתות: בהגדרות בוחרים "מחיקת חשבון" ומאשרים. הפעולה מסירה את החשבון, את כל החלומות השמורים והתמונות שלהם, את ההרהורים והדפוסים ואת כל קרדיט חלום שלא נוצל, ואי אפשר לבטל אותה. מה שנשאר אחרי מחיקה מפורט ב"איך המידע נשמר, וכמה זמן". לבקשת ייצוא או עיון במידע, או אם אי אפשר להשתמש בהגדרות, פנו לפרטי הקשר למטה.',
       },
       {
         heading: 'אין מכירת מידע',
@@ -234,7 +307,7 @@ const he: LegalContent = {
       },
       {
         heading: 'יצירת קשר',
-        body: 'שאלות לגבי מדיניות זו, או בקשה בנוגע למידע האישי, ניתן לשלוח אל daretogoin@gmail.com.',
+        body: 'שאלות על מדיניות זו או בקשה בנוגע למידע אישי: daretogoin@gmail.com. מיקום: קריית אונו, ישראל.',
       },
     ],
     draftNotice:
@@ -242,7 +315,7 @@ const he: LegalContent = {
   },
   accessibility: {
     title: 'הצהרת נגישות',
-    updated: LAST_UPDATED_HE,
+    updated: 'עודכן לאחרונה: ספטמבר 2026',
     intro:
       'DARE TO GO IN נבנתה כך שתהיה שמישה עבור כמה שיותר אנשים, כולל מי שנעזר בטכנולוגיה מסייעת, בניווט מקלדת, או בהתאמות טקסט וניגודיות. ההצהרה הזו מתארת את המצב הנוכחי בכנות — כולל מה שעדיין דורש עבודה.',
     sections: [
@@ -275,14 +348,23 @@ const he: LegalContent = {
         body: 'אם נתקלתם במחסום אמיתי בשימוש ב-DARE, או שיש לכם הצעה, אנא ספרו לנו ב-daretogoin@gmail.com — דיווחים אמיתיים משפיעים ישירות על מה שמתוקן הלאה.',
       },
     ],
-    draftNotice: 'הצהרה זו משקפת מצב כן ומתמשך, לא ביקורת שהושלמה או הוסמכה. בדיקת הנגישות באפליקציה נמשכת.',
+    draftNotice:
+      'הצהרה זו משקפת מצב כן ומתמשך, לא ביקורת שהושלמה או הוסמכה. בדיקת הנגישות באפליקציה נמשכת.',
   },
   terms: {
     title: 'תנאי שימוש',
-    updated: LAST_UPDATED_HE,
+    updated: 'עודכן לאחרונה: אוקטובר 2026',
     intro:
-      'תנאים אלו חלים על השימוש ב-DARE TO GO IN. שימוש באפליקציה מהווה הסכמה להם. הם נכתבו בשפה פשוטה עבור אפליקציה קטנה בשלב מוקדם — גרסה מלאה ומאושרת משפטית תחליף אותם לפני השקה מסחרית.',
+      'תנאים אלו חלים על השימוש ב-DARE TO GO IN וגם על רכישת חבילות חלומות. שימוש באתר, פתיחת חשבון או רכישה מהווים הסכמה להם. נא לקרוא אותם לפני רכישה. הם נכתבו בשפה פשוטה — גרסה מלאה ומאושרת משפטית תחליף אותם לפני השקה מסחרית.',
     sections: [
+      {
+        heading: 'פתיח',
+        body: 'תנאים אלו חלים על השימוש ב-DARE TO GO IN וגם על רכישת חבילות חלומות. שימוש באתר, פתיחת חשבון או רכישה מהווים הסכמה להם. נא לקרוא אותם לפני רכישה.',
+      },
+      {
+        heading: 'מי מפעילה את DARE',
+        body: 'DARE TO GO IN ("DARE") הוא מותג הפועל תחת דפנה דלמדה, עוסק מורשה, מספר עוסק 033868969. מיקום: קריית אונו, ישראל. פניות: daretogoin@gmail.com. בתנאים אלו "אנחנו" הוא העוסק הנזכר.',
+      },
       {
         heading: 'מטרת DARE',
         body: 'DARE הוא כלי יומן אישי, מיועד להתבוננות ולרווחה אישית, לחקירת חלומות. הוא מוצע לצורך התבוננות אישית וסקרנות — לא כשירות שיש להסתמך עליו לצרכים דחופים או קריטיים.',
@@ -316,16 +398,74 @@ const he: LegalContent = {
         body: 'DARE היא אפליקציה עצמאית בשלב מוקדם. תכונות, זמינות ותנאים אלו עשויים להשתנות ככל שהיא מתפתחת, והשירות עשוי להיות בלתי זמין מדי פעם, לרבות לצורכי תחזוקה.',
       },
       {
+        heading: 'חבילות, קרדיטים ומחירים',
+        body: 'קרדיט חלום מאפשר ליצור חלום אחד מלא: מסע חלום, תמונה והתבוננות, ושמירה בארכיון. בכל חשבון, החלום הראשון ללא תשלום (פעם אחת לחשבון), כמפורט בדף החבילות.\n\nחבילות בתשלום, לפי המחירים בדף החבילות ביום הרכישה: 3 חלומות ב-59 ₪, 10 חלומות ב-149 ₪, 25 חלומות ב-279 ₪. כל המחירים כוללים מע"מ. אפשר לעדכן מחירים וחבילות; רכישה שבוצעה והקרדיטים שנרכשו לא יושפעו משינוי כזה.\n\nהתשלום חד־פעמי. אין מנוי, אין חיוב חוזר ואין חיוב אוטומטי. כל רכישה היא עסקה נפרדת.\n\nהקרדיטים אישיים, משויכים לחשבון שרכש אותם ואינם ניתנים להעברה לחשבון אחר.',
+      },
+      {
+        heading: 'תשלום',
+        body: 'התשלום מתבצע בדף תשלום מאובטח של Grow, והוא מופיע בשם המותג DARE TO GO IN. אנחנו לא מקבלים ולא שומרים פרטי כרטיס אשראי. לאחר אישור התשלום הקרדיטים מתווספים לחשבון אוטומטית, בדרך כלל תוך דקות. אם עבר זמן והם לא הופיעו, אפשר לפנות אלינו עם כתובת המייל של החשבון ועם מספר האסמכתא שמוצג בחזרה מהתשלום, ונבדוק.',
+      },
+      {
+        heading: 'מסמכי מס ומסמך פרטי העסקה',
+        body: 'על כל תשלום מופקת חשבונית מס / קבלה בהתאם לדין, על ידי דפנה דלמדה (עוסק מורשה 033868969), באמצעות מערכת Morning, ונשלחת אל כתובת הדוא"ל של החשבון שבו בוצעה הרכישה, בהתאם למועדים הנדרשים בדין. בשלב זה המסמכים מופקים ונשלחים באופן ידני. אם לא קיבלתם את המסמך, פנו אלינו ל-daretogoin@gmail.com.\n\nיחד עם המסמך תקבלו מסמך פרטי העסקה: סיכום של פרטי העוסק, מה נרכש, המחיר ותנאי התשלום, אופן אספקת הקרדיטים, ואופן מימוש זכות הביטול לפי הדין, כנדרש בעסקה מרחוק.',
+      },
+      {
+        heading: 'תוקף הקרדיטים ושימוש בהם',
+        body: 'הקרדיטים אינם פגי תוקף. הם נשמרים בחשבון עד שמנצלים אותם או עד שהחשבון נמחק. קרדיט אחד מנוצל בתחילת חלום חדש. אם יצירת החלום נכשלת בשל תקלה אצלנו או אצל ספק, הקרדיט מוחזר לחשבון אוטומטית. אין המרה של קרדיטים לכסף, בכפוף לזכויותיכם על פי דין.',
+      },
+      {
+        heading: 'ביטול עסקה והחזרים',
+        body: 'אין לנו מדיניות החזרים מרצון מעבר לזכויות הקבועות בדין. אין באמור כדי לפגוע בזכויותיכם כצרכנים לפי כל דין, ובכלל זה זכות ביטול עסקה מרחוק לפי חוק הגנת הצרכן, ככל שהיא חלה על הרכישה. ההסבר המלא, אופן הביטול ודמי הביטול המותרים לפי הדין מפורטים ב"מדיניות ביטולים והחזרים".',
+      },
+      {
+        heading: 'חלומות שנשמרו',
+        body: 'חלום שנשמר נשאר בארכיון שלכם כל עוד החשבון קיים, או עד שתמחקו אותו, בכפוף למדיניות הפרטיות (שמירת מידע). אנחנו פועלים לשמור את המידע באופן מאובטח, אך אין התחייבות לזמינות רציפה של השירות.',
+      },
+      {
         heading: 'הפסקת שימוש ומחיקה',
-        body: 'ניתן להפסיק להשתמש ב-DARE ולבקש מחיקת חשבון ונתונים בכל עת (ראו מדיניות הפרטיות לאופן הביצוע). אנו עשויים גם להשעות או להפסיק גישה עבור שימוש המפר תנאים אלו.',
+        body: 'אפשר להפסיק להשתמש ב-DARE ולמחוק את החשבון בכל עת, בהגדרות ("מחיקת חשבון"). המחיקה מסירה לצמיתות את החשבון, את החלומות השמורים והתמונות שלהם, את ההרהורים והדפוסים ואת כל יתרת קרדיטים שלא נוצלה, ואי אפשר לשחזר אותם. מחיקת חשבון אינה בקשת ביטול עסקה ואינה מקנה החזר כספי מעבר למה שהדין קובע. אנחנו עשויים להשעות או להפסיק גישה עבור שימוש המפר תנאים אלו.',
       },
       {
         heading: 'יצירת קשר',
-        body: 'שאלות לגבי תנאים אלו ניתן לשלוח אל daretogoin@gmail.com.',
+        body: 'שאלות, בקשות ופניות לגבי רכישה, ביטול או תנאים אלו: daretogoin@gmail.com. מיקום: קריית אונו, ישראל.',
+      },
+      {
+        heading: 'דין חל',
+        body: 'על תנאים אלו יחול הדין הישראלי. אין בכך כדי לפגוע בזכותכם לפנות לערכאה המוסמכת לפי הדין.',
       },
     ],
     draftNotice:
       'זוהי טיוטה, שנכתבה עבור אפליקציה קטנה בשלב מוקדם. היא טרם נבדקה על ידי עורך דין ואין להסתמך עליה כמסמך משפטי סופי ומלא — גרסה שעברה בדיקה משפטית מסודרת תחליף אותה לפני השקה מסחרית.',
+  },
+  cancellation: {
+    title: 'מדיניות ביטולים והחזרים',
+    updated: 'עודכן לאחרונה: אוקטובר 2026',
+    intro:
+      'המסמך הזה מסביר מה קורה אם רוצים לבטל רכישה ב-DARE, ומה הזכויות שהדין נותן לכם כצרכנים. הוא נכתב בשפה פשוטה — גרסה מלאה ומאושרת משפטית תחליף אותו לפני השקה מסחרית.',
+    sections: [
+      {
+        heading: 'בקצרה',
+        body: 'הרכישה ב-DARE חד־פעמית, ללא מנוי וללא חיוב חוזר. אין לנו מדיניות החזרים מרצון מעבר לזכויות הקבועות בדין. הזכויות שהדין מקנה לכם כצרכנים נשארות בתוקף, ואנחנו נפעל לפיהן.',
+      },
+      {
+        heading: 'מה הדין קובע (תמצית, לפי חוק הגנת הצרכן, התשמ"א–1981)',
+        body: '- בעסקה שנעשתה מרחוק (למשל דרך אתר) ניתן, ככלל, לבטל את העסקה בתוך 14 ימים, לפי המועד המאוחר בין יום העסקה ליום קבלת מסמך פרטי העסקה (סעיף 14ג).\n- לזכות הביטול יש חריגים שקבועים בדין, ובהם מידע כהגדרתו בחוק המחשבים (סעיף 14ג(ד)). אם רכישה מסוימת נכללת בחריג כזה לפי הדין, הזכות לא חלה עליה.\n- בביטול רגיל ניתן לגבות דמי ביטול בשיעור שלא יעלה על 5% ממחיר העסקה או 100 ₪, הנמוך מביניהם (סעיף 14ה; תקנות הגנת הצרכן (ביטול עסקה), התשע"א–2010).\n- בביטול עקב פגם, אי־התאמה למה שהובטח או אי־אספקה, לא נגבים דמי ביטול.\n- צרכנים שהם אנשים עם מוגבלות, אזרחים ותיקים או עולים חדשים רשאים, בתנאים שהדין קובע, לבטל בתוך ארבעה חודשים (סעיף 14ג1).',
+      },
+      {
+        heading: 'איך מבקשים ביטול או בירור',
+        body: 'שולחים הודעה אל daretogoin@gmail.com מכתובת המייל של החשבון, עם מספר האסמכתא של התשלום (מופיע במסך החזרה מהתשלום ובחשבונית). מומלץ לציין את המילה "ביטול" בנושא ההודעה. נשיב ונטפל בבקשה בהתאם למועדים שקובע הדין. אם הדין מחייב החזר, הוא יינתן באמצעי התשלום שבו שולם, בניכוי דמי ביטול אם הדין מתיר.',
+      },
+      {
+        heading: 'קרדיטים שנוצלו ושלא נוצלו',
+        body: 'קרדיט שנוצל ליצירת חלום כבר סופק, ואת הטיפול בו נבצע לפי הדין. קרדיט שהופחת בשל כשל טכני אצלנו או אצל ספק מוחזר אוטומטית לחשבון. אם שילמתם והקרדיטים לא נוספו, נוסיף אותם או נחזיר את התשלום.',
+      },
+      {
+        heading: 'מחיקת חשבון ואי־שימוש',
+        body: 'מחיקת חשבון או אי־שימוש בקרדיטים אינם בקשת ביטול. יתרת קרדיטים שלא נוצלה נמחקת עם מחיקת החשבון, ואינה ניתנת להחזר מרצון; זכויותיכם לפי הדין לא נפגעות. אם אתם שוקלים לבטל רכישה, מומלץ לפנות אלינו לפני מחיקת החשבון.',
+      },
+    ],
+    draftNotice:
+      'זוהי טיוטת מדיניות ביטולים שנכתבה עבור אפליקציה קטנה בשלב מוקדם. היא טרם נבדקה על ידי עורך דין ואין להסתמך עליה כמסמך משפטי סופי ומלא — מדיניות שעברה בדיקה משפטית מסודרת תחליף אותה לפני השקה מסחרית.',
   },
 };
 

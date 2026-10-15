@@ -359,8 +359,8 @@ test('legal: the old contact email is gone everywhere; every document uses daret
 test('privacy policy (EN + HE) explains self-service permanent deletion honestly, incl. the kept non-personal trial record', () => {
   const en = JSON.stringify(getLegalDocument('en', 'privacy'));
   const he = JSON.stringify(getLegalDocument('he', 'privacy'));
-  assert.match(en, /permanently delete your account yourself: in Settings/);
-  assert.match(en, /free first dream has already been used from a given browser is kept without any link to you/);
+  assert.match(en, /delete your account permanently yourself: in Settings/);
+  assert.match(en, /a minimal record, with no link to you, that the first free dream was already used from a given browser/);
   assert.ok(!/does not yet have a fully self-service deletion/.test(en));
   assert.match(he, /למחוק את החשבון בעצמכם לצמיתות: בהגדרות/);
   assert.match(he, /ללא כל קישור אליכם/);

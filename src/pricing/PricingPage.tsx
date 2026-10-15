@@ -3,6 +3,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import EditorialTitle from '../ui/EditorialTitle';
 import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
+import { operatorLine } from '../legal/businessDetails';
 import { DREAM_PACKAGES, type DreamPackageDef, type PackageId } from './packages';
 import CheckoutDialog from '../payments/CheckoutDialog';
 import { useAuth } from '../auth/AuthContext';
@@ -102,7 +103,9 @@ function PackageCard({ pkg, onSelectPaid, isCurrent = false, isLatestOfSeveral =
           <p className="pr-card-eyebrow">{t(`pricing.packages.${copyKey}.name`)}</p>
 
           <p className="pr-card-price-big">{t('pricing.dreamsCountLabel').replace('{count}', String(pkg.dreamCount))}</p>
-          <p className="pr-card-price-sub">₪{pkg.priceIls}</p>
+          <p className="pr-card-price-sub">
+            ₪{pkg.priceIls} <span className="pr-card-vat">{t('pricing.vatIncluded')}</span>
+          </p>
 
           <p className="pr-card-description">{t(`pricing.packages.${copyKey}.description`)}</p>
 
@@ -149,7 +152,7 @@ const PAID_PACKAGES = DREAM_PACKAGES.filter((pkg): pkg is DreamPackageDef & { pr
  * just that function's body, nothing else here needs to change.
  */
 export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn = false, creditsRequired = false, onRequireSignIn }: PricingPageProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const accountPlan = useAccountPlan(signedIn ? user?.id : undefined);
   // "Your package — N dreams left", from the server (shown only when signed in).
@@ -256,6 +259,39 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
               <PackageCard key={pkg.id} pkg={pkg} onSelectPaid={handleSelectPaidPackage} isCurrent={accountPlan.status === 'ready' && accountPlan.plan === pkg.id} isLatestOfSeveral={accountPlan.status === 'ready' && accountPlan.several} />
             ))}
           </div>
+          )}
+
+          {/* What a purchase is, stated plainly next to the prices: the final price (VAT included), one-time, no subscription, credits that
+              do not expire, the documents, who the seller is, and clear links to the three documents that govern a purchase. */}
+          {!isOwner && (
+            <section className="pr-info" aria-labelledby="pr-info-title">
+              <h2 id="pr-info-title" className="pr-info-title">
+                {t('pricing.infoTitle')}
+              </h2>
+              <ul className="pr-info-list">
+                <li>{t('pricing.infoOneTime')}</li>
+                <li>{t('pricing.infoVat')}</li>
+                <li>{t('pricing.infoNoExpiry')}</li>
+                <li>{t('pricing.infoCredit')}</li>
+                <li>{t('pricing.infoPayment')}</li>
+                <li>{t('pricing.infoInvoice')}</li>
+                <li>{t('pricing.infoRefunds')}</li>
+                <li>{t('pricing.infoDeletion')}</li>
+              </ul>
+              <nav className="pr-info-links" aria-label={t('pricing.linksLabel')}>
+                <span className="pr-info-links-label">{t('pricing.linksLabel')}:</span>
+                <button type="button" className="pr-info-link" data-cursor-hover onClick={() => onOpenLegal('terms')}>
+                  {t('pricing.linkTerms')}
+                </button>
+                <button type="button" className="pr-info-link" data-cursor-hover onClick={() => onOpenLegal('privacy')}>
+                  {t('pricing.linkPrivacy')}
+                </button>
+                <button type="button" className="pr-info-link" data-cursor-hover onClick={() => onOpenLegal('cancellation')}>
+                  {t('pricing.linkCancellation')}
+                </button>
+              </nav>
+              <p className="pr-info-operator">{operatorLine(language)}</p>
+            </section>
           )}
 
           <p className="pr-reassurance">{t('about.emphasis')}</p>

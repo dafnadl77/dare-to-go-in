@@ -113,3 +113,22 @@
     width: 100%;
   }
 }
+
+/* A bulleted paragraph of a document (lines starting with "- "). */
+.pp-list {
+  margin: 0 0 0.8rem;
+  padding-inline-start: 1.3rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--dream-warm-neutral);
+  overflow-wrap: anywhere;
+}
+
+.pp-list li + li {
+  margin-top: 0.3rem;
+}
+
+.pp-list a {
+  color: var(--dream-white);
+  text-underline-offset: 0.2em;
+}

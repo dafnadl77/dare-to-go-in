@@ -1,0 +1,111 @@
+/* The administrator's "Purchase documents" list in Settings. Plain rows and the same pill buttons as the rest of Settings: no wash, blur or shadow. */
+.td-panel {
+  margin-top: clamp(1.5rem, 3vw, 2.25rem);
+  padding-top: 1.4rem;
+  border-top: 1px solid rgba(244, 240, 232, 0.12);
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  color: var(--dream-white);
+}
+
+.td-title {
+  margin: 0 0 0.4rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.td-intro {
+  margin: 0 0 1rem;
+  max-width: 40em;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--dream-warm-neutral);
+}
+
+.td-lang {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.td-lang-label {
+  font-size: 1rem;
+  color: var(--dream-warm-neutral);
+}
+
+.td-muted {
+  margin: 0.4rem 0 0;
+  font-size: 1rem;
+  color: var(--dream-warm-neutral);
+}
+
+.td-btn {
+  display: inline-block;
+  padding: 0.45em 1em;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid rgba(244, 240, 232, 0.4);
+  color: var(--dream-white);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.td-btn:hover,
+.td-btn:focus-visible {
+  border-color: rgba(244, 240, 232, 0.8);
+  background: rgba(244, 240, 232, 0.08);
+}
+
+.td-btn--on {
+  background: rgba(244, 240, 232, 0.12);
+  border-color: var(--dream-btn-border);
+}
+
+.td-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.td-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  padding: 0.85em 0;
+  border-bottom: 1px solid rgba(244, 240, 232, 0.12);
+}
+
+.td-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.td-item-line {
+  font-size: 1.0625rem;
+}
+
+.td-item-email {
+  font-size: 0.9375rem;
+  color: var(--dream-warm-neutral);
+  overflow-wrap: anywhere;
+}
+
+.td-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.td-copied {
+  font-size: 0.9375rem;
+  color: var(--dream-warm-neutral);
+}

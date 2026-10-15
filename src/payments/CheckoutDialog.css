@@ -128,3 +128,88 @@
     font-size: 1rem;
   }
 }
+
+/* ---- The purchase terms the customer sees and accepts before paying. Plain text and the same pill/line language as the rest of the
+   dialog: no wash, blur or shadow. ---- */
+.co-vat {
+  font-size: 1rem;
+  color: var(--dream-warm-neutral);
+}
+
+.co-terms {
+  margin: 0 0 1rem;
+  padding: 0.85rem 0 0.2rem;
+  border-top: 1px solid rgba(244, 240, 232, 0.14);
+}
+
+.co-terms-title {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--dream-white);
+}
+
+.co-terms-list {
+  margin: 0 0 0.7rem;
+  padding-inline-start: 1.25rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--dream-warm-neutral);
+}
+
+.co-terms-list li + li {
+  margin-top: 0.2rem;
+}
+
+.co-docs {
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--dream-warm-neutral);
+}
+
+.co-docs-sep {
+  margin-inline: 0.45rem;
+  opacity: 0.55;
+}
+
+.co-operator {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--dream-warm-neutral);
+  overflow-wrap: anywhere;
+}
+
+.co-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.co-consent-box {
+  flex: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  margin: 0.1rem 0 0;
+  accent-color: #f4f0e8;
+  cursor: pointer;
+}
+
+.co-consent-box[aria-invalid='true'] {
+  outline: 2px solid rgba(230, 176, 168, 0.85);
+  outline-offset: 2px;
+}
+
+.co-consent-box:focus-visible {
+  outline: 2px solid rgba(244, 240, 232, 0.9);
+  outline-offset: 2px;
+}
+
+.co-consent-label {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--dream-white);
+  cursor: pointer;
+}

@@ -5,6 +5,8 @@ import { normalizeFullName, normalizeIsraeliMobile } from './payerDetails';
 import { startCheckout, type CheckoutError, type PaidPackageId } from './checkout';
 import '../archive/DeleteDreamDialog.css';
 import PrivacyPolicyDialog from '../legal/PrivacyPolicyDialog';
+import type { LegalKey } from '../legal/legalContent';
+import { operatorLine } from '../legal/businessDetails';
 import './CheckoutDialog.css';
 
 interface CheckoutDialogProps {
@@ -29,7 +31,7 @@ const ERROR_KEY: Record<Exclude<CheckoutError, 'invalid_name' | 'invalid_phone'>
  * the checkout. Success sends the browser to the Grow link the server validated; nothing is credited here.
  */
 export default function CheckoutDialog({ packageId, packageName, dreamsLabel, priceLabel, onClose }: CheckoutDialogProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const titleId = useId();
   const nameErrorId = useId();
   const phoneErrorId = useId();
@@ -42,11 +44,17 @@ export default function CheckoutDialog({ packageId, packageName, dreamsLabel, pr
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [phase, setPhase] = useState<'idle' | 'submitting' | 'redirecting'>('idle');
-  // The Privacy Policy opens in a modal OVER this form (no navigation), so nothing the customer typed is ever lost.
-  const [privacyOpen, setPrivacyOpen] = useState(false);
-  const privacyOpenRef = useRef(false);
-  const privacyWasOpenRef = useRef(false);
-  const privacyLinkRef = useRef<HTMLButtonElement>(null);
+  // The legal documents (Terms of Use, Privacy Policy, Cancellation and Refund Policy) open in a modal OVER this form (no navigation),
+  // so nothing the customer typed is ever lost.
+  const [openDoc, setOpenDoc] = useState<LegalKey | null>(null);
+  const openDocRef = useRef<LegalKey | null>(null);
+  const docWasOpenRef = useRef(false);
+  const docOpenerRef = useRef<HTMLElement | null>(null);
+  const consentRef = useRef<HTMLInputElement>(null);
+  const consentErrorId = useId();
+  // The purchase terms must be accepted before the customer is sent to pay (checked here; nothing is sent until they are).
+  const [consent, setConsent] = useState(false);
+  const [consentInvalid, setConsentInvalid] = useState(false);
   const [nameInvalid, setNameInvalid] = useState(false);
   const [phoneInvalid, setPhoneInvalid] = useState(false);
   const [error, setError] = useState<Exclude<CheckoutError, 'invalid_name' | 'invalid_phone'> | null>(null);
@@ -57,11 +65,16 @@ export default function CheckoutDialog({ packageId, packageName, dreamsLabel, pr
   }, [onClose]);
 
   useEffect(() => {
-    privacyOpenRef.current = privacyOpen;
-    // Back from the policy: the form is interactive again, so focus returns to the link that opened it.
-    if (!privacyOpen && privacyWasOpenRef.current) privacyLinkRef.current?.focus();
-    privacyWasOpenRef.current = privacyOpen;
-  }, [privacyOpen]);
+    openDocRef.current = openDoc;
+    // Back from a document: the form is interactive again, so focus returns to the link that opened it.
+    if (openDoc === null && docWasOpenRef.current) docOpenerRef.current?.focus();
+    docWasOpenRef.current = openDoc !== null;
+  }, [openDoc]);
+
+  const openPolicy = (key: LegalKey, opener: HTMLElement) => {
+    docOpenerRef.current = opener;
+    setOpenDoc(key);
+  };
 
   // After a failed attempt the form unlocks; only then can the field the server complained about take focus.
   useEffect(() => {
@@ -74,8 +87,8 @@ export default function CheckoutDialog({ packageId, packageName, dreamsLabel, pr
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     nameRef.current?.focus();
     const onKeyDown = (e: KeyboardEvent) => {
-      // While the Privacy Policy is open it owns the keyboard (Escape closes only that modal, Tab stays inside it).
-      if (privacyOpenRef.current) return;
+      // While a document is open it owns the keyboard (Escape closes only that modal, Tab stays inside it).
+      if (openDocRef.current !== null) return;
       if (e.key === 'Escape') {
         e.stopPropagation();
         e.preventDefault();
@@ -120,11 +133,13 @@ export default function CheckoutDialog({ packageId, packageName, dreamsLabel, pr
     if (submittingRef.current) return; // one request at a time: a double click or a second Enter does nothing
     const nameBad = normalizeFullName(fullName) === null;
     const phoneBad = normalizeIsraeliMobile(phone) === null;
+    const consentBad = !consent;
     setNameInvalid(nameBad);
     setPhoneInvalid(phoneBad);
+    setConsentInvalid(consentBad);
     setError(null);
-    if (nameBad || phoneBad) {
-      (nameBad ? nameRef : phoneRef).current?.focus();
+    if (nameBad || phoneBad || consentBad) {
+      (nameBad ? nameRef : phoneBad ? phoneRef : consentRef).current?.focus();
       return;
     }
     submittingRef.current = true;
@@ -158,7 +173,7 @@ export default function CheckoutDialog({ packageId, packageName, dreamsLabel, pr
         if (e.target === e.currentTarget && !submittingRef.current) onClose();
       }}
     >
-      <div ref={panelRef} className="dd-dialog co-dialog" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-busy={locked} inert={privacyOpen}>
+      <div ref={panelRef} className="dd-dialog co-dialog" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-busy={locked} inert={openDoc !== null}>
         <h2 id={titleId} className="dd-dialog-title">
           {t('pricing.checkout.title')}
         </h2>
@@ -172,7 +187,41 @@ export default function CheckoutDialog({ packageId, packageName, dreamsLabel, pr
             ·
           </span>
           <span dir="ltr">{priceLabel}</span>
+          <span className="co-vat">{t('pricing.checkout.vatIncluded')}</span>
         </p>
+
+        {/* What the customer agrees to, in plain words, BEFORE anything is asked of them or sent anywhere. */}
+        <section className="co-terms" aria-labelledby={`${titleId}-terms`}>
+          <h3 id={`${titleId}-terms`} className="co-terms-title">
+            {t('pricing.checkout.termsTitle')}
+          </h3>
+          <ul className="co-terms-list">
+            <li>{t('pricing.checkout.termsOneTime')}</li>
+            <li>{t('pricing.checkout.termsVat')}</li>
+            <li>{t('pricing.checkout.termsNoExpiry')}</li>
+            <li>{t('pricing.checkout.termsInvoice')}</li>
+          </ul>
+          <p className="co-docs">
+            <span>{t('pricing.checkout.docsLead')}</span>{' '}
+            <button type="button" className="co-link" disabled={locked} onClick={(e) => openPolicy('terms', e.currentTarget)}>
+              {t('pricing.checkout.linkTerms')}
+            </button>
+            <span className="co-docs-sep" aria-hidden="true">
+              ·
+            </span>
+            <button type="button" className="co-link" disabled={locked} onClick={(e) => openPolicy('privacy', e.currentTarget)}>
+              {t('pricing.checkout.linkPrivacy')}
+            </button>
+            <span className="co-docs-sep" aria-hidden="true">
+              ·
+            </span>
+            <button type="button" className="co-link" disabled={locked} onClick={(e) => openPolicy('cancellation', e.currentTarget)}>
+              {t('pricing.checkout.linkCancellation')}
+            </button>
+          </p>
+          <p className="co-operator">{operatorLine(language)}</p>
+        </section>
+
         <p className="dd-dialog-body">{t('pricing.checkout.intro')}</p>
 
         <form className="co-form" onSubmit={submit} noValidate>
@@ -235,10 +284,36 @@ export default function CheckoutDialog({ packageId, packageName, dreamsLabel, pr
 
           <p className="co-privacy">
             {t('pricing.checkout.privacy')}{' '}
-            <button ref={privacyLinkRef} type="button" className="co-link" disabled={locked} onClick={() => setPrivacyOpen(true)}>
+            <button type="button" className="co-link" disabled={locked} onClick={(e) => openPolicy('privacy', e.currentTarget)}>
               {t('pricing.checkout.privacyLink')}
             </button>
           </p>
+
+          <div className="co-consent">
+            <input
+              ref={consentRef}
+              id={`${titleId}-consent`}
+              className="co-consent-box"
+              type="checkbox"
+              checked={consent}
+              disabled={locked}
+              aria-required="true"
+              aria-invalid={consentInvalid}
+              aria-describedby={consentInvalid ? consentErrorId : undefined}
+              onChange={(e) => {
+                setConsent(e.target.checked);
+                setConsentInvalid(false);
+              }}
+            />
+            <label htmlFor={`${titleId}-consent`} className="co-consent-label">
+              {t('pricing.checkout.consent')}
+            </label>
+          </div>
+          {consentInvalid && (
+            <p id={consentErrorId} className="co-error" role="alert">
+              {t('pricing.checkout.errConsent')}
+            </p>
+          )}
 
           {error && (
             <p className="dd-dialog-error" role="alert">
@@ -260,7 +335,7 @@ export default function CheckoutDialog({ packageId, packageName, dreamsLabel, pr
     </div>,
     document.body,
       )}
-      {privacyOpen && <PrivacyPolicyDialog closeLabel={t('pricing.checkout.privacyClose')} onClose={() => setPrivacyOpen(false)} />}
+      {openDoc !== null && <PrivacyPolicyDialog documentKey={openDoc} closeLabel={t('pricing.checkout.privacyClose')} onClose={() => setOpenDoc(null)} />}
     </>
   );
 }

@@ -1,14 +1,16 @@
 import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../i18n/LanguageContext';
-import { getLegalDocument } from './legalContent';
-import { linkifyEmails } from './linkifyEmails';
+import { getLegalDocument, type LegalKey } from './legalContent';
+import LegalBody from './LegalBody';
 import './PrivacyPolicyDialog.css';
 
 interface PrivacyPolicyDialogProps {
   /** Label of the button that returns to what the reader was doing (e.g. "Close and return to payment"). */
   closeLabel: string;
   onClose: () => void;
+  /** Which document to show (default: the Privacy Policy). The same text its own page shows. */
+  documentKey?: LegalKey;
 }
 
 /**
@@ -16,9 +18,9 @@ interface PrivacyPolicyDialogProps {
  * Opening it never navigates, so whatever the reader was filling in (e.g. the checkout form) stays exactly as it was; closing
  * it (button, Escape, or the dark backdrop) returns focus to the control that opened it.
  */
-export default function PrivacyPolicyDialog({ closeLabel, onClose }: PrivacyPolicyDialogProps) {
+export default function PrivacyPolicyDialog({ closeLabel, onClose, documentKey = 'privacy' }: PrivacyPolicyDialogProps) {
   const { language } = useLanguage();
-  const doc = getLegalDocument(language, 'privacy');
+  const doc = getLegalDocument(language, documentKey);
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -81,11 +83,7 @@ export default function PrivacyPolicyDialog({ closeLabel, onClose }: PrivacyPoli
           {doc.sections.map((section) => (
             <section className="pp-section" key={section.heading}>
               <h3 className="pp-heading">{section.heading}</h3>
-              {section.body.split('\n\n').map((paragraph, i) => (
-                <p className="pp-body" key={i}>
-                  {linkifyEmails(paragraph)}
-                </p>
-              ))}
+              <LegalBody body={section.body} paragraphClass="pp-body" listClass="pp-list" />
             </section>
           ))}
           <p className="pp-draft">{doc.draftNotice}</p>
