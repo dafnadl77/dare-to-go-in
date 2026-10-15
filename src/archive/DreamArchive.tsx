@@ -522,42 +522,8 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onOpenP
       )}
 
       <div className="ar-shell-body">
-        <nav className="ar-sidenav" aria-label={t('archive.dreamArchiveNav')}>
-          <button
-            type="button"
-            className={`ar-nav-item${activeSection === 'all' ? ' ar-nav-item--active' : ''}`}
-            aria-current={activeSection === 'all' ? 'page' : undefined}
-            onClick={() => goToSection('all')}
-          >
-            {t('archive.navAllDreams')}
-          </button>
-          <button
-            type="button"
-            className={`ar-nav-item${activeSection === 'favorites' ? ' ar-nav-item--active' : ''}`}
-            aria-current={activeSection === 'favorites' ? 'page' : undefined}
-            onClick={() => goToSection('favorites')}
-          >
-            {t('archive.navFavorites')}
-          </button>
-          <button
-            type="button"
-            className={`ar-nav-item${activeSection === 'insights' ? ' ar-nav-item--active' : ''}`}
-            aria-current={activeSection === 'insights' ? 'page' : undefined}
-            onClick={() => goToSection('insights')}
-          >
-            {t('archive.navInsights')}
-          </button>
-          <button
-            type="button"
-            className={`ar-nav-item${activeSection === 'settings' ? ' ar-nav-item--active' : ''}`}
-            aria-current={activeSection === 'settings' ? 'page' : undefined}
-            onClick={() => goToSection('settings')}
-          >
-            {t('archive.navSettings')}
-          </button>
-        </nav>
-
-        <main className="ar-main">
+        {/* The trail sits at the start edge (the right in Hebrew), directly above the section menu, not in the content column. */}
+        <div className="ar-side">
           <Breadcrumb
             ariaLabel={t('breadcrumb.ariaLabel')}
             items={
@@ -582,6 +548,43 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onOpenP
                     ]
             }
           />
+          <nav className="ar-sidenav" aria-label={t('archive.dreamArchiveNav')}>
+            <button
+              type="button"
+              className={`ar-nav-item${activeSection === 'all' ? ' ar-nav-item--active' : ''}`}
+              aria-current={activeSection === 'all' ? 'page' : undefined}
+              onClick={() => goToSection('all')}
+            >
+              {t('archive.navAllDreams')}
+            </button>
+            <button
+              type="button"
+              className={`ar-nav-item${activeSection === 'favorites' ? ' ar-nav-item--active' : ''}`}
+              aria-current={activeSection === 'favorites' ? 'page' : undefined}
+              onClick={() => goToSection('favorites')}
+            >
+              {t('archive.navFavorites')}
+            </button>
+            <button
+              type="button"
+              className={`ar-nav-item${activeSection === 'insights' ? ' ar-nav-item--active' : ''}`}
+              aria-current={activeSection === 'insights' ? 'page' : undefined}
+              onClick={() => goToSection('insights')}
+            >
+              {t('archive.navInsights')}
+            </button>
+            <button
+              type="button"
+              className={`ar-nav-item${activeSection === 'settings' ? ' ar-nav-item--active' : ''}`}
+              aria-current={activeSection === 'settings' ? 'page' : undefined}
+              onClick={() => goToSection('settings')}
+            >
+              {t('archive.navSettings')}
+            </button>
+          </nav>
+        </div>
+
+        <main className="ar-main">
           {(activeSection === 'all' || activeSection === 'favorites') && (
             <>
               <div className="ar-hero-row">

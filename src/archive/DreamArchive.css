@@ -211,6 +211,37 @@
   font-weight: 600;
 }
 
+/* ---- The page trail ("My dreams / ...") sits above the section menu, at the start edge: the right in Hebrew, the left in English. The
+   menu column used to be the only thing on that edge while the trail floated at the far end of the content column, on the wrong side for
+   a right-to-left page. The trail itself follows the page direction here (Breadcrumb.tsx fixes it to left-to-right everywhere else). ---- */
+.ar-side {
+  flex: none;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: calc(var(--gh-h) + 4.75rem);
+}
+
+.ar-side .ar-sidenav {
+  position: static;
+  width: 100%;
+}
+
+.ar-side .app-breadcrumb {
+  direction: inherit;
+  justify-content: flex-start;
+  margin: 0 0 0.9rem;
+  padding-inline: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .ar-side {
+    position: static;
+    width: 100%;
+  }
+}
+
 .ar-main {
   flex: 1 1 auto;
   min-width: 0;

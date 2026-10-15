@@ -765,37 +765,32 @@
   }
 }
 
-/* ---- "REMEMBERING..." — subtle microcopy only, never a spinner or a
-   percentage, shown while a corrected image regenerates in the background.
-   Was 0.66rem (10.5px) pulsing down to 0.4 opacity at its dimmest — small
-   AND briefly near-invisible at once. Kept the breathing feel (still
-   "alive", not static) but raised the floor so it never actually goes
-   unreadable, and sized it up to a real minimum. ---- */
+/* ---- "REMEMBERING..." — subtle microcopy only, never a spinner or a percentage, shown while the image is rebuilt in the background.
+   It is completely STILL: no animation, no transition, no opacity change, and no transform. It used to pulse its opacity (0.65 to 0.95 every
+   2.4s) and was centred with translateX(-50%) from a bottom offset in vh, so on a phone it flickered and, when the browser's address bar
+   collapsed, it also jumped. Now it is centred by its own left/right edges (no transform), sits at a fixed offset in the SMALL viewport unit
+   (svh, which does not change when the address bar moves), and is a readable size on a phone. ---- */
 .dr-remembering {
   position: absolute;
   bottom: 9vh;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 9svh;
+  left: 0;
+  right: 0;
   margin: 0;
+  padding-inline: 6vw;
+  text-align: center;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
-  font-size: 0.85rem;
+  font-size: clamp(1.15rem, 4.8vw, 1.5rem);
   font-weight: 500;
-  letter-spacing: 0.18em;
+  line-height: 1.3;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--dream-white);
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.55);
-  opacity: 0.75;
-  animation: dr-remembering-pulse 2.4s ease-in-out infinite;
-}
-
-@keyframes dr-remembering-pulse {
-  0%,
-  100% {
-    opacity: 0.65;
-  }
-  50% {
-    opacity: 0.95;
-  }
+  opacity: 1;
+  animation: none;
+  transition: none;
+  transform: none;
 }
 
 /* ---- Memory fragments — real words only, briefly emerging then

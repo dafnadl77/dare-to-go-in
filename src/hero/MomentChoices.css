@@ -1,0 +1,140 @@
+/* =====================================================================
+   "WHICH MOMENT IN THE DREAM STAYED WITH YOU?" — THE CHOICES IN AN ORDERLY LAYOUT.
+
+   The words used to float about the screen as loose, bobbing text with orbiting lights, which read as scattered on a phone. They are now
+   the same rounded, thin-lined chips as the feelings on the next screen (DreamEmotions.css): a centred, wrapping row with one even gap,
+   one chip height, one type size, and no horizontal scroll at any width. Content, order and the selection logic are untouched; only how
+   they are drawn changes. Loaded after ReadablePlates.css, which gave each word its own small plate: the chip itself is the plate now.
+   ===================================================================== */
+
+.da-choice-row {
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  align-content: flex-start;
+  gap: 0.75rem 0.8rem;
+  width: 100%;
+  max-width: 44rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  box-sizing: border-box;
+}
+
+.da-choice {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 2.75rem;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.6em 1.3em;
+  background: rgba(6, 8, 18, 0.62);
+  border: 1px solid rgba(244, 240, 232, 0.45);
+  border-radius: 999px;
+  text-align: center;
+  /* They arrive by fading in, in order; they no longer bob up and down afterwards. */
+  animation: da-choice-in 1.3s var(--ease-memory) forwards;
+  animation-delay: calc(2s + var(--ci) * 0.22s);
+  transition:
+    background 0.3s var(--ease-soft),
+    border-color 0.3s var(--ease-soft),
+    opacity 0.3s var(--ease-soft);
+}
+
+/* The loose lights, sparkle and glow behind each word belonged to the floating look. */
+.da-choice-aura,
+.da-choice-trace,
+.da-choice-sparkle {
+  display: none;
+}
+
+.da-choice-text {
+  display: block;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: 0;
+  text-shadow: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.da-choice:hover:not(:disabled),
+.da-choice:focus-visible {
+  --choice-lift: 0px;
+  border-color: rgba(244, 240, 232, 0.85);
+  background: rgba(244, 240, 232, 0.1);
+}
+
+.da-choice:hover:not(:disabled) .da-choice-text,
+.da-choice:focus-visible .da-choice-text {
+  text-shadow: none;
+}
+
+.da-choice:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 3px;
+}
+
+/* The chosen moment: the chip grows a little and brightens while the others fade (the existing selection animation). */
+.da-choice.is-selected {
+  border-color: rgba(244, 240, 232, 0.95);
+  background: rgba(60, 56, 70, 0.72);
+}
+
+.da-choice.is-selected .da-choice-text {
+  font-weight: 700;
+  text-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .da-choice-row {
+    gap: 0.6rem 0.6rem;
+    padding-inline: 0.5rem;
+  }
+
+  .da-choice {
+    padding: 0.55em 1.05em;
+    max-width: 100%;
+  }
+
+  .da-choice-text {
+    font-size: 1.0625rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1100px) {
+  .da-choice {
+    max-width: 100%;
+  }
+}
+
+/* Wide screens: the band under the hero image is only about 160px tall on a 1280x720 screen, so the chips stay on ONE line there (as the
+   words always did), each a little smaller as more are extracted, and a long label wraps inside its own chip instead of pushing the row
+   off the screen. */
+@media (min-width: 1101px) {
+  .da-choice-row {
+    flex-wrap: nowrap;
+    max-width: 72rem;
+    gap: clamp(0.4rem, calc(1.1rem - var(--choice-count, 3) * 0.1rem), 0.8rem);
+  }
+
+  .da-choice {
+    flex: 0 1 auto;
+    min-width: 0;
+    min-height: 2.5rem;
+    padding: 0.5em 1em;
+  }
+
+  .da-choice-text {
+    font-size: clamp(0.9rem, calc(1.7vw - var(--choice-count, 3) * 0.1vw), 1.0625rem);
+  }
+}

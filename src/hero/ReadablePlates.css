@@ -9,16 +9,7 @@
    colour and background colour are touched; nothing in the recorder, the microphone, the transcription or any behaviour is.
    ===================================================================== */
 
-/* The moment choices (three to six floating words) */
-.da-choice-text {
-  padding: calc(0.2em - 1px) calc(0.75em - 1px);
-  margin: -0.2em -0.75em;
-  border: 1px solid rgba(244, 240, 232, 0.2);
-  border-radius: 999px;
-  background: rgba(6, 8, 18, 0.62);
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-}
+/* The moment choices are chips now (MomentChoices.css): the chip itself is the flat plate. */
 
 /* "The choice is yours." on the closing screen */
 .dc-choice-hint {

@@ -97,7 +97,12 @@ test('feelings screen: the continue button is made readable from inside by a sol
 test('readable plates: the moment choices, "the choice is yours", the hold label and (on phones) the reflection sit on flat plates: no blur, no shadow, no halo', () => {
   assert.match(read('src/hero/HeroDream.tsx'), /import '\.\/ReadablePlates\.css';/);
   const css = read('src/hero/ReadablePlates.css').replace(/\/\*[\s\S]*?\*\//g, '');
-  for (const selector of ['.da-choice-text', '.dc-choice-hint', '.htr-label', '.dr-thought']) {
+  // the moment choices are chips: the chip itself is the flat plate (MomentChoices.css)
+  const chip = /\.da-choice \{([^}]*)\}/.exec(read('src/hero/MomentChoices.css').replace(/\/\*[\s\S]*?\*\//g, ''));
+  assert.ok(chip, 'the moment chip exists');
+  assert.match(chip[1], /background: rgba\(6, 8, 18, 0\.62\)/, 'the moment chip: flat night-tone fill');
+  assert.match(chip[1], /border: 1px solid/, 'the moment chip: a thin border');
+  for (const selector of ['.dc-choice-hint', '.htr-label', '.dr-thought']) {
     const rule = new RegExp(`${selector.replace('.', '\\.')} \\{([^}]*)\\}`).exec(css);
     assert.ok(rule, `${selector} has a plate`);
     assert.match(rule[1], /background: rgba\(6, 8, 18, 0\.(58|62)\)/, `${selector}: flat night-tone fill`);

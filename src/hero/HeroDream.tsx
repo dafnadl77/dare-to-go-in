@@ -41,6 +41,7 @@ import { HowItWorksPanel, HowItWorksTagline, HowItWorksTeaser } from './HowItWor
 import type { LegalKey } from '../legal/legalContent';
 import './HeroDream.css';
 import './ReadablePlates.css';
+import './MomentChoices.css';
 
 const DISSOLVE_MS = 4200;
 const FRAGMENTS_MS = 3600;
