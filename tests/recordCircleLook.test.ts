@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 /**
- * The recording circle's NEW LOOK (a thin bright round frame with a dark round button in its centre) and the new reading style of the explanation under
+ * The recording circle's NEW LOOK (a thin bright round frame with a pearl-grey round button in its centre) and the new reading style of the explanation under
  * the title. Both are CSS only: nothing about how the recording works may change, so this also pins that the look is drawn in a style sheet that holds
  * no behaviour and that the recording component keeps the very same structure and event wiring.
  */
@@ -29,11 +29,20 @@ test('the ring is a thin, bright, perfectly round frame; the circle is a round s
   assert.match(circle[1], /background: radial-gradient\(circle, rgba\(244, 240, 232, 0\.07\) 0%, transparent 72%\)/, 'translucent inside');
 });
 
-test('the centre is a dark, perfectly round disc behind the existing words, in the same proportion at every size, and it cannot catch a tap', () => {
+test('the centre is a light pearl-grey, perfectly round disc behind the existing words, in the same proportion at every size, and it cannot catch a tap', () => {
   const disc = rule(plates, '.htr-label::before');
   assert.match(disc, /border-radius: 50%/);
   assert.match(disc, /width: 81px;\s*height: 81px;/, 'a square box with a 50% radius is a circle');
-  assert.match(disc, /background: rgba\(8, 10, 24, 0\.84\)/, 'dark');
+  assert.match(disc, /background: rgba\(205, 209, 211, 0\.65\)/, 'light neutral pearl grey, no blue or violet');
+  assert.ok(Math.max(205, 209, 211) - Math.min(205, 209, 211) < 10, 'a neutral grey');
+  // the words on it are a dark neutral grey with no glow; worst case (pearl at 65% over pure black = about #858889) the contrast is still above 4.5:1
+  const label = rule(plates, '.htr-circle .htr-label');
+  assert.match(label, /color: #121416/);
+  assert.match(label, /text-shadow: none/);
+  const lum = (v: number) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const L = (r: number, g: number, b: number) => 0.2126 * lum(r) + 0.7152 * lum(g) + 0.0722 * lum(b);
+  const worst = L(205 * 0.65, 209 * 0.65, 211 * 0.65);
+  assert.ok((worst + 0.05) / (L(0x12, 0x14, 0x16) + 0.05) >= 4.5, 'readable over the darkest video frame');
   assert.match(disc, /pointer-events: none/);
   assert.match(disc, /z-index: -1/, 'behind the words');
   assert.doesNotMatch(disc, /box-shadow|filter|blur/, 'flat, no glow');

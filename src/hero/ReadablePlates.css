@@ -23,10 +23,10 @@
   background: rgba(6, 8, 18, 0.62);
 }
 
-/* THE RECORDING CIRCLE, on every screen: a perfectly round, thin, bright frame (the ring) with a translucent inside, and in its centre a dark,
+/* THE RECORDING CIRCLE, on every screen: a perfectly round, thin, bright frame (the ring) with a translucent inside, and in its centre a pearl-grey,
    perfectly round button carrying the words. It is drawn only with colours and a round shape behind the label: the button, its size, its events,
    the ring's progress, the microphone and everything else about it are untouched (HoldToRemember.tsx and HoldToRemember.css are not changed).
-   The dark disc is the label's ::before: it takes no room, sits behind the words, and cannot catch a tap (pointer-events: none; a tap on it
+   The pearl disc is the label's ::before: it takes no room, sits behind the words, and cannot catch a tap (pointer-events: none; a tap on it
    would reach the same button anyway). Disc : ring is 4 : 5, the same proportion at every size because both scale together. */
 .htr-circle .htr-ring-track {
   stroke: rgba(244, 240, 232, 0.62);
@@ -46,9 +46,21 @@
   height: 81px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: rgba(8, 10, 24, 0.84);
+  background: rgba(205, 209, 211, 0.65);
   z-index: -1;
   pointer-events: none;
+}
+
+/* The button is a light, neutral pearl grey (no blue or violet) so it belongs to the rest of the site, and the words on it are a dark neutral grey.
+   Dark on pearl needs no glow, so the label's dark text-shadow is switched off here. */
+.htr-circle .htr-label {
+  color: #121416;
+  text-shadow: none;
+}
+
+.htr-circle .htr-privacy-note {
+  color: #121416;
+  opacity: 1;
 }
 
 /* While the browser asks for the microphone the label also carries the privacy note, which is taller than the disc: only then does the plate

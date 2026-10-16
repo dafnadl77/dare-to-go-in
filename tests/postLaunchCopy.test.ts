@@ -108,9 +108,9 @@ test('readable plates: the moment choices, "the choice is yours", the hold label
     assert.match(rule[1], /background: rgba\(6, 8, 18, 0\.(58|62)\)/, `${selector}: flat night-tone fill`);
     assert.match(rule[1], /border: 1px solid/, `${selector}: a thin border`);
   }
-  assert.doesNotMatch(css, /blur\(|box-shadow|text-shadow|drop-shadow|filter:/, 'nothing soft, nothing outside a shape');
+  assert.doesNotMatch(css.replace(/text-shadow: none;/g, ''), /blur\(|box-shadow|text-shadow|drop-shadow|filter:/, 'nothing soft, nothing outside a shape (the hold label only switches its text-shadow OFF)');
   // the hold button's own look is a round disc inside a thin ring (see recordCircleLook.test.ts); it is no longer a rounded plate
-  assert.doesNotMatch(css, /\.htr-label \{/, 'no rectangular plate behind the hold label');
+  assert.doesNotMatch(css, /\.htr-label \{[^}]*(background|border)/, 'no rectangular plate behind the hold label');
   // the reflection plates exist on phones only; a wide screen keeps its original look
   assert.match(css, /@media \(max-width: 760px\) \{\s*\.dr-thought \{/);
 });
