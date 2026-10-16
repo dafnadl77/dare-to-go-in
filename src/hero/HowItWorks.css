@@ -47,10 +47,180 @@
   transition: opacity 1.4s var(--ease-memory);
 }
 
-/* A phone has less room: the whole opening column lifts a little to make space for the line, and a short phone leaves the line out. */
+/* A phone has less room: the whole opening column lifts a little to make space for the line. Shorter phones are handled below: the line is never left out. */
 @media (max-width: 640px) and (min-height: 790px) {
   .hero-ui-stack:has(.hiw-tagline) {
     padding-bottom: calc(6vh + 5.5rem);
+  }
+}
+
+/* ---- Phones that are not tall enough for the roomy layout above (a real phone's browser window is usually 560 to 780px tall). The explanation is
+   ALWAYS shown, so the opening's column makes room for it instead: the column stops at the header and at the footer (it was centred over the
+   whole screen), its gaps tighten, the explanation takes a smaller size and the brand title a smaller one. The hold button, its label and the
+   typing link are never touched. English needs more height than Hebrew because its footer wraps onto more lines. ---- */
+@media (max-width: 640px) and (max-height: 789px) {
+  .hero-ui-stack:has(.hiw-tagline) {
+    gap: 0.6rem;
+    padding-top: calc(var(--gh-h, 6.2rem) + 2.9rem);
+    padding-bottom: calc(var(--hiw-footer-h, 6rem) + 0.2rem);
+  }
+
+  .hero-ui-stack:has(.hiw-tagline) .memory-title {
+    font-size: clamp(1.9rem, 9vw, 2.4rem);
+  }
+
+  .hiw-tagline {
+    max-width: 92vw;
+    margin: 0 auto;
+    font-size: clamp(0.88rem, 3.8vw, 1.02rem);
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 640px) and (max-height: 869px) {
+  html:not([lang='he']) .hero-ui-stack:has(.hiw-tagline) {
+    gap: 0.4rem;
+    padding-top: calc(var(--gh-h, 6.2rem) + 2.9rem);
+    padding-bottom: calc(var(--hiw-footer-h, 6rem) + 0.2rem);
+  }
+
+  html:not([lang='he']) .hero-ui-stack:has(.hiw-tagline) .memory-title {
+    font-size: clamp(1.9rem, 9vw, 2.4rem);
+  }
+
+  html:not([lang='he']) .hiw-tagline {
+    max-width: 92vw;
+    margin: 0 auto;
+    font-size: clamp(0.88rem, 3.8vw, 1.02rem);
+    line-height: 1.4;
+  }
+}
+
+/* The same short phones: the pinned footer of the OPENING (not the login page's) keeps its text but gives back the height it takes. Its wide side
+   padding (kept clear of the accessibility button) made the three links wrap onto three lines; now the links use the full width and only the
+   credit line keeps clear of the button. */
+@media (max-width: 640px) and (max-height: 789px) {
+  .hero-dream .app-footer--pinned {
+    padding-inline: 0.75rem;
+    padding-bottom: max(0.7rem, env(safe-area-inset-bottom));
+  }
+
+  .hero-dream .app-footer--pinned .footer-link,
+  .hero-dream .app-footer--pinned .footer-dot {
+    font-size: 0.8125rem;
+  }
+
+  .hero-dream .app-footer--pinned .footer-link {
+    padding: 0.3em 0.2em;
+  }
+
+  .hero-dream .app-footer--pinned .footer-credit {
+    margin-top: 0.25rem;
+    padding-left: 3.4rem;
+    padding-right: 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 640px) and (max-height: 869px) {
+  html:not([lang='he']) .hero-dream .app-footer--pinned {
+    padding-inline: 0.75rem;
+    padding-bottom: max(0.7rem, env(safe-area-inset-bottom));
+  }
+
+  html:not([lang='he']) .hero-dream .app-footer--pinned .footer-link,
+  html:not([lang='he']) .hero-dream .app-footer--pinned .footer-dot {
+    font-size: 0.8125rem;
+  }
+
+  html:not([lang='he']) .hero-dream .app-footer--pinned .footer-link {
+    padding: 0.3em 0.2em;
+    letter-spacing: 0.06em;
+  }
+
+  html:not([lang='he']) .hero-dream .app-footer--pinned .footer-credit {
+    margin-top: 0.25rem;
+    padding-left: 3.4rem;
+    padding-right: 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* The smallest phones (a small phone's browser window is only about 550 to 640px tall): even compacted, the column cannot hold the big title as well
+   as the explanation. The brand is already shown, in the same words, at the top left of the header, so the big title steps aside visually (it stays
+   in the page for screen readers) and the explanation takes its place. */
+@media (max-width: 640px) and (max-height: 639px) {
+  .hero-ui-stack:has(.hiw-tagline) .memory-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .hiw-tagline {
+    font-size: clamp(0.8125rem, 3.6vw, 0.95rem);
+  }
+}
+
+/* Laptops and small windows that are wide but short (a laptop's browser window is often only 560 to 700px tall): the same promise, the explanation
+   is always shown. The big title follows the window's HEIGHT as well as its width (it followed the width alone, so it took 115px of a short window),
+   the gaps tighten, and the column stops above the control and the footer that sit at the bottom edge. */
+@media (min-width: 641px) and (max-height: 767px) {
+  .hero-ui-stack:has(.hiw-tagline) {
+    gap: clamp(0.4rem, 1.7vh, 1rem);
+    padding-top: calc(var(--gh-h, 4rem) + 0.5rem);
+    padding-bottom: calc(var(--hiw-footer-h, 5.5rem) + 3rem);
+  }
+
+  .hero-ui-stack:has(.hiw-tagline) .memory-title {
+    font-size: clamp(2.2rem, min(8.2vw, 10.5vh), 7.5rem);
+  }
+
+  .hiw-tagline {
+    font-size: clamp(0.95rem, min(2.2vw, 2.9vh), 1.4rem);
+    line-height: 1.4;
+  }
+}
+
+/* Landscape phones (under 480px tall): nothing but the opening's own controls fits under the header, so the big title (the same words are in the
+   header) steps aside visually and the explanation takes its place. The column stops at the header and uses the rest of the screen. */
+@media (max-height: 480px) {
+  .hero-ui-stack:has(.hiw-tagline) {
+    gap: 0.4rem;
+    padding-top: calc(var(--gh-h, 3.6rem) + 0.4rem);
+    padding-bottom: 0.6rem;
+  }
+
+  .hero-ui-stack:has(.hiw-tagline) .memory-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .hiw-tagline {
+    max-width: min(54rem, 92vw);
+    margin: 0 auto;
+    font-size: clamp(0.85rem, 2.4vw, 1.05rem);
+    line-height: 1.4;
+  }
+
+  html:not([lang='he']) .hero-ui-stack:has(.hiw-tagline) {
+    gap: 0.4rem;
+    padding-top: calc(var(--gh-h, 3.6rem) + 0.4rem);
+    padding-bottom: 0.6rem;
+  }
+
+  html:not([lang='he']) .hiw-tagline {
+    font-size: clamp(0.85rem, 2.4vw, 1.05rem);
   }
 }
 
@@ -115,20 +285,8 @@ html:not([lang='he']) .hiw-trigger {
   }
 }
 
-@media (max-width: 640px) and (max-height: 789px) {
-  .hiw-tagline {
-    display: none;
-  }
-}
-
 /* English wraps the footer onto more lines, so its phone needs more height before the line fits under the title. */
 @media (max-width: 640px) and (max-height: 869px) {
-  html:not([lang='he']) .hiw-tagline {
-    display: none;
-  }
-  html:not([lang='he']) .hero-ui-stack:has(.hiw-tagline) {
-    padding-bottom: 6vh;
-  }
   /* Its three-line footer leaves no room above it: the control goes up under the header, where the picture is free (it used to cover the typing button). */
   html:not([lang='he']) .hiw-teaser {
     bottom: auto;
@@ -154,16 +312,8 @@ html:not([lang='he']) .hiw-trigger {
   }
 }
 
-/* A shorter window keeps only the control: the explanation is one tap away, and the opening keeps all its room. */
-@media (min-width: 641px) and (max-height: 767px) {
-  .hiw-tagline {
-    display: none;
-  }
-}
-
 @media (max-height: 480px) {
-  .hiw-teaser,
-  .hiw-tagline {
+  .hiw-teaser {
     display: none;
   }
 }

@@ -63,11 +63,20 @@ export function HowItWorksTeaser({ onOpen }: { onOpen: () => void }) {
   useEffect(() => {
     const footer = document.querySelector('.app-footer--pinned');
     if (!footer) return;
-    const update = () => setFooterHeight(footer.getBoundingClientRect().height);
+    // The footer's height is also published for the opening's own column, which must leave room for it when the explanation is shown (HowItWorks.css).
+    const root = document.documentElement;
+    const update = () => {
+      const height = footer.getBoundingClientRect().height;
+      setFooterHeight(height);
+      root.style.setProperty('--hiw-footer-h', `${height}px`);
+    };
     update();
     const observer = new ResizeObserver(update);
     observer.observe(footer);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty('--hiw-footer-h');
+    };
   }, []);
   const style = { '--hiw-bottom': footerHeight === null ? '4.4rem' : `${footerHeight}px` } as CSSProperties;
   return (

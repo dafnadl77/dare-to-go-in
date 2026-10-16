@@ -36,14 +36,14 @@ test('post-launch copy: the English texts of the same screens are unchanged', ()
   assert.equal(en.closing.keepThisDream, 'KEEP THIS\nDREAM');
 });
 
-test('opening: the explanation sits directly under the big title, always mounted, and a short window leaves it out', () => {
+test('opening: the explanation sits directly under the big title, always mounted, and no window size leaves it out', () => {
   const hero = read('src/hero/HeroDream.tsx');
   assert.match(hero, /<MemoryTitle[\s\S]*?\/>\s*<HowItWorksTagline shown=\{centralMode === 'hold' && !isReconstructing && INTERACTION_PHASES\.has\(phase\) && !howOpen\} \/>\s*<DreamPrompt/);
   const css = read('src/hero/HowItWorks.css');
   assert.match(css, /\.hiw-tagline \{[^}]*position: relative;/, 'in the opening column, not floating at the bottom');
   assert.match(css, /font-size: clamp\(1\.15rem, min\(3\.4vw, 3\.1vh\), 1\.65rem\)/, 'clearly larger than the previous 1rem');
-  assert.match(css, /@media \(min-width: 641px\) and \(max-height: 767px\) \{\s*\.hiw-tagline \{\s*display: none;/);
-  assert.match(css, /@media \(max-width: 640px\) and \(max-height: 789px\) \{\s*\.hiw-tagline \{\s*display: none;/);
+  // it used to be switched off on short windows, which hid it on most real phones and laptops (see homeExplanation.test.ts)
+  assert.doesNotMatch(css, /\.hiw-tagline \{\s*display: none;/);
   const teaser = read('src/hero/HowItWorks.tsx');
   assert.doesNotMatch(teaser.slice(teaser.indexOf('export function HowItWorksTeaser')), /hiw-tagline/, 'the teaser keeps only the control');
 });
