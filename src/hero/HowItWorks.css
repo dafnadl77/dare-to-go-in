@@ -32,9 +32,11 @@
   text-align: center;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: clamp(1.15rem, min(3.4vw, 3.1vh), 1.65rem);
-  font-weight: 400;
+  /* Bolder than the thin 400 it had, with a very light, tight dark-blue shadow (no blur cloud) so it holds against the moving sky. */
+  font-weight: 600;
   line-height: 1.5;
-  color: var(--dream-white);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(2, 8, 28, 0.55);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -64,8 +66,9 @@
   .hiw-tagline {
     max-width: 92vw;
     margin: clamp(0.5rem, 1.6vh, 1rem) auto 0;
-    font-size: clamp(0.95rem, 4vw, 1.1rem);
-    line-height: 1.5;
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.45;
   }
 
   .hero-ui-stack:has(.hiw-tagline) .dream-prompt {

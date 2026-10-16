@@ -23,14 +23,40 @@
   background: rgba(6, 8, 18, 0.62);
 }
 
-/* The hold button's label: a small plate hugging the words (colour only; the circle, the ring, the orb and the behaviour are untouched) */
-.htr-label {
-  max-width: calc(6.5em + 1.8em);
-  padding: calc(0.5em - 1px) calc(0.9em - 1px);
-  margin: -0.5em -0.9em;
-  border: 1px solid rgba(244, 240, 232, 0.2);
-  border-radius: 14px;
-  background: rgba(6, 8, 18, 0.62);
+/* THE RECORDING CIRCLE, on every screen: a perfectly round, thin, bright frame (the ring) with a translucent inside, and in its centre a dark,
+   perfectly round button carrying the words. It is drawn only with colours and a round shape behind the label: the button, its size, its events,
+   the ring's progress, the microphone and everything else about it are untouched (HoldToRemember.tsx and HoldToRemember.css are not changed).
+   The dark disc is the label's ::before: it takes no room, sits behind the words, and cannot catch a tap (pointer-events: none; a tap on it
+   would reach the same button anyway). Disc : ring is 4 : 5, the same proportion at every size because both scale together. */
+.htr-circle .htr-ring-track {
+  stroke: rgba(244, 240, 232, 0.62);
+}
+
+.htr-circle:hover .htr-ring-track {
+  stroke: rgba(244, 240, 232, 0.9);
+}
+
+.htr-label::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  /* 4/5 of the ring (a 112px circle), divided by the label's own scale(1.11) */
+  width: 81px;
+  height: 81px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(8, 10, 24, 0.84);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* While the browser asks for the microphone the label also carries the privacy note, which is taller than the disc: only then does the plate
+   grow to hug the words (a soft rounded shape instead of the disc) so no word sits outside it. */
+.htr-label:has(.htr-privacy-note)::before {
+  width: calc(100% + 1.8em);
+  height: calc(100% + 1em);
+  border-radius: 18px;
 }
 
 /* The reflection on phones and small tablets, where the lines run over the brightest cloud banks: each thought (heading, text, closing

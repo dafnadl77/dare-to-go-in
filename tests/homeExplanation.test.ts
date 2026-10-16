@@ -46,11 +46,12 @@ test('phones: the column sits between the header and the footer and shares the h
   assert.match(tsx, /removeProperty\('--hiw-footer-h'\)/);
 });
 
-test('phones: the explanation is at least 15px with a comfortable line height; the question stands clear of the circle; the order and spacing are explicit', () => {
+test('phones: the explanation is 18px bold with a comfortable line height; the question stands clear of the circle; the order and spacing are explicit', () => {
   const tag = /@media \(max-width: 640px\) \{[\s\S]*?\.hiw-tagline \{([^}]*)\}/.exec(css);
   assert.ok(tag);
-  assert.match(tag[1], /font-size: clamp\(0\.95rem, 4vw, 1\.1rem\)/, '0.95rem is 15.2px at its smallest');
-  assert.match(tag[1], /line-height: 1\.5/);
+  assert.match(tag[1], /font-size: 1\.125rem;/, '18px on a phone');
+  assert.match(tag[1], /font-weight: 700;/);
+  assert.match(tag[1], /line-height: 1\.45/);
   assert.match(tag[1], /max-width: 92vw/);
   // the explanation is never made smaller again in any media query
   for (const m of css.matchAll(/\.hiw-tagline \{([^}]*)\}/g)) {

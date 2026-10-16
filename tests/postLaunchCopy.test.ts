@@ -102,17 +102,15 @@ test('readable plates: the moment choices, "the choice is yours", the hold label
   assert.ok(chip, 'the moment chip exists');
   assert.match(chip[1], /background: rgba\(6, 8, 18, 0\.62\)/, 'the moment chip: flat night-tone fill');
   assert.match(chip[1], /border: 1px solid/, 'the moment chip: a thin border');
-  for (const selector of ['.dc-choice-hint', '.htr-label', '.dr-thought']) {
+  for (const selector of ['.dc-choice-hint', '.dr-thought']) {
     const rule = new RegExp(`${selector.replace('.', '\\.')} \\{([^}]*)\\}`).exec(css);
     assert.ok(rule, `${selector} has a plate`);
     assert.match(rule[1], /background: rgba\(6, 8, 18, 0\.(58|62)\)/, `${selector}: flat night-tone fill`);
     assert.match(rule[1], /border: 1px solid/, `${selector}: a thin border`);
   }
   assert.doesNotMatch(css, /blur\(|box-shadow|text-shadow|drop-shadow|filter:/, 'nothing soft, nothing outside a shape');
-  // the hold button: only colours, never its size, behaviour or the circle itself
-  const hold = /\.htr-label \{([^}]*)\}/.exec(css);
-  assert.doesNotMatch(hold[1], /transform|animation|pointer-events|(?<!max-)width:|height:|position/, 'colour and padding-neutral box only');
-  assert.doesNotMatch(css, /\.htr-circle/, 'the circle is not touched');
+  // the hold button's own look is a round disc inside a thin ring (see recordCircleLook.test.ts); it is no longer a rounded plate
+  assert.doesNotMatch(css, /\.htr-label \{/, 'no rectangular plate behind the hold label');
   // the reflection plates exist on phones only; a wide screen keeps its original look
   assert.match(css, /@media \(max-width: 760px\) \{\s*\.dr-thought \{/);
 });
