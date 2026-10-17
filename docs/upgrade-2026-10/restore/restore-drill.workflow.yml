@@ -1,0 +1,143 @@
+# DRAFT: NOT installed, NOT run. For the PRIVATE repo dafnadl77/dare-to-go-in-backups (.github/workflows/restore-drill.yml), only after approval.
+#
+# A REAL restore of the latest encrypted database backup into a TEMPORARY PostgreSQL 17 cluster that lives and dies inside the GitHub runner, plus an
+# integrity check of the latest encrypted Storage (images) archive.
+#
+# Safety:
+#  - It is given ONLY the B2 read credentials and the age identity that "DARE Database Restore Test" already uses. No Supabase secret is passed, and a guard step
+#    fails the run if one is present, so it cannot read or touch the live project.
+#  - The temporary cluster listens on 127.0.0.1 only and is destroyed with the runner. Decrypted files are shredded in the last step.
+#  - The log prints COUNTS and check results only: never a row, a dream, an email, a key or a path.
+#  - It changes nothing in B2 (download only), nothing in GitHub except the run log, and costs nothing (private-repo Actions minutes, about 5-10 minutes).
+
+name: DARE Restore Drill (isolated)
+
+on:
+  workflow_dispatch:
+    inputs:
+      database_key:
+        description: "Optional: exact B2 key of an OLDER dump to restore instead of the latest (for example one from before 12.10, to compare sizes)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  drill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      B2_BUCKET: dare-to-go-in-backups
+      B2_ENDPOINT: https://s3.eu-central-003.backblazeb2.com
+      PGPORT: "5439"
+    steps:
+      - name: Guard - no Supabase credential may exist in this job
+        run: |
+          set -euo pipefail
+          if env | grep -i -E '^(SUPABASE|DATABASE_URL|SERVICE_ROLE)' >/dev/null; then echo "ERROR: a Supabase variable is present"; exit 1; fi
+          echo "clean"
+
+      - name: Install PostgreSQL 17 (server + client), pg_cron and age
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y curl ca-certificates gnupg age
+          sudo install -d /usr/share/postgresql-common/pgdg
+          curl --fail --silent --show-error https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | sudo tee /usr/share/postgresql-common/pgdg/apt.postgresql.org.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.gpg] https://apt.postgresql.org/pub/repos/apt noble-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y postgresql-17 postgresql-17-cron
+
+      - name: Download and decrypt the database backup
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.B2_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.B2_APPLICATION_KEY }}
+          AWS_DEFAULT_REGION: eu-central-003
+          AGE_IDENTITY: ${{ secrets.AGE_IDENTITY }}
+          INPUT_KEY: ${{ inputs.database_key }}
+        run: |
+          set -euo pipefail
+          KEY="${INPUT_KEY:-}"
+          if [ -z "$KEY" ]; then
+            KEY="$(aws s3api list-objects-v2 --bucket "$B2_BUCKET" --prefix database/ --endpoint-url "$B2_ENDPOINT" --query "reverse(sort_by(Contents[?ends_with(Key, '.dump.age')], &LastModified))[0].Key" --output text)"
+          fi
+          echo "Restoring: ${KEY##*/}"
+          aws s3 cp "s3://${B2_BUCKET}/${KEY}" db.dump.age --endpoint-url "$B2_ENDPOINT" --only-show-errors
+          printf '%s\n' "$AGE_IDENTITY" > age-identity.txt; chmod 600 age-identity.txt
+          age --decrypt --identity age-identity.txt --output db.dump db.dump.age
+          ls -l db.dump.age db.dump | awk '{print $5, $9}'
+
+      - name: Start a temporary PostgreSQL 17 cluster (localhost only)
+        run: |
+          set -euo pipefail
+          sudo pg_createcluster 17 drill --port "$PGPORT" -- --auth-local=trust --auth-host=trust
+          echo "shared_preload_libraries = 'pg_cron'" | sudo tee -a /etc/postgresql/17/drill/postgresql.conf > /dev/null
+          echo "cron.database_name = 'drill'" | sudo tee -a /etc/postgresql/17/drill/postgresql.conf > /dev/null
+          echo "listen_addresses = '127.0.0.1'" | sudo tee -a /etc/postgresql/17/drill/postgresql.conf > /dev/null
+          sudo pg_ctlcluster 17 drill start
+          sleep 3
+          P="sudo -u postgres psql -p $PGPORT -v ON_ERROR_STOP=1"
+          $P -c "create database drill"
+          # the roles Supabase has and the dump refers to (policies are written TO these roles)
+          $P -d drill -c "create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls; create role authenticator login noinherit; create role supabase_admin superuser; create role supabase_auth_admin; create role supabase_storage_admin; create role dashboard_user; create role pgbouncer;"
+
+      - name: Restore (every error is counted; none stops the run)
+        run: |
+          set -uo pipefail
+          sudo -u postgres /usr/lib/postgresql/17/bin/pg_restore --no-owner --no-privileges --dbname=drill -p "$PGPORT" db.dump 2> restore-errors.txt
+          echo "pg_restore exit code: $?"
+          echo "error lines: $(grep -c '^pg_restore: error' restore-errors.txt || true)"
+          # categories only (the first words), never object contents
+          grep '^pg_restore: error' restore-errors.txt | sed -E 's/\(.*//; s/"[^"]*"/"..."/g' | cut -c1-110 | sort | uniq -c | sort -rn | head -15
+
+      - name: Integrity checks (counts and yes/no only)
+        run: |
+          set -uo pipefail
+          Q() { sudo -u postgres psql -p "$PGPORT" -d drill -At -c "$1"; }
+          echo "users: $(Q 'select count(*) from auth.users')"
+          echo "identities: $(Q 'select count(*) from auth.identities')"
+          echo "dreams: $(Q 'select count(*) from public.dreams')"
+          echo "pattern_reflections: $(Q 'select count(*) from public.pattern_reflections')"
+          echo "dream_attempts: $(Q 'select count(*) from public.dream_attempts')"
+          echo "payment_orders: $(Q 'select count(*) from public.payment_orders') (granted: $(Q "select count(*) from public.payment_orders where status='granted'"))"
+          echo "credit_ledger: $(Q 'select count(*) from public.credit_ledger')"
+          echo "dream_credits: $(Q 'select count(*) from public.dream_credits')"
+          echo "storage.objects (metadata only): $(Q 'select count(*) from storage.objects')"
+          echo "balance mismatch (must be 0): $(Q "select count(*) from public.dream_credits c where balance <> (select coalesce(sum(delta),0) from public.credit_ledger l where l.owner_id=c.owner_id)")"
+          echo "granted order without ledger row (must be 0): $(Q "select count(*) from public.payment_orders o where o.status='granted' and not exists (select 1 from public.credit_ledger l where l.external_ref='grow:'||o.provider_tx)")"
+          echo "tables with RLS in public: $(Q "select count(*) from pg_class where relnamespace='public'::regnamespace and relkind='r' and relrowsecurity")"
+          echo "tables in public: $(Q "select count(*) from pg_class where relnamespace='public'::regnamespace and relkind='r'")"
+          echo "policies (public+storage): $(Q "select count(*) from pg_policies where schemaname in ('public','storage')")"
+          echo "functions in public: $(Q "select count(*) from pg_proc where pronamespace='public'::regnamespace and prokind='f'")"
+          echo "key functions present (expect 4): $(Q "select count(*) from pg_proc where proname in ('complete_payment_order','grant_credits','is_dream_admin','admin_list_paid_orders')")"
+          echo "cron jobs: $(Q 'select count(*) from cron.job' 2>/dev/null || echo 'n/a')"
+          # EXPECTED GAP: the backup uses --no-privileges, so GRANT/REVOKE are not in it. This number shows what a restore alone leaves open.
+          echo "public functions executable by PUBLIC (expected >0 here; restore-grants.sql must close it): $(Q "select count(*) from pg_proc p where p.pronamespace='public'::regnamespace and p.prokind='f' and has_function_privilege('public', p.oid, 'execute')")"
+
+      - name: Storage archive - download, decrypt, verify (counts and types only)
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.B2_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.B2_APPLICATION_KEY }}
+          AWS_DEFAULT_REGION: eu-central-003
+        run: |
+          set -euo pipefail
+          KEY="$(aws s3api list-objects-v2 --bucket "$B2_BUCKET" --prefix storage/dream-images/ --endpoint-url "$B2_ENDPOINT" --query "reverse(sort_by(Contents[?ends_with(Key, '.tar.gz.age')], &LastModified))[0].Key" --output text)"
+          echo "Archive: ${KEY##*/}"
+          aws s3 cp "s3://${B2_BUCKET}/${KEY}" st.tar.gz.age --endpoint-url "$B2_ENDPOINT" --only-show-errors
+          age --decrypt --identity age-identity.txt --output st.tar.gz st.tar.gz.age
+          gzip -t st.tar.gz && echo "gzip integrity: OK"
+          mkdir st && tar -xzf st.tar.gz -C st
+          echo "files: $(find st -type f | wc -l)"
+          echo "total bytes: $(find st -type f -printf '%s\n' | awk '{s+=$1} END {print s}')"
+          echo "file types:"; find st -type f -exec file --brief --mime-type {} + | sort | uniq -c
+          echo "files that are not images (must be 0): $(find st -type f -exec file --brief --mime-type {} + | grep -v '^image/' | wc -l || true)"
+          echo "empty files (must be 0): $(find st -type f -empty | wc -l)"
+
+      - name: Destroy everything
+        if: always()
+        run: |
+          sudo pg_ctlcluster 17 drill stop || true
+          sudo pg_dropcluster 17 drill || true
+          shred -u age-identity.txt db.dump db.dump.age st.tar.gz st.tar.gz.age restore-errors.txt 2>/dev/null || true
+          rm -rf st
