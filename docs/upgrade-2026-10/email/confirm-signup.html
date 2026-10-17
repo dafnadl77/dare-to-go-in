@@ -7,9 +7,8 @@
 <meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light only">
 <title>DARE TO GO IN</title>
-<!-- The site's own typefaces: Heebo (text) and Fraunces (the brand mark). Mail apps that load web fonts use them; every other client, and the
-     Supabase preview, falls back to the stacks below. -->
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400&family=Heebo:wght@400;500&display=swap" rel="stylesheet">
+<!-- The site's typeface (Heebo). Mail apps that load web fonts use it; every other client, and the Supabase preview, falls back to the stacks below. -->
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
 <!--[if gte mso 9]><xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
 <style>
   body { margin: 0; padding: 0; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
@@ -17,152 +16,182 @@
   a { text-decoration: none; }
   @media only screen and (max-width: 620px) {
     .container { width: 100% !important; }
-    .hero-pad { padding: 28px 24px !important; }
-    .hero { background-position: 28% center !important; }
-    .wordmark { font-size: 18px !important; letter-spacing: 0.13em !important; }
-    .hero-sub { font-size: 9px !important; letter-spacing: 0.22em !important; }
-    .card-pad { padding: 30px 22px 30px 22px !important; }
-    .h1 { font-size: 26px !important; }
+    .hero { height: 118px !important; background-image: url('https://daretogoin.com/dream-assets/email-hero-dream.jpg'), linear-gradient(180deg,#1b1d36 0,#1b1d36 68px,#fbf8f2 68px,#fbf8f2 100%) !important; background-size: 100% 100%, 100% 100% !important; background-position: center top, center top !important; }
+    .hero-text { height: 68px !important; }
+    .card-top { height: 50px !important; line-height: 50px !important; }
+    .brand-box { margin: 6px 0 0 18px !important; width: 168px !important; }
+    .hero-star { font-size: 14px !important; }
+    .wordmark { font-size: 16px !important; letter-spacing: 0.17em !important; margin-top: 5px !important; }
+    .hero-sub { font-size: 7.5px !important; letter-spacing: 0.2em !important; margin-top: 5px !important; }
+    .card-pad { padding: 8px 20px 28px 20px !important; }
+    .h1 { font-size: 27px !important; }
     .lead { font-size: 16px !important; }
-    .btn-a { padding: 15px 30px !important; }
-    .pt { font-size: 12.5px !important; }
+    .btn-a { padding: 15px 34px !important; }
+    .pt { font-size: 12.5px !important; padding: 0 3px !important; }
   }
 </style>
 </head>
-<body style="margin:0;padding:0;background-color:#f6f1e7;">
+<body style="margin:0;padding:0;background-color:#fbf8f2;">
 <!-- preheader (shown in the inbox list, hidden in the email) -->
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#f6f1e7;font-size:1px;line-height:1px;">
-  כדי להתחיל במסע אל החלום הראשון שלכם, נא לאשר את כתובת המייל. &nbsp;·&nbsp; Please confirm your email address to begin your journey to your first dream.
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#fbf8f2;font-size:1px;line-height:1px;">
+  כדי להתחיל במסע אל החלום הראשון שלכם, אנא אשרו את כתובת המייל. &nbsp;·&nbsp; Please confirm your email address to begin your journey to your first dream.
 </div>
 
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f6f1e7" style="background-color:#f6f1e7;">
-<tr><td align="center" style="padding:24px 12px 34px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#fbf8f2" style="background-color:#fbf8f2;">
+<tr><td align="center" style="padding:20px 10px 34px 10px;">
 
   <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;">
 
-    <!-- HERO: the night arch (a picture from the site's own scenes) behind the brand. If the picture is blocked or missing, the dark navy colour and the
-         gold wordmark remain, so the header is never broken. -->
+    <!-- ROW 1: the dream picture (moon, clouds, arch, figure) with the brand over it. The cream card rises over its lower part: the picture already
+         continues beside the card's top corners and fades into the page colour. If the picture is blocked, the dark navy colour and the gold brand
+         remain, so the header is never broken. -->
     <tr>
-      <td class="hero" height="150" valign="middle" bgcolor="#101c30" background="https://daretogoin.com/dream-assets/email-hero-night-arch.jpg" style="height:150px;background-color:#101c30;background-image:url('https://daretogoin.com/dream-assets/email-hero-night-arch.jpg');background-size:cover;background-position:right center;background-repeat:no-repeat;border-radius:20px 20px 0 0;">
+      <td class="hero" height="188" valign="top" bgcolor="#1b1d36" background="https://daretogoin.com/dream-assets/email-hero-dream.jpg" style="height:188px;background-color:#1b1d36;background-image:url('https://daretogoin.com/dream-assets/email-hero-dream.jpg'),linear-gradient(180deg,#1b1d36 0,#1b1d36 110px,#fbf8f2 110px,#fbf8f2 100%);background-size:100% 100%,100% 100%;background-position:center top,center top;background-repeat:no-repeat,no-repeat;border-radius:20px 20px 0 0;">
         <!--[if gte mso 9]>
-        <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;height:150px;">
-        <v:fill type="frame" src="https://daretogoin.com/dream-assets/email-hero-night-arch.jpg" color="#101c30" />
+        <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;height:188px;">
+        <v:fill type="frame" src="https://daretogoin.com/dream-assets/email-hero-dream.jpg" color="#1b1d36" />
         <v:textbox inset="0,0,0,0">
         <![endif]-->
-        <div class="hero-pad" dir="ltr" style="padding:34px 44px;text-align:left;">
-          <div style="font-family:'Fraunces',Georgia,'Times New Roman',serif;font-size:20px;line-height:1;color:#d9b98d;">&#10022;</div>
-          <div class="wordmark" style="margin:12px 0 0 0;font-family:'Fraunces',Georgia,'Times New Roman',serif;font-weight:400;font-size:22px;line-height:1.2;letter-spacing:0.16em;color:#e2c08f;">DARE TO GO IN</div>
-          <div class="hero-sub" style="margin:10px 0 0 0;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:10.5px;line-height:1.4;letter-spacing:0.3em;color:#e9e3d6;">EXPLORE YOUR INNER WORLD</div>
-        </div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="ltr">
+          <tr>
+            <td class="hero-text" height="108" valign="top" align="left" style="height:108px;padding:0;text-align:left;">
+              <div class="brand-box" dir="ltr" style="width:192px;margin:14px 0 0 41px;text-align:center;">
+                <div class="hero-star" style="font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:300;font-size:22px;line-height:1;color:#e6cfa9;">&#10022;</div>
+                <div class="wordmark" style="margin:9px 0 0 0;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:300;font-size:19px;line-height:1.2;letter-spacing:0.21em;color:#e3c9a1;white-space:nowrap;">DARE TO GO IN</div>
+                <div class="hero-sub" style="margin:9px 0 0 0;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:300;font-size:8.5px;line-height:1.4;letter-spacing:0.24em;color:#efe6d6;white-space:nowrap;">EXPLORE YOUR INNER WORLD</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 16px;">
+              <!-- the top of the cream card -->
+              <div class="card-top" style="height:80px;line-height:80px;font-size:1px;background-color:#fffcf7;border-radius:18px 18px 0 0;">&nbsp;</div>
+            </td>
+          </tr>
+        </table>
         <!--[if gte mso 9]></v:textbox></v:rect><![endif]-->
       </td>
     </tr>
 
-    <!-- CARD -->
+    <!-- ROW 2: the rest of the card (same cream, same width: the two parts read as one card) -->
     <tr>
-      <td class="card-pad" bgcolor="#fdfaf3" style="background-color:#fdfaf3;padding:36px 48px 40px 48px;border-radius:0 0 20px 20px;">
+      <td bgcolor="#fbf8f2" style="background-color:#fbf8f2;padding:0 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td class="card-pad" bgcolor="#fffcf7" style="background-color:#fffcf7;padding:0 40px 38px 40px;border-radius:0 0 18px 18px;">
 
-        <!-- ===== Hebrew ===== -->
-        <div dir="rtl" lang="he" style="text-align:center;">
-          <div dir="ltr" style="margin:0 0 14px 0;font-family:'Fraunces',Georgia,'Times New Roman',serif;font-weight:400;font-size:12px;line-height:1.4;letter-spacing:0.34em;color:#b8935f;">DARE TO GO IN</div>
-          <h1 class="h1" style="margin:0 0 16px 0;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:500;font-size:31px;line-height:1.3;color:#10233f;">עוד רגע מתחילים לחלום</h1>
-          <p class="lead" style="margin:0 0 28px 0;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:17px;line-height:1.8;color:#33415c;">
-            ברוכים הבאים ל־<span dir="ltr" style="unicode-bidi:isolate;">DARE TO GO IN</span>.<br>
-            כדי להתחיל במסע אל החלום הראשון שלכם, נא לאשר את כתובת&nbsp;המייל.
-          </p>
-          <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 30px auto;">
-            <tr>
-              <td align="center" bgcolor="#14315a" style="background-color:#14315a;background-image:linear-gradient(135deg,#0f2342 0%,#1d4170 100%);border-radius:999px;">
-                <a class="btn-a" href="{{ .ConfirmationURL }}" target="_blank" style="display:inline-block;padding:16px 44px;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:500;font-size:17px;line-height:1.2;color:#fdfaf3;text-decoration:none;border-radius:999px;">אישור כתובת המייל&nbsp;&nbsp;&#8592;</a>
-              </td>
-            </tr>
-          </table>
-
-          <!-- three reasons -->
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="rtl" style="margin:0 0 26px 0;">
-            <tr>
-              <td class="pt" width="33%" align="center" valign="top" style="width:33%;padding:0 6px;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-size:13.5px;line-height:1.55;color:#5b4a3a;">
-                <div style="font-family:'Segoe UI Symbol','Arial Unicode MS',Arial,sans-serif;font-size:26px;line-height:1.2;color:#9a7650;">&#9790;&#xFE0E;</div>
-                שומרים את החלומות<br>במקום אחד
-              </td>
-              <td class="pt" width="34%" align="center" valign="top" style="width:34%;padding:0 6px;border-right:1px solid #e6dcc8;border-left:1px solid #e6dcc8;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-size:13.5px;line-height:1.55;color:#5b4a3a;">
-                <div style="font-family:'Segoe UI Symbol','Arial Unicode MS',Arial,sans-serif;font-size:26px;line-height:1.2;color:#9a7650;">&#10023;&#xFE0E;</div>
-                מגלים תובנות<br>חדשות על עצמכם
-              </td>
-              <td class="pt" width="33%" align="center" valign="top" style="width:33%;padding:0 6px;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-size:13.5px;line-height:1.55;color:#5b4a3a;">
-                <div style="font-family:'Segoe UI Symbol','Arial Unicode MS',Arial,sans-serif;font-size:26px;line-height:1.2;color:#9a7650;">&#9825;&#xFE0E;</div>
-                מתחברים<br>לעולם הפנימי שלכם
-              </td>
-            </tr>
-          </table>
-
-          <!-- not you? -->
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="rtl">
-            <tr>
-              <td bgcolor="#f6efe2" style="background-color:#f6efe2;border-radius:16px;padding:16px 18px;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="rtl">
+              <!-- ===== Hebrew ===== -->
+              <div dir="rtl" lang="he" style="text-align:center;">
+                <div dir="ltr" style="margin:0 0 6px 0;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:300;font-size:11.5px;line-height:1.4;letter-spacing:0.34em;color:#c9ac82;">DARE TO GO IN</div>
+                <h1 class="h1" style="margin:0 0 14px 0;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:700;font-size:33px;line-height:1.25;color:#0a1a35;">עוד רגע מתחילים לחלום</h1>
+                <p class="lead" style="margin:0 0 26px 0;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:17px;line-height:1.75;color:#1f2d48;">
+                  ברוכים הבאים ל־<span dir="ltr" style="unicode-bidi:isolate;">DARE TO GO IN</span>.<br>
+                  כדי להתחיל במסע אל החלום הראשון שלכם,<br>
+                  אנא אשרו את כתובת המייל.
+                </p>
+                <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 34px auto;">
                   <tr>
-                    <td width="52" valign="middle" style="width:52px;">
-                      <div style="width:44px;height:44px;border-radius:50%;background-color:#efdcc0;text-align:center;font-family:'Segoe UI Symbol','Arial Unicode MS',Arial,sans-serif;font-size:20px;line-height:44px;color:#5b4a3a;">&#9993;&#xFE0E;</div>
-                    </td>
-                    <td valign="middle" align="right" style="text-align:right;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-size:13.5px;line-height:1.6;color:#5b4a3a;">
-                      <strong style="font-weight:500;font-size:15px;color:#10233f;">לא נרשמתם ל־<span dir="ltr" style="unicode-bidi:isolate;">DARE</span>?</strong><br>
-                      אם לא יצרתם חשבון, אפשר להתעלם מהמייל הזה.
+                    <td align="center" bgcolor="#0e2a4c" style="background-color:#0e2a4c;background-image:linear-gradient(180deg,#14355c 0%,#0b2240 100%);border-radius:999px;box-shadow:0 8px 18px rgba(11,34,64,0.22);">
+                      <a class="btn-a" href="{{ .ConfirmationURL }}" target="_blank" style="display:inline-block;padding:16px 46px;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:500;font-size:18px;line-height:1.2;color:#fdfaf3;text-decoration:none;border-radius:999px;">אישור כתובת המייל&nbsp;&nbsp;&nbsp;&#8594;</a>
                     </td>
                   </tr>
                 </table>
-              </td>
-            </tr>
-          </table>
-        </div>
 
-        <!-- divider -->
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:34px 0;">
-          <tr><td height="1" style="height:1px;line-height:1px;font-size:1px;background-color:#e6dcc8;">&nbsp;</td></tr>
+                <!-- three equal columns: moon, sparkle, heart -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="rtl" style="margin:0 0 26px 0;table-layout:fixed;">
+                  <tr>
+                    <td class="pt" width="33.33%" align="center" valign="top" style="width:33.33%;padding:0 6px;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:13.5px;line-height:1.55;color:#4a3d30;">
+                      <div style="font-family:'Segoe UI Symbol','Arial Unicode MS',Arial,sans-serif;font-size:27px;line-height:1.2;color:#9a7650;">&#9790;&#xFE0E;</div>
+                      שומרים את החלומות<br>במקום אחד
+                    </td>
+                    <td class="pt" width="33.33%" align="center" valign="top" style="width:33.33%;padding:0 6px;border-right:1px solid #eadfcb;border-left:1px solid #eadfcb;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:13.5px;line-height:1.55;color:#4a3d30;">
+                      <div style="font-family:'Segoe UI Symbol','Arial Unicode MS',Arial,sans-serif;font-size:27px;line-height:1.2;color:#9a7650;">&#10023;&#xFE0E;</div>
+                      מגלים תובנות<br>חדשות על עצמכם
+                    </td>
+                    <td class="pt" width="33.33%" align="center" valign="top" style="width:33.33%;padding:0 6px;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:13.5px;line-height:1.55;color:#4a3d30;">
+                      <div style="font-family:'Segoe UI Symbol','Arial Unicode MS',Arial,sans-serif;font-size:27px;line-height:1.2;color:#9a7650;">&#9825;&#xFE0E;</div>
+                      מתחברים<br>לעולם הפנימי שלכם
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- not you? : envelope on the left, text centred -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td bgcolor="#f7efe5" style="background-color:#f7efe5;border-radius:14px;padding:14px 16px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="ltr">
+                        <tr>
+                          <td width="46" valign="middle" style="width:46px;">
+                            <div style="width:42px;height:42px;border-radius:50%;background-color:#f0dfc6;text-align:center;font-family:'Segoe UI Symbol','Arial Unicode MS',Arial,sans-serif;font-size:19px;line-height:42px;color:#4a3d30;">&#9993;&#xFE0E;</div>
+                          </td>
+                          <td valign="middle" align="center" dir="rtl" style="text-align:center;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:12.5px;line-height:1.6;color:#4a3d30;">
+                            <strong style="font-weight:700;font-size:14.5px;color:#0a1a35;">לא נרשמתם ל־<span dir="ltr" style="unicode-bidi:isolate;">DARE</span>?</strong><br>
+                            אם לא יצרתם חשבון, אפשר להתעלם מהמייל הזה.
+                          </td>
+                          <td width="46" style="width:46px;font-size:1px;line-height:1px;">&nbsp;</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- divider -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:32px 0;">
+                <tr><td height="1" style="height:1px;line-height:1px;font-size:1px;background-color:#eadfcb;">&nbsp;</td></tr>
+              </table>
+
+              <!-- ===== English ===== -->
+              <div dir="ltr" lang="en" style="text-align:center;">
+                <h1 class="h1" style="margin:0 0 14px 0;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:700;font-size:33px;line-height:1.25;color:#0a1a35;">Almost time to dream</h1>
+                <p class="lead" style="margin:0 0 26px 0;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:17px;line-height:1.75;color:#1f2d48;">
+                  Welcome to DARE TO GO IN.<br>
+                  To begin your journey to your first dream,<br>
+                  please confirm your email address.
+                </p>
+                <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 24px auto;">
+                  <tr>
+                    <td align="center" bgcolor="#0e2a4c" style="background-color:#0e2a4c;background-image:linear-gradient(180deg,#14355c 0%,#0b2240 100%);border-radius:999px;box-shadow:0 8px 18px rgba(11,34,64,0.22);">
+                      <a class="btn-a" href="{{ .ConfirmationURL }}" target="_blank" style="display:inline-block;padding:16px 46px;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:500;font-size:18px;line-height:1.2;color:#fdfaf3;text-decoration:none;border-radius:999px;">Confirm email address&nbsp;&nbsp;&nbsp;&#8594;</a>
+                    </td>
+                  </tr>
+                </table>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td bgcolor="#f7efe5" align="center" style="background-color:#f7efe5;border-radius:14px;padding:14px 16px;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:12.5px;line-height:1.6;color:#4a3d30;">
+                      <strong style="font-weight:700;font-size:14.5px;color:#0a1a35;">Didn&rsquo;t sign up for DARE?</strong><br>
+                      If you didn&rsquo;t create an account, you can safely ignore this email.
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- fallback link (both languages) -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 0 0;">
+                <tr><td height="1" style="height:1px;line-height:1px;font-size:1px;background-color:#eadfcb;">&nbsp;</td></tr>
+              </table>
+              <p style="margin:18px 0 0 0;text-align:center;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:12px;line-height:1.7;color:#7a6a58;">
+                <span dir="rtl">אם הכפתור אינו פועל, אפשר להעתיק את הקישור לדפדפן.</span><br>
+                <span dir="ltr">If the button doesn&rsquo;t work, copy this link into your browser:</span><br>
+                <a href="{{ .ConfirmationURL }}" target="_blank" dir="ltr" style="color:#1f2d48;text-decoration:underline;word-break:break-all;">{{ .ConfirmationURL }}</a>
+              </p>
+
+              <!-- footer inside the card: brand, tagline, links (no social icons) -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 0 0;">
+                <tr><td height="1" style="height:1px;line-height:1px;font-size:1px;background-color:#eadfcb;">&nbsp;</td></tr>
+              </table>
+              <div dir="ltr" style="margin:20px 0 0 0;text-align:center;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:300;font-size:11px;line-height:1.4;letter-spacing:0.34em;color:#c9ac82;">DARE TO GO IN</div>
+              <div dir="ltr" style="margin:4px 0 0 0;text-align:center;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:300;font-size:8px;line-height:1.4;letter-spacing:0.3em;color:#b09b7c;">EXPLORE YOUR INNER WORLD</div>
+              <p style="margin:14px 0 0 0;text-align:center;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:12px;line-height:2;color:#7a6a58;">
+                <a href="https://daretogoin.com/?view=terms" target="_blank" style="display:inline-block;margin:0 7px;color:#3d3226;text-decoration:underline;">תנאי השימוש · Terms</a>
+                <span style="color:#cdbfa6;">|</span>
+                <a href="https://daretogoin.com/?view=privacy" target="_blank" style="display:inline-block;margin:0 7px;color:#3d3226;text-decoration:underline;">מדיניות הפרטיות · Privacy</a>
+                <span style="color:#cdbfa6;">|</span>
+                <a href="https://daretogoin.com/?view=cancellation" target="_blank" style="display:inline-block;margin:0 7px;color:#3d3226;text-decoration:underline;">מדיניות ביטולים · Cancellation</a>
+              </p>
+            </td>
+          </tr>
         </table>
-
-        <!-- ===== English ===== -->
-        <div dir="ltr" lang="en" style="text-align:center;">
-          <h1 class="h1" style="margin:0 0 16px 0;font-family:'Fraunces',Georgia,'Times New Roman',serif;font-weight:400;font-size:31px;line-height:1.3;color:#10233f;">Almost time to dream</h1>
-          <p class="lead" style="margin:0 0 28px 0;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:17px;line-height:1.8;color:#33415c;">
-            Welcome to DARE TO GO IN.<br>
-            To begin your journey to your first dream, please confirm your email address.
-          </p>
-          <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 26px auto;">
-            <tr>
-              <td align="center" bgcolor="#14315a" style="background-color:#14315a;background-image:linear-gradient(135deg,#0f2342 0%,#1d4170 100%);border-radius:999px;">
-                <a class="btn-a" href="{{ .ConfirmationURL }}" target="_blank" style="display:inline-block;padding:16px 44px;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:500;font-size:17px;line-height:1.2;color:#fdfaf3;text-decoration:none;border-radius:999px;">Confirm email address&nbsp;&nbsp;&#8594;</a>
-              </td>
-            </tr>
-          </table>
-          <p style="margin:0;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:13.5px;line-height:1.7;color:#7a6a58;">
-            Didn&rsquo;t sign up for DARE? If you didn&rsquo;t create an account, you can safely ignore this email.
-          </p>
-        </div>
-
-        <!-- fallback link (both languages) -->
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:30px 0 0 0;">
-          <tr><td height="1" style="height:1px;line-height:1px;font-size:1px;background-color:#e6dcc8;">&nbsp;</td></tr>
-        </table>
-        <p style="margin:20px 0 0 0;text-align:center;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:12px;line-height:1.7;color:#7a6a58;">
-          <span dir="rtl">אם הכפתור אינו פועל, אפשר להעתיק את הקישור לדפדפן.</span><br>
-          <span dir="ltr">If the button doesn&rsquo;t work, copy this link into your browser:</span><br>
-          <a href="{{ .ConfirmationURL }}" target="_blank" dir="ltr" style="color:#33415c;text-decoration:underline;word-break:break-all;">{{ .ConfirmationURL }}</a>
-        </p>
-
-        <!-- footer inside the card, as in the design -->
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 0 0;">
-          <tr><td height="1" style="height:1px;line-height:1px;font-size:1px;background-color:#e6dcc8;">&nbsp;</td></tr>
-        </table>
-        <div dir="ltr" style="margin:22px 0 0 0;text-align:center;font-family:'Fraunces',Georgia,'Times New Roman',serif;font-weight:400;font-size:12px;line-height:1.4;letter-spacing:0.34em;color:#b8935f;">DARE TO GO IN</div>
-        <div dir="ltr" style="margin:6px 0 0 0;text-align:center;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:9.5px;line-height:1.4;letter-spacing:0.3em;color:#a08968;">EXPLORE YOUR INNER WORLD</div>
-        <p style="margin:16px 0 0 0;text-align:center;font-family:'Heebo','Assistant',Arial,'Helvetica Neue',sans-serif;font-weight:400;font-size:12.5px;line-height:2;color:#7a6a58;">
-          <a href="https://daretogoin.com/?view=terms" target="_blank" style="display:inline-block;margin:0 8px;color:#5b4a3a;text-decoration:underline;">תנאי השימוש · Terms</a>
-          <span style="color:#cdbfa6;">|</span>
-          <a href="https://daretogoin.com/?view=privacy" target="_blank" style="display:inline-block;margin:0 8px;color:#5b4a3a;text-decoration:underline;">מדיניות הפרטיות · Privacy</a>
-          <span style="color:#cdbfa6;">|</span>
-          <a href="https://daretogoin.com/?view=cancellation" target="_blank" style="display:inline-block;margin:0 8px;color:#5b4a3a;text-decoration:underline;">מדיניות ביטולים · Cancellation</a>
-        </p>
       </td>
     </tr>
   </table>
