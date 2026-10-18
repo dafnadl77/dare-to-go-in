@@ -80,6 +80,7 @@ ${elements.map((e, i) => `${i + 1}. ${e}`).join('\n')}`;
         const generate = async (note: string): Promise<string[] | null> => {
           const response = await client.responses.create({
             model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+            store: false,
             instructions: instructions + retryNote + note,
             input,
             text: {

@@ -356,13 +356,15 @@ test('legal: the old contact email is gone everywhere; every document uses daret
   }
 });
 
-test('privacy policy (EN + HE) explains self-service permanent deletion honestly, incl. the kept non-personal trial record', () => {
+test('privacy policy (EN + HE) explains self-service deletion honestly, incl. the kept non-personal trial record and the backups', () => {
   const en = JSON.stringify(getLegalDocument('en', 'privacy'));
   const he = JSON.stringify(getLegalDocument('he', 'privacy'));
-  assert.match(en, /delete your account permanently yourself: in Settings/);
-  assert.match(en, /a minimal record, with no link to you, that the first free dream was already used from a given browser/);
+  assert.match(en, /In Settings choose \\"Delete account\\"/);
+  assert.match(en, /the free-dream marker without personal details/);
+  assert.match(en, /copies in encrypted backups until they expire/);
   assert.ok(!/does not yet have a fully self-service deletion/.test(en));
-  assert.match(he, /למחוק את החשבון בעצמכם לצמיתות: בהגדרות/);
+  assert.match(he, /בהגדרות בוחרים \\"מחיקת חשבון\\"/);
   assert.match(he, /ללא כל קישור אליכם/);
+  assert.match(he, /עותקים בגיבויים מוצפנים עד שהם פוקעים/);
   assert.ok(!/עדיין אין ל-DARE כלי מחיקה/.test(he));
 });

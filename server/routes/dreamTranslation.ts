@@ -48,6 +48,7 @@ ${texts.map((t, i) => `${i + 1}. ${t}`).join('\n')}`;
       async (retryNote) => {
         const response = await client.responses.create({
           model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+          store: false,
           instructions: buildDreamTranslationSystemPrompt(target) + retryNote,
           input,
           text: {

@@ -162,6 +162,7 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
       async (retryNote) => {
         const response = await client.responses.create({
           model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+          store: false,
           instructions: instructions + retryNote,
           input,
           text: {

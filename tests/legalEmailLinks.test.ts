@@ -33,10 +33,10 @@ test('every email in every legal document (both languages) is a clean address th
 test('privacy policy (EN + HE) discloses the temporary ~2h retention of the analysis result, without implying permanence', () => {
   const en = JSON.stringify(getLegalDocument('en', 'privacy'));
   const he = JSON.stringify(getLegalDocument('he', 'privacy'));
-  assert.match(en, /may keep the result temporarily, up to about two hours/);
+  assert.match(en, /we keep the result temporarily, up to about two hours/);
   assert.match(en, /preventing double charging/);
   assert.match(en, /it is not part of your archive unless you saved the dream/);
-  assert.match(he, /לשמור זמנית את התוצאה, עד כשעתיים בערך/);
+  assert.match(he, /אנחנו שומרים זמנית את התוצאה, עד כשעתיים בערך/);
   assert.match(he, /מניעת חיוב כפול/);
   assert.match(he, /אינה חלק מהארכיון אלא אם שמרתם את החלום/);
 });

@@ -155,6 +155,7 @@ export async function handlePatternReflection(rawBody: unknown, requestHeaders: 
           const generate = async (note: string): Promise<PatternReflectionResult | null> => {
             const response = await client.responses.create({
               model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+              store: false,
               instructions: instructions + retryNote + note,
               input,
               text: {

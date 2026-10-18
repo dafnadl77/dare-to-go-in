@@ -1,10 +1,11 @@
-import { useRef, useEffect, useState, type FormEvent } from 'react';
+import { useRef, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import DreamStageBackground from '../hero/DreamStageBackground';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth, WRITE_VIEW_VALUE } from '../auth/AuthContext';
 import { describeAuthError } from '../auth/authErrors';
 import { MAX_DISPLAY_NAME_LENGTH, normalizeDisplayName } from '../auth/displayName';
 import AppFooter from '../legal/AppFooter';
+import PrivacyPolicyDialog from '../legal/PrivacyPolicyDialog';
 import type { LegalKey } from '../legal/legalContent';
 import './DreamAuth.css';
 
@@ -114,6 +115,12 @@ export default function DreamAuth({ freeDreamNotice = false, sessionExpiredNotic
   // has an archive (see resetPasswordForEmail's own doc comment on why —
   // Supabase itself never reveals that, so this app doesn't either).
   const [resetSentFor, setResetSentFor] = useState<string | null>(null);
+  // Sign-up only: the dreamer confirms they are of age (18+). Nothing is sent to Supabase until it is ticked.
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [ageInvalid, setAgeInvalid] = useState(false);
+  const ageRef = useRef<HTMLInputElement>(null);
+  // The Terms / Privacy Policy open in a modal OVER this form, so the name and email already typed are never lost.
+  const [openDoc, setOpenDoc] = useState<LegalKey | null>(null);
 
   const isSignUp = mode === 'signup';
   const isForgot = mode === 'forgot';
@@ -132,6 +139,12 @@ export default function DreamAuth({ freeDreamNotice = false, sessionExpiredNotic
       }
       if (normalizeDisplayName(name) === null) {
         setErrorMessage(t('auth.errorInvalidName'));
+        return;
+      }
+      if (!ageConfirmed) {
+        setAgeInvalid(true);
+        setErrorMessage(t('auth.errorAgeRequired'));
+        ageRef.current?.focus();
         return;
       }
     }
@@ -179,6 +192,12 @@ export default function DreamAuth({ freeDreamNotice = false, sessionExpiredNotic
   const handleGoogleClick = async () => {
     if (pending) return;
     setErrorMessage(null);
+    if (isSignUp && !ageConfirmed) {
+      setAgeInvalid(true);
+      setErrorMessage(t('auth.errorAgeRequired'));
+      ageRef.current?.focus();
+      return;
+    }
     setPending('google');
     const result = await signInWithGoogle(startDream ? WRITE_VIEW_VALUE : undefined);
     // A successful call already has the browser navigating away to
@@ -216,6 +235,18 @@ export default function DreamAuth({ freeDreamNotice = false, sessionExpiredNotic
       onSwitchMode(next);
     }
   };
+
+  /** The notice text with {terms} and {privacy} turned into the two links (each opens its document in the modal). */
+  const renderLegalNotice = (template: string): ReactNode =>
+    template.split(/({terms}|{privacy})/).map((part, i) =>
+      part === '{terms}' || part === '{privacy}' ? (
+        <button key={i} type="button" className="auth-legal-link" data-cursor-hover onClick={() => setOpenDoc(part === '{terms}' ? 'terms' : 'privacy')}>
+          {part === '{terms}' ? t('auth.legalTermsLink') : t('auth.legalPrivacyLink')}
+        </button>
+      ) : (
+        <span key={i}>{part}</span>
+      ),
+    );
 
   return (
     <div className="dream-auth">
@@ -349,6 +380,27 @@ export default function DreamAuth({ freeDreamNotice = false, sessionExpiredNotic
             </button>
           )}
 
+          {isSignUp && (
+            <div className="auth-age">
+              <input
+                ref={ageRef}
+                id="auth-age-confirm"
+                className="auth-age-box"
+                type="checkbox"
+                checked={ageConfirmed}
+                aria-invalid={ageInvalid}
+                disabled={pending !== null}
+                onChange={(e) => {
+                  setAgeConfirmed(e.target.checked);
+                  setAgeInvalid(false);
+                }}
+              />
+              <label htmlFor="auth-age-confirm" className="auth-age-label">
+                {t('auth.ageConfirm')}
+              </label>
+            </div>
+          )}
+
           <button type="submit" className="auth-submit" data-cursor-hover disabled={pending !== null}>
             {isForgot
               ? pending === 'password'
@@ -363,6 +415,8 @@ export default function DreamAuth({ freeDreamNotice = false, sessionExpiredNotic
                   : t('auth.enterMyArchive')}
           </button>
         </form>}
+
+        {!awaitingConfirmationFor && !resetSentFor && !isForgot && <p className="auth-legal">{renderLegalNotice(isSignUp ? t('auth.legalNoticeSignup') : t('auth.legalNoticeSignin'))}</p>}
 
         {!awaitingConfirmationFor && <p className="auth-switch">
           {isForgot || resetSentFor ? (
@@ -388,6 +442,7 @@ export default function DreamAuth({ freeDreamNotice = false, sessionExpiredNotic
       </div>
 
       <AppFooter onNavigate={onOpenLegal} pinned />
+      {openDoc !== null && <PrivacyPolicyDialog documentKey={openDoc} closeLabel={t('auth.legalClose')} onClose={() => setOpenDoc(null)} />}
     </div>
   );
 }

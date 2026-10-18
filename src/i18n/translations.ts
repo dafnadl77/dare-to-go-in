@@ -333,6 +333,13 @@ export interface Translations {
     or: string;
     namePlaceholder: string;
     errorNameRequired: string;
+    ageConfirm: string;
+    errorAgeRequired: string;
+    legalNoticeSignup: string;
+    legalNoticeSignin: string;
+    legalTermsLink: string;
+    legalPrivacyLink: string;
+    legalClose: string;
     errorInvalidName: string;
     emailPlaceholder: string;
     passwordPlaceholder: string;
@@ -715,14 +722,14 @@ export const en: Translations = {
     loadRetry: 'Try again',
     settingsDeleteHeading: 'Delete account',
     settingsDeleteBody:
-      'Permanently delete your account and everything in it: your saved dreams and their images, your reflections and patterns, and any dream credits you have left. This cannot be undone.',
+      'Delete your account and everything in it from our live systems: your saved dreams and their images, your reflections and patterns, and any dream credits you have left. This cannot be undone. Encrypted backup copies expire as the Privacy Policy describes.',
     settingsDeleteButton: 'Delete my account',
-    deleteAccountTitle: 'Delete your account permanently?',
+    deleteAccountTitle: 'Delete your account?',
     deleteAccountBody:
-      'This permanently deletes your account, all your saved dreams and their images, your reflections and patterns, and any unused dream credits. It cannot be undone or recovered.',
+      'This deletes your account, all your saved dreams and their images, your reflections and patterns, and any unused dream credits from our live systems. It cannot be undone or recovered. Copies in encrypted backups expire on their own, as the Privacy Policy describes.',
     deleteAccountTypePrompt: 'To confirm, type:',
     deleteAccountInputLabel: 'Type the confirmation word',
-    deleteAccountConfirm: 'Delete permanently',
+    deleteAccountConfirm: 'Delete my account',
     deleteAccountFailed: 'Your account could not be fully deleted. Nothing was reported as deleted. Please try again.',
     emptyFavoritesTitle: 'No favorites yet',
     emptyFavoritesBody: 'Mark a dream as a favorite to see it here.',
@@ -855,6 +862,13 @@ export const en: Translations = {
     or: 'OR',
     namePlaceholder: 'Name',
     errorNameRequired: 'Please enter your name.',
+    ageConfirm: 'I confirm that I am 18 years old or over.',
+    errorAgeRequired: 'To sign up, please confirm that you are 18 or over.',
+    legalNoticeSignup: 'By signing up I agree to the {terms} and the {privacy}. Dream content is sent to AI providers for processing, including outside Israel, and may include sensitive information. Please do not include identifying details of other people.',
+    legalNoticeSignin: 'DARE is for people aged 18 or over. By continuing I agree to the {terms} and the {privacy}.',
+    legalTermsLink: 'Terms of Use',
+    legalPrivacyLink: 'Privacy Policy',
+    legalClose: 'Close and return to sign-up',
     errorInvalidName: 'Please enter a valid name (up to 60 characters, not an email address).',
     emailPlaceholder: 'Email',
     passwordPlaceholder: 'Password',
@@ -1267,14 +1281,14 @@ export const he: Translations = {
     loadRetry: 'נסו שוב',
     settingsDeleteHeading: 'מחיקת חשבון',
     settingsDeleteBody:
-      'מחיקה לצמיתות של החשבון וכל מה שבו: החלומות ששמרתם והתמונות שלהם, ההרהורים והדפוסים, וכל קרדיט חלום שנשאר לכם. אי אפשר לבטל את הפעולה.',
+      'מחיקת החשבון וכל מה שבו מהמערכות החיות שלנו: החלומות ששמרתם והתמונות שלהם, ההרהורים והדפוסים, וכל קרדיט חלום שנשאר לכם. אי אפשר לבטל את הפעולה. עותקי גיבוי מוצפנים פוקעים כמתואר במדיניות הפרטיות.',
     settingsDeleteButton: 'מחיקת החשבון שלי',
-    deleteAccountTitle: 'למחוק את החשבון לצמיתות?',
+    deleteAccountTitle: 'למחוק את החשבון?',
     deleteAccountBody:
-      'הפעולה מוחקת לצמיתות את החשבון, את כל החלומות השמורים והתמונות שלהם, את ההרהורים והדפוסים, ואת כל קרדיט חלום שלא נוצל. אי אפשר לבטל או לשחזר.',
+      'הפעולה מוחקת מהמערכות החיות שלנו את החשבון, את כל החלומות השמורים והתמונות שלהם, את ההרהורים והדפוסים, ואת כל קרדיט חלום שלא נוצל. אי אפשר לבטל או לשחזר. עותקים בגיבויים מוצפנים פוקעים מעצמם, כמתואר במדיניות הפרטיות.',
     deleteAccountTypePrompt: 'כדי לאשר, הקלידו:',
     deleteAccountInputLabel: 'הקלידו את מילת האישור',
-    deleteAccountConfirm: 'מחיקה לצמיתות',
+    deleteAccountConfirm: 'מחיקת החשבון',
     deleteAccountFailed: 'לא הצלחנו למחוק את החשבון במלואו. לא דווח על מחיקה. אפשר לנסות שוב.',
     emptyFavoritesTitle: 'אין עדיין מועדפים',
     emptyFavoritesBody: 'סמנו חלום כמועדף כדי לראות אותו כאן.',
@@ -1407,6 +1421,13 @@ export const he: Translations = {
     or: 'או',
     namePlaceholder: 'שם',
     errorNameRequired: 'נא להזין שם.',
+    ageConfirm: 'אני מאשר/ת שגילי 18 ומעלה.',
+    errorAgeRequired: 'כדי להירשם יש לאשר שגילך 18 ומעלה.',
+    legalNoticeSignup: 'בהרשמה אני מסכים/ה ל{terms} ול{privacy}. תוכן החלומות נשלח לעיבוד אצל ספקי בינה מלאכותית, גם מחוץ לישראל, ועשוי לכלול מידע רגיש. נא לא לכלול פרטים מזהים של אנשים אחרים.',
+    legalNoticeSignin: 'DARE מיועדת לבני 18 ומעלה. בהמשך אני מסכים/ה ל{terms} ול{privacy}.',
+    legalTermsLink: 'תנאי השימוש',
+    legalPrivacyLink: 'מדיניות הפרטיות',
+    legalClose: 'סגירה וחזרה להרשמה',
     errorInvalidName: 'נא להזין שם תקין (עד 60 תווים, לא כתובת אימייל).',
     emailPlaceholder: 'אימייל',
     passwordPlaceholder: 'סיסמה',

@@ -35,6 +35,7 @@ export async function runAnalysisModel(client: OpenAI, sourceText: string) {
     async (retryNote) => {
       const response = await client.responses.create({
         model: resolveAnalysisModel(),
+        store: false,
         instructions: DREAM_EXTRACTION_SYSTEM_PROMPT + retryNote,
         input: sourceText,
         text: {

@@ -121,8 +121,8 @@ export const FAQ_ITEMS: readonly FaqItem[] = [
     id: 'delete',
     q: { he: 'האם אפשר למחוק חלום או חשבון?', en: 'Can I delete a dream or an account?' },
     a: {
-      he: 'כן. אפשר למחוק חלום מהארכיון. חשבון נמחק מההגדרות ("מחיקת חשבון"), וזה מסיר את החשבון, את כל החלומות והתמונות, ההרהורים והחלומות שלא נוצלו בחבילה. הפעולה אינה הפיכה. רשומות תשלום, אם יש, נשמרות רק בלי קישור לחשבון.',
-      en: 'Yes. You can delete a dream from the archive. An account is deleted from Settings ("Delete account"), which removes the account, all dreams and images, the reflections and any unused dreams in a package. This cannot be undone. Payment records, if any, are kept only without a link to your account.',
+      he: 'כן. אפשר למחוק חלום מהארכיון. חשבון נמחק מההגדרות ("מחיקת חשבון"), וזה מסיר מהמערכות החיות שלנו את החשבון, את כל החלומות והתמונות, ההרהורים והחלומות שלא נוצלו בחבילה. הפעולה אינה הפיכה. עותקי גיבוי מוצפנים פוקעים כמתואר במדיניות הפרטיות, ורשומות תשלום, אם יש, נשמרות רק בלי קישור לחשבון.',
+      en: 'Yes. You can delete a dream from the archive. An account is deleted from Settings ("Delete account"), which removes the account, all dreams and images, the reflections and any unused dreams in a package from our live systems. This cannot be undone. Encrypted backup copies expire as the Privacy Policy describes, and payment records, if any, are kept only without a link to your account.',
     },
     source: 'DeleteDreamDialog, DeleteAccountDialog / server/accountDeletion.ts (delete_account_data anonymizes payment records); Privacy Policy "Your choices" and "Payments"',
   },
