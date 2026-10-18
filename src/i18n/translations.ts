@@ -722,11 +722,11 @@ export const en: Translations = {
     loadRetry: 'Try again',
     settingsDeleteHeading: 'Delete account',
     settingsDeleteBody:
-      'Delete your account and everything in it from our live systems: your saved dreams and their images, your reflections and patterns, and any dream credits you have left. This cannot be undone. Encrypted backup copies expire as the Privacy Policy describes.',
+      'Delete your account and everything in it from our live systems: your saved dreams and their images, your reflections and patterns, and any dream credits you have left. This cannot be undone. Copies in encrypted backups are handled as the Privacy Policy describes.',
     settingsDeleteButton: 'Delete my account',
     deleteAccountTitle: 'Delete your account?',
     deleteAccountBody:
-      'This deletes your account, all your saved dreams and their images, your reflections and patterns, and any unused dream credits from our live systems. It cannot be undone or recovered. Copies in encrypted backups expire on their own, as the Privacy Policy describes.',
+      'This deletes your account, all your saved dreams and their images, your reflections and patterns, and any unused dream credits from our live systems. It cannot be undone or recovered. Copies in encrypted backups are handled as the Privacy Policy describes.',
     deleteAccountTypePrompt: 'To confirm, type:',
     deleteAccountInputLabel: 'Type the confirmation word',
     deleteAccountConfirm: 'Delete my account',
@@ -1281,11 +1281,11 @@ export const he: Translations = {
     loadRetry: 'נסו שוב',
     settingsDeleteHeading: 'מחיקת חשבון',
     settingsDeleteBody:
-      'מחיקת החשבון וכל מה שבו מהמערכות החיות שלנו: החלומות ששמרתם והתמונות שלהם, ההרהורים והדפוסים, וכל קרדיט חלום שנשאר לכם. אי אפשר לבטל את הפעולה. עותקי גיבוי מוצפנים פוקעים כמתואר במדיניות הפרטיות.',
+      'מחיקת החשבון וכל מה שבו מהמערכות החיות שלנו: החלומות ששמרתם והתמונות שלהם, ההרהורים והדפוסים, וכל קרדיט חלום שנשאר לכם. אי אפשר לבטל את הפעולה. עותקים בגיבויים מוצפנים מטופלים כמתואר במדיניות הפרטיות.',
     settingsDeleteButton: 'מחיקת החשבון שלי',
     deleteAccountTitle: 'למחוק את החשבון?',
     deleteAccountBody:
-      'הפעולה מוחקת מהמערכות החיות שלנו את החשבון, את כל החלומות השמורים והתמונות שלהם, את ההרהורים והדפוסים, ואת כל קרדיט חלום שלא נוצל. אי אפשר לבטל או לשחזר. עותקים בגיבויים מוצפנים פוקעים מעצמם, כמתואר במדיניות הפרטיות.',
+      'הפעולה מוחקת מהמערכות החיות שלנו את החשבון, את כל החלומות השמורים והתמונות שלהם, את ההרהורים והדפוסים, ואת כל קרדיט חלום שלא נוצל. אי אפשר לבטל או לשחזר. עותקים בגיבויים מוצפנים מטופלים כמתואר במדיניות הפרטיות.',
     deleteAccountTypePrompt: 'כדי לאשר, הקלידו:',
     deleteAccountInputLabel: 'הקלידו את מילת האישור',
     deleteAccountConfirm: 'מחיקת החשבון',

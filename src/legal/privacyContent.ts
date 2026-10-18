@@ -17,11 +17,11 @@ import {
 
 const backupEn = BACKUP_RETENTION_VERIFIED
   ? `Backups: we keep encrypted backup copies of the database and of the saved images (with Supabase and with Backblaze B2) so that the service can be restored after a failure. Backup copies are kept for at most ${BACKUP_RETENTION_DAYS} days and are then deleted automatically. A dream or an account that you delete therefore disappears from our live systems at once, and from the backup copies within ${BACKUP_RETENTION_DAYS} days at most.`
-  : `Backups: we keep encrypted backup copies of the database and of the saved images (with Supabase and with Backblaze B2) so that the service can be restored after a failure. Backup copies are kept for a limited period and are then deleted. A dream or an account that you delete therefore disappears from our live systems at once, but a copy may remain in the backups for a limited period after that. We are setting the automatic deletion period for backups, and this policy will state it once it is in place.`;
+  : `Backups: we keep encrypted backup copies of the database and of the saved images (with Supabase and with Backblaze B2) so that the service can be restored after a failure. A dream or an account that you delete disappears from our live systems at once, but a copy of it may remain in the backups. We are setting an automatic deletion period for old backups, and this policy will state it once it is in place.`;
 
 const backupHe = BACKUP_RETENTION_VERIFIED
   ? `גיבויים: אנחנו שומרים עותקי גיבוי מוצפנים של מסד הנתונים ושל התמונות השמורות (אצל Supabase ואצל Backblaze B2) כדי שאפשר יהיה לשחזר את השירות אחרי תקלה. עותקי הגיבוי נשמרים לכל היותר ${BACKUP_RETENTION_DAYS} ימים ואז נמחקים אוטומטית. חלום או חשבון שמחקתם נעלמים אפוא מהמערכות החיות שלנו מיד, ומעותקי הגיבוי תוך ${BACKUP_RETENTION_DAYS} ימים לכל היותר.`
-  : `גיבויים: אנחנו שומרים עותקי גיבוי מוצפנים של מסד הנתונים ושל התמונות השמורות (אצל Supabase ואצל Backblaze B2) כדי שאפשר יהיה לשחזר את השירות אחרי תקלה. עותקי הגיבוי נשמרים לתקופה מוגבלת ואז נמחקים. חלום או חשבון שמחקתם נעלמים אפוא מהמערכות החיות שלנו מיד, אבל עותק שלהם עשוי להישאר בגיבויים לתקופה מוגבלת לאחר מכן. אנחנו קובעים כעת את תקופת המחיקה האוטומטית של הגיבויים, והמדיניות תציין אותה כשהיא תהיה בתוקף.`;
+  : `גיבויים: אנחנו שומרים עותקי גיבוי מוצפנים של מסד הנתונים ושל התמונות השמורות (אצל Supabase ואצל Backblaze B2) כדי שאפשר יהיה לשחזר את השירות אחרי תקלה. חלום או חשבון שמחקתם נעלמים מהמערכות החיות שלנו מיד, אבל עותק שלהם עשוי להישאר בגיבויים. אנחנו קובעים כעת תקופת מחיקה אוטומטית לגיבויים ישנים, והמדיניות תציין אותה כשהיא תהיה בתוקף.`;
 
 const fontsEn = GOOGLE_FONTS_SELF_HOSTED
   ? ''
@@ -74,11 +74,11 @@ export const privacyEn: LegalDocument = {
     },
     {
       heading: 'Deleting a dream',
-      body: 'Deleting a dream from the archive removes the saved dream and its image from our live systems. A copy may remain in the backups until they expire (see "How long we keep information"). Pattern reflections drawn from several dreams are not removed automatically when one dream is deleted; they are removed when you delete the account, or earlier if you ask us.',
+      body: 'Deleting a dream from the archive removes the saved dream and its image from our live systems. A copy may remain in the backups (see "How long we keep information"). Pattern reflections drawn from several dreams are not removed automatically when one dream is deleted; they are removed when you delete the account, or earlier if you ask us.',
     },
     {
       heading: 'Deleting your account',
-      body: 'In Settings choose "Delete account" and type the confirmation word. We delete, in this order: your saved dreams, reflections and patterns, analysis attempts and credit balance from the database; your images from storage; and, last, the sign-in account itself. If a step fails we tell you the deletion was not completed, and you can try again. The deletion cannot be undone, and we cannot restore a deleted account.\n\nWhat remains after the deletion: order and payment records without any link to you; the free-dream marker without personal details; tax documents and bookkeeping records for the period required by law; copies in encrypted backups until they expire; server logs until they expire; and whatever our providers keep under their own policies (for example OpenAI request records, up to ' + OPENAI_ABUSE_LOG_DAYS + ' days). We do not describe a deletion as final for copies that still exist in those places.',
+      body: 'In Settings choose "Delete account" and type the confirmation word. We delete, in this order: your saved dreams, reflections and patterns, analysis attempts and credit balance from the database; your images from storage; and, last, the sign-in account itself. If a step fails we tell you the deletion was not completed, and you can try again. The deletion cannot be undone, and we cannot restore a deleted account.\n\nWhat remains after the deletion: order and payment records without any link to you; the free-dream marker without personal details; tax documents and bookkeeping records for the period required by law; copies in encrypted backups (see "How long we keep information"); server logs until they expire; and whatever our providers keep under their own policies (for example OpenAI request records, up to ' + OPENAI_ABUSE_LOG_DAYS + ' days). We do not describe a deletion as final for copies that still exist in those places.',
     },
     {
       heading: 'Your rights',
@@ -153,11 +153,11 @@ export const privacyHe: LegalDocument = {
     },
     {
       heading: 'מחיקת חלום',
-      body: 'מחיקת חלום מהארכיון מסירה את החלום השמור ואת התמונה שלו מהמערכות החיות שלנו. עותק עשוי להישאר בגיבויים עד שהם פוקעים (ראו "כמה זמן אנחנו שומרים מידע"). הרהורי דפוסים שנוצרו מכמה חלומות אינם נמחקים אוטומטית כשחלום אחד נמחק; הם נמחקים כשמוחקים את החשבון, או קודם לכן אם תבקשו מאיתנו.',
+      body: 'מחיקת חלום מהארכיון מסירה את החלום השמור ואת התמונה שלו מהמערכות החיות שלנו. עותק עשוי להישאר בגיבויים (ראו "כמה זמן אנחנו שומרים מידע"). הרהורי דפוסים שנוצרו מכמה חלומות אינם נמחקים אוטומטית כשחלום אחד נמחק; הם נמחקים כשמוחקים את החשבון, או קודם לכן אם תבקשו מאיתנו.',
     },
     {
       heading: 'מחיקת חשבון',
-      body: 'בהגדרות בוחרים "מחיקת חשבון" ומקלידים את מילת האישור. אנחנו מוחקים, לפי הסדר הזה: את החלומות השמורים, ההרהורים והדפוסים, ניסיונות הניתוח ויתרת הקרדיטים ממסד הנתונים; את התמונות מהאחסון; ולבסוף את חשבון ההתחברות עצמו. אם שלב נכשל, אנחנו אומרים לכם שהמחיקה לא הושלמה, ואפשר לנסות שוב. אי אפשר לבטל את המחיקה, ואיננו יכולים לשחזר חשבון שנמחק.\n\nמה נשאר אחרי המחיקה: רישומי הזמנות ותשלומים ללא כל קישור אליכם; סימון החלום החינמי ללא פרטים אישיים; מסמכי מס ורישומי הנהלת חשבונות לתקופה הנדרשת בדין; עותקים בגיבויים מוצפנים עד שהם פוקעים; יומני שרתים עד שהם פוקעים; ומה שהספקים שלנו שומרים לפי המדיניות שלהם (למשל רישומי בקשות אצל OpenAI, עד ' + OPENAI_ABUSE_LOG_DAYS + ' ימים). איננו מתארים מחיקה כסופית לגבי עותקים שעדיין קיימים במקומות האלה.',
+      body: 'בהגדרות בוחרים "מחיקת חשבון" ומקלידים את מילת האישור. אנחנו מוחקים, לפי הסדר הזה: את החלומות השמורים, ההרהורים והדפוסים, ניסיונות הניתוח ויתרת הקרדיטים ממסד הנתונים; את התמונות מהאחסון; ולבסוף את חשבון ההתחברות עצמו. אם שלב נכשל, אנחנו אומרים לכם שהמחיקה לא הושלמה, ואפשר לנסות שוב. אי אפשר לבטל את המחיקה, ואיננו יכולים לשחזר חשבון שנמחק.\n\nמה נשאר אחרי המחיקה: רישומי הזמנות ותשלומים ללא כל קישור אליכם; סימון החלום החינמי ללא פרטים אישיים; מסמכי מס ורישומי הנהלת חשבונות לתקופה הנדרשת בדין; עותקים בגיבויים מוצפנים (ראו "כמה זמן אנחנו שומרים מידע"); יומני שרתים עד שהם פוקעים; ומה שהספקים שלנו שומרים לפי המדיניות שלהם (למשל רישומי בקשות אצל OpenAI, עד ' + OPENAI_ABUSE_LOG_DAYS + ' ימים). איננו מתארים מחיקה כסופית לגבי עותקים שעדיין קיימים במקומות האלה.',
     },
     {
       heading: 'הזכויות שלכם',

@@ -361,10 +361,10 @@ test('privacy policy (EN + HE) explains self-service deletion honestly, incl. th
   const he = JSON.stringify(getLegalDocument('he', 'privacy'));
   assert.match(en, /In Settings choose \\"Delete account\\"/);
   assert.match(en, /the free-dream marker without personal details/);
-  assert.match(en, /copies in encrypted backups until they expire/);
+  assert.match(en, /copies in encrypted backups \(see/);
   assert.ok(!/does not yet have a fully self-service deletion/.test(en));
   assert.match(he, /בהגדרות בוחרים \\"מחיקת חשבון\\"/);
   assert.match(he, /ללא כל קישור אליכם/);
-  assert.match(he, /עותקים בגיבויים מוצפנים עד שהם פוקעים/);
+  assert.match(he, /עותקים בגיבויים מוצפנים \(ראו/);
   assert.ok(!/עדיין אין ל-DARE כלי מחיקה/.test(he));
 });

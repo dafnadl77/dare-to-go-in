@@ -71,17 +71,17 @@ DARE מיועדת לבני 18 ומעלה. אנחנו לא אוספים ביוד�
 - רישומי הזמנות ותשלומים: החבילה, הסכום, הסטטוס והאסמכתא נשמרים ללא כל קישור אליכם אחרי מחיקת החשבון; מסמכי מס ורישומי הנהלת חשבונות נשמרים לתקופה הנדרשת בדין.
 - סימון חלום חינמי ועוגייה: העוגייה עד שנה; רשומת הסימון, שאין בה פרטים אישיים, נשמרת כדי שלא יהיה אפשר לעקוף את מגבלת החלום החינמי.
 - יומנים: ספקי מסד הנתונים והאחסון שלנו שומרים יומני שרתים לתקופות קצרות שנקבעות בתוכניות שלהם (כרגע כ-7 ימים אצל Supabase וכיום אחד אצל Vercel). OpenAI עשויה לשמור רישומי בקשות עד 30 ימים. Make שומרת היסטוריית הרצות לפי התוכנית שלה.
-- גיבויים: אנחנו שומרים עותקי גיבוי מוצפנים של מסד הנתונים ושל התמונות השמורות (אצל Supabase ואצל Backblaze B2) כדי שאפשר יהיה לשחזר את השירות אחרי תקלה. עותקי הגיבוי נשמרים לתקופה מוגבלת ואז נמחקים. חלום או חשבון שמחקתם נעלמים אפוא מהמערכות החיות שלנו מיד, אבל עותק שלהם עשוי להישאר בגיבויים לתקופה מוגבלת לאחר מכן. אנחנו קובעים כעת את תקופת המחיקה האוטומטית של הגיבויים, והמדיניות תציין אותה כשהיא תהיה בתוקף.
+- גיבויים: אנחנו שומרים עותקי גיבוי מוצפנים של מסד הנתונים ושל התמונות השמורות (אצל Supabase ואצל Backblaze B2) כדי שאפשר יהיה לשחזר את השירות אחרי תקלה. חלום או חשבון שמחקתם נעלמים מהמערכות החיות שלנו מיד, אבל עותק שלהם עשוי להישאר בגיבויים. אנחנו קובעים כעת תקופת מחיקה אוטומטית לגיבויים ישנים, והמדיניות תציין אותה כשהיא תהיה בתוקף.
 
 ### מחיקת חלום
 
-מחיקת חלום מהארכיון מסירה את החלום השמור ואת התמונה שלו מהמערכות החיות שלנו. עותק עשוי להישאר בגיבויים עד שהם פוקעים (ראו "כמה זמן אנחנו שומרים מידע"). הרהורי דפוסים שנוצרו מכמה חלומות אינם נמחקים אוטומטית כשחלום אחד נמחק; הם נמחקים כשמוחקים את החשבון, או קודם לכן אם תבקשו מאיתנו.
+מחיקת חלום מהארכיון מסירה את החלום השמור ואת התמונה שלו מהמערכות החיות שלנו. עותק עשוי להישאר בגיבויים (ראו "כמה זמן אנחנו שומרים מידע"). הרהורי דפוסים שנוצרו מכמה חלומות אינם נמחקים אוטומטית כשחלום אחד נמחק; הם נמחקים כשמוחקים את החשבון, או קודם לכן אם תבקשו מאיתנו.
 
 ### מחיקת חשבון
 
 בהגדרות בוחרים "מחיקת חשבון" ומקלידים את מילת האישור. אנחנו מוחקים, לפי הסדר הזה: את החלומות השמורים, ההרהורים והדפוסים, ניסיונות הניתוח ויתרת הקרדיטים ממסד הנתונים; את התמונות מהאחסון; ולבסוף את חשבון ההתחברות עצמו. אם שלב נכשל, אנחנו אומרים לכם שהמחיקה לא הושלמה, ואפשר לנסות שוב. אי אפשר לבטל את המחיקה, ואיננו יכולים לשחזר חשבון שנמחק.
 
-מה נשאר אחרי המחיקה: רישומי הזמנות ותשלומים ללא כל קישור אליכם; סימון החלום החינמי ללא פרטים אישיים; מסמכי מס ורישומי הנהלת חשבונות לתקופה הנדרשת בדין; עותקים בגיבויים מוצפנים עד שהם פוקעים; יומני שרתים עד שהם פוקעים; ומה שהספקים שלנו שומרים לפי המדיניות שלהם (למשל רישומי בקשות אצל OpenAI, עד 30 ימים). איננו מתארים מחיקה כסופית לגבי עותקים שעדיין קיימים במקומות האלה.
+מה נשאר אחרי המחיקה: רישומי הזמנות ותשלומים ללא כל קישור אליכם; סימון החלום החינמי ללא פרטים אישיים; מסמכי מס ורישומי הנהלת חשבונות לתקופה הנדרשת בדין; עותקים בגיבויים מוצפנים (ראו "כמה זמן אנחנו שומרים מידע"); יומני שרתים עד שהם פוקעים; ומה שהספקים שלנו שומרים לפי המדיניות שלהם (למשל רישומי בקשות אצל OpenAI, עד 30 ימים). איננו מתארים מחיקה כסופית לגבי עותקים שעדיין קיימים במקומות האלה.
 
 ### הזכויות שלכם
 
@@ -140,7 +140,7 @@ DARE מיועדת לבני 18 ומעלה. בפתיחת חשבון אתם מאש�
 
 ### התוכן שלכם והזכויות בו
 
-האחריות על מה שנשלח ל-DARE — תיאורי החלומות, התיקונים והאסוציאציות הכתובות — היא עליכם. נא לא לשלוח מידע פרטי או מזהה של אדם אחר, או תוכן שאין לכם זכות לשתף. טקסט החלומות, התיקונים והאסוציאציות שלכם נשארים שלכם. כדי להפעיל את השירות אתם נותנים לנו רישיון מוגבל ולא בלעדי לעבד ולשמור את התוכן שלכם, להציג אותו לכם ולשלוח אותו לספקים הנזכרים במדיניות הפרטיות, רק כדי לתת לכם את השירות. הרישיון מסתיים כשמוחקים את התוכן או את החשבון, מלבד עותקי גיבוי שפוקעים כמתואר במדיניות הפרטיות.
+האחריות על מה שנשלח ל-DARE — תיאורי החלומות, התיקונים והאסוציאציות הכתובות — היא עליכם. נא לא לשלוח מידע פרטי או מזהה של אדם אחר, או תוכן שאין לכם זכות לשתף. טקסט החלומות, התיקונים והאסוציאציות שלכם נשארים שלכם. כדי להפעיל את השירות אתם נותנים לנו רישיון מוגבל ולא בלעדי לעבד ולשמור את התוכן שלכם, להציג אותו לכם ולשלוח אותו לספקים הנזכרים במדיניות הפרטיות, רק כדי לתת לכם את השירות. הרישיון מסתיים כשמוחקים את התוכן או את החשבון, מלבד עותקי גיבוי, שמטופלים כמתואר במדיניות הפרטיות.
 
 ### שימוש מקובל
 
@@ -192,7 +192,7 @@ DARE היא אפליקציה עצמאית בשלב מוקדם. תכונות, ז�
 
 ### הפסקת שימוש ומחיקה
 
-אפשר להפסיק להשתמש ב-DARE ולמחוק את החשבון בכל עת, בהגדרות ("מחיקת חשבון"). מחיקת החשבון מסירה מהמערכות החיות שלנו את החשבון, את החלומות השמורים והתמונות שלהם, את ההרהורים והדפוסים ואת כל יתרת קרדיטים שלא נוצלה, ואי אפשר לשחזר אותם. עותקים בגיבויים ואצל הספקים שלנו פוקעים או מטופלים כמתואר במדיניות הפרטיות. מחיקת חשבון אינה בקשת ביטול עסקה ואינה מקנה החזר כספי מעבר למה שהדין קובע.
+אפשר להפסיק להשתמש ב-DARE ולמחוק את החשבון בכל עת, בהגדרות ("מחיקת חשבון"). מחיקת החשבון מסירה מהמערכות החיות שלנו את החשבון, את החלומות השמורים והתמונות שלהם, את ההרהורים והדפוסים ואת כל יתרת קרדיטים שלא נוצלה, ואי אפשר לשחזר אותם. עותקים בגיבויים ואצל הספקים שלנו מטופלים כמתואר במדיניות הפרטיות. מחיקת חשבון אינה בקשת ביטול עסקה ואינה מקנה החזר כספי מעבר למה שהדין קובע.
 
 ### הסתייגות והגבלת אחריות
 
@@ -288,17 +288,17 @@ The link between the payment record and your account is removed if you delete th
 - Order and payment records: the package, amount, status and reference are kept without any link to you after you delete the account; tax documents and bookkeeping records are kept for the period required by law.
 - Free-dream marker and cookie: the cookie for up to one year; the marker record, which has no personal details, is kept so the free-dream limit cannot be bypassed.
 - Logs: our database and hosting providers keep server logs for short periods set by their plans (currently about 7 days at Supabase and about a day at Vercel). OpenAI may keep request records for up to 30 days. Make keeps its execution history according to its plan.
-- Backups: we keep encrypted backup copies of the database and of the saved images (with Supabase and with Backblaze B2) so that the service can be restored after a failure. Backup copies are kept for a limited period and are then deleted. A dream or an account that you delete therefore disappears from our live systems at once, but a copy may remain in the backups for a limited period after that. We are setting the automatic deletion period for backups, and this policy will state it once it is in place.
+- Backups: we keep encrypted backup copies of the database and of the saved images (with Supabase and with Backblaze B2) so that the service can be restored after a failure. A dream or an account that you delete disappears from our live systems at once, but a copy of it may remain in the backups. We are setting an automatic deletion period for old backups, and this policy will state it once it is in place.
 
 ### Deleting a dream
 
-Deleting a dream from the archive removes the saved dream and its image from our live systems. A copy may remain in the backups until they expire (see "How long we keep information"). Pattern reflections drawn from several dreams are not removed automatically when one dream is deleted; they are removed when you delete the account, or earlier if you ask us.
+Deleting a dream from the archive removes the saved dream and its image from our live systems. A copy may remain in the backups (see "How long we keep information"). Pattern reflections drawn from several dreams are not removed automatically when one dream is deleted; they are removed when you delete the account, or earlier if you ask us.
 
 ### Deleting your account
 
 In Settings choose "Delete account" and type the confirmation word. We delete, in this order: your saved dreams, reflections and patterns, analysis attempts and credit balance from the database; your images from storage; and, last, the sign-in account itself. If a step fails we tell you the deletion was not completed, and you can try again. The deletion cannot be undone, and we cannot restore a deleted account.
 
-What remains after the deletion: order and payment records without any link to you; the free-dream marker without personal details; tax documents and bookkeeping records for the period required by law; copies in encrypted backups until they expire; server logs until they expire; and whatever our providers keep under their own policies (for example OpenAI request records, up to 30 days). We do not describe a deletion as final for copies that still exist in those places.
+What remains after the deletion: order and payment records without any link to you; the free-dream marker without personal details; tax documents and bookkeeping records for the period required by law; copies in encrypted backups (see "How long we keep information"); server logs until they expire; and whatever our providers keep under their own policies (for example OpenAI request records, up to 30 days). We do not describe a deletion as final for copies that still exist in those places.
 
 ### Your rights
 
@@ -357,7 +357,7 @@ Dream reconstructions, images, and reflections are generated by AI models and ma
 
 ### Your content, and the rights in it
 
-You are responsible for what you submit to DARE — your dream descriptions, corrections, and written associations. Please do not submit anyone else's private or identifying information, or content you don't have the right to share. Your dream text, corrections and associations remain yours. To run the service you give us a limited, non-exclusive licence to process and store your content, to show it to you, and to send it to the providers named in the Privacy Policy, only in order to provide the service to you. The licence ends when you delete the content or the account, apart from backup copies that expire as the Privacy Policy describes.
+You are responsible for what you submit to DARE — your dream descriptions, corrections, and written associations. Please do not submit anyone else's private or identifying information, or content you don't have the right to share. Your dream text, corrections and associations remain yours. To run the service you give us a limited, non-exclusive licence to process and store your content, to show it to you, and to send it to the providers named in the Privacy Policy, only in order to provide the service to you. The licence ends when you delete the content or the account, apart from backup copies, which are handled as the Privacy Policy describes.
 
 ### Acceptable use
 
@@ -409,7 +409,7 @@ A saved dream stays in your archive for as long as your account exists, unless y
 
 ### Termination & deletion
 
-You may stop using DARE and delete your account at any time, in Settings ("Delete account"). Deleting the account removes the account, saved dreams and their images, reflections and patterns, and any unused credit balance from our live systems, and none of it can be restored. Copies in backups and with our providers expire or are handled as the Privacy Policy describes. Deleting an account is not a cancellation request and does not entitle you to a refund beyond what the law provides.
+You may stop using DARE and delete your account at any time, in Settings ("Delete account"). Deleting the account removes the account, saved dreams and their images, reflections and patterns, and any unused credit balance from our live systems, and none of it can be restored. Copies in backups and with our providers are handled as the Privacy Policy describes. Deleting an account is not a cancellation request and does not entitle you to a refund beyond what the law provides.
 
 ### Disclaimer and limitation of liability
 

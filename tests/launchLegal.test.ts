@@ -59,6 +59,17 @@ test('the backup period is stated only after someone verified it in Backblaze B2
   }
 });
 
+test('while the backup deletion is unverified, no text anywhere says that backups expire or are deleted', () => {
+  if (BACKUP_RETENTION_VERIFIED) return;
+  const ui = read('src/i18n/translations.ts') + read('src/faq/faqContent.ts');
+  for (const key of ['privacy', 'terms'] as const) {
+    assert.ok(!/backup[^.;]*\b(expir|are then deleted|deleted automatically)/i.test(text('en', key).replace(/Backups: [^\n]*We are setting an automatic deletion period[^\n]*/, '')), `en/${key}`);
+    assert.ok(!/גיבוי[^.;]*פוקע/.test(text('he', key)), `he/${key}`);
+  }
+  assert.ok(!/backup[^.']*expir/i.test(ui), 'the app and FAQ texts');
+  assert.ok(!/גיבוי[^.']*פוקע/.test(ui), 'the app and FAQ texts (he)');
+});
+
 test('no document calls a deletion permanent or final while copies remain, in the documents or in the app', () => {
   for (const key of ['privacy', 'terms'] as const) {
     assert.ok(!/permanently (delete|remove)|deleted permanently|permanent deletion/i.test(text('en', key)), `en/${key}`);

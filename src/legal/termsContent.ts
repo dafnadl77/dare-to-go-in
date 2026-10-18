@@ -39,7 +39,7 @@ export const termsEn: LegalDocument = {
     },
     {
       heading: 'Your content, and the rights in it',
-      body: 'You are responsible for what you submit to DARE — your dream descriptions, corrections, and written associations. Please do not submit anyone else\'s private or identifying information, or content you don\'t have the right to share. Your dream text, corrections and associations remain yours. To run the service you give us a limited, non-exclusive licence to process and store your content, to show it to you, and to send it to the providers named in the Privacy Policy, only in order to provide the service to you. The licence ends when you delete the content or the account, apart from backup copies that expire as the Privacy Policy describes.',
+      body: 'You are responsible for what you submit to DARE — your dream descriptions, corrections, and written associations. Please do not submit anyone else\'s private or identifying information, or content you don\'t have the right to share. Your dream text, corrections and associations remain yours. To run the service you give us a limited, non-exclusive licence to process and store your content, to show it to you, and to send it to the providers named in the Privacy Policy, only in order to provide the service to you. The licence ends when you delete the content or the account, apart from backup copies, which are handled as the Privacy Policy describes.',
     },
     {
       heading: 'Acceptable use',
@@ -83,7 +83,7 @@ export const termsEn: LegalDocument = {
     },
     {
       heading: 'Termination & deletion',
-      body: 'You may stop using DARE and delete your account at any time, in Settings ("Delete account"). Deleting the account removes the account, saved dreams and their images, reflections and patterns, and any unused credit balance from our live systems, and none of it can be restored. Copies in backups and with our providers expire or are handled as the Privacy Policy describes. Deleting an account is not a cancellation request and does not entitle you to a refund beyond what the law provides.',
+      body: 'You may stop using DARE and delete your account at any time, in Settings ("Delete account"). Deleting the account removes the account, saved dreams and their images, reflections and patterns, and any unused credit balance from our live systems, and none of it can be restored. Copies in backups and with our providers are handled as the Privacy Policy describes. Deleting an account is not a cancellation request and does not entitle you to a refund beyond what the law provides.',
     },
     {
       heading: 'Disclaimer and limitation of liability',
@@ -134,7 +134,7 @@ export const termsHe: LegalDocument = {
     },
     {
       heading: 'התוכן שלכם והזכויות בו',
-      body: 'האחריות על מה שנשלח ל-DARE — תיאורי החלומות, התיקונים והאסוציאציות הכתובות — היא עליכם. נא לא לשלוח מידע פרטי או מזהה של אדם אחר, או תוכן שאין לכם זכות לשתף. טקסט החלומות, התיקונים והאסוציאציות שלכם נשארים שלכם. כדי להפעיל את השירות אתם נותנים לנו רישיון מוגבל ולא בלעדי לעבד ולשמור את התוכן שלכם, להציג אותו לכם ולשלוח אותו לספקים הנזכרים במדיניות הפרטיות, רק כדי לתת לכם את השירות. הרישיון מסתיים כשמוחקים את התוכן או את החשבון, מלבד עותקי גיבוי שפוקעים כמתואר במדיניות הפרטיות.',
+      body: 'האחריות על מה שנשלח ל-DARE — תיאורי החלומות, התיקונים והאסוציאציות הכתובות — היא עליכם. נא לא לשלוח מידע פרטי או מזהה של אדם אחר, או תוכן שאין לכם זכות לשתף. טקסט החלומות, התיקונים והאסוציאציות שלכם נשארים שלכם. כדי להפעיל את השירות אתם נותנים לנו רישיון מוגבל ולא בלעדי לעבד ולשמור את התוכן שלכם, להציג אותו לכם ולשלוח אותו לספקים הנזכרים במדיניות הפרטיות, רק כדי לתת לכם את השירות. הרישיון מסתיים כשמוחקים את התוכן או את החשבון, מלבד עותקי גיבוי, שמטופלים כמתואר במדיניות הפרטיות.',
     },
     {
       heading: 'שימוש מקובל',
@@ -178,7 +178,7 @@ export const termsHe: LegalDocument = {
     },
     {
       heading: 'הפסקת שימוש ומחיקה',
-      body: 'אפשר להפסיק להשתמש ב-DARE ולמחוק את החשבון בכל עת, בהגדרות ("מחיקת חשבון"). מחיקת החשבון מסירה מהמערכות החיות שלנו את החשבון, את החלומות השמורים והתמונות שלהם, את ההרהורים והדפוסים ואת כל יתרת קרדיטים שלא נוצלה, ואי אפשר לשחזר אותם. עותקים בגיבויים ואצל הספקים שלנו פוקעים או מטופלים כמתואר במדיניות הפרטיות. מחיקת חשבון אינה בקשת ביטול עסקה ואינה מקנה החזר כספי מעבר למה שהדין קובע.',
+      body: 'אפשר להפסיק להשתמש ב-DARE ולמחוק את החשבון בכל עת, בהגדרות ("מחיקת חשבון"). מחיקת החשבון מסירה מהמערכות החיות שלנו את החשבון, את החלומות השמורים והתמונות שלהם, את ההרהורים והדפוסים ואת כל יתרת קרדיטים שלא נוצלה, ואי אפשר לשחזר אותם. עותקים בגיבויים ואצל הספקים שלנו מטופלים כמתואר במדיניות הפרטיות. מחיקת חשבון אינה בקשת ביטול עסקה ואינה מקנה החזר כספי מעבר למה שהדין קובע.',
     },
     {
       heading: 'הסתייגות והגבלת אחריות',
