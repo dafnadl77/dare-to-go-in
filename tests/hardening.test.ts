@@ -158,8 +158,10 @@ test('vercel.json sends the security headers, and the CSP covers exactly the ser
   assert.match(dir('connect-src'), /'self' https:\/\/eijfvsktvfplccolqdpp\.supabase\.co/);
   assert.match(dir('img-src'), /data: blob: https:\/\/eijfvsktvfplccolqdpp\.supabase\.co/, 'generated images are data URLs, saved ones signed Storage URLs');
   assert.match(dir('media-src'), /'self' blob:/);
-  assert.match(dir('font-src'), /https:\/\/fonts\.gstatic\.com/);
-  assert.match(dir('style-src'), /https:\/\/fonts\.googleapis\.com/);
+  // the fonts are served from this site itself (public/fonts): no Google origin is allowed any more
+  assert.equal(dir('font-src'), "font-src 'self' data:");
+  assert.equal(dir('style-src'), "style-src 'self' 'unsafe-inline'");
+  assert.ok(!/google|gstatic/.test(csp), 'the CSP names no Google origin');
   // every external origin the page itself references is allowed
   const html = read('index.html');
   for (const origin of new Set(html.match(/https:\/\/[a-z.]+(?=[/"'])/g) ?? [])) {

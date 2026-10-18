@@ -4,6 +4,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { en, he } from '../src/i18n/translations.ts';
 import { getLegalDocument, type LegalKey } from '../src/legal/legalContent.ts';
 import {
+  BACKUP_DELETE_AFTER_HIDING_DAYS,
+  BACKUP_HIDE_AFTER_DAYS,
   BACKUP_RETENTION_DAYS,
   BACKUP_RETENTION_VERIFIED,
   GOOGLE_FONTS_SELF_HOSTED,
@@ -85,13 +87,44 @@ test('no document calls a deletion permanent or final while copies remain, in th
   assert.match(text('en', 'privacy'), /We do not describe a deletion as final for copies that still exist/);
 });
 
-test('what the Privacy Policy says about deleting one dream matches the code: pattern reflections are NOT removed', () => {
-  const deletion = read('src/hero/dreamDeletion.ts') + read('src/hero/dreamRemoteStorage.ts');
-  assert.ok(!/pattern_reflections/.test(deletion), 'if this ever starts deleting pattern reflections, the "Deleting a dream" section of the policy must change with it');
-  assert.match(text('en', 'privacy'), /Pattern reflections drawn from several dreams are not removed automatically when one dream is deleted/);
-  assert.match(text('he', 'privacy'), /הרהורי דפוסים שנוצרו מכמה חלומות אינם נמחקים אוטומטית כשחלום אחד נמחק/);
-  // the account deletion function does remove them
+test('deleting one dream also deletes the pattern reflections drawn from it: the migration, the rollback and the wording agree', () => {
+  const m = read('supabase/migrations/20261018_pattern_reflections_follow_dream_deletion.sql');
+  assert.match(m, /after delete on public\.dreams/);
+  assert.match(m, /old\.id::text = any \(dream_ids\)/);
+  assert.match(m, /owner_id = old\.owner_id/, 'only the same account is touched');
+  assert.match(read('supabase/rollbacks/20261018_pattern_reflections_follow_dream_deletion_rollback.sql'), /drop trigger if exists dreams_delete_pattern_reflections/);
+  assert.match(text('en', 'privacy'), /removes the saved dream, its image and the pattern reflections drawn from it/);
+  assert.match(text('en', 'privacy'), /Reflections drawn only from other dreams are not affected/);
+  assert.match(text('he', 'privacy'), /את הרהורי הדפוסים שנוצרו ממנו/);
+  assert.match(text('he', 'privacy'), /הרהורים שנוצרו רק מחלומות אחרים אינם מושפעים/);
+  // the account deletion function still removes everything that is left
   assert.match(read('supabase/migrations/20260924_account_deletion.sql'), /delete from public\.pattern_reflections where owner_id = p_user/);
+});
+
+test('the backup period quoted is the real worst case of the two B2 lifecycle rules (daily processing included)', () => {
+  assert.equal(BACKUP_HIDE_AFTER_DAYS, 34);
+  assert.equal(BACKUP_DELETE_AFTER_HIDING_DAYS, 1);
+  assert.equal(BACKUP_RETENTION_DAYS, BACKUP_HIDE_AFTER_DAYS + BACKUP_DELETE_AFTER_HIDING_DAYS + 2);
+  assert.ok(BACKUP_RETENTION_DAYS >= 35, 'never print fewer days than the rules can take');
+});
+
+test('fonts are self-hosted: every file exists, nothing loads from Google, and the CSP no longer allows it', () => {
+  const css = read('public/fonts/fonts.css');
+  const files = [...css.matchAll(/url\(\/fonts\/([a-z-]+\.woff2)\)/g)].map((m) => m[1]);
+  assert.equal(files.length, 7);
+  for (const f of files) {
+    const buf = readFileSync(new URL(`../public/fonts/${f}`, import.meta.url));
+    assert.equal(buf.subarray(0, 4).toString('latin1'), 'wOF2', `${f} is a real woff2 file`);
+    assert.ok(buf.length > 5000, `${f} is not empty`);
+  }
+  assert.match(css, /font-family: 'Heebo'[\s\S]*?font-weight: 300 700/);
+  assert.match(css, /font-family: 'Fraunces'[\s\S]*?font-weight: 400/);
+  for (const page of ['index.html', 'public/faq/index.html', 'public/en/faq/index.html', 'src/faq/renderFaqPage.ts']) {
+    const src = read(page);
+    assert.ok(!/fonts\.googleapis\.com|fonts\.gstatic\.com/.test(src), `${page}: no Google Fonts`);
+    assert.match(src, /\/fonts\/fonts\.css/, `${page}: loads the local font sheet`);
+  }
+  assert.ok(GOOGLE_FONTS_SELF_HOSTED);
 });
 
 test('every OpenAI Responses call asks not to store the response, and nothing asks to store it', () => {

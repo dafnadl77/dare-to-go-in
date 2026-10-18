@@ -1,0 +1,4 @@
+Heebo and Fraunces are licensed under the SIL Open Font License, Version 1.1 (https://openfontlicense.org).
+Heebo: Copyright 2016 The Heebo Project Authors. Fraunces: Copyright 2018 The Fraunces Project Authors.
+These woff2 files are the subsets distributed by Google Fonts (fonts.google.com/specimen/Heebo, fonts.google.com/specimen/Fraunces).
+The full license text is at https://openfontlicense.org/open-font-license-official-text/

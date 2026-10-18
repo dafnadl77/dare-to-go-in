@@ -41,7 +41,7 @@ DARE מיועדת לבני 18 ומעלה. אנחנו לא אוספים ביוד�
 - OpenAI — עיבוד בינה מלאכותית, ארצות הברית (ראו "עיבוד באמצעות בינה מלאכותית").
 - Backblaze B2 — עותקי גיבוי מוצפנים, באיחוד האירופי. GitHub (ארצות הברית) מפעילה את האוטומציה שיוצרת את הגיבויים; המידע מוצפן לפני שהוא נשמר.
 - Make (אוטומציה) ו-Grow (ספקית התשלומים) — רק בעת רכישה, ראו "תשלומים ומסמכי מס". Morning — חשבוניות מס, ישראל.
-- Google — התחברות, אם בוחרים בה, וגופנים (ראו "עוגיות ואחסון מקומי").
+- Google — התחברות, אם בוחרים בה.
 
 לכן המידע שלכם מועבר ומעובד מחוץ לישראל, כולל בארצות הברית. במקום שבו הדין דורש את הסכמתכם לכך, אתם נותנים אותה בשימוש ב-DARE לאחר קריאת הודעה זו. כל ספק מטפל במידע לפי התנאים ומדיניות הפרטיות שלו ולפי התחייבויות הגנת המידע שלו, שאינן בשליטתנו.
 
@@ -59,12 +59,12 @@ DARE מיועדת לבני 18 ומעלה. אנחנו לא אוספים ביוד�
 
 - עוגייה טכנית אחת, dare_trial: נקבעת על ידי השרת שלנו למבקר שעוד לא פתח חשבון; היא מכילה מזהה אקראי חתום (ללא פרטים אישיים), נשמרת עד שנה, ומשמשת רק להחלת החלום החינמי האחד ולהגבלת הקלטות לדפדפן. סקריפטים בעמוד אינם יכולים לקרוא אותה.
 - אחסון הדפדפן (local storage): שפת הממשק שבחרתם, הגדרות נגישות, באיזה מסך הייתם, חלומות ששמרתם לפני שהיה חשבון (הם נשארים במכשיר ואינם מועלים אוטומטית), והסשן ש-Supabase שומרת כדי שתישארו מחוברים.
-- איננו משתמשים בעוגיות או בכלי מעקב פרסומיים או אנליטיים, ואיננו מוכרים נתוני גלישה. בשלב זה הדפדפן שלכם טוען את גופני האתר גם מ-Google Fonts, ולכן Google מקבלת את כתובת ה-IP ופרטי הדפדפן שלכם כשהעמוד נפתח.
+- איננו משתמשים בעוגיות או בכלי מעקב פרסומיים או אנליטיים, ואיננו מוכרים נתוני גלישה. גופני האתר מוגשים מהאתר עצמו, ואף בקשה אל Google לא נשלחת בגללם.
 
 ### כמה זמן אנחנו שומרים מידע
 
 - חלומות שמורים, התמונות וההתבוננויות שלהם: כל עוד החשבון קיים, אלא אם מחקתם אותם קודם. אין מחיקה אוטומטית כל עוד החשבון פעיל.
-- הרהורי דפוסים (התבוננויות שנוצרות מכמה חלומות): עד מחיקת החשבון. הם אינם נמחקים כשחלום בודד נמחק.
+- הרהורי דפוסים (התבוננויות שנוצרות מכמה חלומות): נמחקים יחד עם כל חלום שהם נוצרו ממנו, ובכל מקרה עם מחיקת החשבון.
 - תוצאת ניתוח זמנית: כששולחים חלום לניתוח, אנחנו שומרים זמנית את התוצאה, עד כשעתיים בערך, רק לצורך התאוששות טכנית, ניסיון חוזר ומניעת חיוב כפול. היא נמחקת אוטומטית (משימה במסד הנתונים רצה כל 10 דקות), והיא אינה חלק מהארכיון אלא אם שמרתם את החלום.
 - הקלטות קול: אינן נשמרות אצלנו.
 - קרדיטים: עד שמנצלים אותם או עד מחיקת החשבון. הקרדיטים אינם פגי תוקף.
@@ -75,13 +75,13 @@ DARE מיועדת לבני 18 ומעלה. אנחנו לא אוספים ביוד�
 
 ### מחיקת חלום
 
-מחיקת חלום מהארכיון מסירה את החלום השמור ואת התמונה שלו מהמערכות החיות שלנו. עותק עשוי להישאר בגיבויים (ראו "כמה זמן אנחנו שומרים מידע"). הרהורי דפוסים שנוצרו מכמה חלומות אינם נמחקים אוטומטית כשחלום אחד נמחק; הם נמחקים כשמוחקים את החשבון, או קודם לכן אם תבקשו מאיתנו.
+מחיקת חלום מהארכיון מסירה מהמערכות החיות שלנו את החלום השמור, את התמונה שלו ואת הרהורי הדפוסים שנוצרו ממנו. הרהורים שנוצרו רק מחלומות אחרים אינם מושפעים. עותק עשוי להישאר בגיבויים (ראו "כמה זמן אנחנו שומרים מידע").
 
 ### מחיקת חשבון
 
 בהגדרות בוחרים "מחיקת חשבון" ומקלידים את מילת האישור. אנחנו מוחקים, לפי הסדר הזה: את החלומות השמורים, ההרהורים והדפוסים, ניסיונות הניתוח ויתרת הקרדיטים ממסד הנתונים; את התמונות מהאחסון; ולבסוף את חשבון ההתחברות עצמו. אם שלב נכשל, אנחנו אומרים לכם שהמחיקה לא הושלמה, ואפשר לנסות שוב. אי אפשר לבטל את המחיקה, ואיננו יכולים לשחזר חשבון שנמחק.
 
-מה נשאר אחרי המחיקה: רישומי הזמנות ותשלומים ללא כל קישור אליכם; סימון החלום החינמי ללא פרטים אישיים; מסמכי מס ורישומי הנהלת חשבונות לתקופה הנדרשת בדין; עותקים בגיבויים מוצפנים (ראו "כמה זמן אנחנו שומרים מידע"); יומני שרתים עד שהם פוקעים; ומה שהספקים שלנו שומרים לפי המדיניות שלהם (למשל רישומי בקשות אצל OpenAI, עד 30 ימים). איננו מתארים מחיקה כסופית לגבי עותקים שעדיין קיימים במקומות האלה.
+מה נשאר אחרי המחיקה: רישומי הזמנות ותשלומים ללא כל קישור אליכם; סימון החלום החינמי ללא פרטים אישיים; רישום ניהולי פנימי, רק אם העוסקת העניקה לחשבון שימוש בלתי מוגבל (הוא שומר כתובת אימייל ומזהה חשבון); מסמכי מס ורישומי הנהלת חשבונות לתקופה הנדרשת בדין; עותקים בגיבויים מוצפנים (ראו "כמה זמן אנחנו שומרים מידע"); יומני שרתים עד שהם פוקעים; ומה שהספקים שלנו שומרים לפי המדיניות שלהם (למשל רישומי בקשות אצל OpenAI, עד 30 ימים). איננו מתארים מחיקה כסופית לגבי עותקים שעדיין קיימים במקומות האלה.
 
 ### הזכויות שלכם
 
@@ -258,7 +258,7 @@ To turn what you share into a reconstructed dream, an image, a reflection and a 
 - OpenAI — AI processing, United States (see "AI processing").
 - Backblaze B2 — encrypted backup copies, in the EU. GitHub (United States) runs the automation that creates the backups; the data is encrypted before it is stored.
 - Make (automation) and Grow (payment provider) — only at purchase, see "Payments and tax documents". Morning — tax invoices, Israel.
-- Google — sign-in, if you choose it, and fonts (see "Cookies and local storage").
+- Google — sign-in, if you choose it.
 
 So your information is transferred and processed outside Israel, including in the United States. Where the law requires your consent for this, you give it by using DARE after reading this notice. Each provider handles the information under its own terms and privacy policy and its own data-protection commitments, which we do not control.
 
@@ -276,12 +276,12 @@ The link between the payment record and your account is removed if you delete th
 
 - One technical cookie, dare_trial: set by our server for a visitor who has not created an account yet; it contains a random signed identifier (no personal details), lasts up to one year, and is used only to apply the one free dream and to limit recordings per browser. It cannot be read by scripts on the page.
 - Browser storage (local storage): your chosen interface language, accessibility settings, which screen you were on, dreams you saved before an account existed (they stay on your device and are not uploaded automatically), and the sign-in session that Supabase keeps so you stay signed in.
-- We do not use advertising or analytics cookies or trackers, and we do not sell browsing data. For now your browser also loads the site fonts from Google Fonts, so Google receives your IP address and browser details when the page opens.
+- We do not use advertising or analytics cookies or trackers, and we do not sell browsing data. The site fonts are served from this site itself; no request goes to Google for them.
 
 ### How long we keep information
 
 - Saved dreams, their images and reflections: for as long as your account exists, unless you delete them first. There is no automatic deletion while the account is active.
-- Pattern reflections (the reflections drawn from several dreams): until you delete the account. They are not removed when a single dream is deleted.
+- Pattern reflections (the reflections drawn from several dreams): deleted together with any dream they were drawn from, and in any case when you delete the account.
 - Temporary analysis result: when a dream is sent for analysis we keep the result temporarily, up to about two hours, only for technical recovery, retrying a request and preventing double charging. It is cleared automatically (a database job runs every 10 minutes) and it is not part of your archive unless you saved the dream.
 - Voice recordings: not stored by us.
 - Credits: until you use them or delete the account. Credits do not expire.
@@ -292,13 +292,13 @@ The link between the payment record and your account is removed if you delete th
 
 ### Deleting a dream
 
-Deleting a dream from the archive removes the saved dream and its image from our live systems. A copy may remain in the backups (see "How long we keep information"). Pattern reflections drawn from several dreams are not removed automatically when one dream is deleted; they are removed when you delete the account, or earlier if you ask us.
+Deleting a dream from the archive removes the saved dream, its image and the pattern reflections drawn from it from our live systems. Reflections drawn only from other dreams are not affected. A copy may remain in the backups (see "How long we keep information").
 
 ### Deleting your account
 
 In Settings choose "Delete account" and type the confirmation word. We delete, in this order: your saved dreams, reflections and patterns, analysis attempts and credit balance from the database; your images from storage; and, last, the sign-in account itself. If a step fails we tell you the deletion was not completed, and you can try again. The deletion cannot be undone, and we cannot restore a deleted account.
 
-What remains after the deletion: order and payment records without any link to you; the free-dream marker without personal details; tax documents and bookkeeping records for the period required by law; copies in encrypted backups (see "How long we keep information"); server logs until they expire; and whatever our providers keep under their own policies (for example OpenAI request records, up to 30 days). We do not describe a deletion as final for copies that still exist in those places.
+What remains after the deletion: order and payment records without any link to you; the free-dream marker without personal details; an internal administrative record, only if the operator granted your account unlimited use (it keeps the email address and account id); tax documents and bookkeeping records for the period required by law; copies in encrypted backups (see "How long we keep information"); server logs until they expire; and whatever our providers keep under their own policies (for example OpenAI request records, up to 30 days). We do not describe a deletion as final for copies that still exist in those places.
 
 ### Your rights
 
