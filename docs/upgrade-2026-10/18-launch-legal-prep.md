@@ -102,3 +102,12 @@
 - `index.html` ועמודי ה־FAQ טוענים את `/fonts/fonts.css`. הוסרו כל הקישורים ל־Google. ה־CSP מורשה עכשיו רק `'self'`. `GOOGLE_FONTS_SELF_HOSTED = true`.
 - אומת על build אמיתי המוגש עם כותרות Vercel המדויקות: הגופנים נטענים מ־`/fonts`, אין בקשה אל Google, ואין שגיאות CSP בקונסול.
 - נשאר: תבנית אימייל האימות מכילה קישור Google Fonts משלה (בצד הדוא"ל של המקבל, לא האתר). אפשר להסיר אותו בהדבקה הבאה, ואז גופן ה־Heebo בדוא"ל יפול לגיבוי.
+
+## 11. המיגרציה הוחלה ב־Supabase Production (19.10.2026)
+
+- **מה הוחל:** בדיוק הקובץ `supabase/migrations/20261018_pattern_reflections_follow_dream_deletion.sql` מקומיט `33d5ad2` (גיבוב SHA-256 זהה בין אובייקט ה־git לקובץ בעץ העבודה, ללא שינויים בעץ). נרשם בהיסטוריה כ־`20261019084100 pattern_reflections_follow_dream_deletion`. אף מיגרציה אחרת לא הוחלה.
+- **לפני:** DB גובה ב־19.10 (backup.yml ו־storage-backup.yml הצליחו; ארכיון WAL בלי כשלונות, האחרון חמש דקות קודם). תוכנית חזרה: `supabase/rollbacks/20261018_pattern_reflections_follow_dream_deletion_rollback.sql` (מסיר טריגר ופונקציה, לא מוחק נתונים).
+- **אחרי:** הטריגר `dreams_delete_pattern_reflections` מותקן ופעיל על `public.dreams` (AFTER DELETE, FOR EACH ROW); הפונקציה SECURITY DEFINER עם `search_path=public`, EXECUTE רק ל־`service_role` (anon, authenticated ו־public: לא). מספר הפונקציות עלה מ־33 ל־34.
+- **נתונים שנשמרו (לפני ואחרי זהים):** ספירת שורות בכל 13 הטבלאות, וגיבוב של dreams (29), pattern_reflections (7), כל מדיניות ה־RLS ב־public ו־storage, כל ההרשאות על הטבלאות, וכל הפונקציות הקיימות (הרשאות ו־security definer).
+- **בדיקה מבודדת בייצור:** בלוק `DO` שתמיד נכשל בסופו (ולכן שום דבר לא נשמר): שני משתמשי בדיקה סינתטיים, 5 חלומות ו־5 הרהורים. מחיקת חלום אחד הסירה בדיוק את שלושת ההרהורים שכללו אותו, השאירה את ההרהור של חלומות אחרים של אותו משתמש, ואת ההרהור של משתמש אחר (גם כשכלל את אותו מזהה). שום חלום אמיתי לא הושפע (29 לפני ואחרי, 7 הרהורים לפני ואחרי). לא נשארו משתמשי בדיקה.
+- **Advisors:** ללא שינוי (אותם 11 אזהרות INFO ו"הגנה על סיסמאות שדלפו כבויה").

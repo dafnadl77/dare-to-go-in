@@ -4,7 +4,7 @@
 -- A fresh Supabase project gives anon/authenticated broad default rights on new objects. Our payment, credit and admin functions rely on being callable by
 -- service_role ONLY. Run this right after the restore, before the site is pointed at the restored project.
 --
--- It reproduces the production state read on 2026-10-17: 33 functions in `public` executable only by service_role; every table in `public` has RLS on;
+-- It reproduces the production state (read 2026-10-17, updated 2026-10-19): 34 functions in `public` executable only by service_role (33 until the 2026-10-19 trigger function was added); every table in `public` has RLS on;
 -- `dreams` is open to `authenticated` (own rows, by policy); `pattern_reflections` to `anon` + `authenticated` (own rows, by policy); everything else is service_role only.
 
 -- 1. functions: service_role only
