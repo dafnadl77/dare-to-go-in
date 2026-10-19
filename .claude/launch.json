@@ -7,6 +7,24 @@
       "runtimeArgs": ["run", "dev"],
       "port": 5173,
       "autoPort": true
+    },
+    {
+      "name": "dare-model-bridge",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/devEnv.mjs", "bridge"],
+      "port": 8787
+    },
+    {
+      "name": "dare-real-ui",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/devEnv.mjs", "ui"],
+      "port": 5391
+    },
+    {
+      "name": "dare-demo-ui",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/devEnv.mjs", "demo"],
+      "port": 5392
     }
   ]
 }

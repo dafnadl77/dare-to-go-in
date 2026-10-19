@@ -17,6 +17,7 @@ import {
   buildDreamReflectionSystemPrompt,
   DREAM_REFLECTION_JSON_SCHEMA,
   finalizeReflectionExtras,
+  reflectionLengthNote,
   validateDreamReflectionResult,
   type DreamReflectionResult,
 } from '../src/hero/dreamReflectionSchema.ts';
@@ -184,7 +185,9 @@ test('the reflection prompt asks for readings and the existential angle only und
   assert.match(p, /Most dreams are "partial" or "none"/);
   assert.match(p, /No named philosophers or doctrines used as an authority/);
   assert.match(p, /no claim about the dreamer's life, beliefs or circumstances/);
-  assert.match(p, /LENGTH follows the DEPTH line in the input and is never padded/);
+  assert.match(p, /LENGTH\. The five main lines are shown one after another on a single screen/);
+  assert.match(p, /observation at most 28 words/);
+  assert.match(p, /possibleThread at most 38 words/);
   assert.match(p, /never invent personal circumstances/);
   assert.match(p, /Do not retell the dream and do not repeat the dreamer's association/);
   assert.match(p, /never repeat or rephrase either question the input says was already asked/);
@@ -348,4 +351,12 @@ test('regression: the internal existential verdict (Latin letters) is never mist
   const hebrew = reflection({ observation: 'עמדת בתחנה ריקה.', personalAssociation: 'אמרת שזה מזכיר המתנה.', possibleThread: 'ייתכן שיש כאן ציפייה.', continuityQuestion: 'מה מחכה לך עכשיו?', existentialFit: 'clear', existentialLens: { basis: 'תחנה ריקה', text: 'אפשר לשאול מה עושים בזמן ההמתנה.' } });
   assert.ok(!proseOf(hebrew).some((t) => /[a-z]/i.test(t)), 'no Latin letters in the prose that is checked');
   assert.equal(findScriptIntrusion(proseOf(hebrew), 'he', 'עמדתי בתחנה', { strictLatin: true }), null);
+});
+
+test('main lines that are far too long for the one-screen layout ask for a fresh response (nothing is cut), ordinary lengths do not', () => {
+  const words = (n: number) => Array.from({ length: n }, (_, i) => `מילה${i}`).join(' ');
+  assert.equal(reflectionLengthNote(reflection({ observation: words(28), possibleThread: words(38), continuityQuestion: words(22) })), null);
+  assert.equal(reflectionLengthNote(reflection({ observation: words(40), possibleThread: words(55) })), null, 'a little over is tolerated');
+  assert.match(reflectionLengthNote(reflection({ possibleThread: words(70) })) ?? '', /too long for the screen/);
+  assert.match(reflectionLengthNote(reflection({ summary: words(40) })) ?? '', /too long for the screen/);
 });

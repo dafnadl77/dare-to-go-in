@@ -10,6 +10,7 @@ import {
   type DreamReflectionResult,
   feelingsTextLooksDiagnostic,
   diagnosticWordingNote,
+  reflectionLengthNote,
   finalizeReflectionExtras,
 } from '../../src/hero/dreamReflectionSchema.js';
 import { computeDreamDepth, type DreamDepth } from '../../src/hero/dreamDepth.js';
@@ -22,8 +23,7 @@ import { resolveCallerIdentity, type RequestHeaders, type CallerIdentity } from 
 import { reserveReflectionAttempt, refundReflectionAttempt, getTrialAttemptState, completeTrialAttempt } from '../dreamAttempts.js';
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 import { getSupabaseUserScopedClient } from '../supabaseUserScopedClient.js';
-
-const DEFAULT_MODEL = 'gpt-4o-mini';
+import { logModelUsed, resolveStageModel } from '../stageModel.js';
 
 function extractBearerToken(authorizationHeader: string): string | null {
   const match = /^Bearer\s+(.+)$/i.exec(authorizationHeader.trim());
@@ -118,7 +118,7 @@ export interface GenerateReflectionParams {
   /** Everything the dreamer themselves wrote — quoting it in another script is legitimate, so it is the context the language-integrity check excuses. */
   dreamerText: string;
   /** Reports the token usage of every model call (the quality-test script measures cost with it). */
-  onUsage?: (usage: { input: number; output: number }) => void;
+  onUsage?: (usage: { input: number; output: number; model: string }) => void;
 }
 
 /** The model call plus every regeneration check, with no request handling around it. The route and scripts/aiJourneyEval.ts both use exactly this. */
@@ -126,9 +126,10 @@ export function generateDreamReflection(client: OpenAI, p: GenerateReflectionPar
   const instructions = buildDreamReflectionSystemPrompt(p.language, p.addressPreference);
   return runWithLanguageIntegrity(
     async (retryNote) => {
+      // OPENAI_REFLECTION_MODEL is optional; unset, this uses the shared OPENAI_MODEL exactly as before. No other model is ever tried.
+      const requestedModel = resolveStageModel('OPENAI_REFLECTION_MODEL');
       const response = await client.responses.create({
-        // OPENAI_REFLECTION_MODEL is optional; unset, this uses the shared OPENAI_MODEL exactly as before.
-        model: process.env.OPENAI_REFLECTION_MODEL || process.env.OPENAI_MODEL || DEFAULT_MODEL,
+        model: requestedModel,
         store: false,
         instructions: instructions + retryNote,
         input: p.input,
@@ -141,7 +142,8 @@ export function generateDreamReflection(client: OpenAI, p: GenerateReflectionPar
           },
         },
       });
-      if (response.usage) p.onUsage?.({ input: response.usage.input_tokens, output: response.usage.output_tokens });
+      logModelUsed('dream-reflection', requestedModel, response.model);
+      if (response.usage) p.onUsage?.({ input: response.usage.input_tokens, output: response.usage.output_tokens, model: response.model });
       try {
         return validateDreamReflectionResult(JSON.parse(response.output_text));
       } catch {
@@ -160,7 +162,8 @@ export function generateDreamReflection(client: OpenAI, p: GenerateReflectionPar
       extraCheck: (result) =>
         findAddressViolation(proseOf(result), p.language, p.addressPreference) ??
         findHebrewSlashForm(proseOf(result), p.language) ??
-        diagnosticWordingNote(result),
+        diagnosticWordingNote(result) ??
+        reflectionLengthNote(result),
     },
   );
 }

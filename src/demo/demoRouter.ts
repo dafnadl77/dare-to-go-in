@@ -202,13 +202,14 @@ const DEMO_TAG = { he: 'דוגמת הדגמה', en: 'demo example' } as const;
  * their association, the feelings they picked). Everything else is plainly pre-written placeholder text, tagged as such, and the
  * grounding line under the reflection says so too. In the real product the model writes all of this from the dream; here it never runs.
  */
-export function demoReflection(he: boolean, input: { sourceText?: unknown; selectedElement?: unknown; emotions?: unknown; reflectionResponse?: unknown }): Json {
+export function demoReflection(he: boolean, input: { sourceText?: unknown; selectedElement?: unknown; emotions?: unknown; reflectionResponse?: unknown; linkResponse?: unknown }): Json {
   const emotions = normalizeEmotions(input.emotions);
   const named = emotions.length ? joinNames(emotionNamesForModel(emotions, he ? 'he' : 'en'), he) : '';
   const text = typeof input.sourceText === 'string' ? input.sourceText.trim() : '';
   const moment = typeof input.selectedElement === 'string' ? input.selectedElement.trim() : '';
   const written = typeof input.reflectionResponse === 'string' ? input.reflectionResponse.trim() : '';
   const tag = he ? DEMO_TAG.he : DEMO_TAG.en;
+  const linked = typeof input.linkResponse === 'string' ? input.linkResponse.trim() : '';
   return {
     observation: he ? `בחלום שתיארת: “${excerptOf(text, 220)}”${stop(text)}` : `In the dream you described: “${excerptOf(text, 220)}”${stop(text)}`,
     personalAssociation: written
@@ -229,6 +230,20 @@ export function demoReflection(he: boolean, input: { sourceText?: unknown; selec
       ? `(${tag}) כאן תופיע שאלה להתבוננות שנכתבת מתוך החלום שלך. בהדגמה זו שאלה מוכנה מראש.`
       : `(${tag}) Here a question to sit with, written from your dream, would appear. In the demo it is a pre-written question.`,
     lenses: { cognitive: null, jungian: null, psychodynamic: null },
+    // Pre-written placeholders in the same shape as the real ones, so the demo shows where the other readings and the existential angle appear.
+    // Only the quoted words are the visitor's own.
+    alternativeReadings: [
+      {
+        basis: moment || excerptOf(text, 40),
+        reading: he
+          ? `(${tag}) כאן תופיע קריאה חלופית, שנשענת על פרט אחר בחלום ממה שנשען עליו החוט האפשרי. בהדגמה זה טקסט מוכן מראש.${linked ? ` ציטוט מתשובתך לשאלה הנוספת: “${linked}”.` : ''}`
+          : `(${tag}) Here an alternative reading would appear, resting on a different detail of the dream than the possible thread. In the demo it is pre-written text.${linked ? ` A quote from your answer to the other question: “${linked}”.` : ''}`,
+      },
+    ],
+    existentialLens: {
+      basis: moment || excerptOf(text, 40),
+      text: he ? `(${tag}) כאן תופיע זווית קיומית, רק כשהנושא מרכזי בחלום. בהדגמה זה טקסט מוכן מראש.` : `(${tag}) Here an existential angle would appear, only when the theme is central to the dream. In the demo it is pre-written text.`,
+    },
     confidenceNotes: [],
     groundingStatement: he
       ? 'נתוני הדגמה: ההרהור כתוב מראש ואינו מבוסס על החלום שהקלדת. רק הציטוטים הם שלך. זו השתקפות, לא אבחנה.'
@@ -426,6 +441,16 @@ export function createDemoRouter(deps: DemoRouterDeps) {
       lastMarkedImage = marked;
       return jsonResponse({ imageDataUrl: marked });
     }
+    if (path === '/api/dream-element-labels' && body.mode === 'questions') {
+      // Questions written for the dream: in the demo they are pre-written placeholders around the visitor's own phrases, tagged as such.
+      await delay(300);
+      const tag = he ? DEMO_TAG.he : DEMO_TAG.en;
+      const moments = Array.isArray(body.elements) ? body.elements.map((e) => String(e)) : [];
+      return jsonResponse({
+        associationQuestions: moments.map((m) => (he ? `(${tag}) כאן תופיע שאלה שנכתבת לחלום שלך על: ${m}?` : `(${tag}) Here a question written for your dream about: ${m}?`)),
+        linkQuestions: moments.map((m, i) => (i % 2 === 0 ? (he ? `(${tag}) כאן תופיע שאלת קישור על: ${m}?` : `(${tag}) Here a link question about: ${m}?`) : '')),
+      });
+    }
     if (path === '/api/dream-element-labels') {
       // The moments are the visitor's own phrases: the labels are those same words, unchanged.
       const elements = Array.isArray(body.elements) ? body.elements.map((e) => String(e)) : [];
@@ -435,7 +460,7 @@ export function createDemoRouter(deps: DemoRouterDeps) {
       await delay(800);
       const analysisBody = body.dreamAnalysis && typeof body.dreamAnalysis === 'object' ? (body.dreamAnalysis as Json) : {};
       return jsonResponse(
-        demoReflection(he, { sourceText: analysisBody.sourceText, selectedElement: body.selectedElement, emotions: body.emotions, reflectionResponse: body.reflectionResponse }),
+        demoReflection(he, { sourceText: analysisBody.sourceText, selectedElement: body.selectedElement, emotions: body.emotions, reflectionResponse: body.reflectionResponse, linkResponse: body.linkResponse }),
       );
     }
     if (path === '/api/dream-transcription') {

@@ -253,6 +253,9 @@ export default function DreamReflection({
     onSubmitLink(text);
   };
 
+  // The optional second question is laid out exactly like the association question (same position and sizes), so the arrival block takes that step's styling.
+  const arrivalStyleStep = step === 'link' ? 'reflecting' : step;
+
   const activeLenses = reflectionResult
     ? (Object.entries(reflectionResult.lenses) as [keyof typeof LENS_LABEL_KEYS, string | null][]).filter(([, text]) => !!text)
     : [];
@@ -264,7 +267,7 @@ export default function DreamReflection({
   return (
     <div className="dream-reflection" data-step={step} data-flow={step === 'reflection' && flowLayout ? 'true' : undefined} style={{ '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties}>
       {ARRIVAL_STEPS.has(step) && (
-        <div className="dream-arrival" data-step={step}>
+      <div className="dream-arrival" data-step={arrivalStyleStep}>
           <div className="da-content">
             {(step === 'prompt' || step === 'choices' || step === 'selected') && (
               <>

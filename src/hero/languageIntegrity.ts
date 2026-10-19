@@ -176,16 +176,32 @@ export function findScriptIntrusion(
  * "אתה ציינת"). The check is deliberately narrow: only that unambiguous pronoun, outside quotation marks. (The feminine pronoun is spelled like
  * the object marker "את", so it cannot be checked by spelling.) Reports only; the caller regenerates with the returned note and never edits text.
  */
-const MASCULINE_YOU = /(?<![\u0590-\u05FF])אתה(?![\u0590-\u05FF])/;
+// "אתה" alone or with a prefix attached ("שאתה", "כשאתה", "ואתה", "לאתה" is not a word, so only the real prefixes ש ו כ ל ב מ ה).
+const MASCULINE_YOU = /(?<![\u0590-\u05FF])[ושכלבמה]{0,2}אתה(?![\u0590-\u05FF])/;
+
+/**
+ * The feminine pronoun is spelled like the object marker "את", so it cannot be found by spelling alone. A deliberately cautious heuristic: "את"
+ * (with an optional prefix ש/ו/כ) directly followed by a word that is clearly a feminine second-person verb, either a present-tense participle
+ * of the usual shape (מזהה, מרגישה, מתקרבת, מבחינה...) or one of the most common verbs (פוגשת, חווה, רואה, ציינת...), and not followed by a definite noun
+ * (an object marker takes a noun: "את דלת המטבח"). Used only to catch a feminine form for a dreamer who never said she is a woman ('neutral'
+ * address); it asks for a fresh response and never edits text. It misses some forms by design rather than risk rejecting good Hebrew.
+ */
+const FEMININE_YOU_VERB = new RegExp(
+  '(?<![\u0590-\u05FF])[ושכ]?את\\s+(?:מ[\u05D0-\u05EA]{2,}[תה]|פוגשת|חווה|רואה|יודעת|חשה|זוכרת|שומעת|עומדת|הולכת|מחפשת|נמצאת|בוחרת|כותבת|אומרת|חושבת|רוצה|צריכה|יכולה|אוהבת|מסוגלת|ממשיכה|מרגישה|מבינה|מנסה|ציינת|הרגשת|בחרת|אמרת|תיארת|כתבת)(?![\u0590-\u05FF])(?!\\s+ה)',
+);
 
 export function findAddressViolation(texts: readonly string[], language: AppLanguage | null, preference: AddressPreference): string | null {
   if (language !== 'he' || preference === 'masculine') return null;
   for (const text of texts) {
     const unquoted = text.replace(QUOTED_SPAN, ' ');
-    if (!MASCULINE_YOU.test(unquoted)) continue;
-    return preference === 'feminine'
-      ? '\n\nCORRECTION: your previous attempt addressed the dreamer with the masculine pronoun "אתה", but this dreamer asked to be addressed in FEMININE Hebrew. Regenerate the entire response from scratch with feminine forms only, never a masculine singular form.'
-      : '\n\nCORRECTION: your previous attempt addressed the dreamer with the masculine pronoun "אתה", but this dreamer\'s grammatical gender is unknown. Regenerate the entire response from scratch. Address the dreamer in the singular in a gender-neutral way (the past tense of the second person such as "בחרת לציין", "לך", "שלך", infinitives and impersonal wording), never "אתה" or any masculine singular form.';
+    if (MASCULINE_YOU.test(unquoted)) {
+      return preference === 'feminine'
+        ? '\n\nCORRECTION: your previous attempt addressed the dreamer with the masculine pronoun "אתה", but this dreamer asked to be addressed in FEMININE Hebrew. Regenerate the entire response from scratch with feminine forms only, never a masculine singular form.'
+        : '\n\nCORRECTION: your previous attempt addressed the dreamer with the masculine pronoun "אתה", but this dreamer\'s grammatical gender is unknown. Regenerate the entire response from scratch. Address the dreamer in the singular in a gender-neutral way (the past tense of the second person such as "בחרת לציין", "לך", "שלך", infinitives and impersonal wording), never "אתה" or any masculine singular form.';
+    }
+    if (preference === 'neutral' && FEMININE_YOU_VERB.test(unquoted)) {
+      return '\n\nCORRECTION: your previous attempt addressed the dreamer with a feminine form ("את" + a feminine verb, such as "את מזהה" or "את פוגשת"), but this dreamer\'s grammatical gender is unknown. Regenerate the entire response from scratch and use only wording that reads the same for everyone: the past tense of the second person ("בחרת", "הרגשת"), "לך", "שלך", infinitives and impersonal wording ("כשחושבים על...", "מה עולה..."), never "אתה" or "את" with a gendered verb.';
+    }
   }
   return null;
 }

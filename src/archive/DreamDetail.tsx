@@ -37,7 +37,7 @@ interface DreamDetailProps {
     only `display` is, which is either the original (already English), the
     resolved translation, or a plain loading/error placeholder — so raw
     Hebrew never reaches an English page, even for a moment. */
-type FieldKey = 'dream' | 'stoodOut' | 'association' | 'title' | 'thread' | 'question' | 'feelings' | 'summary';
+type FieldKey = 'dream' | 'stoodOut' | 'association' | 'title' | 'thread' | 'question' | 'feelings' | 'summary' | 'linkQuestion' | 'linkAnswer' | 'reading0' | 'reading1' | 'existential';
 
 type TranslationState = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -97,6 +97,11 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
   const feelingsRaw = reflection?.emotionReflection && reflection.emotionReflection.trim() ? reflection.emotionReflection : null;
   const summaryRaw = reflection?.summary && reflection.summary.trim() ? reflection.summary : null;
   const namedFeelings = normalizeEmotions(savedDream?.emotions);
+  // The optional second question and its answer (only when the dreamer answered it), the other readings and the existential angle (only newer dreams have them).
+  const linkQuestionRaw = savedDream?.linkQuestion && savedDream.linkResponse ? savedDream.linkQuestion : null;
+  const linkAnswerRaw = savedDream?.linkQuestion && savedDream.linkResponse ? savedDream.linkResponse : null;
+  const readingsRaw = (reflection?.alternativeReadings ?? []).map((r) => r.reading).filter((r) => r.trim()).slice(0, 2);
+  const existentialRaw = reflection?.existentialLens?.text && reflection.existentialLens.text.trim() ? reflection.existentialLens.text : null;
 
   const [translationState, setTranslationState] = useState<TranslationState>('idle');
   const [translated, setTranslated] = useState<Partial<Record<FieldKey, string>>>({});
@@ -112,6 +117,7 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
     if (language === 'en') {
       if (sourceTextRaw && containsHebrew(sourceTextRaw)) items.push({ key: 'dream', text: sourceTextRaw });
       if (associationRaw && containsHebrew(associationRaw)) items.push({ key: 'association', text: associationRaw });
+      if (linkAnswerRaw && containsHebrew(linkAnswerRaw)) items.push({ key: 'linkAnswer', text: linkAnswerRaw });
     }
     // AI-generated/derived fields (title, "what stood out" label, direction to
     // explore, question to keep) follow the active UI language in either
@@ -126,6 +132,11 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
     if (questionRaw && needsTranslation(questionRaw, language)) items.push({ key: 'question', text: questionRaw });
     if (feelingsRaw && needsTranslation(feelingsRaw, language)) items.push({ key: 'feelings', text: feelingsRaw });
     if (summaryRaw && needsTranslation(summaryRaw, language)) items.push({ key: 'summary', text: summaryRaw });
+    if (linkQuestionRaw && needsTranslation(linkQuestionRaw, language)) items.push({ key: 'linkQuestion', text: linkQuestionRaw });
+    readingsRaw.forEach((reading, i) => {
+      if (needsTranslation(reading, language)) items.push({ key: i === 0 ? 'reading0' : 'reading1', text: reading });
+    });
+    if (existentialRaw && needsTranslation(existentialRaw, language)) items.push({ key: 'existential', text: existentialRaw });
     if (items.length === 0) return;
 
     let cancelled = false;
@@ -211,6 +222,10 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
   const questionText = questionRaw ? resolveAi('question', questionRaw) : null;
   const feelingsText = feelingsRaw ? resolveAi('feelings', feelingsRaw) : null;
   const summaryText = summaryRaw ? resolveAi('summary', summaryRaw) : null;
+  const linkQuestionText = linkQuestionRaw ? resolveAi('linkQuestion', linkQuestionRaw) : null;
+  const linkAnswerText = linkAnswerRaw ? resolve('linkAnswer', linkAnswerRaw) : null;
+  const readingTexts = readingsRaw.map((reading, i) => resolveAi(i === 0 ? 'reading0' : 'reading1', reading));
+  const existentialText = existentialRaw ? resolveAi('existential', existentialRaw) : null;
   // Same cache as the archive list, so the two always show the same title.
   const displayTitle = needsTranslation(ownTitle, language) ? (getCachedTitle(ownTitle, language) ?? currentLanguageTitle) : ownTitle;
 
@@ -294,6 +309,16 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
                 )}
               </section>
 
+              {linkQuestionRaw && linkAnswerRaw && (
+                <section className="dd-block">
+                  <p className="dd-eyebrow">
+                    <EditorialTitle text={t('dreamDetail.theOtherQuestion')} />
+                  </p>
+                  {linkQuestionText ? <p className="dd-body dd-body--question">{linkQuestionText}</p> : <p className="dd-body dd-body--loading">{t('dreamDetail.translating')}</p>}
+                  {linkAnswerText ? <p className="dd-body">{linkAnswerText}</p> : <p className="dd-body dd-body--loading">{t('dreamDetail.translating')}</p>}
+                </section>
+              )}
+
               {(namedFeelings.length > 0 || feelingsRaw) && (
                 <section className="dd-block">
                   <p className="dd-eyebrow">
@@ -321,6 +346,33 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
                   <p className="dd-body dd-body--loading">{t('dreamDetail.translating')}</p>
                 )}
               </section>
+
+              {(readingsRaw.length > 0 || existentialRaw) && (
+                <section className="dd-block">
+                  <p className="dd-eyebrow">
+                    <EditorialTitle text={t('dreamDetail.otherPerspectives')} />
+                  </p>
+                  {readingsRaw.map((_reading, i) =>
+                    readingTexts[i] ? (
+                      <p className="dd-body" key={`reading-${i}`}>
+                        {readingTexts[i]}
+                      </p>
+                    ) : (
+                      <p className="dd-body dd-body--loading" key={`reading-${i}`}>
+                        {t('dreamDetail.translating')}
+                      </p>
+                    ),
+                  )}
+                  {existentialRaw &&
+                    (existentialText ? (
+                      <p className="dd-body">
+                        <span className="dd-eyebrow">{t('dreamDetail.existentialAngle')}</span> {existentialText}
+                      </p>
+                    ) : (
+                      <p className="dd-body dd-body--loading">{t('dreamDetail.translating')}</p>
+                    ))}
+                </section>
+              )}
 
               <section className="dd-block">
                 <p className="dd-eyebrow">

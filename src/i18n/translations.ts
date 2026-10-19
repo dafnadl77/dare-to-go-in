@@ -317,6 +317,11 @@ export interface Translations {
     yourFeelings: string;
     inShort: string;
     yourAssociation: string;
+    /** The optional second question the dreamer chose to answer, and its answer. */
+    theOtherQuestion: string;
+    /** Other plausible readings and the optional existential angle. */
+    otherPerspectives: string;
+    existentialAngle: string;
     aPossibleThread: string;
     aQuestionWorthSittingWith: string;
     translating: string;
@@ -848,6 +853,9 @@ export const en: Translations = {
     yourFeelings: 'The Feelings You Named',
     inShort: 'In Short',
     yourAssociation: 'Your Association',
+    theOtherQuestion: 'The Other Question',
+    otherPerspectives: 'Other Perspectives',
+    existentialAngle: 'An existential angle',
     aPossibleThread: 'A Possible Thread',
     aQuestionWorthSittingWith: 'A Question Worth Sitting With',
     translating: 'Translating…',
@@ -1409,6 +1417,9 @@ export const he: Translations = {
     yourFeelings: 'התחושות שבחרתם',
     inShort: 'בקצרה',
     yourAssociation: 'האסוציאציה שלך',
+    theOtherQuestion: 'השאלה הנוספת',
+    otherPerspectives: 'זוויות נוספות',
+    existentialAngle: 'זווית קיומית',
     aPossibleThread: 'כיוון שכדאי לחקור',
     aQuestionWorthSittingWith: 'שאלה להתבוננות פנימה',
     translating: 'מתרגם…',

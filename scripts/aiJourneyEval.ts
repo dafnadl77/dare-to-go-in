@@ -62,8 +62,8 @@ const DREAMS: SyntheticDream[] = [
 ];
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const usageLog: { stage: string; input: number; output: number }[] = [];
-const track = (stage: string) => (u: { input: number; output: number }) => usageLog.push({ stage, ...u });
+const usageLog: { stage: string; input: number; output: number; model?: string }[] = [];
+const track = (stage: string) => (u: { input: number; output: number; model?: string }) => usageLog.push({ stage, ...u });
 
 async function timed<T>(fn: () => Promise<T>): Promise<{ value: T; ms: number }> {
   const t0 = Date.now();
@@ -216,6 +216,7 @@ async function main() {
       const rawAfter = afterRun.value.status === 'ok' ? afterRun.value.value : null;
       const after = rawAfter ? finalizeDeliveredReflection(rawAfter, { emotions: d.emotions, language: d.language, depth, dreamerText, summary: analysis.summary }) : null;
 
+      const modelsOf = (stage: string) => [...new Set(usageLog.slice(sharedUsageStart).filter((u) => u.stage === stage && u.model).map((u) => u.model as string))];
       const sumUsage = (stage: string) => usageLog.slice(sharedUsageStart).filter((u) => u.stage === stage).reduce((a, u) => ({ input: a.input + u.input, output: a.output + u.output }), { input: 0, output: 0 });
       const textsOf = (r: typeof after) => (r ? [r.observation, r.personalAssociation, r.possibleThread, r.continuityQuestion, r.emotionReflection ?? '', r.summary ?? '', ...(r.alternativeReadings ?? []).flatMap((x) => [x.reading]), r.existentialLens?.text ?? '', ...Object.values(r.lenses).map((x) => x ?? '')] : []);
       const sources = [d.text, element, ans2, linkAns];
@@ -233,6 +234,8 @@ async function main() {
           questionsOutcome,
           questionsMs,
           questionsUsage: sumUsage('questions'),
+          questionsModels: modelsOf('questions'),
+          reflectionModels: modelsOf('reflection-after'),
           associationQuestion: assocQ2,
           associationWasFixedFallback: assocQ2 === assocQ1,
           linkQuestion: linkQ,

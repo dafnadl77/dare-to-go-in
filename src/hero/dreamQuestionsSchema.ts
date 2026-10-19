@@ -97,6 +97,7 @@ Rules for every question:
 - ONE question, one sentence, at most ${MAX_QUESTION_WORDS} words, ending with a question mark.
 - Use the dream's own words for the things you name. Never invent a person, place, object, event, feeling or circumstance, and never assume anything about the dreamer's life, past or relationships.
 - Never presuppose a feeling or an answer ("why were you afraid...", "what does your fear tell you..."). Never explain or interpret the dream, never say what anything means, no dream-dictionary meanings, no diagnosis, no advice, no therapy language.
+- Plain, simple grammar, preferably 12 to 18 words: no stacked subordinate clauses ("without her who ..."), no awkward or coined verb forms. If a detail is hard to phrase as a clause, name it as a noun phrase and ask about that ("the closed door", "mother in the kitchen").
 - Do not turn a detail of the dream into an intention, plan or motive that the dream does not state (never "what you were about to take", "what you wanted to do"): repeat what the dream says, and no more.
 - Do not conjugate the dreamer's actions in the first person or second person; refer to them as things ("the waiting", "the locked door", "the key being too small") or impersonally.
 - In a linkQuestion BOTH things are named inside the question, in the dream's own words ("Is there any link between X and Y?"). A vague "between these things" is not acceptable; if you cannot name two concrete things from the dream, return an empty string.

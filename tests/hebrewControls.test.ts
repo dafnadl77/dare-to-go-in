@@ -99,6 +99,7 @@ test('the route wires the strict checks into its one generation and drops texts 
   // the internal existential verdict ("clear") is never checked as Hebrew prose
   assert.match(route, /collectStrings\(\{ \.\.\.result, groundingStatement: '', existentialFit: undefined \}\)/);
   assert.match(route, /diagnosticWordingNote\(result\)/);
+  assert.match(route, /reflectionLengthNote\(result\)/);
   assert.match(route, /mentionsUnlistedFeeling\(validated\.emotionReflection, p\.emotions, p\.language\)\) validated\.emotionReflection = null/);
   assert.match(route, /mentionsUnlistedFeeling\(validated\.summary, p\.emotions, p\.language\)\) validated\.summary = null/);
   assert.equal((route.match(/responses\.create\(/g) ?? []).length, 1, 'still exactly one model call per attempt site');

@@ -18,10 +18,10 @@ import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js
 import { reserveLabelsAttempt, refundLabelsAttempt, getTrialAttemptState } from '../dreamAttempts.js';
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 import { resolveAddressPreference } from './dreamReflection.js';
+import { logModelUsed, resolveStageModel } from '../stageModel.js';
 import type { AddressPreference } from '../../src/hero/addressPreference.js';
 import type { DreamQuestionFacts } from '../../src/hero/dreamQuestionsSchema.js';
 
-const DEFAULT_MODEL = 'gpt-4o-mini';
 /** The most moments a dream offers (see deriveDreamElements). */
 const MAX_MOMENTS = 6;
 
@@ -32,7 +32,7 @@ export interface GenerateQuestionsParams {
   language: AppLanguage;
   addressPreference: AddressPreference;
   /** Reports the token usage of every model call (the quality-test script measures cost with it). */
-  onUsage?: (usage: { input: number; output: number }) => void;
+  onUsage?: (usage: { input: number; output: number; model: string }) => void;
 }
 
 /** The model call plus every check, with no request handling around it. The route and scripts/aiJourneyEval.ts both use exactly this. */
@@ -43,9 +43,10 @@ export function generateDreamQuestions(client: OpenAI, p: GenerateQuestionsParam
   const context = [p.sourceText, ...p.moments].join('\n');
   return runWithLanguageIntegrity<{ raw: DreamQuestions; kept: DreamQuestions }>(
     async (retryNote) => {
+      // OPENAI_QUESTIONS_MODEL is optional; unset, this uses the shared OPENAI_MODEL exactly like every other route. No other model is ever tried.
+      const requestedModel = resolveStageModel('OPENAI_QUESTIONS_MODEL');
       const response = await client.responses.create({
-        // OPENAI_QUESTIONS_MODEL is optional; unset, this uses the shared OPENAI_MODEL exactly like every other route.
-        model: process.env.OPENAI_QUESTIONS_MODEL || process.env.OPENAI_MODEL || DEFAULT_MODEL,
+        model: requestedModel,
         store: false,
         instructions: instructions + retryNote,
         input,
@@ -53,7 +54,8 @@ export function generateDreamQuestions(client: OpenAI, p: GenerateQuestionsParam
           format: { type: 'json_schema', name: 'dream_questions', schema: DREAM_QUESTIONS_JSON_SCHEMA, strict: true },
         },
       });
-      if (response.usage) p.onUsage?.({ input: response.usage.input_tokens, output: response.usage.output_tokens });
+      logModelUsed('dream-questions', requestedModel, response.model);
+      if (response.usage) p.onUsage?.({ input: response.usage.input_tokens, output: response.usage.output_tokens, model: response.model });
       try {
         const raw = validateRawDreamQuestions(JSON.parse(response.output_text), p.moments.length);
         return raw ? { raw, kept: sanitizeDreamQuestions(raw, p.moments, p.sourceText) } : null;
