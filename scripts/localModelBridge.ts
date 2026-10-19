@@ -175,6 +175,7 @@ app.post('/api/dream-reflection', async (req, res) => {
     language,
     addressPreference: address,
     dreamerText,
+    emotions,
     onUsage: (u) => {
       usedModel = u.model;
       inTok += u.input;

@@ -1,0 +1,1486 @@
+{
+  "model": "gpt-4o-mini",
+  "reflectionModelAfter": "gpt-4.1",
+  "questionsModelAfter": "gpt-4.1",
+  "pricing": {
+    "inputUsdPerMillion": 0.15,
+    "outputUsdPerMillion": 0.6,
+    "note": "assumed list prices, verify"
+  },
+  "results": [
+    {
+      "id": 1,
+      "kind": "קצר",
+      "language": "he",
+      "text": "עמדתי בתחנת רכבת ריקה וחיכיתי. הרכבת לא הגיעה.",
+      "depth": "brief",
+      "moments": [
+        "תחנת רכבת",
+        "חיכיתי לרכבת"
+      ],
+      "chosen": "חיכיתי לרכבת",
+      "emotions": [],
+      "before": {
+        "question": "כשחושבים על חיכיתי לרכבת עכשיו — מה עולה?",
+        "answer": "אני מרגיש שההמתנה יכולה לשקף הרבה דברים בחיים. לפעמים הזמן פשוט לא נוזל כמו שציפיתי.",
+        "reflection": {
+          "observation": "עמדת בתחנת רכבת ריקה וחיכית לרכבת שלא הגיעה.",
+          "personalAssociation": "אמרת שההמתנה יכולה לשקף הרבה דברים בחיים. לפעמים הזמן פשוט לא נוזל כמו שציפית.",
+          "possibleThread": "ייתכן שהתחושה של המתנה בתחנה הריקה משקפת את תחושת חוסר הסבלנות שלך בזמן הנוכחי.",
+          "continuityQuestion": "איך התחושה של המתנה בתחנה הריקה מתקשרת לרגשות שלך בחיים היום?",
+          "lenses": {
+            "cognitive": null,
+            "jungian": null,
+            "psychodynamic": null
+          },
+          "confidenceNotes": [],
+          "emotionReflection": null,
+          "summary": "החיכוי לרכבת בתחנה הריקה משקף את התחושות על זמן וחיים.",
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "ms": 2244,
+        "usage": {
+          "input": 3185,
+          "output": 189
+        },
+        "usd": 0.00059115
+      },
+      "after": {
+        "questionsOutcome": "ok",
+        "rawAssociationForChosen": "אילו מחשבות עולות כשחושבים על ההמתנה לרכבת שפשוט לא הגיעה, שם בתחנה?",
+        "rawLinkForChosen": "יש איזו זיקה בין ההמתנה הארוכה לרכבת לבין זה שהתחנה ריקה מאנשים?",
+        "questionsMs": 1487,
+        "questionsUsage": {
+          "input": 1802,
+          "output": 129
+        },
+        "questionsModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "reflectionModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "associationQuestion": "אילו מחשבות עולות כשחושבים על ההמתנה לרכבת שפשוט לא הגיעה, שם בתחנה?",
+        "associationWasFixedFallback": false,
+        "linkQuestion": "",
+        "linkAnswer": "",
+        "answer": "אני מרגיש תחושת דיכאון ועצב, כמו משהו שחסר. זה מזכיר לי פעמים רבות שהייתי לבד בחיים.",
+        "reflection": {
+          "observation": "הרכבת לא הגיעה, למרות שחיכית לה בתחנת רכבת ריקה.",
+          "personalAssociation": "אמרת שזה מזכיר לך פעמים רבות של בדידות, עם תחושת דיכאון ועצב ומשהו שחסר.",
+          "possibleThread": "אפשר לראות כאן מקום של המתנה שלא נענית, ואולי תחושה שמשהו שרצית או קיווית לו לא הגיע עדיין.",
+          "continuityQuestion": "איפה בחיים שלך היום עולה תחושת המתנה למשהו שטרם בא?",
+          "lenses": {
+            "cognitive": "ייתכן שדפוס של המתנה לחיבור או מענה חוזר גם בחלום.",
+            "jungian": "אפשר לראות בתחנת הרכבת מקום של מעבר, והשהות בה בלי תנועה כתקיעות משותפת לתקופות חיים.",
+            "psychodynamic": "אולי הבדידות מול חוסר המענה קשורה למצבים בין-אישיים מהעבר."
+          },
+          "confidenceNotes": [
+            "הניתוח מתבסס רק על מה שסיפרת ועל המילים שלך לגבי התחושות."
+          ],
+          "emotionReflection": null,
+          "summary": "המתנה לרכבת שלא מגיעה, עם תחושת בדידות וחסר שחזרת עליהן.",
+          "alternativeReadings": [
+            {
+              "basis": "עמדת בתחנה ריקה",
+              "reading": "אולי החלום חוזר לחוויה של אי-שייכות או תחושת ריחוק ממקום או מאנשים, ולא רק מהמתנה."
+            }
+          ],
+          "existentialLens": {
+            "basis": "חיכית לרכבת שלא הגיעה בתחנה ריקה",
+            "text": "החלום מעלה את השאלה מה קורה לנו כשמשהו שמצפים לו בחיים לא מגיע, ומה עושים ברגע ההמתנה עצמו."
+          },
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "readingsBeforeFinalize": 1,
+        "readingsAfterFinalize": 1,
+        "existentialBeforeFinalize": true,
+        "existentialAfterFinalize": true,
+        "ms": 13492,
+        "usage": {
+          "input": 15100,
+          "output": 1300
+        },
+        "usd": 0.045236
+      },
+      "metrics": {
+        "wordsBefore": 57,
+        "wordsAfter": 128,
+        "noveltyObservationBefore": 0.5,
+        "noveltyObservationAfter": 0.2857142857142857,
+        "noveltyQuestionBefore": 0.9,
+        "noveltyQuestionAfter": 0.7777777777777778,
+        "diagnosticHitsAfter": 1,
+        "diagnosticHitsBefore": 0
+      }
+    },
+    {
+      "id": 2,
+      "kind": "קצר, מלכודת מילון חלומות",
+      "language": "he",
+      "text": "חלמתי שהשיניים שלי נושרות אחת אחת לתוך היד, ואף אחד בחדר לא שם לב.",
+      "depth": "brief",
+      "moments": [],
+      "chosen": "החלום מתאר סיטואציה שבה השיניים של החולם נושרות אחת אחת לתוך היד, כאשר אף אחד בחדר אינו שם לב לכך",
+      "emotions": [],
+      "before": {
+        "question": "כשחושבים על החלום מתאר סיטואציה שבה השיניים של החולם נושרות אחת אחת לתוך היד, כאשר אף אחד בחדר אינו שם לב לכך עכשיו — מה עולה?",
+        "answer": "לא יודעת",
+        "reflection": {
+          "observation": "החלום מתאר סיטואציה שבה השיניים שלך נושרות אחת אחת לתוך היד, כאשר אף אחד בחדר אינו שם לב לכך.",
+          "personalAssociation": "לא יודעת.",
+          "possibleThread": "ייתכן שהתחושה של איבוד משהו יקר ולאור ולא נתפס על ידי אחרים מופיעה כאן.",
+          "continuityQuestion": "מה בחיים שלך כרגע מרגיש כמו משהו שאולי לא שמים עליו לב?",
+          "lenses": {
+            "cognitive": null,
+            "jungian": null,
+            "psychodynamic": null
+          },
+          "confidenceNotes": [],
+          "emotionReflection": null,
+          "summary": "החלום מתאר איבוד שיניים, ולאור ולא שמים לב לכך.",
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "ms": 2050,
+        "usage": {
+          "input": 3191,
+          "output": 168
+        },
+        "usd": 0.0005794499999999999
+      },
+      "after": {
+        "questionsOutcome": "skipped",
+        "rawAssociationForChosen": null,
+        "rawLinkForChosen": null,
+        "questionsMs": 0,
+        "questionsUsage": {
+          "input": 0,
+          "output": 0
+        },
+        "questionsModels": [],
+        "reflectionModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "associationQuestion": "כשחושבים על החלום מתאר סיטואציה שבה השיניים של החולם נושרות אחת אחת לתוך היד, כאשר אף אחד בחדר אינו שם לב לכך עכשיו — מה עולה?",
+        "associationWasFixedFallback": true,
+        "linkQuestion": "",
+        "linkAnswer": "",
+        "answer": "לא יודעת",
+        "reflection": {
+          "observation": "רואים בחלום שהשיניים נושרות אחת אחת והן נוחתות ישר אל תוך היד שלך, וכל מי שנמצא בחדר לא שם לב למה שקורה.",
+          "personalAssociation": "אמרת ש'לא יודעת' מה זה מעורר בך, אז לא נוסיף משמעות קבועה ונסתכל על התפקיד של הרגע.",
+          "possibleThread": "אפשר לראות בכך רגע שבו משהו קורה לך מול אחרים, אך אף אחד סביבך לא שם לב, ויש תחושה של בידול או פרטיות בחוויה.",
+          "continuityQuestion": "איפה פוגשים אצלך עכשיו רגעים שבהם משהו אישי מאוד עובר עליך והמבט של אחרים לא פוגש את זה?",
+          "lenses": {
+            "cognitive": "ייתכן שזה נוגע בתחושות של להיות במרכז שינוי או אובדן, אך לא לקבל הכרה מהסביבה.",
+            "jungian": "במבט יונגיאני, נשירת שיניים עשויה להדגיש מעבר או תנודת זהות, במיוחד כשהאחרים נשארים אדישים.",
+            "psychodynamic": null
+          },
+          "confidenceNotes": [
+            "יש כאן הסתמכות על סדר העניינים והריחוק של הדמויות בחדר, ולא על תחושה שהוזכרה במפורש."
+          ],
+          "emotionReflection": null,
+          "summary": "שיניים נושרות ליד, אף אחד לא שם לב, ואמרת ש'לא יודעת' מה זה עורר אצלך.",
+          "alternativeReadings": [],
+          "existentialLens": null,
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "readingsBeforeFinalize": 1,
+        "readingsAfterFinalize": 0,
+        "existentialBeforeFinalize": false,
+        "existentialAfterFinalize": false,
+        "ms": 7912,
+        "usage": {
+          "input": 9941,
+          "output": 785
+        },
+        "usd": 0.026162
+      },
+      "metrics": {
+        "wordsBefore": 56,
+        "wordsAfter": 125,
+        "noveltyObservationBefore": 0.5625,
+        "noveltyObservationAfter": 0.6470588235294118,
+        "noveltyQuestionBefore": 1,
+        "noveltyQuestionAfter": 1,
+        "diagnosticHitsAfter": 0,
+        "diagnosticHitsBefore": 0
+      }
+    },
+    {
+      "id": 3,
+      "kind": "מפורט",
+      "language": "he",
+      "text": "הייתי בבית ילדותי, אבל החדרים היו גדולים יותר. אמא שלי עמדה במטבח ובישלה, ולא הסתכלה עליי. עליתי למעלה וגיליתי חדר שלא הכרתי, ובו מים עד הקרסוליים ומנורה דולקת. מישהו קרא לי בשמי מלמטה, אבל לא ידעתי אם לרדת. בסוף הלכתי עם כוס מים ביד, והמים נשפכו.",
+      "depth": "rich",
+      "moments": [
+        "המטבח של אמא",
+        "אמא",
+        "כוס מים",
+        "מים",
+        "מנורה",
+        "בית ילדותי"
+      ],
+      "chosen": "מים",
+      "emotions": [
+        "helplessness",
+        "longing"
+      ],
+      "before": {
+        "question": "כשחושבים על מים עכשיו — מה עולה?",
+        "answer": "אני חושב על תחושת חופש, אבל גם על אי ודאות, כמו שראיתי בחלום. זה היה מוזר.",
+        "reflection": {
+          "observation": "בחלום היית בבית ילדותך, גילית חדר חדש עם מים עד הקרסוליים ומנורה דולקת, ואמא שלך בישלה במטבח מבלי להסתכל עלייך.",
+          "personalAssociation": "אמרת שאת חושבת על תחושת חופש, אבל גם על אי ודאות, כמו שראית בחלום.",
+          "possibleThread": "ייתכן שהמים והתחושות שהזכרת קשורים בין חופש לחוסר ודאות, כאילו ההרגשה מתערבבת יחד.",
+          "continuityQuestion": "איך התחושות שהמים מייצגים יכולות לשקף משהו בחיים שלך עכשיו?",
+          "lenses": {
+            "cognitive": null,
+            "jungian": null,
+            "psychodynamic": null
+          },
+          "confidenceNotes": [],
+          "emotionReflection": "בחרת לציין חוסר אונים וגעגוע. אולי הם מייצגים את הכנסות למקומות מוכרים שבהם יש גם נתק.",
+          "summary": "המים, תחושת חופש וחוסר אונים שבחרת לציין, מופיעים כאן במעגל של געגוע.",
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "ms": 2843,
+        "usage": {
+          "input": 3180,
+          "output": 256
+        },
+        "usd": 0.0006306
+      },
+      "after": {
+        "questionsOutcome": "ok",
+        "rawAssociationForChosen": "איזה דימוי עולה כשאת חושבת על המים עד הקרסוליים, דווקא בחדר החדש שמצאת?",
+        "rawLinkForChosen": "האם את מוצאת חיבור בין המים בחדר והמנורה שנדלקה שם?",
+        "questionsMs": 3793,
+        "questionsUsage": {
+          "input": 1603,
+          "output": 374
+        },
+        "questionsModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "reflectionModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "associationQuestion": "איזה דימוי עולה כשאת חושבת על המים עד הקרסוליים, דווקא בחדר החדש שמצאת?",
+        "associationWasFixedFallback": false,
+        "linkQuestion": "",
+        "linkAnswer": "",
+        "answer": "זה מרגיש כמו משהו לא מוכר, לא נעים. אולי זה מסמל פחד ממה שלא צפוי.",
+        "reflection": {
+          "observation": "בשיא החלום את נושאת כוס מים ביד, והמים נשפכים בדיוק בסיום.",
+          "personalAssociation": "אמרת שהמים בחדר החדש מרגישים לא מוכרים ולא נעימים, ואולי מסמלים פחד ממשהו לא צפוי.",
+          "possibleThread": "אפשר לראות בכוס המים הנשפכת הדהוד לתחושת חוסר השליטה והפחד מהפתעות; רגע בו את פוגשת דבר חדש, והמים—כמו הרגשות—קשה להחזיק בהם.",
+          "continuityQuestion": "איפה בחיים את מרגישה כמו עם הכוס שברגע חשוב המים נשפכים לך מהיד?",
+          "lenses": {
+            "cognitive": "ייתכן שהמעבר בין החדרים, מאמא שעסוקה אל חדר מוצף במים, יושב ליד תחושת שינוי או גדילה וחוסר ידיעה מה יהיה הלאה.",
+            "jungian": "מבעד לעדשה יונגיאנית אפשר לראות במים דימוי למפגש עם הלא מודע וחיים בצילו של משהו ראשוני שלא הכרת.",
+            "psychodynamic": "אולי יש כאן מהלך לא מודע מול דמות האם והעולם הרגשי—המטבח שאמא מבשלת בו, את בחדר מוצף מים, לא מקבלת מבט."
+          },
+          "confidenceNotes": [
+            "שילבתי אפשרויות שונות למים, כי הדגש אצלך היה על חוסר נוחות ולא ודאות."
+          ],
+          "emotionReflection": "בחרת לציין חוסר אונים וגעגוע; אפשר לשאול אם שני אלה פוגשים אחת את השנייה בחדר החדש שמלא במים הזרם.",
+          "summary": "כוס מים נשפכת, מים לא מוכרים, והרגשות של חוסר אונים וגעגוע שבחרת לציין.",
+          "alternativeReadings": [
+            {
+              "basis": "אמא לא הסתכלה עלייך במטבח",
+              "reading": "אולי אפשר לראות בהתעלמות של אמא רגע של רצון לקבל תשומת לב בבית ילדות שלך, דווקא כשהחדרים 'גדלים'."
+            },
+            {
+              "basis": "החדרים גדולים יותר מבעבר",
+              "reading": "ייתכן שהבית שגדל ומתרחב מסמן מרחב פנימי משתנה—משהו ילדותי שעכשיו מתרחב בחייך הבוגרים."
+            }
+          ],
+          "existentialLens": null,
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "readingsBeforeFinalize": 2,
+        "readingsAfterFinalize": 2,
+        "existentialBeforeFinalize": false,
+        "existentialAfterFinalize": false,
+        "ms": 19579,
+        "usage": {
+          "input": 14845,
+          "output": 1783
+        },
+        "usd": 0.050152
+      },
+      "metrics": {
+        "wordsBefore": 85,
+        "wordsAfter": 183,
+        "noveltyObservationBefore": 0.5555555555555556,
+        "noveltyObservationAfter": 0.6,
+        "noveltyQuestionBefore": 1,
+        "noveltyQuestionAfter": 0.9,
+        "diagnosticHitsAfter": 0,
+        "diagnosticHitsBefore": 0
+      }
+    },
+    {
+      "id": 4,
+      "kind": "בינוני, עמימות",
+      "language": "he",
+      "text": "רצתי לתפוס טיסה. התיק נשאר פתוח ודברים נפלו ממנו בדרך. בשער הודיעו שהטיסה היא ליעד אחר מזה שרציתי, ועליתי עליה בכל זאת.",
+      "depth": "standard",
+      "moments": [
+        "תיק",
+        "שער הטיסה",
+        "רץ לתפוס טיסה",
+        "עלה על הטיסה"
+      ],
+      "chosen": "תיק",
+      "emotions": [],
+      "before": {
+        "question": "כשחושבים על תיק עכשיו — מה עולה?",
+        "answer": "עולה לי תחושה של חוסר סדר ובלבול. כאילו יש דברים שאני צריך לשים לב אליהם ופתאום הם נופלים על כל הצדדים.",
+        "reflection": {
+          "observation": "החלום מתאר ריצה כדי לתפוס טיסה, עם תיק שנשאר פתוח ודברים שנפלו ממנו.",
+          "personalAssociation": "אמרת שעולה לך תחושה של חוסר סדר ובלבול.",
+          "possibleThread": "ייתכן שהבלבול והדברים שנפלו מהתיק משקפים תחושות של חוסר שליטה או חיפושים בחיים.",
+          "continuityQuestion": "אילו דברים נופלים על כל הצדדים בחיים שלך עכשיו?",
+          "lenses": {
+            "cognitive": null,
+            "jungian": null,
+            "psychodynamic": null
+          },
+          "confidenceNotes": [],
+          "emotionReflection": null,
+          "summary": "תיק פתוח, בלבול וחוסר סדר שבחרת לציין.",
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "ms": 2614,
+        "usage": {
+          "input": 3248,
+          "output": 184
+        },
+        "usd": 0.0005976
+      },
+      "after": {
+        "questionsOutcome": "ok",
+        "rawAssociationForChosen": "מה עולה כשחושבים על התיק שנשאר פתוח ואיבד דברים בדרך לטיסה?",
+        "rawLinkForChosen": "יש קשר בין התיק שנשאר פתוח לבין השער שבו הודיעו על יעד אחר?",
+        "questionsMs": 2133,
+        "questionsUsage": {
+          "input": 1884,
+          "output": 245
+        },
+        "questionsModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "reflectionModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "associationQuestion": "מה עולה כשחושבים על התיק שנשאר פתוח ואיבד דברים בדרך לטיסה?",
+        "associationWasFixedFallback": false,
+        "linkQuestion": "יש קשר בין התיק שנשאר פתוח לבין השער שבו הודיעו על יעד אחר?",
+        "linkAnswer": "כן, זה מרגיש כמו חוסר שליטה במצב. התיק הגעתי עם הכל, אבל היעד לא היה מה שרציתי.",
+        "answer": "יש תחושה של חוסר שליטה, כאילו דברי החיים שלי מתפזרים. זה מזכיר לי את הפעמים שבו רדפתי אחרי דברים ולא תמיד הצלחתי לשמור עליהם.",
+        "reflection": {
+          "observation": "התיק נשאר פתוח ודברים נפלו ממנו בדרך, ועם זאת המשכת לעלות על הטיסה גם כשהיעד השתנה.",
+          "personalAssociation": "כתבת שבפתיחת התיק הרגשת חוסר שליטה, כאילו החיים מתפזרים, וזה הזכיר ריצה אחר דברים שלא תמיד נשמרים.",
+          "possibleThread": "ייתכן שהחיבור בין התיק המתפזר לטיסה ליעד מפתיע נוגע לשאלה מה עושים כששליטה מתערערת, ועדיין נדרשים להמשיך הלאה.",
+          "continuityQuestion": "איפה בחיים לאחרונה פגשת מצב שבו הרגשת שדברים 'נופלים מהתיק' ועדיין המשכת במסלול?",
+          "lenses": {
+            "cognitive": "אפשר לראות כאן המשכיות בין תחושת חוסר שליטה ביומיום לבין האופן שהופיע בחלום בריצה אחרי הטיסה.",
+            "jungian": "בסמלים יונגיאניים, התיק יכול לגלם צדדים אישיים וחלקים 'שנושאים' איתנו, והטיסה שינוי או מסע שיהיה בו אבדן או הפתעה.",
+            "psychodynamic": null
+          },
+          "confidenceNotes": [
+            "כל פרט כאן נשען על תיאורי החלום והאסוציאציות שלך, בלי לקחת משמעויות קבועות מראש."
+          ],
+          "emotionReflection": null,
+          "summary": "התיק שנשאר פתוח ותחושת חוסר השליטה שפגשו יעד שהשתנה, כפי שכתבת וקישרת לריצה אחרי דברים.",
+          "alternativeReadings": [
+            {
+              "basis": "עליתי על הטיסה בכל זאת",
+              "reading": "אפשר לשאול האם עצם הבחירה להמשיך ולעלות על הטיסה מסמנת מוכנות לקבל אי-ודאות או שינוי כיוון."
+            }
+          ],
+          "existentialLens": null,
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "readingsBeforeFinalize": 1,
+        "readingsAfterFinalize": 1,
+        "existentialBeforeFinalize": false,
+        "existentialAfterFinalize": false,
+        "ms": 3623,
+        "usage": {
+          "input": 5162,
+          "output": 447
+        },
+        "usd": 0.019628
+      },
+      "metrics": {
+        "wordsBefore": 50,
+        "wordsAfter": 130,
+        "noveltyObservationBefore": 0.5833333333333334,
+        "noveltyObservationAfter": 0.42857142857142855,
+        "noveltyQuestionBefore": 0.5714285714285714,
+        "noveltyQuestionAfter": 0.9230769230769231,
+        "diagnosticHitsAfter": 0,
+        "diagnosticHitsBefore": 0
+      }
+    },
+    {
+      "id": 5,
+      "kind": "detailed",
+      "language": "en",
+      "text": "I was swimming in a dark lake at night while my old teacher watched from a rowing boat. The water was warm, then suddenly freezing. She handed me a lantern but it had no flame. I woke up as I tried to say her name.",
+      "depth": "standard",
+      "moments": [
+        "OLD TEACHER",
+        "LANTERN",
+        "DARK LAKE",
+        "ROWING BOAT",
+        "SWIMMING IN DARK LAKE",
+        "SHE HANDED LANTERN"
+      ],
+      "chosen": "SHE HANDED LANTERN",
+      "emotions": [],
+      "before": {
+        "question": "WHEN YOU THINK ABOUT SHE HANDED LANTERN NOW — WHAT COMES UP?",
+        "answer": "It feels like a moment of hope, but also emptiness. Like I wanted guidance but didn’t quite get it.",
+        "reflection": {
+          "observation": "In the dream, you were swimming in a dark lake at night while your old teacher observed from a rowing boat. She handed you a lantern, but it had no flame, and you woke up trying to say her name.",
+          "personalAssociation": "You described the lantern as a moment of hope but also emptiness, with a feeling of wanting guidance that didn't quite materialize.",
+          "possibleThread": "One possible thread could be the contrast between seeking hope and feeling a lack of guidance in a dark or uncertain situation.",
+          "continuityQuestion": "Does this reflect any recent challenges or feelings of uncertainty in your waking life?",
+          "lenses": {
+            "cognitive": null,
+            "jungian": null,
+            "psychodynamic": null
+          },
+          "confidenceNotes": [],
+          "emotionReflection": null,
+          "summary": "The moment with the lantern reflects your desire for guidance and hope, yet also a sense of emptiness in that experience.",
+          "groundingStatement": "This is a reflection, not a diagnosis or a definitive interpretation."
+        },
+        "ms": 1867,
+        "usage": {
+          "input": 1937,
+          "output": 195
+        },
+        "usd": 0.00040755
+      },
+      "after": {
+        "questionsOutcome": "ok",
+        "rawAssociationForChosen": "What do you recall about the way she handed you the lantern from the boat, especially at that moment?",
+        "rawLinkForChosen": "Is there any link between her handing you the lantern and the appearance of the lantern having no flame?",
+        "questionsMs": 2231,
+        "questionsUsage": {
+          "input": 1253,
+          "output": 312
+        },
+        "questionsModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "reflectionModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "associationQuestion": "What do you recall about the way she handed you the lantern from the boat, especially at that moment?",
+        "associationWasFixedFallback": false,
+        "linkQuestion": "Is there any link between her handing you the lantern and the appearance of the lantern having no flame?",
+        "linkAnswer": "Yeah, it felt like I was searching for guidance or clarity, but there was none. It was kind of unsettling.",
+        "answer": "It felt really urgent, like she wanted me to have it but was distant. I reached for it but it felt heavy and empty.",
+        "reflection": {
+          "observation": "The lantern was given after the water turned freezing, and it had no flame when received.",
+          "personalAssociation": "You said the gesture felt urgent yet distant, and the lantern felt heavy and empty, connecting this to a search for guidance or clarity that was missing.",
+          "possibleThread": "One possible thread is the dream setting up an expectation of receiving help during a moment of discomfort, but what arrives feels incomplete or unsatisfying.",
+          "continuityQuestion": "When has support or advice in your life felt both important and somehow unavailable or lacking substance?",
+          "lenses": {
+            "cognitive": "Viewed cognitively, the shift from warmth to cold followed by the unlit lantern may mirror recent changes in how approachable or helpful you find someone’s guidance.",
+            "jungian": "A Jungian lens might see the teacher offering an unlit lantern as a symbol of a mentor figure who inspires searching, but leaves the actual illumination up to you.",
+            "psychodynamic": null
+          },
+          "confidenceNotes": [
+            "The reflection relies solely on the sequence of events, your words about urgency and emptiness, and the absence of a flame."
+          ],
+          "emotionReflection": null,
+          "summary": "The gesture of the teacher giving you a heavy, empty lantern might echo times when what you needed felt just out of reach or incomplete.",
+          "alternativeReadings": [],
+          "existentialLens": null,
+          "groundingStatement": "This is a reflection, not a diagnosis or a definitive interpretation."
+        },
+        "readingsBeforeFinalize": 1,
+        "readingsAfterFinalize": 0,
+        "existentialBeforeFinalize": false,
+        "existentialAfterFinalize": false,
+        "ms": 2996,
+        "usage": {
+          "input": 3566,
+          "output": 393
+        },
+        "usd": 0.015278
+      },
+      "metrics": {
+        "wordsBefore": 119,
+        "wordsAfter": 165,
+        "noveltyObservationBefore": 0.3,
+        "noveltyObservationAfter": 0.35714285714285715,
+        "noveltyQuestionBefore": 1,
+        "noveltyQuestionAfter": 0.8571428571428571,
+        "diagnosticHitsAfter": 0,
+        "diagnosticHitsBefore": 0
+      }
+    },
+    {
+      "id": 6,
+      "kind": "short",
+      "language": "en",
+      "text": "I was late for an exam in a school I had never seen. The door was locked.",
+      "depth": "brief",
+      "moments": [
+        "DOOR",
+        "SCHOOL",
+        "LATE FOR EXAM",
+        "DOOR LOCKED"
+      ],
+      "chosen": "LATE FOR EXAM",
+      "emotions": [],
+      "before": {
+        "question": "WHEN YOU THINK ABOUT LATE FOR EXAM NOW — WHAT COMES UP?",
+        "answer": "I guess it just makes me feel anxious, like I'm not prepared or missing out. It's a bit familiar, I have felt that stress before.",
+        "reflection": {
+          "observation": "The dreamer was late for an exam in a school they had never seen, and the door was locked.",
+          "personalAssociation": "You said it just makes you feel anxious, like you're not prepared or missing out, and it's a bit familiar because you've felt that stress before.",
+          "possibleThread": "One possible thread is the feeling of anxiety linked to missed opportunities or lack of readiness in unfamiliar situations.",
+          "continuityQuestion": "How does this feeling of anxiety about being unprepared resonate with your current life or responsibilities?",
+          "lenses": {
+            "cognitive": null,
+            "jungian": null,
+            "psychodynamic": null
+          },
+          "confidenceNotes": [],
+          "emotionReflection": null,
+          "summary": "The dream reflects your familiar feelings of anxiety about being unprepared, stemming from the experience of being late for an exam.",
+          "groundingStatement": "This is a reflection, not a diagnosis or a definitive interpretation."
+        },
+        "ms": 2035,
+        "usage": {
+          "input": 1866,
+          "output": 178
+        },
+        "usd": 0.00038669999999999997
+      },
+      "after": {
+        "questionsOutcome": "ok",
+        "rawAssociationForChosen": "What does the feeling of being late for the exam in that unknown school bring up for you?",
+        "rawLinkForChosen": "Is there any link between being late for the exam and finding the door locked?",
+        "questionsMs": 1959,
+        "questionsUsage": {
+          "input": 1116,
+          "output": 181
+        },
+        "questionsModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "reflectionModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "associationQuestion": "What does the feeling of being late for the exam in that unknown school bring up for you?",
+        "associationWasFixedFallback": false,
+        "linkQuestion": "",
+        "linkAnswer": "",
+        "answer": "It makes me feel anxious, like I'm unprepared and missing out on something important, I guess. It’s kind of familiar, though.",
+        "reflection": {
+          "observation": "The exam is happening in a school you do not recognize, and you are unable to enter because the door is locked.",
+          "personalAssociation": "You said being late for the exam brought up anxiety and a feeling of being unprepared and missing something important, and noted this felt familiar.",
+          "possibleThread": "One possible thread is the dream reflecting a sense of facing an unfamiliar challenge where entry or access is blocked, echoing familiar feelings about preparation and significance.",
+          "continuityQuestion": "Where in your current life are you facing situations that feel both unfamiliar and important, with a sense of pressure to be prepared?",
+          "lenses": {
+            "cognitive": "Perhaps the dream links past experiences of pressure with current or anticipated challenges that feel new and uncertain.",
+            "jungian": "From a Jungian lens, the locked door and unknown school could symbolize a threshold or transition that feels inaccessible, connected to growth or identity.",
+            "psychodynamic": null
+          },
+          "confidenceNotes": [
+            "Grounded in the dreamer's reported feelings and the unfamiliar school and locked door.",
+            "No people or clear order of events were specified.",
+            "Avoided symbol dictionary meanings."
+          ],
+          "emotionReflection": null,
+          "summary": "Your dream's unfamiliar school and locked door reflect your association with anxiety and feeling unprepared for important, possibly recurring, challenges.",
+          "alternativeReadings": [
+            {
+              "basis": "the door was locked",
+              "reading": "One other way to read it is as highlighting a current or recurring sense of being closed out from opportunities or milestones that feel significant."
+            }
+          ],
+          "existentialLens": null,
+          "groundingStatement": "This is a reflection, not a diagnosis or a definitive interpretation."
+        },
+        "readingsBeforeFinalize": 1,
+        "readingsAfterFinalize": 1,
+        "existentialBeforeFinalize": false,
+        "existentialAfterFinalize": false,
+        "ms": 5939,
+        "usage": {
+          "input": 6797,
+          "output": 782
+        },
+        "usd": 0.02353
+      },
+      "metrics": {
+        "wordsBefore": 101,
+        "wordsAfter": 184,
+        "noveltyObservationBefore": 0.1875,
+        "noveltyObservationAfter": 0.5625,
+        "noveltyQuestionBefore": 1,
+        "noveltyQuestionAfter": 0.8333333333333334,
+        "diagnosticHitsAfter": 0,
+        "diagnosticHitsBefore": 0
+      }
+    },
+    {
+      "id": 7,
+      "kind": "עשיר, כמה דמויות",
+      "language": "he",
+      "text": "הייתי בחתונה של חברה. כולם לבשו לבן ואני לבשתי שחור. אחי הקטן נתן לי מפתח ואמר שזה למקום שעוד לא הייתי בו. הלכנו לאורך החוף, והים התרחק ולא חזר. מישהו שר שיר שלא הכרתי, אבל ידעתי את כל המילים. כשהגענו לדלת, המפתח היה קטן מדי.",
+      "depth": "rich",
+      "moments": [
+        "הים התרחק",
+        "המפתח היה קטן",
+        "אחי הקטן",
+        "מפתח",
+        "חתונה",
+        "החוף"
+      ],
+      "chosen": "המפתח היה קטן",
+      "emotions": [
+        "wonder",
+        "confusion"
+      ],
+      "before": {
+        "question": "כשחושבים על המפתח היה קטן עכשיו — מה עולה?",
+        "answer": "זה עושה לי לחשוב על הזדמנויות שלא מתממשות, או אולי על התחלות חדשות שהן דווקא בלתי מושגות.",
+        "reflection": {
+          "observation": "בחלום היית בחתונה, כולם לבשו לבן ואת לבשת שחור. אחיך הקטן נתן לך מפתח קטן מדי לדלת.",
+          "personalAssociation": "אמרת שזה עושה לך לחשוב על הזדמנויות שלא מתממשות, או אולי על התחלות חדשות שהן דווקא בלתי מושגות.",
+          "possibleThread": "ייתכן שהמפתח הקטן מדי מייצג את התחושות שלך לגבי הזדמנויות שמרגישות בלתי מושגות.",
+          "continuityQuestion": "איזה מפתח קטן מדי את חווה בחיים שלך עכשיו, שמסמל הזדמנויות או התחלות חדשות?",
+          "lenses": {
+            "cognitive": null,
+            "jungian": null,
+            "psychodynamic": null
+          },
+          "confidenceNotes": [],
+          "emotionReflection": "בחרת לציין פליאה ובלבול. אולי זה קשור למפתח הקטן ולתחושת ההחמצה סביב הזדמנויות.",
+          "summary": "המפתח הקטן והתחושות על הזדמנויות שלא מתממשות שאת בחרת לציין.",
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "ms": 2453,
+        "usage": {
+          "input": 3178,
+          "output": 246
+        },
+        "usd": 0.0006242999999999999
+      },
+      "after": {
+        "questionsOutcome": "ok",
+        "rawAssociationForChosen": "איך זה לחשוב על הדלת שהגעת אליה כשמתברר שהמפתח קטן מדי?",
+        "rawLinkForChosen": "מעניין לבדוק אם את מוצאת קשר בין המפתח שהיה קטן לדברים שלבש שחור בחתונה.",
+        "questionsMs": 2671,
+        "questionsUsage": {
+          "input": 1582,
+          "output": 350
+        },
+        "questionsModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "reflectionModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "associationQuestion": "איך זה לחשוב על הדלת שהגעת אליה כשמתברר שהמפתח קטן מדי?",
+        "associationWasFixedFallback": false,
+        "linkQuestion": "",
+        "linkAnswer": "",
+        "answer": "זה היה מתסכל, כאילו הגעתי למקום שציפיתי לו, אבל חסרה לי הדרך. זה גרם לי להרגיש קצת אבוד.",
+        "reflection": {
+          "observation": "המפתח שקיבלת מהאח הקטן לא התאים לדלת ובסוף המסע לא נפתח מעבר.",
+          "personalAssociation": "אמרת שהמפתח הקטן גרם לך להרגיש אבוד, וציפית להגיע ולא הייתה לך הדרך.",
+          "possibleThread": "ייתכן שהמפתח הקטן והתחושה שחסרה לך הדרך נפגשים כאן ברגע של ציפייה שלא מומשה, ואפשר לראות בזה שאלה על כיוון או שער שחיכית לו.",
+          "continuityQuestion": "איפה בחיים נדמה לך שהגעת לסף של משהו חדש ועדיין חסר לך משהו כדי להיכנס אליו?",
+          "lenses": {
+            "cognitive": "אפשר להביט בזה כתמונה של מסע שמתחיל בציפייה וכלי שנמסר לך אבל לא פותח את הדלת בפועל—אולי כהמשך של תחושות של חיפוש או רצון להתקדם במשהו.",
+            "jungian": "בקריאה יונגיאנית, המפתח מהאח יכול להיתפס כמתנה פנימית שעדיין לא גדלה מספיק כדי לאפשר כניסה למקום הלא נודע, אולי תהליך שטרם הושלם.",
+            "psychodynamic": "במבט פסיכודינמי, אפשר לראות בקבלת המפתח מהאח הצעיר יחסים שלך עם חלקים צעירים או לא בשלים בעצמך, ותחושה שאולי הפתרון שהוצע עדיין מוגבל."
+          },
+          "confidenceNotes": [
+            "הקריאה נשענת על הדימוי של מפתח קטן מדי בסוף תהליך, ועל החיבור שלך לתחושת אובדן הכיוון."
+          ],
+          "emotionReflection": "בחרת לציין פליאה ובלבול. אולי יש כאן שילוב של תחושת פליאה כלפי האפשרות שהדלת פותחת, לצד בלבול בנוגע לדרך שלא התאפשרה.",
+          "summary": "מפתח קטן, דלת שלא נפתחת ותחושת אובדן הדרך, יחד עם פליאה ובלבול שבחרת לציין.",
+          "alternativeReadings": [
+            {
+              "basis": "הים התרחק ולא חזר",
+              "reading": "אפשר לראות בהתרחקות הים רגע שבו משהו מוכר או קבוע בחיים מתרחק ממך, והדרך שנפתחת משתנה או נעלמת."
+            },
+            {
+              "basis": "ידעת את כל מילות השיר שלא הכרת",
+              "reading": "אפשר לקרוא בידיעת המילים לשיר לא ידוע תחושה של ידע פנימי לא מוסבר, או היכרות עם מצבים חדשים בדרך אינטואיטיבית."
+            }
+          ],
+          "existentialLens": null,
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "readingsBeforeFinalize": 2,
+        "readingsAfterFinalize": 2,
+        "existentialBeforeFinalize": false,
+        "existentialAfterFinalize": false,
+        "ms": 16363,
+        "usage": {
+          "input": 14764,
+          "output": 1908
+        },
+        "usd": 0.050755999999999996
+      },
+      "metrics": {
+        "wordsBefore": 85,
+        "wordsAfter": 209,
+        "noveltyObservationBefore": 0.3125,
+        "noveltyObservationAfter": 0.7,
+        "noveltyQuestionBefore": 0.5,
+        "noveltyQuestionAfter": 1,
+        "diagnosticHitsAfter": 0,
+        "diagnosticHitsBefore": 0
+      }
+    },
+    {
+      "id": 8,
+      "kind": "סוריאליסטי",
+      "language": "he",
+      "text": "הייתי בתוך שעון ענק. הגלגלים נעו לאט והזמן נשמע כמו נשימה. ראיתי את עצמי מבחוץ, יושבת ועובדת ליד שולחן, ולא יכולתי לצעוק.",
+      "depth": "brief",
+      "moments": [
+        "שעון ענק",
+        "עבודה ליד שולחן",
+        "ראתה את עצמה",
+        "נשימה"
+      ],
+      "chosen": "שעון ענק",
+      "emotions": [],
+      "before": {
+        "question": "כשחושבים על שעון ענק עכשיו — מה עולה?",
+        "answer": "העוצמה של הזמן, איך הוא עובר לאט לפעמים. זה מרגיש כמו להיות לכוד.",
+        "reflection": null,
+        "ms": 7522,
+        "usage": {
+          "input": 9960,
+          "output": 553
+        },
+        "usd": 0.0018258
+      },
+      "after": {
+        "questionsOutcome": "ok",
+        "rawAssociationForChosen": "מה עולה כשחושבים על ההרגשה של להיות בתוך שעון ענק שבו הגלגלים נעים לאט?",
+        "rawLinkForChosen": "יש קשר בין השעון הענק לבין זה שלא היה אפשר לצעוק בחלום?",
+        "questionsMs": 1984,
+        "questionsUsage": {
+          "input": 1857,
+          "output": 247
+        },
+        "questionsModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "reflectionModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "associationQuestion": "מה עולה כשחושבים על ההרגשה של להיות בתוך שעון ענק שבו הגלגלים נעים לאט?",
+        "associationWasFixedFallback": false,
+        "linkQuestion": "יש קשר בין השעון הענק לבין זה שלא היה אפשר לצעוק בחלום?",
+        "linkAnswer": "אולי הקרבה לזמן והלחץ גרמו לי להרגיש חסרת אונים. זה הרגיש כמו חוסר שליטה.",
+        "answer": "זה מרגיש כמו מחנק, כל העניין היה מתיש. כמו זמן שעובר בלי שאפשר לשנות משהו.",
+        "reflection": {
+          "observation": "ראית את עצמך מבחוץ, עובדת ליד שולחן בתוך שעון ענק שבו הגלגלים נעים לאט.",
+          "personalAssociation": "אמרת שהשעון הענק עורר אצלך תחושת מחנק ותשישות, כאילו הזמן עובר בלי שליטה.",
+          "possibleThread": "ייתכן שיש כאן תחושה שהמציאות ממשיכה בקצב משלה, בלי שניתן להשפיע עליה, ושהימצאות בתוך 'שעון' מכבידה אפילו בלי ניסיון לשנות.",
+          "continuityQuestion": "היכן בחיים שלך יש חוויה דומה של מחנק או חוסר שליטה מול הזמן?",
+          "lenses": {
+            "cognitive": "אפשר לראות חיבור בין חוויות של עומס, עייפות או לחץ ביומיום לתחושת המחנק בחלום.",
+            "jungian": "בהסתכלות יונגיאנית, שהות בתוך שעון ענק עשויה להעלות עיסוק מעמיק בזמן ובמגבלותיו.",
+            "psychodynamic": null
+          },
+          "confidenceNotes": [
+            "השתדלתי לקרוא את תחושת חוסר האונים מתוך הדימוי וההתייחסות שלך.",
+            "התשובה נשענה על תחושות שהגדרת בעצמך."
+          ],
+          "emotionReflection": null,
+          "summary": "שעון ענק, מחנק, ותשישות שבחרת לציין — ואולי גם התבוננות על עצמך בלי אפשרות להשפיע.",
+          "alternativeReadings": [
+            {
+              "basis": "ראית את עצמך מבחוץ עובדת ליד שולחן",
+              "reading": "אולי הרגע שבו צפית בעצמך מחוץ לתמונה מציף שאלה על ריחוק או ביקורת עצמית."
+            }
+          ],
+          "existentialLens": {
+            "basis": "הימצאות בתוך שעון שגלגליו זזים לאט",
+            "text": "החלום מעמיד במרכז את הזמן והיכולת של אדם לשאת את מה שאי אפשר לשנות. אפשר לשאול איפה עוד המפגש הזה קיים אצלך ולמה הוא מביא אותך."
+          },
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "readingsBeforeFinalize": 1,
+        "readingsAfterFinalize": 1,
+        "existentialBeforeFinalize": true,
+        "existentialAfterFinalize": true,
+        "ms": 4021,
+        "usage": {
+          "input": 5122,
+          "output": 479
+        },
+        "usd": 0.019766
+      },
+      "metrics": {
+        "wordsBefore": 0,
+        "wordsAfter": 141,
+        "noveltyObservationBefore": null,
+        "noveltyObservationAfter": 0.38461538461538464,
+        "noveltyQuestionBefore": null,
+        "noveltyQuestionAfter": 0.7,
+        "diagnosticHitsAfter": 0,
+        "diagnosticHitsBefore": 0
+      }
+    },
+    {
+      "id": 9,
+      "kind": "סיוט, נושא רגיש",
+      "language": "he",
+      "text": "רדפו אחריי במסדרון ארוך בבית חולים. הדלתות נסגרו אחת אחרי השנייה. בסוף הגעתי לחדר שבו אבא שלי ישן במיטה, ולא הצלחתי להעיר אותו.",
+      "depth": "standard",
+      "moments": [
+        "אבא",
+        "מסדרון בבית חולים",
+        "רדיפה במסדרון",
+        "הגעתי לחדר",
+        "אבא ישן במיטה",
+        "לא הצליח להעיר את אבא"
+      ],
+      "chosen": "הגעתי לחדר",
+      "emotions": [
+        "fear",
+        "sadness"
+      ],
+      "before": {
+        "question": "כשחושבים על הגעתי לחדר עכשיו — מה עולה?",
+        "answer": "זה היה מוזר ומלחיץ, חשבתי על איך אבא תמיד היה שם בשבילי.",
+        "reflection": {
+          "observation": "בחלום הגעת לחדר שבו אבא שלך ישן במיטה ולא הצלחת להעיר אותו.",
+          "personalAssociation": "אמרת ש''זה היה מוזר ומלחיץ, חשבתי על איך אבא תמיד היה שם בשבילי.''",
+          "possibleThread": "נדמה שהחיבור לחדר ואבא ששוכב בו מבקש לשקף עומק של געגוע ורצון לעזרה.",
+          "continuityQuestion": "איך החוויה של לחפש את אבא ומאחוריך דלתות נסגרות משקפת את מה שקורה בחיים שלך עכשיו?",
+          "lenses": {
+            "cognitive": null,
+            "jungian": null,
+            "psychodynamic": null
+          },
+          "confidenceNotes": [],
+          "emotionReflection": "בחרת לציין פחד ועצב. אולי אפשר לחשוב על איך הם מתערבבים עם תחושת המוזרות והלחץ שחשבת עליו.",
+          "summary": "הגעת לחדר שבו אבא ישן, והמוזרות והלחץ שחשבת עליהם נפגשים עם פחד ועצב שבחרת לציין.",
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "ms": 2977,
+        "usage": {
+          "input": 3100,
+          "output": 247
+        },
+        "usd": 0.0006132
+      },
+      "after": {
+        "questionsOutcome": "ok",
+        "rawAssociationForChosen": "איך זה להיזכר בהגעה לחדר ההוא אחרי שכל הדלתות נסגרו במסדרון?",
+        "rawLinkForChosen": "יש קשר עבורך בין ההגעה לחדר לבין מה שקרה כשלא הצלחת להעיר את אבא?",
+        "questionsMs": 4185,
+        "questionsUsage": {
+          "input": 1511,
+          "output": 355
+        },
+        "questionsModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "reflectionModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "associationQuestion": "איך זה להיזכר בהגעה לחדר ההוא אחרי שכל הדלתות נסגרו במסדרון?",
+        "associationWasFixedFallback": false,
+        "linkQuestion": "יש קשר עבורך בין ההגעה לחדר לבין מה שקרה כשלא הצלחת להעיר את אבא?",
+        "linkAnswer": "כן, אני מרגיש שזה קשור לתחושת חוסר אונים. זה כמו להרגיש שאין לי שליטה על מה שקורה.",
+        "answer": "זה היה ממש מבלבל. כאילו הגעתי למקום שחשבתי שהוא בטוח, אבל לא הצלחתי לשבור את החסימה.",
+        "reflection": {
+          "observation": "הגעת לחדר אחרי שבדרך הדלתות נסגרו אחת אחרי השנייה, ורק אז פגשת את אבא הישן.",
+          "personalAssociation": "כתבת שזה היה מבלבל, כאילו הגעת למקום שאמור להיות בטוח אבל משהו היה חסום. אמרת שיש בזה תחושת חוסר אונים ושליטה אבודה.",
+          "possibleThread": "אפשר לראות כאן רגע של חיפוש ביטחון שמסתיים בתחושה של מחסום וכשל להפעיל השפעה, גם במקום שמוכר או אמור לשמש עוגן.",
+          "continuityQuestion": "מתי את מוצאת את עצמך מנסה להגיע לאזור בטוח, אבל התחושה היא של מחסום או חוסר אונים?",
+          "lenses": {
+            "cognitive": "אפשר לראות חיבור בין פחד מחוסר שליטה לבין רגעי חיפוש עוגן במציאות.",
+            "jungian": "כחדר יכול להתפרש כמקום פנימי של הגנה, והאבא הישן כסמל לדמות מגוננת שלא נגישה כרגע.",
+            "psychodynamic": "אולי יש הדהוד לרגעים בהם את פונה לדמות שעברה שלך (אבא) ולא מרגישה שהיא יכולה לענות או לעזור."
+          },
+          "confidenceNotes": [
+            "הקריאה נשענת על תגובתך שמחברת בין מיקום החדר, האבא ותחושת חוסר האונים, ולא על פירוש סימבולי גנרי."
+          ],
+          "emotionReflection": null,
+          "summary": "הגעת לחדר של אבא, אבל החסימה והפחד והעצב שבחרת לציין נפגשו בנקודה הזו.",
+          "alternativeReadings": [
+            {
+              "basis": "הדלתות שנסגרו אחת אחרי השנייה",
+              "reading": "ייתכן שבעצם סגירת הדלתות יש תחושת התנכרות, התרחקות או אובדן אפשרויות, ולא רק מחסום טכני."
+            }
+          ],
+          "existentialLens": null,
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "readingsBeforeFinalize": 1,
+        "readingsAfterFinalize": 1,
+        "existentialBeforeFinalize": false,
+        "existentialAfterFinalize": false,
+        "ms": 3942,
+        "usage": {
+          "input": 4878,
+          "output": 485
+        },
+        "usd": 0.019498
+      },
+      "metrics": {
+        "wordsBefore": 86,
+        "wordsAfter": 148,
+        "noveltyObservationBefore": 0.3333333333333333,
+        "noveltyObservationAfter": 0.38461538461538464,
+        "noveltyQuestionBefore": 0.8333333333333334,
+        "noveltyQuestionAfter": 0.6923076923076923,
+        "diagnosticHitsAfter": 0,
+        "diagnosticHitsBefore": 0
+      }
+    },
+    {
+      "id": 10,
+      "kind": "fragment",
+      "language": "en",
+      "text": "A white horse in a kitchen.",
+      "depth": "brief",
+      "moments": [
+        "WHITE HORSE",
+        "KITCHEN"
+      ],
+      "chosen": "WHITE HORSE",
+      "emotions": [],
+      "before": {
+        "question": "WHEN YOU THINK ABOUT WHITE HORSE NOW — WHAT COMES UP?",
+        "answer": "I think of freedom and strength. It reminds me of my childhood love for horses and open fields.",
+        "reflection": {
+          "observation": "A white horse is present in a kitchen setting.",
+          "personalAssociation": "You think of freedom and strength, recalling your childhood love for horses and open fields.",
+          "possibleThread": "One possible thread is the juxtaposition of freedom in the context of a kitchen, perhaps suggesting a clash between personal freedom and home boundaries.",
+          "continuityQuestion": "Does this resonate with any feelings or situations in your life where you sense a conflict between freedom and your current environment?",
+          "lenses": {
+            "cognitive": null,
+            "jungian": null,
+            "psychodynamic": null
+          },
+          "confidenceNotes": [],
+          "emotionReflection": null,
+          "summary": "The white horse, which you associate with freedom and strength, appears in the kitchen, possibly indicating a clash between those feelings and your current surroundings.",
+          "groundingStatement": "This is a reflection, not a diagnosis or a definitive interpretation."
+        },
+        "ms": 2219,
+        "usage": {
+          "input": 1824,
+          "output": 170
+        },
+        "usd": 0.00037559999999999997
+      },
+      "after": {
+        "questionsOutcome": "ok",
+        "rawAssociationForChosen": "What comes up for you when you think about the white horse standing in the kitchen?",
+        "rawLinkForChosen": "Do you notice any connection between the white horse and the kitchen setting?",
+        "questionsMs": 1169,
+        "questionsUsage": {
+          "input": 1083,
+          "output": 96
+        },
+        "questionsModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "reflectionModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "associationQuestion": "What comes up for you when you think about the white horse standing in the kitchen?",
+        "associationWasFixedFallback": false,
+        "linkQuestion": "",
+        "linkAnswer": "",
+        "answer": "It feels surreal, like mixing the wild with the mundane. Horses always remind me of freedom and adventure.",
+        "reflection": {
+          "observation": "The white horse appears in a place associated with daily routine and domestic life, without any other people or actions occurring.",
+          "personalAssociation": "You connected the white horse to freedom and adventure and noted the surreal mix of wild and mundane.",
+          "possibleThread": "One possible thread is the meeting of contrasting elements—freedom and routine, the wild and the everyday—perhaps reflecting a tension or interplay between these qualities in waking life.",
+          "continuityQuestion": "Where in your daily life do you sense this blending of adventure with the ordinary?",
+          "lenses": {
+            "cognitive": "This might reflect waking reflections on wanting more spontaneity within routine activities.",
+            "jungian": "Through a Jungian lens, the horse could personify instinctual drive placed within a domestic context.",
+            "psychodynamic": null
+          },
+          "confidenceNotes": [
+            "The dream is very brief and the horse's meaning relies on your personal associations."
+          ],
+          "emotionReflection": null,
+          "summary": "There may be a playful or striking contrast for you between the wild, adventurous horse and the everyday setting of a kitchen.",
+          "alternativeReadings": [],
+          "existentialLens": null,
+          "groundingStatement": "This is a reflection, not a diagnosis or a definitive interpretation."
+        },
+        "readingsBeforeFinalize": 1,
+        "readingsAfterFinalize": 0,
+        "existentialBeforeFinalize": false,
+        "existentialAfterFinalize": false,
+        "ms": 3190,
+        "usage": {
+          "input": 3320,
+          "output": 276
+        },
+        "usd": 0.011782
+      },
+      "metrics": {
+        "wordsBefore": 95,
+        "wordsAfter": 130,
+        "noveltyObservationBefore": 0.4,
+        "noveltyObservationAfter": 0.7222222222222222,
+        "noveltyQuestionBefore": 0.8947368421052632,
+        "noveltyQuestionAfter": 0.75,
+        "diagnosticHitsAfter": 0,
+        "diagnosticHitsBefore": 1
+      }
+    },
+    {
+      "id": 11,
+      "kind": "בינוני, כמה דמויות, דיאלוג",
+      "language": "he",
+      "text": "הייתי במעלית עם המנהל הישן שלי ועם שני ילדים שלא הכרתי. לכפתורים לא היו מספרים. המעלית עלתה ועלתה, והמנהל אמר שצריך לבחור קומה. לחצתי על כפתור ריק והדלת נפתחה על חוף ים.",
+      "depth": "rich",
+      "moments": [
+        "המנהל הישן",
+        "שני ילדים",
+        "כפתורים",
+        "כפתור ריק",
+        "מעלית",
+        "חוף ים"
+      ],
+      "chosen": "חוף ים",
+      "emotions": [],
+      "before": {
+        "question": "כשחושבים על חוף ים עכשיו — מה עולה?",
+        "answer": "זכרונות מחופשות בחורף, רוח רפויה והרגשה של חופש.",
+        "reflection": {
+          "observation": "בחלום היית במעלית עם המנהל הישן שלך ושני ילדים לא מוכרים. המעלית עלתה ועלתה עד שנפתחה על חוף ים.",
+          "personalAssociation": "אמרת שהחוף מזכיר לך זכרונות מחופשות בחורף, רוח רפויה והרגשה של חופש.",
+          "possibleThread": "ייתכן שהמעלית, שלא הובילה לשום מקום ברור, משקפת תמונה של חופש וזכרונות נעימים שלך.",
+          "continuityQuestion": "מה בחוויות עם המנהל הישן שלך מרגיש לך דומה לחוויות על חוף הים?",
+          "lenses": {
+            "cognitive": null,
+            "jungian": null,
+            "psychodynamic": null
+          },
+          "confidenceNotes": [],
+          "emotionReflection": null,
+          "summary": "המעלית הגיעה לחוף ים, עם זכרונות מחופש שהחולם בחר לציין.",
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "ms": 2285,
+        "usage": {
+          "input": 3271,
+          "output": 213
+        },
+        "usd": 0.0006184499999999999
+      },
+      "after": {
+        "questionsOutcome": "ok",
+        "rawAssociationForChosen": "מה מזמין לדמיין את הרגע שבו דלת המעלית נפתחה פתאום על חוף ים, אחרי כל העלייה?",
+        "rawLinkForChosen": "יש מחשבה על קשר בין חוף הים שהתגלה לפתע לבין המנהל הישן שהיה איתך כל הזמן?",
+        "questionsMs": 3046,
+        "questionsUsage": {
+          "input": 1935,
+          "output": 395
+        },
+        "questionsModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "reflectionModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "associationQuestion": "כשחושבים על חוף ים עכשיו — מה עולה?",
+        "associationWasFixedFallback": true,
+        "linkQuestion": "יש מחשבה על קשר בין חוף הים שהתגלה לפתע לבין המנהל הישן שהיה איתך כל הזמן?",
+        "linkAnswer": "לא ממש, אבל הים תמיד מסמל לי חופש ורוגע. זה אולי מה שחיפשתי באותו רגע.",
+        "answer": "זכרונות מחופשות בחורף, רוח רפויה והרגשה של חופש.",
+        "reflection": {
+          "observation": "הכפתורים במעלית לא היו ממוספרים, ורק כשלחצת על כפתור ריק הגיעה הפתיחה של הדלת לחוף ים.",
+          "personalAssociation": "אמרת שחוף הים מזכיר לך חופשות בחורף, רוח והרגשה של חופש, ושעבורך הים מסמל חופש ורוגע.",
+          "possibleThread": "ייתכן שהכפתורים הלא מסומנים והמנהל שמציע לבחור מובילים אל רגע של חופש ורוגע, כמו שהיה בחוויות חופשה מהעבר – מה שלא היה ידוע מראש, רק נתגלה כשבוחרים.",
+          "continuityQuestion": "איפה בחיים הנוכחיים שלך בחירה מתוך חוסר ידיעה מביאה דווקא רגע של הקלה או רוגע?",
+          "lenses": {
+            "cognitive": "אפשר אולי לראות הד לחיפוש אחר הפסקה מהסדר והמסגרת של היומיום, דרך דימוי הים.",
+            "jungian": "מבחינה יונגיאנית, הים יכול להיתפס כמעבר מהמודע לבלתי-מודע, מתוך מצב של אי-ודאות (כפתור ריק) אל מפגש עם משהו רחב ופתוח.",
+            "psychodynamic": "בקשר למנהל הישן, ייתכן שיש כאן היפוך של היררכיה או שליטה – דווקא מתוך מסגרת עם דמות סמכותית נפתח מרחב של חופש עבורך."
+          },
+          "confidenceNotes": [
+            "הספקולציות מבוססות בעיקר על סדר האירועים – מעבר מאי-ודאות ותחושת מסגרת אל פתיחות."
+          ],
+          "emotionReflection": null,
+          "summary": "הים, שעמד אצלך כסמל לחופש ורוגע, הופיע מתוך בחירה לא ברורה במעלית יחד עם המנהל הישן.",
+          "alternativeReadings": [
+            {
+              "basis": "עליתי במעלית עם שני ילדים לא מוכרים",
+              "reading": "אפשר לראות בילדים הלא מוכרים פנים חדשות של עצמך, אולי חלקים שעדיין לא פגשו את תחושת החופש."
+            },
+            {
+              "basis": "המנהל אמר שצריך לבחור קומה",
+              "reading": "אולי יש הדהוד לדמות סמכותית שמפעילה לחץ לבחור גם כשאין כיוונים ברורים, והים הופך למענה הלא צפוי לכך."
+            }
+          ],
+          "existentialLens": null,
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "readingsBeforeFinalize": 2,
+        "readingsAfterFinalize": 2,
+        "existentialBeforeFinalize": false,
+        "existentialAfterFinalize": false,
+        "ms": 14432,
+        "usage": {
+          "input": 15649,
+          "output": 1731
+        },
+        "usd": 0.052176
+      },
+      "metrics": {
+        "wordsBefore": 68,
+        "wordsAfter": 182,
+        "noveltyObservationBefore": 0.42857142857142855,
+        "noveltyObservationAfter": 0.6666666666666666,
+        "noveltyQuestionBefore": 0.6666666666666666,
+        "noveltyQuestionAfter": 0.9230769230769231,
+        "diagnosticHitsAfter": 0,
+        "diagnosticHitsBefore": 0
+      }
+    },
+    {
+      "id": 12,
+      "kind": "medium, ordinary scene",
+      "language": "en",
+      "text": "I was at my kitchen table writing a letter to my sister. The pen kept running out of ink, so I borrowed one from the neighbour, but his pen wrote in a language I could not read.",
+      "depth": "standard",
+      "moments": [
+        "SISTER",
+        "NEIGHBOUR",
+        "PEN",
+        "KITCHEN",
+        "WRITING A LETTER",
+        "PEN RUNNING OUT OF INK"
+      ],
+      "chosen": "SISTER",
+      "emotions": [],
+      "before": {
+        "question": "WHEN YOU THINK ABOUT SISTER NOW — WHAT COMES UP?",
+        "answer": "I’m not sure… maybe just memories of us growing up together, but things feel kind of distant now.",
+        "reflection": {
+          "observation": "The dreamer was at their kitchen table trying to write a letter to their sister. The pen kept running out of ink, prompting them to borrow a pen from a neighbor that wrote in an unreadable language.",
+          "personalAssociation": "You weren't sure what the sister brought up for you — perhaps memories of growing up together, but noted that things feel kind of distant now.",
+          "possibleThread": "One possible thread is that the act of writing suggests a desire to reconnect, while the unreadable pen reflects communication barriers or feelings of distance in your relationship.",
+          "continuityQuestion": "Does this resonate with any current feelings or experiences in your relationship with your sister?",
+          "lenses": {
+            "cognitive": null,
+            "jungian": null,
+            "psychodynamic": null
+          },
+          "confidenceNotes": [],
+          "emotionReflection": null,
+          "summary": "The dream includes your sister, reflecting on distant memories of growing up together and possibly a desire to reconnect.",
+          "groundingStatement": "This is a reflection, not a diagnosis or a definitive interpretation."
+        },
+        "ms": 2798,
+        "usage": {
+          "input": 1933,
+          "output": 203
+        },
+        "usd": 0.00041175
+      },
+      "after": {
+        "questionsOutcome": "ok",
+        "rawAssociationForChosen": "When thinking about your sister while sitting at the kitchen table, what comes up for you about that combination?",
+        "rawLinkForChosen": "Is there any link between your sister and the neighbour in this dream?",
+        "questionsMs": 2256,
+        "questionsUsage": {
+          "input": 1225,
+          "output": 324
+        },
+        "questionsModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "reflectionModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "associationQuestion": "When thinking about your sister while sitting at the kitchen table, what comes up for you about that combination?",
+        "associationWasFixedFallback": false,
+        "linkQuestion": "Is there any link between your sister and the neighbour in this dream?",
+        "linkAnswer": "I’m not sure. I guess they’re both important people in my life, but it feels kind of random.",
+        "answer": "I guess it just makes me think of our childhood and how we used to write letters a lot. It feels kind of nostalgic.",
+        "reflection": {
+          "observation": "After borrowing the neighbor's pen, the writing turned into a language you couldn't read, halting your attempt to write to your sister.",
+          "personalAssociation": "You shared that thinking about your sister at the kitchen table brought up nostalgia and memories of your childhood letter writing.",
+          "possibleThread": "One possible thread is the wish to reconnect with your sister in a familiar, nostalgic way, meeting obstacles when reaching for outside help, which changes the experience in unexpected ways.",
+          "continuityQuestion": "When you think about reconnecting with your sister now, what feels familiar or distant compared to childhood?",
+          "lenses": {
+            "cognitive": "From a cognitive perspective, the dream may reflect a current desire to communicate authentically with your sister and the frustration of not finding the 'right' means.",
+            "jungian": "Through a Jungian lens, the unreadable language might symbolize the challenges of accessing an older, intuitive mode of communication or connection.",
+            "psychodynamic": "Psychodynamically, the shift from a personal tool (your pen) to an external one (the neighbor's) could echo a tension between self-reliance and seeking support."
+          },
+          "confidenceNotes": [
+            "All threads are framed as possibilities, not conclusions, and draw from the dream structure and your association with your sister."
+          ],
+          "emotionReflection": null,
+          "summary": "You remembered nostalgic childhood letter writing with your sister, yet met barriers to clear communication when borrowing outside resources.",
+          "alternativeReadings": [
+            {
+              "basis": "the neighbor's pen wrote in a language you could not read",
+              "reading": "Perhaps turning to others for help with personal matters sometimes complicates or distances the message you most want to share."
+            }
+          ],
+          "existentialLens": null,
+          "groundingStatement": "This is a reflection, not a diagnosis or a definitive interpretation."
+        },
+        "readingsBeforeFinalize": 1,
+        "readingsAfterFinalize": 1,
+        "existentialBeforeFinalize": false,
+        "existentialAfterFinalize": false,
+        "ms": 3011,
+        "usage": {
+          "input": 3548,
+          "output": 364
+        },
+        "usd": 0.01505
+      },
+      "metrics": {
+        "wordsBefore": 125,
+        "wordsAfter": 200,
+        "noveltyObservationBefore": 0.4074074074074074,
+        "noveltyObservationAfter": 0.5789473684210527,
+        "noveltyQuestionBefore": 0.9230769230769231,
+        "noveltyQuestionAfter": 0.7333333333333333,
+        "diagnosticHitsAfter": 0,
+        "diagnosticHitsBefore": 0
+      }
+    },
+    {
+      "id": 13,
+      "kind": "קצר, משפט שנאמר",
+      "language": "he",
+      "text": "אבא שלי עמד בפתח ואמר \"עוד לא\". לא ידעתי למה.",
+      "depth": "brief",
+      "moments": [
+        "אבא",
+        "פתח"
+      ],
+      "chosen": "פתח",
+      "emotions": [],
+      "before": {
+        "question": "כשחושבים על פתח עכשיו — מה עולה?",
+        "answer": "בתודעה שלי עולה הרגשה של חוסר ודאות, כמו דלת שלא נפתחת. זה יכול להיות סימן למשהו שעדיין לא מוכן.",
+        "reflection": {
+          "observation": "אבא שלך עמד בפתח ואמר \"עוד לא\".",
+          "personalAssociation": "אמרת שבפתח עולה לך הרגשה של חוסר ודאות, כמו דלת שלא נפתחת.",
+          "possibleThread": "ייתכן שהפתח וההרגשה של חוסר ודאות קשורים למה שיש עדיין בחיים שלא מוכן להיפתח.",
+          "continuityQuestion": "מה בפתח הזה מדבר על דברים לא פתורים או לא מוכנים בחייך עכשיו?",
+          "lenses": {
+            "cognitive": null,
+            "jungian": null,
+            "psychodynamic": null
+          },
+          "confidenceNotes": [],
+          "emotionReflection": null,
+          "summary": "אבא בפתח ואפשרות לא פתוחה, עם תחושת חוסר ודאות שהבעת.",
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "ms": 2362,
+        "usage": {
+          "input": 3172,
+          "output": 171
+        },
+        "usd": 0.0005784
+      },
+      "after": {
+        "questionsOutcome": "ok",
+        "rawAssociationForChosen": "איך זה לחשוב על הפתח ברגע שאבא עומד שם ואומר \"עוד לא\"?",
+        "rawLinkForChosen": "יש כאן קשר בין הפתח לבין חוסר הידיעה למה נאמר \"עוד לא\"?",
+        "questionsMs": 1338,
+        "questionsUsage": {
+          "input": 1788,
+          "output": 115
+        },
+        "questionsModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "reflectionModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "associationQuestion": "איך זה לחשוב על הפתח ברגע שאבא עומד שם ואומר \"עוד לא\"?",
+        "associationWasFixedFallback": false,
+        "linkQuestion": "",
+        "linkAnswer": "",
+        "answer": "זה מרגיש כמו רגע של חוסר ודאות, כאילו יש משהו שמונע ממני להיכנס או להתקדם.",
+        "reflection": {
+          "observation": "האבא עומד ממש בפתח, ועוצר כל תנועה פנימה באמירה 'עוד לא'.",
+          "personalAssociation": "אמרת שזה מרגיש כמו חוסר ודאות, כאילו משהו עוצר אותך מלהתקדם.",
+          "possibleThread": "אפשר לראות במפגש הזה בפתח רגע שמסמן מעבר שמעוכב, אולי חוויה של ציפייה או המתנה שמשאירה שאלות פתוחות.",
+          "continuityQuestion": "איפה בחיים שלך בימים אלה יש פתח שמרגיש כמו המתנה או עצירה?",
+          "lenses": {
+            "cognitive": "ייתכן שבימים אלה יש משהו שממתין להתבהר או להשתנות, והחלום מחזיר אותך אל רגע כזה.",
+            "jungian": "כעדשה יונגיאנית, הדמות של האבא בפתח יכולה להחזיק תחושת סמכות או סף של שינוי.",
+            "psychodynamic": null
+          },
+          "confidenceNotes": [
+            "שלב הביניים בין הפתח לאמירה 'עוד לא' פתוח למגוון פרשנויות ואינו חד משמעי."
+          ],
+          "emotionReflection": null,
+          "summary": "אבא עומד בפתח ומונע התקדמות, עם תחושת חוסר ודאות שתיארת סביב רגע של עצירה.",
+          "alternativeReadings": [],
+          "existentialLens": {
+            "basis": "העמידה בפתח ואמירה 'עוד לא'",
+            "text": "אפשר לשאול על רגעים שבהם מה שמעבר לפתח נותר לא מושג, והחיים מתרכזים בסף עצמו ובשאלה מתי ומה יקרה."
+          },
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "readingsBeforeFinalize": 1,
+        "readingsAfterFinalize": 0,
+        "existentialBeforeFinalize": true,
+        "existentialAfterFinalize": true,
+        "ms": 4171,
+        "usage": {
+          "input": 4966,
+          "output": 415
+        },
+        "usd": 0.017748
+      },
+      "metrics": {
+        "wordsBefore": 56,
+        "wordsAfter": 114,
+        "noveltyObservationBefore": 0.16666666666666666,
+        "noveltyObservationAfter": 0.7777777777777778,
+        "noveltyQuestionBefore": 0.875,
+        "noveltyQuestionAfter": 0.8,
+        "diagnosticHitsAfter": 0,
+        "diagnosticHitsBefore": 0
+      }
+    },
+    {
+      "id": 14,
+      "kind": "עשיר, חיה, תנועה",
+      "language": "he",
+      "text": "ברחתי מכלב גדול על גגות של בניינים. קפצתי מגג לגג, ואחריו לעוד אחד. בשלב מסוים הכלב נעצר והסתכל עליי, ואני עמדתי על הקצה. למטה היה הרחוב שלי, ריק, והאור היה כתום.",
+      "depth": "standard",
+      "moments": [
+        "כלב גדול",
+        "הרחוב שלי",
+        "גגות של בניינים",
+        "בריחה מכלב גדול",
+        "קפיצה מגג לגג",
+        "עמידה על הקצה"
+      ],
+      "chosen": "גגות של בניינים",
+      "emotions": [
+        "anger",
+        "freedom"
+      ],
+      "before": {
+        "question": "כשחושבים על גגות של בניינים עכשיו — מה עולה?",
+        "answer": "עולה לי זיכרון מהילדות, כשהיינו משחקים בקיץ בגגות של השכונה.",
+        "reflection": {
+          "observation": "בחלום ברחת מכלב גדול על גגות בניינים, קפצת מגג לגג, ועברת עצירה על הקצה בזמן שהכלב הסתכל עלייך.",
+          "personalAssociation": "אמרת שעולה לך זיכרון מהילדות, כשהייתם משחקים בקיץ בגגות של השכונה.",
+          "possibleThread": "ייתכן שהגגות מייצגים חופש, ונשאלת כאן שאלת התחושות הקשורות לילדות במקביל לרגע המלחיץ הזה.",
+          "continuityQuestion": "איך המשחקים בגגות של השכונה מתקשרים לתחושה של חופש או כעס בחיים שלך עכשיו?",
+          "lenses": {
+            "cognitive": null,
+            "jungian": null,
+            "psychodynamic": null
+          },
+          "confidenceNotes": [],
+          "emotionReflection": "בחרת לציין כעס וחופש. אפשר לשאול אם הם משקפים את הדינמיקה של הבריחה שחווית בחלום.",
+          "summary": "גגות, זיכרון מהילדות, וכעס וחופש שבחרת לציין.",
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "ms": 3252,
+        "usage": {
+          "input": 3128,
+          "output": 238
+        },
+        "usd": 0.000612
+      },
+      "after": {
+        "questionsOutcome": "ok",
+        "rawAssociationForChosen": "מה עובר בך כשאת נזכרת בגגות של הבניינים שעליהם התחוללה הבריחה מהכלב?",
+        "rawLinkForChosen": "יש מקום לחיבור בין הגגות של הבניינים לבין הכלב שמתחיל לרדוף אחרייך?",
+        "questionsMs": 2975,
+        "questionsUsage": {
+          "input": 1560,
+          "output": 392
+        },
+        "questionsModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "reflectionModels": [
+          "gpt-4.1-2025-04-14"
+        ],
+        "associationQuestion": "מה עובר בך כשאת נזכרת בגגות של הבניינים שעליהם התחוללה הבריחה מהכלב?",
+        "associationWasFixedFallback": false,
+        "linkQuestion": "יש מקום לחיבור בין הגגות של הבניינים לבין הכלב שמתחיל לרדוף אחרייך?",
+        "linkAnswer": "לא ממש, זה פשוט היה מצב מלחיץ. הגגות היו מקום לברוח אליו.",
+        "answer": "יש לי תחושת חופש, אבל גם פחד. זה מזכיר לי איך פעם טיפסתי על גגות עם חברים.",
+        "reflection": {
+          "observation": "רגע לפני שהכלב עוצר ומביט בך, את מוצאת את עצמך עומדת על הקצה של אחד הגגות, כשמתחת הרחוב הריק מואר באור כתום.",
+          "personalAssociation": "כתבת שהגגות מעלים בך תחושת חופש וגם פחד, והם מזכירים לך חוויות ילדות עם חברים. לגבי החיבור לכלב, אמרת שלא ממש קיים—הגגות היו פשוט מקום מפלט.",
+          "possibleThread": "אפשר לראות בקפיצה בין הגגות תחושת חופש שמתערבבת בלחץ ובריחה, אולי כמו הרגשה של להימצא כל הזמן בין רגעים של חופש ורגעים של פחד.",
+          "continuityQuestion": "איפה בחיים שלך את פוגשת את המעבר הזה בין חוויה של חופש לצורך לברוח מפני משהו מלחיץ?",
+          "lenses": {
+            "cognitive": "יתכן שהגגות כ'מרחב מפלט' מחברים בין זיכרון ילדות לבין לחץ עכשווי.",
+            "jungian": "דרך העיניים של יונג, הגגות עשויים לייצג מקום מעבר בין עולמות—הגובה כריחוק והמרחב כמשהו משחרר ומאיים.",
+            "psychodynamic": null
+          },
+          "confidenceNotes": [
+            "קשר אפשרי בין זיכרון ילדות לבין תחושת בריחה ונקודת קצה.",
+            "הגגות כמקום גם של סכנה וגם של שחרור."
+          ],
+          "emotionReflection": "בחרת לציין תחושה של חופש וכעס. אולי החופש שאת מזהה בגגות מתקיים לצד כעס על הלחץ או האיום שמבקשים לסגור אותו.",
+          "summary": null,
+          "alternativeReadings": [
+            {
+              "basis": "הרחוב שלך למטה ריק והאור כתום",
+              "reading": "ייתכן שהבידוד והמרחק מהרחוב המוכר מחדדים את תחושת הזרות או עצב מסוים לצד הבריחה לגובה."
+            }
+          ],
+          "existentialLens": null,
+          "groundingStatement": "זו השתקפות, לא אבחנה או פרשנות חד-משמעית."
+        },
+        "readingsBeforeFinalize": 1,
+        "readingsAfterFinalize": 1,
+        "existentialBeforeFinalize": false,
+        "existentialAfterFinalize": false,
+        "ms": 4301,
+        "usage": {
+          "input": 4905,
+          "output": 527
+        },
+        "usd": 0.020282
+      },
+      "metrics": {
+        "wordsBefore": 79,
+        "wordsAfter": 152,
+        "noveltyObservationBefore": 0.5625,
+        "noveltyObservationAfter": 0.7058823529411765,
+        "noveltyQuestionBefore": 0.8181818181818182,
+        "noveltyQuestionAfter": 0.7857142857142857,
+        "diagnosticHitsAfter": 0,
+        "diagnosticHitsBefore": 0
+      }
+    }
+  ]
+}

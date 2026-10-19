@@ -12,7 +12,11 @@ export function installDemo(): void {
   w.__dareDemoActive = true;
 
   const realFetch = window.fetch.bind(window);
-  const router = createDemoRouter({ realFetch, origin: window.location.origin });
+  // LOCAL TEST JOURNEY: only the exact local bridge address, only on a page served from this computer, only in a build that is not Vercel production.
+  const bridgeUrl = import.meta.env.VITE_DEMO_BRIDGE_URL;
+  const onThisComputer = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const bridge = bridgeUrl === 'http://127.0.0.1:8787' && onThisComputer ? { url: bridgeUrl, fetch: realFetch } : undefined;
+  const router = createDemoRouter({ realFetch, origin: window.location.origin, bridge });
   w.__demoNet = router.stats;
   window.fetch = (input: RequestInfo | URL, init?: RequestInit) => router.handle(input, init);
 
@@ -54,5 +58,5 @@ export function installDemo(): void {
     /* without storage the demo simply opens signed out */
   }
 
-  mountDemoPanel();
+  mountDemoPanel({ bridge: !!bridge });
 }

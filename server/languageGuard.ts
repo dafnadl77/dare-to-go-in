@@ -31,9 +31,17 @@ export async function runWithLanguageIntegrity<T>(
     strictLatin?: boolean;
     /** Runs on an otherwise accepted result; a returned note means "regenerate with this note" (e.g. a mismatched grammatical address). */
     extraCheck?: (value: T) => string | null;
+    /**
+     * Quality, not safety: a returned note asks for a fresh response (at most twice), but the LAST attempt is accepted as it is. A wording
+     * check can therefore never turn an otherwise usable answer into an error and a refund. Safety and language checks stay in extraCheck.
+     */
+    qualityCheck?: (value: T) => string | null;
+    /** How many fresh responses the quality check may ask for at most (default 2, never more than the attempts that remain). Each one costs a model call and several seconds. */
+    maxQualityRetries?: number;
   },
 ): Promise<LanguageGuardOutcome<T>> {
   let retryNote = '';
+  let qualityRetries = 0;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     const value = await produce(retryNote);
     if (value === null) return { status: 'invalid' };
@@ -46,7 +54,17 @@ export async function runWithLanguageIntegrity<T>(
       continue;
     }
     const extraNote = policy.extraCheck ? policy.extraCheck(value) : null;
-    if (!extraNote) return { status: 'ok', value };
+    if (!extraNote) {
+      const qualityNote = policy.qualityCheck ? policy.qualityCheck(value) : null;
+      if (qualityNote && attempt < MAX_ATTEMPTS && qualityRetries < (policy.maxQualityRetries ?? 2)) {
+        qualityRetries += 1;
+        retryNote = qualityNote;
+        // The note is fixed instruction text (never dream text), so its first words say which check asked for the fresh response.
+        console.warn(`[language-integrity] ${policy.route}: attempt ${attempt} failed a quality check (${qualityNote.replace(/\s+/g, ' ').trim().slice(12, 80)}) — regenerating`);
+        continue;
+      }
+      return { status: 'ok', value };
+    }
     retryNote = extraNote;
     console.warn(`[language-integrity] ${policy.route}: attempt ${attempt} used a mismatched grammatical address${attempt < MAX_ATTEMPTS ? ' — regenerating' : ' — giving up'}`);
   }

@@ -58,7 +58,7 @@ export function generateDreamQuestions(client: OpenAI, p: GenerateQuestionsParam
       if (response.usage) p.onUsage?.({ input: response.usage.input_tokens, output: response.usage.output_tokens, model: response.model });
       try {
         const raw = validateRawDreamQuestions(JSON.parse(response.output_text), p.moments.length);
-        return raw ? { raw, kept: sanitizeDreamQuestions(raw, p.moments, p.sourceText) } : null;
+        return raw ? { raw, kept: sanitizeDreamQuestions(raw, p.moments, p.sourceText, p.language) } : null;
       } catch {
         return null;
       }

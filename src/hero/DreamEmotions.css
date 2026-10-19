@@ -313,17 +313,17 @@
     margin: 1.2rem auto 0;
   }
 
-  /* Always reachable: CONTINUE stays at the bottom edge while the thoughts scroll beneath it. */
+  /* CONTINUE closes the flow, in place after the last thought, never over it. It used to stay pinned to the bottom edge while the thoughts scrolled
+     beneath it, which hid the last lines on first paint; now nothing is covered and the dreamer reaches it by reading on (the scrollbar shows there is more). */
   .dream-reflection[data-step='reflection'][data-flow='true'] .dr-continue-wrap {
-    position: sticky;
+    position: relative;
     left: auto;
-    bottom: 0;
+    bottom: auto;
     transform: none;
-    z-index: 6;
     display: flex;
     justify-content: center;
-    margin-top: 0.6rem;
-    padding: 0.9rem 0 0.7rem;
-    background: linear-gradient(to top, rgba(6, 8, 18, 0.8) 60%, rgba(6, 8, 18, 0));
+    margin-top: 1.4rem;
+    padding: 0 0 max(3vh, 1.2rem);
+    background: none;
   }
 }

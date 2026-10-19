@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { logModelUsed, modelMatches, resolveStageModel } from '../server/stageModel.ts';
-import { createDemoRouter } from '../src/demo/demoRouter.ts';
+import { BRIDGED_PATHS, createDemoRouter } from '../src/demo/demoRouter.ts';
 import { validateDreamReflectionResult } from '../src/hero/dreamReflectionSchema.ts';
 import { en, he } from '../src/i18n/translations.ts';
 import { findAddressViolation } from '../src/hero/languageIntegrity.ts';
@@ -141,4 +141,54 @@ test("a Hebrew line that addresses a dreamer of unknown gender as a woman or as 
   assert.equal(check('ציינת את הדלת הסגורה ואת מה שקרה בחדר', 'neutral'), null);
   assert.equal(check('אמרת: "את מזהה את זה" ואולי יש כאן המתנה', 'neutral'), null);
   assert.equal(check('כשחושבים על התחנה הריקה, מה עולה?', 'neutral'), null);
+});
+
+// ---- the local test journey ---------------------------------------------------------------------------------------------
+
+test('the local test journey sends exactly three routes to the local bridge and keeps everything else (credits, trial, the picture, the account) inside the browser', async () => {
+  const bridgeCalls: { url: string; body: unknown }[] = [];
+  const passed: string[] = [];
+  const router = createDemoRouter({
+    origin: 'http://localhost:5393',
+    delay: async () => {},
+    realFetch: async (i) => (passed.push(String(i)), new Response('x')),
+    bridge: {
+      url: 'http://127.0.0.1:8787',
+      fetch: async (input, init) => {
+        bridgeCalls.push({ url: String(input), body: JSON.parse(String(init?.body)) });
+        return new Response(JSON.stringify({ ok: true }), { status: 200 });
+      },
+    },
+  });
+  const post = (path: string, body: unknown) => router.handle(`http://localhost:5393${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  for (const path of ['/api/dream-analysis', '/api/dream-element-labels', '/api/dream-reflection']) assert.equal((await post(path, { sourceText: 'חלום', path })).status, 200);
+  assert.deepEqual(bridgeCalls.map((c) => c.url), ['http://127.0.0.1:8787/api/dream-analysis', 'http://127.0.0.1:8787/api/dream-element-labels', 'http://127.0.0.1:8787/api/dream-reflection']);
+  assert.equal((bridgeCalls[0].body as { sourceText: string }).sourceText, 'חלום', 'the request body is passed on unchanged');
+  for (const path of ['/api/credits', '/api/trial-session', '/api/claim-trial', '/api/delete-account', '/api/dream-translation', '/api/pattern-reflection', '/api/dream-transcription']) await post(path, {});
+  // (the picture route needs a real browser to draw its sample picture; it is simply not one of the bridged routes)
+  assert.equal(BRIDGED_PATHS.has('/api/dream-image'), false);
+  assert.equal(bridgeCalls.length, 3, 'nothing else is forwarded: no credits, no payments, no picture, no account');
+  assert.equal(passed.filter((u) => !u.includes('/dream-assets/')).length, 0, 'no other real request');
+  // a GET of the same route, and a bridge that is not running
+  await router.handle('http://localhost:5393/api/dream-reflection', { method: 'GET' });
+  assert.equal(bridgeCalls.length, 3);
+  const down = createDemoRouter({ origin: 'http://localhost:5393', delay: async () => {}, realFetch: async () => new Response('x'), bridge: { url: 'http://127.0.0.1:8787', fetch: async () => Promise.reject(new Error('refused')) } });
+  const res = await down.handle('http://localhost:5393/api/dream-reflection', { method: 'POST', body: '{}' });
+  assert.equal(res.status, 503, 'a missing bridge is an honest error, never made-up text');
+  assert.equal((await res.json()).reason, 'request_failed');
+});
+
+test('without a bridge nothing is ever forwarded, and the bridge is only created for the exact local address on a page served from this computer', () => {
+  const install = read('src/demo/installDemo.ts');
+  assert.match(install, /bridgeUrl === 'http:\/\/127\.0\.0\.1:8787' && onThisComputer/);
+  assert.match(install, /window\.location\.hostname === 'localhost' \|\| window\.location\.hostname === '127\.0\.0\.1'/);
+  const router = read('src/demo/demoRouter.ts');
+  assert.match(router, /if \(deps\.bridge && method === 'POST' && BRIDGED_PATHS\.has\(path\)\)/);
+  assert.equal([...read('src/demo/demoRouter.ts').matchAll(/new Set\(\['\/api\/dream-analysis', '\/api\/dream-element-labels', '\/api\/dream-reflection'\]\)/g)].length, 1);
+  const devEnv = read('scripts/devEnv.mjs');
+  assert.match(devEnv, /mode === 'journey'[\s\S]*VITE_DEMO_BRIDGE_URL = 'http:\/\/127\.0\.0\.1:8787'/);
+  // the label in the corner never claims made-up data in the local test journey
+  assert.match(read('src/demo/demoPanel.ts'), /short: 'בדיקה מקומית · מודל אמיתי'/);
+  // production builds do not contain the demo at all, and the Vercel project has no such variable
+  assert.match(read('vite.config.ts'), /VERCEL_ENV !== 'production'/);
 });

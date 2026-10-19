@@ -41,6 +41,24 @@ const TEXT = {
   },
 } as const;
 
+/** What the corner label says in the LOCAL test journey (real model, no database): it must never claim the text is made up. */
+const BRIDGE_TEXT = {
+  he: {
+    short: 'בדיקה מקומית · מודל אמיתי',
+    full: 'בדיקה מקומית: השאלות והפרשנות נכתבות על ידי מודל אמיתי. התמונה היא תמונת דוגמה. שום דבר לא נשמר, לא נשלח לשרת האמיתי ולא נחשב בתשלום או בקרדיטים.',
+    title: 'בדיקה מקומית',
+    intro: 'המסע הזה רץ על המחשב שלך מול מודל אמיתי, בלי מסד נתונים, בלי חשבון אמיתי, בלי קרדיטים ובלי תשלום. התמונה היא תמונת דוגמה. החלום והתשובות לא נשמרים מעבר לטעינה מחדש של הדף. מומלץ לכתוב חלום שאינו אישי.',
+  },
+  en: {
+    short: 'Local test · real model',
+    full: 'Local test: the questions and the reflection are written by a real model. The picture is a sample. Nothing is saved, sent to the real server, or charged.',
+    title: 'Local test',
+    intro: 'This journey runs on your computer against a real model, with no database, no real account, no credits and no payment. The picture is a sample. Nothing is kept beyond reloading the page. Please write a dream that is not personal.',
+  },
+} as const;
+let bridgeMode = false;
+const T = (l: Lang) => (bridgeMode ? { ...TEXT[l], ...BRIDGE_TEXT[l] } : TEXT[l]);
+
 const lang = (): Lang => (document.documentElement.lang === 'en' ? 'en' : 'he');
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -73,13 +91,13 @@ async function openWriting(): Promise<HTMLTextAreaElement | null> {
 
 async function fillSampleDream(): Promise<void> {
   const area = await openWriting();
-  if (area && !area.value.trim()) setValue(area, TEXT[lang()].sample);
+  if (area && !area.value.trim()) setValue(area, T(lang()).sample);
   area?.focus();
 }
 
 /** Plays the journey forward until the feelings screen is showing. Stops there and leaves the choosing to the visitor. */
 async function jumpToFeelings(): Promise<boolean> {
-  const t = TEXT[lang()];
+  const t = T(lang());
   const deadline = Date.now() + 120_000;
   let wroteDream = false;
   let lastAction = '';
@@ -125,7 +143,8 @@ async function jumpToFeelings(): Promise<boolean> {
   return false;
 }
 
-export function mountDemoPanel(): void {
+export function mountDemoPanel(options: { bridge?: boolean } = {}): void {
+  bridgeMode = options.bridge === true;
   const root = document.createElement('div');
   root.id = 'demo-badge';
   Object.assign(root.style, { position: 'fixed', right: '10px', bottom: '10px', zIndex: '70', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', maxWidth: 'calc(100vw - 20px)' } satisfies Partial<CSSStyleDeclaration>);
@@ -202,10 +221,10 @@ export function mountDemoPanel(): void {
     if (jumping) return;
     jumping = true;
     jumpMain.disabled = true;
-    jumpMain.textContent = TEXT[lang()].working;
-    status.textContent = TEXT[lang()].working;
+    jumpMain.textContent = T(lang()).working;
+    status.textContent = T(lang()).working;
     const ok = await jumpToFeelings();
-    status.textContent = ok ? '' : TEXT[lang()].failed;
+    status.textContent = ok ? '' : T(lang()).failed;
     jumping = false;
     jumpMain.disabled = false;
     apply();
@@ -221,7 +240,7 @@ export function mountDemoPanel(): void {
   });
 
   const apply = () => {
-    const t = TEXT[lang()];
+    const t = T(lang());
     toggle.textContent = `${t.short} ▴`;
     toggle.title = t.full;
     toggle.setAttribute('aria-label', `${t.full} ${t.title}`);

@@ -24,6 +24,13 @@ import { reserveReflectionAttempt, refundReflectionAttempt, getTrialAttemptState
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 import { getSupabaseUserScopedClient } from '../supabaseUserScopedClient.js';
 import { logModelUsed, resolveStageModel } from '../stageModel.js';
+import {
+  attributedFeelingNote,
+  descriptionVersusInterpretationNote,
+  garbledTextNote,
+  symbolWordingNote,
+  unsupportedInsertionNote,
+} from '../../src/hero/reflectionChecks.js';
 
 function extractBearerToken(authorizationHeader: string): string | null {
   const match = /^Bearer\s+(.+)$/i.exec(authorizationHeader.trim());
@@ -111,7 +118,22 @@ THEIR ANSWER (their exact words): "${extras.linkResponse}"`
 /** Every sentence of model prose in a reflection. The grounding line is overwritten by the server and the existential verdict is an internal label ("clear"), so neither is prose to check. */
 export const proseOf = (result: DreamReflectionResult): string[] => collectStrings({ ...result, groundingStatement: '', existentialFit: undefined });
 
+/** The generated prose that makes claims about the dream, without the three theory lenses (labelled as theory, they may speak of symbols) and without the copied "basis" quotes. */
+const claimsOf = (result: DreamReflectionResult): string[] =>
+  collectStrings({
+    observation: result.observation,
+    personalAssociation: result.personalAssociation,
+    possibleThread: result.possibleThread,
+    continuityQuestion: result.continuityQuestion,
+    emotionReflection: result.emotionReflection,
+    summary: result.summary,
+    readings: (result.alternativeReadings ?? []).map((r) => r.reading),
+    existential: result.existentialLens?.text,
+  });
+
 export interface GenerateReflectionParams {
+  /** The feelings the dreamer named (their own report), so a feeling nobody named can be caught. */
+  emotions?: readonly EmotionId[];
   input: string;
   language: AppLanguage;
   addressPreference: AddressPreference;
@@ -162,8 +184,17 @@ export function generateDreamReflection(client: OpenAI, p: GenerateReflectionPar
       extraCheck: (result) =>
         findAddressViolation(proseOf(result), p.language, p.addressPreference) ??
         findHebrewSlashForm(proseOf(result), p.language) ??
-        diagnosticWordingNote(result) ??
-        reflectionLengthNote(result),
+        diagnosticWordingNote(result),
+      // Quality (a fresh response is requested at most once, because every one costs a call and several seconds; the last attempt is always accepted): the five lines fit one screen, nothing the
+      // dreamer did not say is added, no fixed meaning for an object, the description is kept apart from the possibility, no garbled text.
+      qualityCheck: (result) =>
+        reflectionLengthNote(result) ??
+        unsupportedInsertionNote(claimsOf(result), [p.dreamerText], p.language) ??
+        symbolWordingNote(claimsOf(result), p.language) ??
+        descriptionVersusInterpretationNote(result, p.language) ??
+        garbledTextNote(claimsOf(result)) ??
+        attributedFeelingNote(claimsOf(result), p.emotions ?? [], [p.dreamerText], p.language),
+      maxQualityRetries: 1,
     },
   );
 }
@@ -285,7 +316,7 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
   const addressPreference = await resolveAddressPreference(resolved.identity, requestHeaders);
 
   try {
-    const outcome = await generateDreamReflection(client, { input, language, addressPreference, dreamerText });
+    const outcome = await generateDreamReflection(client, { input, language, addressPreference, dreamerText, emotions });
     if (outcome.status !== 'ok') {
       await refundReflectionAttempt(attemptId);
       return withHeaders(

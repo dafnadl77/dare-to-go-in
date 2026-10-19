@@ -7,7 +7,7 @@
  */
 
 const STOPWORDS = new Set([
-  'של', 'עם', 'את', 'מה', 'על', 'זה', 'זאת', 'הוא', 'היא', 'אני', 'אתה', 'אבל', 'כמו', 'גם', 'אם', 'כי', 'לא', 'יש', 'אין', 'כל', 'עוד', 'אל', 'מן', 'אפשר', 'עולה', 'עכשיו', 'בחלום', 'החלום', 'רגע',
+  'של', 'עם', 'את', 'מה', 'על', 'זה', 'זאת', 'הוא', 'היא', 'אני', 'אתה', 'אבל', 'כמו', 'גם', 'אם', 'כי', 'לא', 'יש', 'אין', 'כל', 'עוד', 'אל', 'מן', 'אפשר', 'עולה', 'עכשיו', 'בחלום', 'החלום', 'רגע', 'שלך', 'שלי', 'שלנו', 'שלו', 'שלה', 'עליך', 'עליי', 'אליך', 'אותך', 'אותי', 'אחרי', 'לפני', 'אחת', 'אחד', 'בין',
   'the', 'and', 'with', 'that', 'this', 'what', 'when', 'your', 'you', 'about', 'does', 'for', 'from', 'was', 'were', 'are', 'there', 'have', 'dream', 'moment', 'now',
 ]);
 
@@ -32,6 +32,18 @@ function sameWord(a: string, b: string): boolean {
 }
 
 /**
+ * True when `text` uses a word that belongs to `include` but not to `exclude` (same matching as everywhere here: three-letter words and
+ * Hebrew prefixes included). "Does this question name another detail of the dream, one that is not already the moment itself?"
+ */
+export function usesWordOfButNot(text: string, include: string, exclude: string): boolean {
+  const mine = contentForms(text);
+  const inc = contentForms(include);
+  const exc = contentForms(exclude);
+  const matches = (forms: string[], pool: string[][]) => pool.some((other) => forms.some((x) => other.some((y) => sameWord(x, y))));
+  return mine.some((forms) => matches(forms, inc) && !matches(forms, exc));
+}
+
+/**
  * True when `text` names BOTH things: it shares a content word with `first`, and a different content word (one that does not also
  * match `first`) with `second`. Used to check that a link question really names two things from the dream and not just one.
  */
@@ -43,6 +55,19 @@ export function namesBoth(text: string, first: string, second: string): boolean 
   const aWords = mine.filter((forms) => matches(forms, a));
   const bWords = mine.filter((forms) => matches(forms, b) && !matches(forms, a));
   return aWords.length > 0 && bWords.length > 0;
+}
+
+/**
+ * True when (almost) every meaningful word of `text` is a word of the `sources`: used for the short "basis" the model copies from the dream
+ * (at most about ten words), where a word that is not in the dream or the dreamer's answers means the model is no longer quoting.
+ * At least 70% of the words must match, so one inflection the matcher cannot see does not sink a faithful quote.
+ */
+export function mostlyGrounded(text: string, ...sources: (string | null | undefined)[]): boolean {
+  const mine = contentForms(text);
+  if (mine.length === 0) return false;
+  const theirs = sources.flatMap((s) => (typeof s === 'string' ? contentForms(s) : []));
+  const matched = mine.filter((forms) => theirs.some((other) => forms.some((a) => other.some((b) => sameWord(a, b))))).length;
+  return matched / mine.length >= 0.7;
 }
 
 /** True when `text` has at least one content word in common with any of `sources`. */

@@ -24,7 +24,16 @@ export interface DemoNetStats {
   log: string[];
 }
 
+/** The three routes that, in the LOCAL test journey only, are answered by the local model bridge (scripts/localModelBridge.ts) instead of by demo text. */
+export const BRIDGED_PATHS: ReadonlySet<string> = new Set(['/api/dream-analysis', '/api/dream-element-labels', '/api/dream-reflection']);
+
 export interface DemoRouterDeps {
+  /**
+   * LOCAL TEST JOURNEY ONLY. When given, exactly the three routes in BRIDGED_PATHS are sent to this one loopback address (the local model
+   * bridge, which has no database and no credits) and everything else stays answered inside the browser. Never present in a deployed build:
+   * installDemo only creates it for http://127.0.0.1:8787 on a page served from localhost.
+   */
+  bridge?: { url: string; fetch: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response> };
   /** The browser's real fetch, used ONLY for same-origin static GETs. */
   realFetch: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
   origin: string;
@@ -423,6 +432,15 @@ export function createDemoRouter(deps: DemoRouterDeps) {
   };
 
   async function api(path: string, method: string, body: Json): Promise<Response> {
+    if (deps.bridge && method === 'POST' && BRIDGED_PATHS.has(path)) {
+      note('passed', `bridge POST ${path}`);
+      try {
+        const res = await deps.bridge.fetch(`${deps.bridge.url}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        return new Response(await res.text(), { status: res.status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
+      } catch {
+        return jsonResponse({ reason: 'request_failed', message: 'The local model bridge is not running.' }, 503);
+      }
+    }
     const he = body.language === 'he' || (body.language !== 'en' && isHebrew(body));
     if (path === '/api/credits') {
       if (method === 'GET') return jsonResponse({ balance: 3, purchasedPackage: 'go_deeper_3', grantedCredits: 3, grantCount: 1, freeDreamUsed: true, freeGranted: 0, freeDream: 'used' });

@@ -4,6 +4,7 @@ import { buildLanguageIntegrityInstruction } from './languageIntegrity.js';
 import { buildHebrewAddressInstruction, type AddressPreference } from './addressPreference.js';
 import { buildHebrewNeutralSingularInstruction, feelingsTextLooksDiagnostic } from './dreamReflectionSchema.js';
 import { namesBoth, sharesContentWord } from './groundedText.js';
+import { garbledTextNote, isGenericQuestion, linkAddsSomethingNew, unsupportedInsertionNote } from './reflectionChecks.js';
 
 /**
  * Questions written for THIS dream. Each of the (up to six) selectable moments gets
@@ -84,7 +85,7 @@ export function buildDreamQuestionsSystemPrompt(language: AppLanguage, addressPr
   const languageName = language === 'he' ? 'Hebrew' : 'English';
   const hebrew =
     language === 'he'
-      ? `HEBREW: write the way a thoughtful Hebrew speaker would say it aloud, short plain sentences with everyday words, never a translation from English. ${addressPreference === 'neutral' ? buildHebrewNeutralSingularInstruction() : buildHebrewAddressInstruction(addressPreference)} Prefer impersonal forms ("מה עולה כשחושבים על...", "אפשר לשאול..."). Use Hebrew letters only, no English word. Copy the dream's own words exactly as they are in the input; never coin or conjugate an unusual word.`
+      ? `HEBREW: write the way a thoughtful Hebrew speaker would say it aloud, short plain sentences with everyday words, never a translation from English. ${addressPreference === 'neutral' ? buildHebrewNeutralSingularInstruction() : buildHebrewAddressInstruction(addressPreference)} ${addressPreference === 'neutral' ? 'This dreamer\'s gender is unknown: write EVERY question impersonally and never address the dreamer at all, with no "את", no "אתה" and no second-person verb or possessive form of any gender ("מה עולה כשחושבים על...", "איך זה לחשוב על...", "מה ... מזכיר"). ' : ''}Prefer impersonal forms ("מה עולה כשחושבים על...", "אפשר לשאול..."). Use Hebrew letters only, no English word. Copy the dream's own words exactly as they are in the input; never coin or conjugate an unusual word. Use a spoken question pattern ("מה עולה כשחושבים על ...", "איך זה לחשוב על ...", "מה ... מזכיר ..."), at most one subordinate clause, no chains of "שבו/שבה/ש..." and no noun after noun without a connecting word.`
       : '';
   return `You write the questions a thoughtful listener would ask a dreamer about THEIR OWN dream, after the dreamer has chosen which moment stayed with them.
 
@@ -98,6 +99,7 @@ Rules for every question:
 - Use the dream's own words for the things you name. Never invent a person, place, object, event, feeling or circumstance, and never assume anything about the dreamer's life, past or relationships.
 - Never presuppose a feeling or an answer ("why were you afraid...", "what does your fear tell you..."). Never explain or interpret the dream, never say what anything means, no dream-dictionary meanings, no diagnosis, no advice, no therapy language.
 - Plain, simple grammar, preferably 12 to 18 words: no stacked subordinate clauses ("without her who ..."), no awkward or coined verb forms. If a detail is hard to phrase as a clause, name it as a noun phrase and ask about that ("the closed door", "mother in the kitchen").
+- The associationQuestion must name the moment AND one more concrete detail of the dream next to it (so it could not be asked about any other dream). The linkQuestion must name a DIFFERENT detail than the one the associationQuestion used: its job is to open something new, not to repeat the first question.
 - Do not turn a detail of the dream into an intention, plan or motive that the dream does not state (never "what you were about to take", "what you wanted to do"): repeat what the dream says, and no more.
 - Do not conjugate the dreamer's actions in the first person or second person; refer to them as things ("the waiting", "the locked door", "the key being too small") or impersonally.
 - In a linkQuestion BOTH things are named inside the question, in the dream's own words ("Is there any link between X and Y?"). A vague "between these things" is not acceptable; if you cannot name two concrete things from the dream, return an empty string.
@@ -173,23 +175,35 @@ export function findQuestionProblems(question: string, grounding: (string | null
  * Keeps every question that passes the checks and blanks the rest (blank = the interface's fixed question / no link step). Never
  * rewrites a question. `grounding` is the material each question must touch: the dream text, plus the moment it was written for.
  */
-export function sanitizeDreamQuestions(raw: DreamQuestions, moments: string[], sourceText: string): DreamQuestions {
-  const clean = (list: string[], needsTwoThings: boolean) =>
-    list.map((q, i) => {
-      const text = q.trim();
-      if (!text) return '';
-      const problems = findQuestionProblems(text, [sourceText, moments[i]]);
-      if (problems.length > 0) return '';
-      // A link question must name the chosen moment AND something else from the dream.
-      if (needsTwoThings && !namesBoth(text, moments[i], sourceText)) return '';
-      return text;
-    });
-  return { associationQuestions: clean(raw.associationQuestions, false), linkQuestions: clean(raw.linkQuestions, true) };
+export function sanitizeDreamQuestions(raw: DreamQuestions, moments: string[], sourceText: string, language: AppLanguage | null = null): DreamQuestions {
+  const material = [sourceText, ...moments];
+  const base = (q: string, i: number) => {
+    const text = q.trim();
+    if (!text) return '';
+    if (findQuestionProblems(text, [sourceText, moments[i]]).length > 0) return '';
+    // No circumstance, motive or feeling that the dream does not state ("what you were about to take", "alone"), and no garbled text.
+    if (unsupportedInsertionNote([text], material, language) || garbledTextNote([text])) return '';
+    return text;
+  };
+  const association = raw.associationQuestions.map((q, i) => {
+    const text = base(q, i);
+    // Not a question that could be about any dream: it names the moment AND one more concrete detail of this dream.
+    return text && !isGenericQuestion(text, moments[i], sourceText) ? text : '';
+  });
+  const link = raw.linkQuestions.map((q, i) => {
+    const text = base(q, i);
+    if (!text) return '';
+    // A link question names the chosen moment AND something else from the dream, and that something is NEW: not already in the association question.
+    if (!namesBoth(text, moments[i], sourceText)) return '';
+    if (association[i] && !linkAddsSomethingNew(text, association[i], moments[i], sourceText)) return '';
+    return text;
+  });
+  return { associationQuestions: association, linkQuestions: link };
 }
 
 /** A correction note for a regeneration when too many questions were rejected, or null. */
 export function questionsRetryNote(raw: DreamQuestions, sanitized: DreamQuestions): string | null {
   const rejected = raw.associationQuestions.filter((q, i) => q.trim() && !sanitized.associationQuestions[i]).length;
   if (rejected === 0) return null;
-  return '\n\nCORRECTION: some of your previous questions were unusable (too long, not a single question, not tied to a concrete detail of this dream, or worded like a diagnosis). Write every question again: one short question, at most 24 words, naming a concrete detail from the dream.';
+  return '\n\nCORRECTION: some of your previous questions were unusable (too long, not a single question, too general, adding something the dream does not say, or worded like a diagnosis). Write every question again: one short question, at most 24 words, that names the moment AND one more concrete detail of the dream, in the dream\'s own words.';
 }

@@ -4,27 +4,48 @@
     {
       "name": "dare-to-go-in-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 5173,
       "autoPort": true
     },
     {
       "name": "dare-model-bridge",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["scripts/devEnv.mjs", "bridge"],
+      "runtimeArgs": [
+        "scripts/devEnv.mjs",
+        "bridge"
+      ],
       "port": 8787
     },
     {
       "name": "dare-real-ui",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["scripts/devEnv.mjs", "ui"],
+      "runtimeArgs": [
+        "scripts/devEnv.mjs",
+        "ui"
+      ],
       "port": 5391
     },
     {
       "name": "dare-demo-ui",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["scripts/devEnv.mjs", "demo"],
+      "runtimeArgs": [
+        "scripts/devEnv.mjs",
+        "demo"
+      ],
       "port": 5392
+    },
+    {
+      "name": "dare-local-journey",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/devEnv.mjs",
+        "journey"
+      ],
+      "port": 5393
     }
   ]
 }

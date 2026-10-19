@@ -59,6 +59,10 @@ const DREAMS: SyntheticDream[] = [
   { id: 8, language: 'he', kind: 'סוריאליסטי', address: 'neutral', emotions: [], text: 'הייתי בתוך שעון ענק. הגלגלים נעו לאט והזמן נשמע כמו נשימה. ראיתי את עצמי מבחוץ, יושבת ועובדת ליד שולחן, ולא יכולתי לצעוק.' },
   { id: 9, language: 'he', kind: 'סיוט, נושא רגיש', address: 'feminine', emotions: ['fear', 'sadness'], text: 'רדפו אחריי במסדרון ארוך בבית חולים. הדלתות נסגרו אחת אחרי השנייה. בסוף הגעתי לחדר שבו אבא שלי ישן במיטה, ולא הצלחתי להעיר אותו.' },
   { id: 10, language: 'en', kind: 'fragment', address: 'neutral', emotions: [], skipLink: true, text: 'A white horse in a kitchen.' },
+  { id: 11, language: 'he', kind: 'בינוני, כמה דמויות, דיאלוג', address: 'neutral', emotions: [], text: 'הייתי במעלית עם המנהל הישן שלי ועם שני ילדים שלא הכרתי. לכפתורים לא היו מספרים. המעלית עלתה ועלתה, והמנהל אמר שצריך לבחור קומה. לחצתי על כפתור ריק והדלת נפתחה על חוף ים.' },
+  { id: 12, language: 'en', kind: 'medium, ordinary scene', address: 'neutral', emotions: [], text: 'I was at my kitchen table writing a letter to my sister. The pen kept running out of ink, so I borrowed one from the neighbour, but his pen wrote in a language I could not read.' },
+  { id: 13, language: 'he', kind: 'קצר, משפט שנאמר', address: 'neutral', emotions: [], skipLink: true, text: 'אבא שלי עמד בפתח ואמר "עוד לא". לא ידעתי למה.' },
+  { id: 14, language: 'he', kind: 'עשיר, חיה, תנועה', address: 'feminine', emotions: ['anger', 'freedom'], text: 'ברחתי מכלב גדול על גגות של בניינים. קפצתי מגג לגג, ואחריו לעוד אחד. בשלב מסוים הכלב נעצר והסתכל עליי, ואני עמדתי על הקצה. למטה היה הרחוב שלי, ריק, והאור היה כתום.' },
 ];
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -199,11 +203,13 @@ async function main() {
       let questions: { associationQuestions: string[]; linkQuestions: string[] } | null = null;
       let questionsMs = 0;
       let questionsOutcome = 'skipped';
+      let rawQuestions: { associationQuestions: string[]; linkQuestions: string[] } | null = null;
       if (labels.length) {
         const run = await timed(() => generateDreamQuestions(client, { sourceText: d.text, moments: labels, facts: factsFromAnalysis(analysis), language: d.language, addressPreference: d.address, onUsage: track('questions') }));
         questionsMs = run.ms;
         questionsOutcome = run.value.status;
         questions = run.value.status === 'ok' ? run.value.value.kept : null;
+        rawQuestions = run.value.status === 'ok' ? run.value.value.raw : null;
       }
       const assocQ2 = (questions && idx >= 0 ? questions.associationQuestions[idx] : '') || assocQ1;
       const linkQ = d.skipLink ? '' : (questions && idx >= 0 ? questions.linkQuestions[idx] : '') || '';
@@ -212,7 +218,7 @@ async function main() {
       const extras = { associationQuestion: assocQ2 === assocQ1 ? undefined : assocQ2, ...(linkQ && linkAns ? { linkQuestion: linkQ, linkResponse: linkAns } : {}) };
       const afterInput = buildReflectionInput(analysis, element, ans2, [], d.emotions, d.language, extras);
       const dreamerText = [...dreamerBase, element, ans2, extras.linkResponse ?? ''].join('\n');
-      const afterRun = await timed(() => generateDreamReflection(client, { input: afterInput, language: d.language, addressPreference: d.address, dreamerText, onUsage: track('reflection-after') }));
+      const afterRun = await timed(() => generateDreamReflection(client, { input: afterInput, language: d.language, addressPreference: d.address, dreamerText, emotions: d.emotions, onUsage: track('reflection-after') }));
       const rawAfter = afterRun.value.status === 'ok' ? afterRun.value.value : null;
       const after = rawAfter ? finalizeDeliveredReflection(rawAfter, { emotions: d.emotions, language: d.language, depth, dreamerText, summary: analysis.summary }) : null;
 
@@ -232,6 +238,8 @@ async function main() {
         before: { question: assocQ1, answer: ans1, reflection: before, ms: beforeRun.ms, usage: sumUsage('reflection-before'), usd: costOf(sumUsage('reflection-before')) },
         after: {
           questionsOutcome,
+          rawAssociationForChosen: rawQuestions && idx >= 0 ? rawQuestions.associationQuestions[idx] : null,
+          rawLinkForChosen: rawQuestions && idx >= 0 ? rawQuestions.linkQuestions[idx] : null,
           questionsMs,
           questionsUsage: sumUsage('questions'),
           questionsModels: modelsOf('questions'),
