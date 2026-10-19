@@ -34,5 +34,5 @@ export const TRIAL_COOKIE_NAME = 'dare_trial';
 /** OpenAI's published retention for API request records kept for abuse monitoring (developers.openai.com, "Your data"). */
 export const OPENAI_ABUSE_LOG_DAYS = 30;
 
-/** Contact answer time we commit to for privacy requests. Needs a lawyer's confirmation against the Privacy Protection Regulations. */
+/** The answer time we AIM for on privacy requests (stated as an aim, not a promise). A lawyer must confirm what the Privacy Protection Regulations require. */
 export const REQUEST_ANSWER_DAYS = 30;

@@ -82,7 +82,7 @@ export const privacyEn: LegalDocument = {
     },
     {
       heading: 'Your rights',
-      body: `You can ask to see the information we hold about you, to correct it, to receive a copy, or to delete it. You can delete dreams and your account yourself in the app. For other requests, or if you cannot use Settings, write to daretogoin@gmail.com from your account's email address. We will answer within ${REQUEST_ANSWER_DAYS} days. We may need to verify your identity, and we cannot delete what the law requires us to keep. You may also turn to the Privacy Protection Authority.`,
+      body: `You can ask to see the information we hold about you, to correct it, to receive a copy, or to delete it. You can delete dreams and your account yourself in the app. For other requests, or if you cannot use Settings, write to daretogoin@gmail.com from your account's email address. We will answer as soon as we can, and aim to do so within ${REQUEST_ANSWER_DAYS} days. We may need to verify your identity, and we cannot delete what the law requires us to keep. You may also turn to the Privacy Protection Authority.`,
     },
     {
       heading: 'Security',
@@ -161,7 +161,7 @@ export const privacyHe: LegalDocument = {
     },
     {
       heading: 'הזכויות שלכם',
-      body: `אפשר לבקש לעיין במידע שאנחנו מחזיקים עליכם, לתקן אותו, לקבל עותק ממנו או למחוק אותו. חלומות והחשבון אפשר למחוק בעצמכם באפליקציה. לבקשות אחרות, או אם אי אפשר להשתמש בהגדרות, כתבו אל daretogoin@gmail.com מכתובת האימייל של החשבון. נשיב בתוך ${REQUEST_ANSWER_DAYS} ימים. ייתכן שנצטרך לאמת את זהותכם, ואיננו יכולים למחוק מה שהדין מחייב אותנו לשמור. אפשר גם לפנות לרשות להגנת הפרטיות.`,
+      body: `אפשר לבקש לעיין במידע שאנחנו מחזיקים עליכם, לתקן אותו, לקבל עותק ממנו או למחוק אותו. חלומות והחשבון אפשר למחוק בעצמכם באפליקציה. לבקשות אחרות, או אם אי אפשר להשתמש בהגדרות, כתבו אל daretogoin@gmail.com מכתובת האימייל של החשבון. נשיב בהקדם האפשרי, ונשתדל לעשות זאת בתוך ${REQUEST_ANSWER_DAYS} ימים. ייתכן שנצטרך לאמת את זהותכם, ואיננו יכולים למחוק מה שהדין מחייב אותנו לשמור. אפשר גם לפנות לרשות להגנת הפרטיות.`,
     },
     {
       heading: 'אבטחת מידע',
