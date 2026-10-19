@@ -30,6 +30,8 @@ function reflectionTexts(result: DreamReflectionResult | null): string[] {
   if (typeof result.emotionReflection === 'string') texts.push(result.emotionReflection);
   if (typeof result.summary === 'string') texts.push(result.summary);
   for (const lens of Object.values(result.lenses ?? {})) if (typeof lens === 'string') texts.push(lens);
+  for (const r of result.alternativeReadings ?? []) texts.push(r.basis, r.reading);
+  if (result.existentialLens) texts.push(result.existentialLens.basis, result.existentialLens.text);
   return [...new Set(texts.filter((t) => typeof t === 'string' && t.trim().length > 0))];
 }
 

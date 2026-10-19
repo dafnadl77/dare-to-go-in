@@ -23,6 +23,11 @@ export interface DreamReflectionRequest {
   reconstructionCorrections: string[];
   /** The feelings the dreamer named (up to three), if any. Sent in the SAME request: no extra AI call, no extra credit. */
   emotions?: EmotionId[];
+  /** The association question as the dreamer saw it (written for this dream, or the fixed one). Lets the reflection avoid repeating it. */
+  associationQuestion?: string;
+  /** The optional second question and the dreamer's answer; sent only when they answered it. */
+  linkQuestion?: string;
+  linkResponse?: string;
   /** The dream's own /api/dream-analysis attemptId — required so the
       server can enforce the max-3 reflection limit against the right
       dream (see server/routes/dreamReflection.ts). */

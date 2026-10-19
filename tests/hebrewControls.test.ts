@@ -94,9 +94,13 @@ test('a feelings text naming a feeling the dreamer did not name is detected (the
 test('the route wires the strict checks into its one generation and drops texts that name an unlisted feeling', () => {
   const route = read('server/routes/dreamReflection.ts');
   assert.match(route, /strictLatin: true/);
-  assert.match(route, /findAddressViolation\(collectStrings\(\{ \.\.\.result, groundingStatement: '' \}\), language, addressPreference\) \?\? diagnosticWordingNote\(result\)/);
-  assert.match(route, /mentionsUnlistedFeeling\(validated\.emotionReflection, emotions, language\)\) validated\.emotionReflection = null/);
-  assert.match(route, /mentionsUnlistedFeeling\(validated\.summary, emotions, language\)\) validated\.summary = null/);
+  // (the model call and the delivery steps now live in generateDreamReflection / finalizeDeliveredReflection, which the route calls)
+  assert.match(route, /findAddressViolation\(proseOf\(result\), p\.language, p\.addressPreference\) \?\?/);
+  // the internal existential verdict ("clear") is never checked as Hebrew prose
+  assert.match(route, /collectStrings\(\{ \.\.\.result, groundingStatement: '', existentialFit: undefined \}\)/);
+  assert.match(route, /diagnosticWordingNote\(result\)/);
+  assert.match(route, /mentionsUnlistedFeeling\(validated\.emotionReflection, p\.emotions, p\.language\)\) validated\.emotionReflection = null/);
+  assert.match(route, /mentionsUnlistedFeeling\(validated\.summary, p\.emotions, p\.language\)\) validated\.summary = null/);
   assert.equal((route.match(/responses\.create\(/g) ?? []).length, 1, 'still exactly one model call per attempt site');
   assert.ok(collectStrings({ a: ['x', { b: 'y' }] }).length === 2);
 });

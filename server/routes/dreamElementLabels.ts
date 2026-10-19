@@ -12,10 +12,15 @@ import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
 import { reserveLabelsAttempt, refundLabelsAttempt, getTrialAttemptState } from '../dreamAttempts.js';
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
+import { handleDreamQuestions } from './dreamQuestions.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
 
 export async function handleDreamElementLabels(rawBody: unknown, requestHeaders: RequestHeaders): Promise<HandlerResult> {
+  // Questions written for the dream share this endpoint (the serverless function limit leaves no room for another one).
+  if (typeof rawBody === 'object' && rawBody !== null && (rawBody as { mode?: unknown }).mode === 'questions') {
+    return handleDreamQuestions(rawBody, requestHeaders);
+  }
   const resolved = await resolveCallerIdentity(requestHeaders);
   if (!resolved.ok) {
     return errorResult(resolved.status, resolved.reason, resolved.message);

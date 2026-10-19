@@ -190,6 +190,13 @@ export function findAddressViolation(texts: readonly string[], language: AppLang
   return null;
 }
 
+/** A Hebrew word with a gender slash ("את/ה", "משאיר/ה"): never shown, so the response is regenerated. Null when there is none. */
+export function findHebrewSlashForm(texts: readonly string[], language: AppLanguage | null): string | null {
+  if (language !== 'he') return null;
+  if (!texts.some((t) => /[\u05D0-\u05EA]\/[\u05D4\u05EA](?![\u05D0-\u05EA])/.test(t))) return null;
+  return '\n\nCORRECTION: your previous attempt used a Hebrew gender slash form such as "את/ה" or "משאיר/ה". Regenerate the entire response and use only wording that reads the same for everyone (no slash forms).';
+}
+
 /** Every string anywhere inside a JSON-like value (arrays, nested objects). */
 export function collectStrings(value: unknown): string[] {
   if (typeof value === 'string') return [value];

@@ -27,6 +27,8 @@ import { buildReconstructionBrief, type ReconstructionBrief } from './reconstruc
 import { pickMemoryFragments } from './memoryFragments';
 import { deriveDreamElements, wholeDreamReference } from './dreamElements';
 import { getDisplayLabels } from './dreamElementLabels';
+import { getDreamQuestions } from './dreamQuestions';
+import type { DreamQuestions } from './dreamQuestionsSchema';
 import { generateDreamImage, type ImageResult } from './dreamImage';
 import { getDreamReflection, type DreamReflectionRequest } from './dreamReflectionEngine';
 import type { EmotionId } from './dreamEmotions';
@@ -184,6 +186,11 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // "still loading" apart from "genuinely nothing to choose from".
   const [elementsResolved, setElementsResolved] = useState(false);
   const [reflectionResponse, setReflectionResponse] = useState<string | null>(null);
+  // Questions written for this dream (see dreamQuestions.ts), asked for in the background while the picture is made. They are matched to
+  // the moments by label; absent or blank = the fixed question / no optional link step. Purely an enhancement.
+  const [dreamQuestions, setDreamQuestions] = useState<(DreamQuestions & { moments: string[] }) | null>(null);
+  // The dreamer's answer to the optional link question (null = not asked or skipped).
+  const [linkResponse, setLinkResponse] = useState<string | null>(null);
   // The feelings the dreamer named at the optional feelings step (empty when skipped).
   const [selectedEmotions, setSelectedEmotions] = useState<EmotionId[]>([]);
 
@@ -405,8 +412,19 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         () => getDisplayLabels(analysis.sourceText, combined, analysisResult.attemptId, journeyLanguage),
         (result) => {
           if (result.status === 'ok') {
+            const moments = result.labels.slice(rawFragments.length);
             setFragments(result.labels.slice(0, rawFragments.length));
-            setDreamElements(result.labels.slice(rawFragments.length));
+            setDreamElements(moments);
+            // In the background, never awaited by the journey: questions written for this dream. Any failure leaves the fixed questions.
+            if (moments.length > 0) {
+              runInJourney(
+                epoch,
+                () => getDreamQuestions(analysis, moments, analysisResult.attemptId, journeyLanguage),
+                (q) => {
+                  if (q.status === 'ok') setDreamQuestions({ ...q.questions, moments });
+                },
+              );
+            }
           } else {
             setFragments(rawFragments);
             setDreamElements(rawElements);
@@ -589,12 +607,31 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     setInsideStep('selected');
   };
 
-  // The association is saved; the optional feelings step comes next. The single reflection request starts only after it.
+  // The questions written for the moment the dreamer chose (null = the fixed question / no link step).
+  const questionIndex = selectedElement && dreamQuestions ? dreamQuestions.moments.indexOf(selectedElement) : -1;
+  const associationQuestion = questionIndex >= 0 ? dreamQuestions?.associationQuestions[questionIndex] || null : null;
+  const linkQuestion = questionIndex >= 0 ? dreamQuestions?.linkQuestions[questionIndex] || null : null;
+
+  // The association is saved; the optional second question (when one was written for this moment) and then the optional feelings step
+  // come next. The single reflection request starts only after them.
   const handleSubmitReflection = (text: string) => {
     setReflectionResponse(text);
+    setLinkResponse(null);
     setSelectedEmotions([]);
+    setInsideStep(linkQuestion ? 'link' : 'emotions');
+  };
+
+  // The optional link question: an empty text means the dreamer skipped it.
+  const handleSubmitLink = (text: string) => {
+    setLinkResponse(text.trim() || null);
     setInsideStep('emotions');
   };
+
+  // Everything the reflection engine needs beyond the dream, so the first request and any retry carry exactly the same answers.
+  const reflectionExtras = () => ({
+    ...(associationQuestion ? { associationQuestion } : {}),
+    ...(linkQuestion && linkResponse ? { linkQuestion, linkResponse } : {}),
+  });
 
   // Feelings chosen (or skipped: an empty list) -> the ONE existing reflection request, now carrying the feelings.
   const handleSubmitEmotions = (emotions: EmotionId[]) => {
@@ -607,6 +644,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         reflectionResponse,
         reconstructionCorrections: corrections,
         emotions,
+        ...reflectionExtras(),
         attemptId: analysisResult.attemptId,
       });
     }
@@ -632,6 +670,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       reflectionResponse,
       reconstructionCorrections: corrections,
       emotions: selectedEmotions,
+      ...reflectionExtras(),
       attemptId: analysisResult.attemptId,
     });
   };
@@ -667,6 +706,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         dreamReflection: reflectionEngineResult.reflection,
         corrections,
         emotions: selectedEmotions,
+        ...(linkQuestion && linkResponse ? { linkQuestion, linkResponse } : {}),
         appLanguage: journeyLanguageRef.current ?? undefined,
       }));
     if (!user) {
@@ -823,6 +863,8 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     setElementsResolved(false);
     setRegenNotice(null);
     setReflectionResponse(null);
+    setDreamQuestions(null);
+    setLinkResponse(null);
     setSelectedEmotions([]);
     setCorrections([]);
     setDisplayedImageUrl(null);
@@ -972,7 +1014,10 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         onYes={handleYes}
         onPortalComplete={handlePortalComplete}
         onSelectElement={handleSelectElement}
+        associationQuestion={associationQuestion}
+        linkQuestion={linkQuestion}
         onSubmitReflection={handleSubmitReflection}
+        onSubmitLink={handleSubmitLink}
         onSubmitEmotions={handleSubmitEmotions}
         onRetryReflection={handleRetryReflection}
         onContinueFromReflection={handleContinueFromReflection}

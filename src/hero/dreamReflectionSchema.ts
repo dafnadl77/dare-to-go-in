@@ -1,6 +1,8 @@
 import type { AppLanguage } from './appLanguage.js';
 import { buildLanguageIntegrityInstruction } from './languageIntegrity.js';
 import { buildHebrewAddressInstruction, type AddressPreference } from './addressPreference.js';
+import { maxAlternativeReadings, type DreamDepth } from './dreamDepth.js';
+import { sharesContentWord } from './groundedText.js';
 
 /**
  * A single grounded reflection on one real dream — never dream-dictionary
@@ -13,6 +15,19 @@ export interface DreamReflectionLenses {
   cognitive: string | null;
   jungian: string | null;
   psychodynamic: string | null;
+}
+
+/** Another plausible way to read the same dream, resting on a different detail than the possible thread: a possibility, never a conclusion. */
+export interface AlternativeReading {
+  /** The specific detail of the dream (or of the dreamer's own words) this reading rests on. */
+  basis: string;
+  reading: string;
+}
+
+/** An optional existential angle (time, waiting, loss, choice, thresholds, belonging): offered as a question to contemplate, only when the dream's own content carries such a theme. */
+export interface ExistentialLens {
+  basis: string;
+  text: string;
 }
 
 export interface DreamReflectionResult {
@@ -31,6 +46,12 @@ export interface DreamReflectionResult {
   emotionReflection?: string | null;
   /** One short, personal sentence that gathers the reading. Absent on dreams saved before this existed. */
   summary?: string | null;
+  /** Up to two other plausible readings, each on its own detail (one at most for a very short dream). Absent on dreams saved before this existed. */
+  alternativeReadings?: AlternativeReading[] | null;
+  /** Optional existential angle; null when the dream does not clearly carry such a theme. Absent on dreams saved before this existed. */
+  existentialLens?: ExistentialLens | null;
+  /** The model's own verdict on whether the dream's central event is itself an existential theme. Only 'clear' lets the lens through, and it is removed before the reflection is delivered or saved. */
+  existentialFit?: 'clear' | 'partial' | 'none';
   /** Fixed, non-alarmist grounding line — the server always enforces the exact required wording. */
   groundingStatement: string;
 }
@@ -130,18 +151,20 @@ The dreamer remains the final authority on meaning. You are offering possibiliti
 
 Build the reflection from exactly these layers:
 
-1. OBSERVATION — state what actually happened in the dream. Factual, traceable to the dream's own content. No interpretation yet.
-2. PERSONAL ASSOCIATION — reflect back the dreamer's own stated association with the element they chose, accurately, in one short sentence. Do not overwrite it with a generic meaning of your own.
+1. OBSERVATION — point to ONE thing that is visible in the dream's own facts and that the dreamer has not already said: a contrast, a repetition, the order of events, something missing or left unresolved, or a relationship between two things in the dream (the RELATIONSHIPS, ORDER OF EVENTS and LEFT UNRESOLVED facts in the input exist for this). Factual, traceable to the dream's own content, no interpretation yet. Do not retell the dream and do not repeat the dreamer's association: a sentence that only restates what was already said adds nothing.
+2. PERSONAL ASSOCIATION — reflect back the dreamer's own stated association with the element they chose, accurately, in one short sentence. Do not overwrite it with a generic meaning of your own. If the input also holds the dreamer's answer to a SECOND, OPTIONAL QUESTION, one short extra clause may reflect that answer just as accurately (if they said there was no link, say so plainly); if the section is absent, the dreamer skipped it: say nothing about it.
 
    IMPORTANT — "I don't know" is a completely valid answer, never an error: if the dreamer's response expresses uncertainty or not knowing — in any language, for example "I don't know", "not sure", "nothing", "no idea", "can't explain", or Hebrew equivalents like "לא יודעת", "לא יודע", "לא בטוחה", "אין לי מושג", "לא עולה לי כלום" — do NOT invent a personal association and do NOT pretend the dreamer gave an interpretation. The absence of an association is data, not a gap to fill. In that case, personalAssociation should plainly state that the dreamer wasn't sure what the element brought up — for example: "You weren't sure what the piano brought up for you — so rather than assigning it a meaning, we can look at the role it played in the dream." Then continue normally with a grounded observation, one possible thread based on the dream's own structure, and exactly one useful question. Never fail, refuse, or produce an incomplete response because the dreamer expressed uncertainty.
 
-3. POSSIBLE THREAD — exactly ONE concise thematic possibility connecting the observation and (when available) the dreamer's association, or the dream's own structure when the association is uncertain. A possibility, never a conclusion.
-4. CONTINUITY QUESTION — exactly ONE strong question connecting the dream's pattern to the dreamer's waking life. Only one question, never several.
+3. POSSIBLE THREAD — exactly ONE concise thematic possibility connecting the observation and (when available) the dreamer's association and their answer to the second question, or the dream's own structure when the association is uncertain. A possibility, never a conclusion.
+4. CONTINUITY QUESTION — exactly ONE strong question connecting the dream's pattern to the dreamer's waking life. Only one question, never several. Build it from the dreamer's own words in their answers when they gave any. It must be a NEW question: never repeat or rephrase either question the input says was already asked, and it must not be answerable with yes or no.
 5. LENSES (optional) — up to three OPTIONAL perspectives, each explicitly framed as a lens/perspective, never a fact:
    - cognitive: continuity between waking concerns, memory, emotion, and dream content.
    - jungian: a symbolic/archetypal reading, offered strictly as a theoretical lens.
    - psychodynamic: a cautious relational/conflict-oriented reading.
    If a lens genuinely doesn't apply, set it to null rather than forcing one in. Do not use NLP framing. Do not use CBT as a dream-symbol interpretation framework — CBT belongs to later coping/action work for recurring nightmares, never to "what this dream means."
+   ALTERNATIVE READINGS (alternativeReadings) — other plausible ways to read the same dream, each genuinely different from the possible thread and from each other. How many follows the DEPTH line in the input: brief = 0 or 1, standard = 1 or 2, rich = 2. Each item has "basis" (the specific detail of the dream, or the dreamer's own words, that this reading rests on: at most 10 words, copied from the dream or the answers) and "reading" (one sentence, offered as a possibility with words like "perhaps" or "one other way to see it"). Every reading rests on a DIFFERENT basis than the thread and than the other reading. A reading is about what happened, in what order, what the dreamer did or could not do, or the dreamer's own words: NEVER a fixed meaning for an object or image ("the water means emotion", "the key symbolizes opportunity", "the lantern represents clarity" are exactly what is forbidden). When the dream holds two or more distinct details, give at least one reading; return fewer, or an empty array, only if there is truly no genuinely different, supported reading: never rephrase the thread to fill the quota.
+   EXISTENTIAL PERSPECTIVE — first decide "existentialFit": "clear" only if the dream's central event or image is ITSELF about a human theme such as time, waiting, loss, a choice and its price, a threshold, being seen or unseen, home and belonging, or an ending; "partial" if such a theme is only touched on; "none" if not. Calibrate with these contrasts: a person waiting for a train that never comes = clear; being inside a giant clock = clear; a house that has become unfamiliar = clear; a white horse standing in a kitchen = none; being late for an exam = none; teeth falling out = none; a chase through corridors = partial. Most dreams are "partial" or "none". Then (existentialLens) — optional. Include it ONLY when existentialFit is "clear" and the dream's central event or image is itself about a human theme such as time, waiting, loss, a choice and its price, a threshold, being seen or unseen, home and belonging, or an ending (a dream about waiting for something that does not come, about being inside a clock, about a door that will not open, about a house that has changed). A dream that merely contains an object, an animal or an odd scene does not qualify. Most dreams do not (expect it in roughly one dream out of three): when you are not sure, or when the same sentence could be said about almost any dream, set it to null. It must not restate the possible thread or an alternative reading. An object with "basis" (the detail of the dream it rests on, copied from it) and "text" (one or two plain sentences that frame the theme as a question to contemplate, never as a conclusion). No named philosophers or doctrines used as an authority, no claim about the dreamer's life, beliefs or circumstances, and no statement about what the dream "really" is. If the dream does not clearly carry such a theme, set it to null.
 6. EMOTION REFLECTION — ONLY when the input contains a section named FEELINGS THE DREAMER REPORTED. Those feelings are what the dreamer says they felt, chosen from a fixed list: they are the dreamer's own report, NOT part of what happened in the dream, and NEVER a sign of anyone's mental state. Write one or two sentences in emotionReflection that say plainly these are the dreamer's own reported feelings, keep them clearly separate from the dream's events, and let them shape the reading: which possible thread you choose and the tone of the question. Always attribute the feelings to the dreamer's own report (for example "You named fear and longing" in English, or "בחרתם לציין פחד וגעגוע" in Hebrew, using the exact words listed and always saying who named them: the dreamer; never an impersonal phrasing such as "a feeling of ... was received"). Never infer a state of mind from the feelings: do not use "indicate", "suggest that you are", "point to", "reveal" about the dreamer, nor words such as "conflict", "inner conflict", "coping", "unresolved" (in Hebrew: "להעיד על", "מעיד", "מצביע על", "קונפליקט", "התמודדות עם", "מטריד"). Say only what the dreamer named, and offer with "perhaps" (in Hebrew "אולי") how it might sit beside the chosen moment, and never say the dream "contains", "has", "shows" or "is full of" these feelings or present them as events of the dream. Use possibility language only. Never diagnose, never say what a feeling "indicates", "reveals" or "means about you", and never add a feeling that was not listed. If that section is absent, emotionReflection MUST be null.
 7. SUMMARY — one short personal sentence (about 25 words at most) that gathers the chosen moment, the dreamer's association and, if present, the reported feelings. Possibility language, nothing new, never a conclusion or a diagnosis. If the summary mentions the feelings, it must say that the dreamer named them, never that the dream evoked or contained them.
 
@@ -155,7 +178,7 @@ ${buildLanguageIntegrityInstruction(language)}
 
 Scientific discipline: never use generic internet dream-dictionary meanings (e.g. "water = emotion", "teeth = anxiety", "snake = sexuality"). Ground everything primarily in the dream's own context and the dreamer's own stated words — never a symbol lookup table. Never invent an event, detail, or feeling that is not in the dream or in the dreamer's own response.
 
-Keep every field short: observation and possibleThread are 1-2 sentences; personalAssociation is one short sentence; continuityQuestion is exactly one question; emotionReflection is 1-2 sentences when present; summary is exactly one sentence; each present lens is 1-2 sentences, clearly framed as a possibility.
+LENGTH follows the DEPTH line in the input and is never padded: every sentence must add something the previous ones did not, and a short dream gets a short reflection. brief: observation and possibleThread are one sentence each. standard: observation and possibleThread are 1-2 sentences. rich: possibleThread may take up to 3 sentences. In every depth: personalAssociation is one short sentence; continuityQuestion is exactly one question; emotionReflection is 1-2 sentences when present; summary is exactly one sentence; each present lens, alternative reading and existential perspective is 1-2 sentences, clearly framed as a possibility. Never state any of these as a fact about the dreamer, never invent personal circumstances, and never repeat the same idea in two places.
 
 For groundingStatement, write a short, calm, non-alarmist line making clear this is a reflection, not a diagnosis or definitive interpretation (exact wording is not critical — it will be normalized).
 
@@ -215,7 +238,51 @@ export function validateDreamReflectionResult(candidate: unknown): DreamReflecti
     return null;
   }
 
-  return candidate as DreamReflectionResult;
+  // The newer optional parts are never worth failing a whole reflection over: a malformed one is simply dropped.
+  const result = candidate as DreamReflectionResult;
+  const readings = c.alternativeReadings;
+  result.alternativeReadings = Array.isArray(readings)
+    ? readings.filter((r): r is AlternativeReading => typeof r === 'object' && r !== null && typeof (r as AlternativeReading).basis === 'string' && typeof (r as AlternativeReading).reading === 'string')
+    : null;
+  const existential = c.existentialLens as Partial<ExistentialLens> | null | undefined;
+  result.existentialLens = existential && typeof existential.basis === 'string' && typeof existential.text === 'string' ? { basis: existential.basis, text: existential.text } : null;
+  result.existentialFit = c.existentialFit === 'clear' || c.existentialFit === 'partial' || c.existentialFit === 'none' ? c.existentialFit : undefined;
+  return result;
+}
+
+/**
+ * The deterministic last step for the two newer optional parts, run on the server before anything is delivered or saved. Nothing is
+ * rewritten: a reading or perspective is kept only if it has both parts, is not worded like a diagnosis, and rests on something that
+ * is really in the dream or in the dreamer's own words (its "basis" shares a meaningful word with them). Readings are capped by depth,
+ * and a reading that only repeats the possible thread, or another reading, is dropped.
+ */
+export function finalizeReflectionExtras(
+  result: DreamReflectionResult,
+  depth: DreamDepth,
+  groundingSources: (string | null | undefined)[],
+): DreamReflectionResult {
+  const clean = (t: string) => t.trim();
+  const usable = (basis: string, text: string) =>
+    clean(basis) !== '' && clean(text) !== '' && !feelingsTextLooksDiagnostic(basis) && !feelingsTextLooksDiagnostic(text) && sharesContentWord(basis, ...groundingSources);
+  const seen = new Set<string>([clean(result.possibleThread).toLowerCase()]);
+  const readings: AlternativeReading[] = [];
+  const seenBasis = new Set<string>();
+  for (const r of result.alternativeReadings ?? []) {
+    if (!usable(r.basis, r.reading)) continue;
+    const reading = clean(r.reading);
+    const basis = clean(r.basis);
+    if (seen.has(reading.toLowerCase()) || seenBasis.has(basis.toLowerCase())) continue;
+    seen.add(reading.toLowerCase());
+    seenBasis.add(basis.toLowerCase());
+    readings.push({ basis, reading });
+    if (readings.length >= maxAlternativeReadings(depth)) break;
+  }
+  const e = result.existentialLens;
+  const existentialLens = e && result.existentialFit === 'clear' && usable(e.basis, e.text) ? { basis: clean(e.basis), text: clean(e.text) } : null;
+  const { existentialFit: _verdict, ...delivered } = result;
+  // The three theory lenses were never checked for diagnostic wording ("coping with pressure"); one that reads that way is dropped, the others stay.
+  const lenses = Object.fromEntries(Object.entries(result.lenses).map(([k, v]) => [k, typeof v === 'string' && feelingsTextLooksDiagnostic(v) ? null : v])) as unknown as DreamReflectionLenses;
+  return { ...delivered, lenses, alternativeReadings: readings, existentialLens };
 }
 
 /**
@@ -226,7 +293,7 @@ export function validateDreamReflectionResult(candidate: unknown): DreamReflecti
 export const DREAM_REFLECTION_JSON_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['observation', 'personalAssociation', 'possibleThread', 'continuityQuestion', 'lenses', 'confidenceNotes', 'emotionReflection', 'summary', 'groundingStatement'],
+  required: ['observation', 'personalAssociation', 'possibleThread', 'continuityQuestion', 'lenses', 'confidenceNotes', 'emotionReflection', 'summary', 'alternativeReadings', 'existentialFit', 'existentialLens', 'groundingStatement'],
   properties: {
     observation: { type: 'string' },
     personalAssociation: { type: 'string' },
@@ -245,6 +312,27 @@ export const DREAM_REFLECTION_JSON_SCHEMA = {
     confidenceNotes: { type: 'array', items: { type: 'string' } },
     emotionReflection: { type: ['string', 'null'] },
     summary: { type: ['string', 'null'] },
+    alternativeReadings: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['basis', 'reading'],
+        properties: { basis: { type: 'string' }, reading: { type: 'string' } },
+      },
+    },
+    existentialFit: { type: 'string', enum: ['clear', 'partial', 'none'] },
+    existentialLens: {
+      anyOf: [
+        { type: 'null' },
+        {
+          type: 'object',
+          additionalProperties: false,
+          required: ['basis', 'text'],
+          properties: { basis: { type: 'string' }, text: { type: 'string' } },
+        },
+      ],
+    },
     groundingStatement: { type: 'string' },
   },
 } as const;

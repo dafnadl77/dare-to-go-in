@@ -39,6 +39,7 @@ export type InsideStep =
   | 'choices'
   | 'selected'
   | 'reflecting'
+  | 'link'
   | 'emotions'
   | 'interpreting'
   | 'reflection'
@@ -48,7 +49,7 @@ export type InsideStep =
   | 'letting-go'
   | 'gone';
 
-const REFLECTION_ENGINE_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting', 'emotions', 'interpreting', 'reflection']);
+const REFLECTION_ENGINE_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting', 'link', 'emotions', 'interpreting', 'reflection']);
 const CLOSING_STEPS = new Set<InsideStep>(['closing', 'saving', 'saved', 'letting-go', 'gone']);
 const DISSOLVING_STEPS = new Set<InsideStep>(['letting-go', 'gone']);
 const SAVING_STEPS = new Set<InsideStep>(['saving']);
@@ -93,7 +94,13 @@ interface DreamReconstructionProps {
   onYes: () => void;
   onPortalComplete: () => void;
   onSelectElement: (element: string) => void;
+  /** A question written for this dream about the chosen moment, or null to keep the fixed one. */
+  associationQuestion: string | null;
+  /** The optional second question for the chosen moment, or null when there is none (the step is then skipped). */
+  linkQuestion: string | null;
   onSubmitReflection: (text: string) => void;
+  /** The optional link question: an empty text means the dreamer skipped it. */
+  onSubmitLink: (text: string) => void;
   /** The optional feelings step: an empty list means the dreamer skipped it. */
   onSubmitEmotions: (emotions: EmotionId[]) => void;
   onRetryReflection: () => void;
@@ -138,7 +145,10 @@ export default function DreamReconstruction({
   onYes,
   onPortalComplete,
   onSelectElement,
+  associationQuestion,
+  linkQuestion,
   onSubmitReflection,
+  onSubmitLink,
   onSubmitEmotions,
   onRetryReflection,
   onContinueFromReflection,
@@ -443,7 +453,10 @@ export default function DreamReconstruction({
           accentColor={accentColor}
           dreamPalette={dreamPalette}
           onSelect={onSelectElement}
+          associationQuestion={associationQuestion}
+          linkQuestion={linkQuestion}
           onSubmitReflection={onSubmitReflection}
+          onSubmitLink={onSubmitLink}
           onSubmitEmotions={onSubmitEmotions}
           onRetryReflection={onRetryReflection}
           onContinue={onContinueFromReflection}

@@ -133,8 +133,9 @@ test('the flow: the association no longer starts the reflection; the feelings st
   assert.equal((submitEmotions.match(/startReflectionEngine\(/g) ?? []).length, 1);
   assert.match(submitEmotions, /emotions,\r?\n/);
   // the retry carries the same feelings, and the saved dream records them
-  assert.match(hero, /emotions: selectedEmotions,\r?\n\s+attemptId: analysisResult\.attemptId/);
-  assert.match(hero, /emotions: selectedEmotions,\r?\n\s+appLanguage/);
+  // (the optional second question's answer travels with them, through reflectionExtras())
+  assert.match(hero, /emotions: selectedEmotions,\r?\n\s+\.\.\.reflectionExtras\(\),\r?\n\s+attemptId: analysisResult\.attemptId/);
+  assert.match(hero, /emotions: selectedEmotions,\r?\n[\s\S]{0,160}?appLanguage/);
   const ui = read('src/hero/DreamReflection.tsx');
   assert.match(ui, /onClick=\{\(\) => onSubmitEmotions\(selectedEmotions\)\}/);
   assert.match(ui, /onClick=\{\(\) => onSubmitEmotions\(\[\]\)\}/);
@@ -145,7 +146,7 @@ test('the flow: the association no longer starts the reflection; the feelings st
 test('the route reads the feelings only through normalizeEmotions and forces the feelings text to null when there are none', () => {
   const route = read('server/routes/dreamReflection.ts');
   assert.match(route, /normalizeEmotions\(body\.emotions\)/);
-  assert.match(route, /if \(emotions\.length === 0\) validated\.emotionReflection = null/);
+  assert.match(route, /if \(p\.emotions\.length === 0\) validated\.emotionReflection = null/);
   assert.equal((route.match(/responses\.create\(/g) ?? []).length, 1, 'still exactly one model call in the reflection route');
 });
 

@@ -45,6 +45,9 @@ export interface SavedDream {
   appLanguage: AppLanguage;
   /** The feelings the dreamer named (stable ids, up to three). Absent on every dream saved before this existed, and when the step was skipped: both read as "not recorded". Stored inside the dream's jsonb payload, so no database migration. */
   emotions?: EmotionId[];
+  /** The optional second question the dreamer answered and the answer itself. Absent when it was not asked or was skipped, and on every dream saved before this existed. Stored in the dream's jsonb payload: no database migration. */
+  linkQuestion?: string;
+  linkResponse?: string;
   /** Optional so every dream saved before this field existed still parses
       fine from localStorage (`undefined` reads as "not favorited") — no
       migration needed for existing stored data. */
@@ -158,16 +161,21 @@ export function buildSavedDream(params: {
   corrections: string[];
   /** The feelings the dreamer named; an empty list (skipped) is simply not stored. */
   emotions?: EmotionId[];
+  /** The optional second question and the dreamer's answer; stored only when they answered. */
+  linkQuestion?: string;
+  linkResponse?: string;
   /** The language the journey's content was generated in; defaults to the current app language. */
   appLanguage?: AppLanguage;
 }): SavedDream {
-  const { appLanguage, emotions, ...rest } = params;
+  const { appLanguage, emotions, linkQuestion, linkResponse, ...rest } = params;
   const normalized = normalizeEmotions(emotions);
+  const answeredLink = linkQuestion && linkResponse && linkResponse.trim() !== '';
   return {
     id: randomId(),
     createdAt: new Date().toISOString(),
     ...rest,
     ...(normalized.length > 0 ? { emotions: normalized } : {}),
+    ...(answeredLink ? { linkQuestion, linkResponse: linkResponse.trim() } : {}),
     appLanguage: appLanguage ?? getAppLanguage(),
   };
 }

@@ -116,6 +116,10 @@ export interface Translations {
     emotionsDescription: string;
     emotionsContinue: string;
     emotionsSkip: string;
+    /** The optional second question about the chosen moment: the way to skip it. */
+    linkSkip: string;
+    /** Label of the optional existential perspective inside the other perspectives. */
+    existential: string;
     /** "{count}" is replaced with how many feelings are chosen so far (the limit is shown in the text). */
     emotionsCount: string;
     emotionsGroupAria: string;
@@ -646,6 +650,8 @@ export const en: Translations = {
     emotionsDescription: 'Sometimes feelings reveal what words cannot. Choose up to three feelings that stayed with you.',
     emotionsContinue: 'DISCOVER WHAT YOUR DREAM REVEALS',
     emotionsSkip: 'Not sure what you felt? You can continue',
+    linkSkip: 'You can skip this question',
+    existential: 'AN EXISTENTIAL ANGLE',
     emotionsCount: '{count} of 3 chosen',
     emotionsGroupAria: 'Feelings from the dream, choose up to three',
     theFeelingsYouNamed: 'THE FEELINGS YOU NAMED',
@@ -1199,12 +1205,14 @@ export const he: Translations = {
   },
   reflection: {
     momentQuestion: 'איזה רגע בחלום הכי נשאר איתך?',
-    momentHint: 'לבחור רגע אחד שמשך את תשומת הלב במיוחד.',
+    momentHint: 'אפשר לבחור רגע אחד שמשך את תשומת הלב במיוחד.',
     chosenMoment: 'הרגע שבחרת',
     emotionsTitle: 'איזו תחושה נשארה איתך מהחלום?',
     emotionsDescription: 'אפשר לבחור עד שלוש תחושות.',
     emotionsContinue: 'לגלות מה החלום מספר',
     emotionsSkip: 'אפשר להמשיך גם בלי לבחור',
+    linkSkip: 'אפשר לדלג על השאלה',
+    existential: 'זווית קיומית',
     emotionsCount: '{count} מתוך 3 נבחרו',
     emotionsGroupAria: 'תחושות מהחלום, אפשר לבחור עד שלוש',
     theFeelingsYouNamed: 'התחושות שבחרת',

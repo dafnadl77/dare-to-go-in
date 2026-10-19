@@ -43,7 +43,7 @@ test('English Dream Reflection output is completely unaffected by address prefer
 test('this is a grammatical-address change only — the reflection\'s own meaning/structure is untouched', () => {
   const prompt = buildDreamReflectionSystemPrompt('en', 'neutral');
   // The exact same five layers as before this change, unmodified.
-  assert.match(prompt, /1\. OBSERVATION — state what actually happened in the dream/);
+  assert.match(prompt, /1\. OBSERVATION — point to ONE thing that is visible in the dream's own facts/);
   assert.match(prompt, /2\. PERSONAL ASSOCIATION/);
   assert.match(prompt, /3\. POSSIBLE THREAD — exactly ONE concise thematic possibility/);
   assert.match(prompt, /4\. CONTINUITY QUESTION — exactly ONE strong question/);

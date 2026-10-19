@@ -24,7 +24,13 @@ interface DreamReflectionProps {
   /** This dream's own harmonious palette — cycled one color per bubble, so the arrival scene never reduces to one accent. */
   dreamPalette: AccentColor[] | null;
   onSelect: (element: string) => void;
+  /** A question written for this dream about the chosen moment, or null to keep the fixed question. */
+  associationQuestion: string | null;
+  /** The optional second question about the chosen moment (the 'link' step only exists when there is one). */
+  linkQuestion: string | null;
   onSubmitReflection: (text: string) => void;
+  /** The optional link question: an empty text means the dreamer skipped it. */
+  onSubmitLink: (text: string) => void;
   /** The optional feelings step. An empty list means the dreamer skipped it. */
   onSubmitEmotions: (emotions: EmotionId[]) => void;
   onRetryReflection: () => void;
@@ -66,7 +72,7 @@ const NODE_ICONS: ReactNode[] = [
 
 const CHOICE_STEPS = new Set<InsideStep>(['choices', 'selected']);
 const QUESTION_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting']);
-const ARRIVAL_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting', 'emotions']);
+const ARRIVAL_STEPS = new Set<InsideStep>(['prompt', 'choices', 'selected', 'reflecting', 'link', 'emotions']);
 
 // Translation-key lookup (not the literal label itself — see t() calls at
 // render time) for each lens name to the i18n key that holds its display
@@ -132,7 +138,10 @@ export default function DreamReflection({
   accentColor,
   dreamPalette,
   onSelect,
+  associationQuestion,
+  linkQuestion,
   onSubmitReflection,
+  onSubmitLink,
   onSubmitEmotions,
   onRetryReflection,
   onContinue,
@@ -140,6 +149,11 @@ export default function DreamReflection({
   const { t, language } = useLanguage();
   const showAiText = useReflectionDisplay(reflectionResult);
   const [responseText, setResponseText] = useState('');
+  // The optional second question's own answer, empty again every time that step opens.
+  const [linkText, setLinkText] = useState('');
+  useEffect(() => {
+    if (step === 'link') setLinkText('');
+  }, [step]);
   const [lensesVisible, setLensesVisible] = useState(false);
   // The short explanation of the symbols-and-meanings lens opens only when the dreamer asks for it.
   const [lensInfoOpen, setLensInfoOpen] = useState(false);
@@ -221,7 +235,10 @@ export default function DreamReflection({
   // reader more is there. Never moves or pins anything (see useScrollCue).
   const showScrollCue = useScrollCue(step === 'reflection' && stage >= lastStage, continueWrapRef);
 
-  const questionText = QUESTION_STEPS.has(step) && selectedElement ? buildReflectionQuestion(selectedElement, t) : null;
+  // A question written for this dream replaces the fixed template. The fixed English wording is set in capitals, so a written English question is too.
+  const writtenForDisplay = (text: string) => (language === 'en' ? text.toUpperCase() : text);
+  const questionText =
+    QUESTION_STEPS.has(step) && selectedElement ? (associationQuestion ? writtenForDisplay(associationQuestion) : buildReflectionQuestion(selectedElement, t)) : null;
   const showAnchor = selectedElement && (step === 'interpreting' || step === 'reflection');
 
   const handleContinue = () => {
@@ -230,9 +247,19 @@ export default function DreamReflection({
     onSubmitReflection(text);
   };
 
+  const handleLinkContinue = () => {
+    const text = linkText.trim();
+    if (!text) return;
+    onSubmitLink(text);
+  };
+
   const activeLenses = reflectionResult
     ? (Object.entries(reflectionResult.lenses) as [keyof typeof LENS_LABEL_KEYS, string | null][]).filter(([, text]) => !!text)
     : [];
+  // Other plausible readings (each resting on its own detail of the dream) and the optional existential angle: shown in the same panel as the lenses.
+  const alternativeReadings = (reflectionResult?.alternativeReadings ?? []).filter((r) => r.basis.trim() && r.reading.trim());
+  const existential = reflectionResult?.existentialLens && reflectionResult.existentialLens.text.trim() ? reflectionResult.existentialLens : null;
+  const hasOtherPerspectives = activeLenses.length > 0 || alternativeReadings.length > 0 || !!existential;
 
   return (
     <div className="dream-reflection" data-step={step} data-flow={step === 'reflection' && flowLayout ? 'true' : undefined} style={{ '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties}>
@@ -316,6 +343,37 @@ export default function DreamReflection({
                   <button type="button" className="dr-choice" data-cursor-hover onClick={handleContinue}>
                     {t('reflection.continue')}
                   </button>
+                </div>
+              </>
+            )}
+
+            {step === 'link' && linkQuestion && (
+              <>
+                <p className="dr-question dr-question--asking">
+                  <EditorialTitle text={writtenForDisplay(linkQuestion)} />
+                </p>
+                <div className="dr-response">
+                  <div className={`dr-writing-surface${linkText ? ' has-text' : ''}`}>
+                    <textarea
+                      className="dr-response-textarea"
+                      value={linkText}
+                      onChange={(e) => setLinkText(e.target.value)}
+                      placeholder={t('reflection.writingPlaceholder')}
+                      dir="auto"
+                      rows={3}
+                    />
+                    <span className="dr-writing-line" aria-hidden="true">
+                      <span className="dr-writing-line-glow" />
+                    </span>
+                  </div>
+                  <div className="de-actions">
+                    <button type="button" className="dr-choice" data-cursor-hover disabled={!linkText.trim()} onClick={handleLinkContinue}>
+                      {t('reflection.continue')}
+                    </button>
+                    <button type="button" className="de-skip" data-cursor-hover onClick={() => onSubmitLink('')}>
+                      {t('reflection.linkSkip')}
+                    </button>
+                  </div>
                 </div>
               </>
             )}
@@ -437,13 +495,23 @@ export default function DreamReflection({
             })}
           </div>
 
-          {stage >= lastStage && activeLenses.length > 0 && (
+          {stage >= lastStage && hasOtherPerspectives && (
             <div className="dr-lenses-wrap">
               <button type="button" className="dr-lenses-toggle" data-cursor-hover onClick={() => setLensesVisible((v) => !v)}>
                 {lensesVisible ? t('reflection.hideOtherLenses') : t('reflection.seeOtherLenses')}
               </button>
               {lensesVisible && (
                 <div className="dr-lenses">
+                  {alternativeReadings.map((r) => (
+                    <p className="dr-lens" key={`alt-${r.basis}`}>
+                      <span className="dr-lens-label">{showAiText(r.basis)}</span> {showAiText(r.reading)}
+                    </p>
+                  ))}
+                  {existential && (
+                    <p className="dr-lens" key="existential">
+                      <span className="dr-lens-label">{t('reflection.existential')}</span> {showAiText(existential.text)}
+                    </p>
+                  )}
                   {activeLenses.map(([key, text]) => (
                     <p className="dr-lens" key={key}>
                       <span className="dr-lens-label">{t(LENS_LABEL_KEYS[key])}</span>
