@@ -1,0 +1,67 @@
+/* The prototype page scrolls like a normal document (the app keeps body overflow hidden for its full-screen journey). */
+html:has(body.dmp-body),
+body.dmp-body,
+body.dmp-body #root {
+  height: auto;
+  min-height: 100%;
+}
+
+body.dmp-body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: #070812;
+}
+
+.dmp-bar {
+  position: relative;
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  padding: 10px clamp(16px, 3vw, 44px);
+  background: #12101c;
+  border-bottom: 1px dashed rgba(233, 199, 135, 0.6);
+  font-size: 15px;
+}
+
+.dmp-badge {
+  color: #f3dcaa;
+  font-weight: 600;
+}
+
+.dmp-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dmp-field select {
+  min-height: 36px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(244, 240, 232, 0.4);
+  background: #0b0c1b;
+  color: #f4f0e8;
+  font: inherit;
+}
+
+.dmp-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: #e9c787;
+}
+
+.dmp-reset {
+  min-height: 36px;
+  padding: 4px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 240, 232, 0.5);
+}
+
+.dmp-reset:focus-visible,
+.dmp-field select:focus-visible,
+.dmp-check input:focus-visible {
+  outline: 3px solid #fff1cf;
+  outline-offset: 3px;
+}

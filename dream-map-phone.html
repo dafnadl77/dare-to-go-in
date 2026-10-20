@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- DREAM MAP PROTOTYPE, PHONE VIEW (design review only, development server only; `vite build` builds index.html alone, so this page
+     is never deployed). It shows the prototype inside a phone-sized frame, so the mobile layout can be reviewed in any desktop browser
+     without developer tools. -->
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="noindex" />
+    <title>מפת החלום · תצוגת טלפון</title>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="stylesheet" href="/fonts/fonts.css" />
+    <style>
+      * { box-sizing: border-box; margin: 0; }
+      body { min-height: 100vh; background: #070812; color: #f4f0e8; font: 16px/1.5 'Heebo', system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; }
+      .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 16px; }
+      .bar strong { color: #f3dcaa; }
+      .bar button, .bar a { min-height: 40px; padding: 6px 18px; border-radius: 999px; border: 1px solid rgba(244, 240, 232, 0.5); background: transparent; color: inherit; font: inherit; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
+      .bar button[aria-pressed='true'] { border-color: #e9c787; background: rgba(233, 199, 135, 0.12); color: #f3dcaa; }
+      .bar button:focus-visible, .bar a:focus-visible { outline: 3px solid #fff1cf; outline-offset: 3px; }
+      .phone { padding: 14px; border-radius: 44px; background: #15141f; border: 1px solid rgba(233, 199, 135, 0.35); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); }
+      iframe { display: block; border: 0; border-radius: 30px; background: #070812; }
+    </style>
+  </head>
+  <body>
+    <div class="bar">
+      <strong>תצוגת טלפון · אבטיפוס</strong>
+      <span>רוחב:</span>
+      <button type="button" data-w="360" data-h="780">360</button>
+      <button type="button" data-w="375" data-h="812">375</button>
+      <button type="button" data-w="390" data-h="844" aria-pressed="true">390</button>
+      <a href="/dream-map-prototype.html">לתצוגת המחשב</a>
+    </div>
+    <div class="phone">
+      <iframe id="frame" title="אבטיפוס מפת החלום בגודל טלפון" src="/dream-map-prototype.html" width="390" height="844"></iframe>
+    </div>
+    <script>
+      const frame = document.getElementById('frame');
+      for (const b of document.querySelectorAll('button[data-w]')) {
+        b.addEventListener('click', () => {
+          frame.width = b.dataset.w;
+          frame.height = b.dataset.h;
+          for (const o of document.querySelectorAll('button[data-w]')) o.setAttribute('aria-pressed', String(o === b));
+        });
+      }
+    </script>
+  </body>
+</html>

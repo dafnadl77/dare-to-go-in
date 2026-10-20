@@ -1,0 +1,1372 @@
+/* THE DREAM MAP. Brand: Heebo / Fraunces, the ivory text and outline buttons of index.css, the approved cloud video behind, gold light
+   lines, and this dream's own colours (from its one picture) in the glow. Every text sits on a near-opaque night plate (no text on
+   clouds), at 15px or more. Logical properties throughout, so Hebrew (RTL) and English (LTR) mirror without separate rules. */
+
+.dm-root {
+  --dm-gold: 233, 199, 135;
+  --dm-gold-text: #f3dcaa;
+  --dm-plate: rgba(11, 12, 27, 0.9);
+  --dm-plate-strong: rgba(12, 13, 30, 0.97);
+  --dm-text: var(--dream-white, #f4f0e8);
+  --dm-text-dim: rgba(244, 240, 232, 0.8);
+  --dm-ease: var(--ease-memory, cubic-bezier(0.16, 0.72, 0.2, 1));
+  position: relative;
+  min-height: 100vh;
+  color: var(--dm-text);
+  overflow-x: clip;
+}
+
+.dm-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ background */
+.dm-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.dm-bg-tint {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 40%, rgba(var(--dm-accent-1), 0.18), transparent 70%),
+    radial-gradient(ellipse 45% 40% at 12% 88%, rgba(var(--dm-accent-2), 0.2), transparent 70%),
+    radial-gradient(ellipse 45% 40% at 88% 85%, rgba(var(--dm-accent-3), 0.14), transparent 70%),
+    radial-gradient(ellipse 60% 35% at 18% 100%, rgba(150, 90, 170, 0.22), transparent 70%),
+    radial-gradient(ellipse 60% 35% at 85% 100%, rgba(200, 120, 120, 0.14), transparent 70%),
+    linear-gradient(180deg, rgba(10, 11, 38, 0.58) 0%, rgba(14, 10, 40, 0.5) 45%, rgba(8, 8, 26, 0.74) 100%);
+}
+
+.dm-page {
+  position: relative;
+  z-index: 1;
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 24px clamp(16px, 3vw, 44px) 72px;
+}
+
+/* ------------------------------------------------------------------ header */
+.dm-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px 24px;
+}
+
+.dm-back {
+  flex: none;
+}
+
+.dm-back,
+.dm-text-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 240, 232, 0.45);
+  background: rgba(11, 12, 27, 0.72);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.dm-text-toggle {
+  min-height: 40px;
+  padding: 6px 16px;
+  font-size: 15px;
+  color: var(--dm-gold-text);
+  border-color: rgba(var(--dm-gold), 0.5);
+}
+
+.dm-back:hover,
+.dm-text-toggle:hover {
+  background: var(--dream-btn-hover-bg, rgba(255, 255, 255, 0.08));
+}
+
+.dm-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 760px;
+  padding: 16px 22px;
+  border-radius: 22px;
+  background: rgba(9, 10, 24, 0.66);
+}
+
+.dm-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 18px;
+}
+
+.dm-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: clamp(30px, 3.2vw, 44px);
+  line-height: 1.15;
+  font-weight: 700;
+  color: var(--dm-gold-text);
+  text-shadow: 0 0 24px rgba(var(--dm-gold), 0.25);
+}
+
+.dm-root[lang='en'] .dm-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+}
+
+.dm-moon {
+  display: inline-flex;
+  color: rgb(var(--dm-gold));
+  filter: drop-shadow(0 0 8px rgba(var(--dm-gold), 0.5));
+}
+
+.dm-date {
+  font-size: 16px;
+  color: var(--dm-text-dim);
+  letter-spacing: 0.02em;
+}
+
+.dm-dream-text {
+  font-size: 17px;
+  line-height: 1.7;
+  max-width: 60ch;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  outline: none;
+}
+
+.dm-dream-text[data-expanded='true'] {
+  display: block;
+  -webkit-line-clamp: unset;
+}
+
+.dm-dream-text:focus-visible {
+  outline: 2px solid rgba(var(--dm-gold), 0.8);
+  outline-offset: 6px;
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------------ desktop orbit */
+.dm-map {
+  position: relative;
+}
+
+.dm-orbit {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  column-gap: clamp(56px, 6vw, 110px);
+  align-items: center;
+  /* The top padding only has to clear the number badges that rise 22px above the first cards. */
+  padding-block: 30px 36px;
+}
+
+.dm-links {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.dm-col {
+  position: relative;
+  z-index: 2;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: clamp(280px, 24vw, 390px);
+}
+
+.dm-col-start {
+  justify-self: end;
+}
+
+.dm-col-end {
+  justify-self: start;
+}
+
+.dm-center {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+
+/* ------------------------------------------------------------------ the one dream picture */
+.dm-portal-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dm-portal {
+  position: relative;
+  width: clamp(300px, 27vw, 440px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1.5px rgba(var(--dm-gold), 0.8),
+    0 0 0 8px rgba(var(--dm-gold), 0.07),
+    0 0 46px 6px rgba(var(--dm-gold), 0.3),
+    0 0 150px 40px rgba(var(--dm-accent-1), 0.3);
+  animation: dm-portal-in 1.6s var(--dm-ease) both;
+}
+
+.dm-portal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dm-portal[data-revealed='true'] {
+  animation: dm-portal-glow 2.6s ease-out 1;
+}
+
+.dm-root[data-sensitive='true'] .dm-portal[data-revealed='true'] {
+  animation: none;
+}
+
+.dm-pill {
+  position: relative;
+  z-index: 3;
+  margin-top: -26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 10px 26px;
+  border-radius: 999px;
+  background: var(--dm-plate-strong);
+  border: 1px solid rgba(var(--dm-gold), 0.7);
+  box-shadow: 0 0 22px rgba(var(--dm-gold), 0.25);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--dm-text);
+}
+
+.dm-pill svg {
+  color: rgb(var(--dm-gold));
+}
+
+.dm-pill:hover {
+  box-shadow: 0 0 30px rgba(var(--dm-gold), 0.45);
+}
+
+.dm-progress {
+  font-size: 15px;
+  color: var(--dm-text-dim);
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(9, 10, 24, 0.6);
+}
+
+/* ------------------------------------------------------------------ moment cards */
+.dm-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  text-align: start;
+  padding: 32px 22px 18px;
+  border-radius: 22px;
+  background: var(--dm-plate);
+  border: 1px solid rgba(var(--dm-gold), 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 14px 40px rgba(0, 0, 0, 0.45),
+    0 0 26px rgba(var(--dm-gold), 0.1);
+  color: var(--dm-text);
+  transition:
+    transform 0.35s var(--dm-ease),
+    border-color 0.35s,
+    box-shadow 0.35s;
+  /* backwards, not both: a filled transform would override the hover lift. */
+  animation: dm-rise 0.9s var(--dm-ease) backwards;
+}
+
+.dm-card:hover,
+.dm-card[data-highlighted='true'] {
+  border-color: rgba(var(--dm-gold), 0.9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 16px 44px rgba(0, 0, 0, 0.5),
+    0 0 36px rgba(var(--dm-gold), 0.3);
+  transform: translateY(-2px);
+}
+
+.dm-card:focus-visible,
+.dm-btn:focus-visible,
+.dm-pill:focus-visible,
+.dm-back:focus-visible,
+.dm-text-toggle:focus-visible,
+.dm-link-item:focus-visible,
+.dm-more-item:focus-visible,
+.dm-dialog-close:focus-visible {
+  outline: 3px solid #fff1cf;
+  outline-offset: 4px;
+}
+
+.dm-card-num {
+  position: absolute;
+  top: -22px;
+  inset-inline-start: 18px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #0d0e1f;
+  border: 1.5px solid rgba(var(--dm-gold), 0.95);
+  color: var(--dm-gold-text);
+  font-size: 21px;
+  font-weight: 600;
+  box-shadow: 0 0 18px rgba(var(--dm-gold), 0.45);
+}
+
+.dm-card-num-inline {
+  position: static;
+}
+
+.dm-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dm-card-title {
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--dm-gold-text);
+}
+
+.dm-card-chevron {
+  flex: none;
+  color: rgba(var(--dm-gold), 0.9);
+  margin-top: 2px;
+}
+
+.dm-card-excerpt {
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--dm-text-dim);
+  padding-inline-start: 12px;
+  border-inline-start: 2px solid rgba(var(--dm-gold), 0.35);
+}
+
+.dm-card-insight {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.dm-card-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  color: var(--dm-gold-text);
+}
+
+.dm-card-status {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--dm-gold), 0.65);
+  background: rgba(var(--dm-gold), 0.08);
+  color: var(--dm-gold-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.dm-card-status[data-status='unexplored'],
+.dm-card-status[data-status='exploring'] {
+  border-style: dashed;
+  border-color: rgba(244, 240, 232, 0.45);
+  background: transparent;
+  color: var(--dm-text-dim);
+}
+
+.dm-card[data-status='unexplored'] {
+  border-style: dashed;
+  border-color: rgba(244, 240, 232, 0.34);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4);
+}
+
+.dm-card[data-status='unexplored'] .dm-card-num {
+  border-style: dashed;
+  border-color: rgba(244, 240, 232, 0.55);
+  color: var(--dm-text-dim);
+  box-shadow: none;
+}
+
+.dm-card[data-status='unexplored']:hover,
+.dm-card[data-status='unexplored'][data-highlighted='true'] {
+  border-color: rgba(var(--dm-gold), 0.7);
+}
+
+.dm-card[data-status='exploring'] {
+  animation: dm-exploring 1.4s ease-in-out infinite;
+}
+
+.dm-card[data-status='explored'] .dm-card-num {
+  animation: dm-node-light 1.2s var(--dm-ease) both;
+}
+
+/* ------------------------------------------------------------------ lines */
+.dm-line,
+.dm-line-glow {
+  fill: none;
+  stroke-linecap: round;
+  transition:
+    opacity 0.35s,
+    stroke-width 0.35s;
+}
+
+.dm-line {
+  stroke: rgba(255, 226, 168, 0.95);
+  stroke-width: 2;
+}
+
+.dm-line-glow {
+  stroke: rgba(var(--dm-gold), 0.55);
+  stroke-width: 9;
+  filter: blur(4px);
+}
+
+.dm-spoke.is-unexplored .dm-line {
+  stroke: rgba(244, 240, 232, 0.35);
+  stroke-width: 1.2;
+  stroke-dasharray: 0.012 0.02;
+}
+
+.dm-link .dm-line {
+  stroke: rgba(255, 232, 186, 0.8);
+  stroke-width: 1.5;
+}
+
+.dm-link .dm-line-glow {
+  stroke: rgba(var(--dm-gold), 0.45);
+}
+
+.dm-dot {
+  fill: #ffe9bf;
+  filter: drop-shadow(0 0 4px rgba(var(--dm-gold), 0.9));
+}
+
+.dm-spoke.is-unexplored .dm-dot {
+  fill: rgba(244, 240, 232, 0.55);
+  filter: none;
+}
+
+[data-state='dim'] {
+  opacity: 0.22;
+}
+
+[data-state='on'] .dm-line {
+  stroke-width: 2.4;
+}
+
+[data-state='on'] .dm-line-glow {
+  stroke-width: 10;
+}
+
+.dm-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: dm-draw 1.5s var(--dm-ease) forwards;
+  animation-delay: calc(var(--i, 0) * 140ms + 350ms);
+}
+
+.dm-draw-late {
+  animation-duration: 1.8s;
+  animation-delay: calc(var(--i, 0) * 260ms + 600ms);
+}
+
+/* ------------------------------------------------------------------ narrow: a vertical path */
+.dm-path {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding-top: 28px;
+}
+
+.dm-root[data-mode='path'] .dm-portal {
+  width: min(76vw, 340px);
+}
+
+/* THE JOURNEY: one continuous, quiet gold line. It drops from under the picture, turns to the start side, runs down past every
+   moment, and reaches into each card at its number. Decorative only (pseudo-elements and an aria-hidden node): the order itself is
+   the ordered list, so a screen reader hears "1 of 6, 2 of 6..." without the line. */
+.dm-root[data-mode='path'] .dm-progress {
+  position: relative;
+}
+
+/* From the picture's caption down to the turn. */
+.dm-root[data-mode='path'] .dm-progress::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 2px;
+  height: 18px;
+  margin-left: -1px;
+  background: rgba(var(--dm-gold), 0.75);
+  box-shadow: 0 0 8px rgba(var(--dm-gold), 0.5);
+}
+
+.dm-path-list {
+  position: relative;
+  list-style: none;
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  padding-top: 40px;
+}
+
+/* The turn: from the centre (under the picture) across to the start side, curving down into the line. */
+.dm-path-list::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline-start: 15px;
+  width: calc(50% - 15px);
+  height: 28px;
+  border-top: 2px solid rgba(var(--dm-gold), 0.75);
+  border-inline-start: 2px solid rgba(var(--dm-gold), 0.75);
+  border-start-start-radius: 22px;
+  box-shadow: -1px -1px 10px -4px rgba(var(--dm-gold), 0.6);
+}
+
+/* The line itself, in segments that always meet: from the turn to the first node, then from each node to the next one (its node sits
+   48px below the item's top, and the items are 40px apart), ending exactly at the last moment's node, whatever the card heights. */
+.dm-path-list::before,
+.dm-path-item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 15px;
+  width: 2px;
+  background: rgba(var(--dm-gold), 0.75);
+  box-shadow: 0 0 10px rgba(var(--dm-gold), 0.5);
+  transform-origin: top;
+  animation: dm-grow 1.2s var(--dm-ease) both;
+}
+
+.dm-path-list::before {
+  top: 26px;
+  height: 62px;
+}
+
+.dm-path-item {
+  position: relative;
+  padding-inline-start: 44px;
+}
+
+.dm-path-item:not(:last-child)::before {
+  top: 48px;
+  bottom: -88px;
+}
+
+/* The short branch from the line into the card, at the height of its number. */
+.dm-path-item::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: 23px;
+  top: 47px;
+  width: 21px;
+  height: 2px;
+  background: rgba(var(--dm-gold), 0.75);
+  box-shadow: 0 0 8px rgba(var(--dm-gold), 0.5);
+}
+
+.dm-path-item[data-status='unexplored']::after {
+  background: repeating-linear-gradient(90deg, rgba(244, 240, 232, 0.55) 0 4px, transparent 4px 7px);
+  box-shadow: none;
+}
+
+.dm-path-node {
+  position: absolute;
+  z-index: 1;
+  inset-inline-start: 8px;
+  top: 40px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #0d0e1f;
+  border: 2px solid rgb(var(--dm-gold));
+  box-shadow: 0 0 12px rgba(var(--dm-gold), 0.8);
+}
+
+.dm-path-item[data-status='unexplored'] .dm-path-node {
+  border-style: dashed;
+  border-color: rgba(244, 240, 232, 0.6);
+  box-shadow: none;
+}
+
+/* ------------------------------------------------------------------ lower panels */
+.dm-lower {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr) minmax(0, 0.85fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.dm-root[data-mode='path'] .dm-lower {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 640px;
+  margin: 44px auto 0;
+}
+
+.dm-panel {
+  position: relative;
+  padding: 26px 28px 28px;
+  border-radius: 24px;
+  background: var(--dm-plate);
+  border: 1px solid rgba(var(--dm-gold), 0.38);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+}
+
+.dm-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  font-size: clamp(20px, 1.7vw, 24px);
+  font-weight: 700;
+  color: var(--dm-gold-text);
+}
+
+.dm-panel-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid rgba(var(--dm-gold), 0.55);
+  color: rgb(var(--dm-gold));
+  background: rgba(var(--dm-gold), 0.06);
+}
+
+.dm-panel-icon-glow {
+  box-shadow: 0 0 22px rgba(var(--dm-gold), 0.35);
+}
+
+.dm-muted {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--dm-text-dim);
+}
+
+.dm-sub {
+  margin-bottom: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--dm-gold-text);
+  letter-spacing: 0.02em;
+}
+
+/* Whole view */
+.dm-whole-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 18px;
+}
+
+.dm-whole-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.dm-whole-overview {
+  font-size: 18px;
+  line-height: 1.75;
+}
+
+.dm-whole-facets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px 24px;
+}
+
+.dm-whole-facets dt {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--dm-gold-text);
+  margin-bottom: 4px;
+}
+
+.dm-whole-facets dd {
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.dm-readings {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dm-readings li {
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.dm-basis {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 15px;
+  color: rgba(var(--dm-gold), 0.95);
+}
+
+.dm-basis::before {
+  content: '“';
+}
+
+.dm-basis::after {
+  content: '”';
+}
+
+.dm-closing {
+  padding-top: 16px;
+  border-top: 1px solid rgba(var(--dm-gold), 0.25);
+}
+
+.dm-closing p {
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.dm-grounding {
+  font-size: 15px;
+  color: var(--dm-text-dim);
+}
+
+.dm-stale {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px dashed rgba(var(--dm-gold), 0.55);
+}
+
+.dm-stale > p:first-child {
+  flex-basis: 100%;
+  font-size: 16px;
+}
+
+/* THE WHOLE VIEW is the peak of the map: a stronger title, a soft gold halo around the panel, and one short reveal when it is written.
+   Same plate, same fonts and colours as every other panel: only the light around it is stronger. */
+.dm-whole {
+  border-color: rgba(var(--dm-gold), 0.62);
+  box-shadow:
+    0 0 0 1px rgba(var(--dm-gold), 0.1),
+    0 0 48px rgba(var(--dm-gold), 0.16),
+    0 18px 50px rgba(0, 0, 0, 0.45);
+}
+
+.dm-whole .dm-panel-title {
+  font-size: clamp(24px, 2.2vw, 30px);
+  line-height: 1.25;
+  text-shadow: 0 0 22px rgba(var(--dm-gold), 0.38);
+}
+
+.dm-whole .dm-panel-icon {
+  width: 52px;
+  height: 52px;
+}
+
+.dm-whole[data-phase='shown'] {
+  animation: dm-whole-reveal 1.2s var(--dm-ease) both;
+}
+
+.dm-root[data-sensitive='true'] .dm-whole[data-phase='shown'] {
+  animation-name: dm-whole-reveal-soft;
+}
+
+@keyframes dm-whole-reveal {
+  0% {
+    transform: scale(0.985);
+    box-shadow:
+      0 0 0 1px rgba(var(--dm-gold), 0.1),
+      0 0 0 rgba(var(--dm-gold), 0),
+      0 18px 50px rgba(0, 0, 0, 0.45);
+  }
+  45% {
+    transform: none;
+    box-shadow:
+      0 0 0 1px rgba(var(--dm-gold), 0.35),
+      0 0 80px rgba(var(--dm-gold), 0.34),
+      0 18px 50px rgba(0, 0, 0, 0.45);
+  }
+  100% {
+    transform: none;
+    box-shadow:
+      0 0 0 1px rgba(var(--dm-gold), 0.1),
+      0 0 48px rgba(var(--dm-gold), 0.16),
+      0 18px 50px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* A charged dream: the halo arrives, but without the bright peak. */
+@keyframes dm-whole-reveal-soft {
+  from {
+    box-shadow:
+      0 0 0 1px rgba(var(--dm-gold), 0.1),
+      0 0 0 rgba(var(--dm-gold), 0),
+      0 18px 50px rgba(0, 0, 0, 0.45);
+  }
+  to {
+    box-shadow:
+      0 0 0 1px rgba(var(--dm-gold), 0.1),
+      0 0 48px rgba(var(--dm-gold), 0.16),
+      0 18px 50px rgba(0, 0, 0, 0.45);
+  }
+}
+
+.dm-whole[data-phase='shown']::before {
+  content: '';
+  position: absolute;
+  inset-inline: 28px;
+  top: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(var(--dm-gold), 0.95), transparent);
+  animation: dm-sweep 1.8s var(--dm-ease) both;
+}
+
+.dm-root[data-sensitive='true'] .dm-whole[data-phase='shown']::before {
+  opacity: 0.5;
+}
+
+/* Buttons: the app's outline system; the main call gets the gold edge. */
+.dm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 12px 28px;
+  border-radius: 999px;
+  border: 1px solid var(--dream-btn-border, rgba(244, 240, 232, 0.85));
+  background: transparent;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--dm-text);
+  transition:
+    background 0.25s,
+    box-shadow 0.25s;
+}
+
+.dm-btn:hover:not(:disabled) {
+  background: var(--dream-btn-hover-bg, rgba(255, 255, 255, 0.08));
+}
+
+.dm-btn-primary {
+  border-color: rgba(var(--dm-gold), 0.95);
+  box-shadow: 0 0 24px rgba(var(--dm-gold), 0.25);
+}
+
+.dm-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 0 34px rgba(var(--dm-gold), 0.45);
+}
+
+.dm-btn:disabled {
+  opacity: 0.6;
+}
+
+.dm-whole[data-phase='revealing'] .dm-btn-primary {
+  animation: dm-shimmer 1.2s ease-in-out infinite;
+}
+
+/* Links between the moments */
+.dm-link-list,
+.dm-more-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dm-link-item,
+.dm-more-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 16px;
+  text-align: start;
+  border-radius: 16px;
+  border: 1px solid rgba(244, 240, 232, 0.2);
+  background: rgba(255, 255, 255, 0.025);
+  transition:
+    border-color 0.25s,
+    background 0.25s;
+}
+
+.dm-link-item:hover,
+.dm-link-item[aria-pressed='true'],
+.dm-more-item:hover:not(:disabled) {
+  border-color: rgba(var(--dm-gold), 0.8);
+  background: rgba(var(--dm-gold), 0.06);
+}
+
+.dm-link-nums {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--dm-gold-text);
+}
+
+.dm-link-dash {
+  display: inline-block;
+  width: 16px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgb(var(--dm-gold));
+  box-shadow: 0 0 6px rgba(var(--dm-gold), 0.9);
+}
+
+.dm-link-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dm-link-title {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.dm-link-basis {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--dm-text-dim);
+}
+
+.dm-more-item {
+  font-size: 17px;
+}
+
+.dm-more-item svg {
+  flex: none;
+  color: rgb(var(--dm-gold));
+}
+
+.dm-more-item:disabled {
+  opacity: 0.6;
+}
+
+/* Prototype notices */
+.dm-notice {
+  position: fixed;
+  z-index: 20;
+  inset-inline: 16px;
+  bottom: 20px;
+  margin-inline: auto;
+  max-width: 420px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: var(--dm-plate-strong);
+  border: 1px solid rgba(var(--dm-gold), 0.5);
+  font-size: 16px;
+  text-align: center;
+}
+
+.dm-notice:empty {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ dialogs */
+.dm-dialog {
+  margin: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--dm-text);
+  width: min(640px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  overflow: visible;
+}
+
+.dm-dialog-image {
+  width: min(1100px, calc(100vw - 32px));
+}
+
+.dm-dialog::backdrop {
+  background: rgba(3, 4, 14, 0.74);
+  backdrop-filter: blur(3px);
+}
+
+.dm-dialog[open] .dm-dialog-panel {
+  animation: dm-rise 0.45s var(--dm-ease) both;
+}
+
+.dm-dialog-panel {
+  position: relative;
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 34px 28px 28px;
+  border-radius: 24px;
+  background: var(--dm-plate-strong);
+  border: 1px solid rgba(var(--dm-gold), 0.5);
+  box-shadow: 0 0 60px rgba(var(--dm-gold), 0.15);
+}
+
+.dm-dialog-close {
+  position: absolute;
+  top: 12px;
+  inset-inline-end: 12px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 240, 232, 0.35);
+}
+
+.dm-dialog-title {
+  margin-block: 6px 16px;
+  padding-inline-end: 48px;
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--dm-gold-text);
+}
+
+.dm-dialog-img {
+  width: 100%;
+  border-radius: 16px;
+}
+
+.dm-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dm-detail-kicker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dm-detail-excerpt figcaption,
+.dm-detail-qa dt {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--dm-gold-text);
+}
+
+.dm-detail-excerpt blockquote {
+  margin-top: 4px;
+  padding-inline-start: 12px;
+  border-inline-start: 2px solid rgba(var(--dm-gold), 0.45);
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--dm-text-dim);
+}
+
+.dm-detail-qa {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dm-detail-qa dt:not(:first-child) {
+  margin-top: 10px;
+}
+
+.dm-detail-qa dd {
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.dm-own-words::before {
+  content: '“';
+}
+
+.dm-own-words::after {
+  content: '”';
+}
+
+.dm-detail-insight {
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: rgba(var(--dm-gold), 0.06);
+  border: 1px solid rgba(var(--dm-gold), 0.3);
+}
+
+.dm-detail-insight p {
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.dm-detail-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.dm-detail-links strong {
+  display: block;
+  color: var(--dm-gold-text);
+  font-weight: 600;
+}
+
+.dm-detail-unexplored {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  font-size: 17px;
+}
+
+/* ------------------------------------------------------------------ RTL icon mirroring */
+.dm-root[dir='rtl'] .dm-flip {
+  transform: scaleX(-1);
+}
+
+/* ------------------------------------------------------------------ smaller screens */
+@media (max-width: 1023px) {
+  /* Narrow: back to the archive first, then the heading, both the width of the path. */
+  .dm-header {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    max-width: 640px;
+    margin-inline: auto;
+  }
+
+  .dm-back {
+    align-self: flex-start;
+  }
+
+  .dm-heading {
+    width: 100%;
+    max-width: none;
+    padding: 16px 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dm-page {
+    padding-top: 16px;
+  }
+
+  .dm-card {
+    padding: 30px 16px 16px;
+  }
+
+  .dm-card-title {
+    font-size: 19px;
+  }
+
+  .dm-panel {
+    padding: 22px 18px 22px;
+  }
+
+  .dm-dialog-panel {
+    padding: 30px 18px 22px;
+  }
+
+  .dm-whole-overview {
+    font-size: 17px;
+  }
+}
+
+/* ------------------------------------------------------------------ motion */
+.dm-reveal {
+  animation: dm-rise 0.9s var(--dm-ease) both;
+  animation-delay: calc(var(--r, 0) * 180ms);
+}
+
+.dm-root[data-sensitive='true'] .dm-reveal {
+  animation-duration: 1.4s;
+  animation-name: dm-fade;
+}
+
+@keyframes dm-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes dm-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dm-portal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes dm-portal-glow {
+  0% {
+    box-shadow:
+      0 0 0 1.5px rgba(var(--dm-gold), 0.8),
+      0 0 0 8px rgba(var(--dm-gold), 0.07),
+      0 0 46px 6px rgba(var(--dm-gold), 0.3),
+      0 0 150px 40px rgba(var(--dm-accent-1), 0.3);
+  }
+  35% {
+    box-shadow:
+      0 0 0 2px rgba(var(--dm-gold), 1),
+      0 0 0 14px rgba(var(--dm-gold), 0.12),
+      0 0 80px 18px rgba(var(--dm-gold), 0.5),
+      0 0 200px 60px rgba(var(--dm-accent-1), 0.4);
+  }
+  100% {
+    box-shadow:
+      0 0 0 1.5px rgba(var(--dm-gold), 0.8),
+      0 0 0 8px rgba(var(--dm-gold), 0.07),
+      0 0 46px 6px rgba(var(--dm-gold), 0.3),
+      0 0 150px 40px rgba(var(--dm-accent-1), 0.3);
+  }
+}
+
+@keyframes dm-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes dm-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes dm-sweep {
+  from {
+    opacity: 0;
+    transform: scaleX(0.1);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes dm-node-light {
+  from {
+    box-shadow: 0 0 0 rgba(var(--dm-gold), 0);
+  }
+  50% {
+    box-shadow: 0 0 34px rgba(var(--dm-gold), 0.95);
+  }
+  to {
+    box-shadow: 0 0 18px rgba(var(--dm-gold), 0.45);
+  }
+}
+
+@keyframes dm-exploring {
+  50% {
+    border-color: rgba(var(--dm-gold), 0.95);
+    box-shadow: 0 0 34px rgba(var(--dm-gold), 0.35);
+  }
+}
+
+@keyframes dm-shimmer {
+  50% {
+    box-shadow: 0 0 40px rgba(var(--dm-gold), 0.55);
+  }
+}
+
+/* Reduced motion: from the system, or forced by the prototype toolbar. Everything appears in its final state at once; the cloud video
+   stops (the tint stays, so the page keeps its colours). */
+.dm-root[data-motion='reduced'] *,
+.dm-root[data-motion='reduced'] *::before,
+.dm-root[data-motion='reduced'] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+.dm-root[data-motion='reduced'] .dm-draw {
+  stroke-dashoffset: 0;
+}
+
+.dm-root[data-motion='reduced'] .dream-stage-bg-video {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dm-root *,
+  .dm-root *::before,
+  .dm-root *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .dm-root .dm-draw {
+    stroke-dashoffset: 0;
+  }
+
+  .dm-root .dream-stage-bg-video {
+    display: none;
+  }
+}
