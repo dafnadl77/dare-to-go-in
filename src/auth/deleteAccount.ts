@@ -1,6 +1,7 @@
 import { getAuthHeader } from './getAccessToken';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { clearLocalAccountState } from './localAccountState';
+import { clearAllOpenJourneys } from '../hero/openJourneyStore';
 
 /** The exact words a dreamer must type to confirm, per app language. The server checks them again. */
 export const DELETE_ACCOUNT_CONFIRMATION = { en: 'DELETE', he: 'מחיקה' } as const;
@@ -44,6 +45,8 @@ export async function requestAccountDeletion(confirmation: string): Promise<Dele
  */
 export async function finishAccountDeletionLocally(): Promise<void> {
   clearLocalAccountState();
+  // Unfinished dream journeys kept in this browser (openJourneyStore.ts), keys included; awaited before the reload below.
+  await clearAllOpenJourneys();
   try {
     if (isSupabaseConfigured) await supabase.auth.signOut({ scope: 'local' });
   } catch {

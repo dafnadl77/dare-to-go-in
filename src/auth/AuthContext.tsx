@@ -4,6 +4,7 @@ import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { claimTrial } from './claimTrial';
 import { ADDRESS_PREFERENCE_METADATA_KEY, type AddressPreference } from '../hero/addressPreference';
 import { DISPLAY_NAME_METADATA_KEY, normalizeDisplayName } from './displayName';
+import { clearAllOpenJourneys } from '../hero/openJourneyStore';
 
 export type AuthActionResult =
   | { ok: true; sessionCreated: boolean }
@@ -146,6 +147,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (event === 'SIGNED_IN' && session?.access_token) {
         claimTrial(session.access_token);
       }
+      // Any sign-out (the menu, an expired or revoked session, account deletion): every unfinished dream journey kept in this browser
+      // is deleted, keys included, so nothing of it stays behind on a shared device (see openJourneyStore.ts).
+      if (event === 'SIGNED_OUT') {
+        void clearAllOpenJourneys();
+      }
     });
 
     return () => {
@@ -247,6 +253,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async signOut() {
         // This device only. Supabase's default scope ends the account's sessions EVERYWHERE, which silently killed the dreamer's
         // other devices (their tokens kept looking valid but every paid call was refused).
+        // The unfinished journeys in this browser go first, and are awaited, so they are gone even if the page navigates right after.
+        await clearAllOpenJourneys();
         await supabase.auth.signOut({ scope: 'local' });
       },
     }),

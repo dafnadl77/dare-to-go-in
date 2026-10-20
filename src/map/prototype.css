@@ -25,6 +25,21 @@ body.dmp-body {
   font-size: 15px;
 }
 
+.dmp-bar-demo {
+  background: #0f1420;
+}
+
+.dmp-status {
+  color: #f4f0e8;
+  font-size: 15px;
+}
+
+.dmp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .dmp-badge {
   color: #f3dcaa;
   font-weight: 600;

@@ -2,6 +2,7 @@ import type { DreamAnalysis } from './dreamAnalysisSchema';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
 import { getAppLanguage, type AppLanguage } from './appLanguage';
 import { normalizeEmotions, type EmotionId } from './dreamEmotions';
+import { parseExploration, type Exploration } from './exploration';
 
 /**
  * A single saved dream, capturing everything MY DREAMS (and
@@ -52,6 +53,10 @@ export interface SavedDream {
       fine from localStorage (`undefined` reads as "not favorited") — no
       migration needed for existing stored data. */
   favorite?: boolean;
+  /** The multi-moment journey (exploration.ts): every moment offered, the ones explored with their questions, answers and insights,
+      and the whole view. Absent on every dream saved before it existed (they open exactly as before); read it back only through
+      parseExploration. Stored in the dream's jsonb payload: no database migration. */
+  exploration?: Exploration;
 }
 
 const STORAGE_KEY = 'dare.savedDreams.v1';
@@ -166,16 +171,20 @@ export function buildSavedDream(params: {
   linkResponse?: string;
   /** The language the journey's content was generated in; defaults to the current app language. */
   appLanguage?: AppLanguage;
+  /** The multi-moment journey; stored only when it is a valid exploration (see exploration.ts). */
+  exploration?: Exploration;
 }): SavedDream {
-  const { appLanguage, emotions, linkQuestion, linkResponse, ...rest } = params;
+  const { appLanguage, emotions, linkQuestion, linkResponse, exploration, ...rest } = params;
   const normalized = normalizeEmotions(emotions);
   const answeredLink = linkQuestion && linkResponse && linkResponse.trim() !== '';
+  const validExploration = exploration ? parseExploration(exploration) : null;
   return {
     id: randomId(),
     createdAt: new Date().toISOString(),
     ...rest,
     ...(normalized.length > 0 ? { emotions: normalized } : {}),
     ...(answeredLink ? { linkQuestion, linkResponse: linkResponse.trim() } : {}),
+    ...(validExploration ? { exploration: validExploration } : {}),
     appLanguage: appLanguage ?? getAppLanguage(),
   };
 }
