@@ -1,0 +1,18 @@
+[
+  {
+    "key": "dev-a",
+    "kind": "שוק, מטריה מנייר וכד שעבר ידיים",
+    "address": "feminine",
+    "text": "הייתי בשוק עם אחותי וחברה שלי מהעבודה, וחיפשנו מתנה למישהי שאני בכלל לא מכירה. אחותי התמקחה עם מוכר על כד חרס כחול, והחברה שלי כל הזמן הלכה קדימה ונעלמה בין הדוכנים. ואז קניתי מטריה, וכשפתחתי אותה היא נפתחה הפוך והבד שלה היה עשוי מנייר. ניסיתי לסגור אותה אבל היא נקרעה לי בידיים. בסוף מצאתי את החברה שלי יושבת על מדרגות ומחזיקה את הכד שאחותי רצתה, ולא הבנתי איך הוא הגיע אליה.",
+    "persona": "A 33-year-old woman whose younger sister has been staying in her small apartment for a few weeks, and who was recently asked to organize a group gift for a colleague she barely knows.",
+    "unsureAt": null
+  },
+  {
+    "key": "dev-b",
+    "kind": "נסיעה, מעטפה סגורה ותחנת דלק נטושה",
+    "address": "masculine",
+    "text": "אני נוהג באוטו ישן של אבא שלי בכביש בין שדות ואני לא יודע לאן אני צריך להגיע רק שאני מאחר ולפני זה הייתי במשרד ומישהו השאיר לי על השולחן מעטפה סגורה ולא פתחתי אותה ובכביש אני עוצר ליד תחנת דלק נטושה ויוצא מהאוטו ושומע רדיו מנגן מתוך המבנה ואני נכנס פנימה ואין שם אף אחד אבל על הדלפק יש את אותה מעטפה ואני לוקח אותה וחוזר לאוטו והוא כבר מונע ומחכה לי עם הדלת פתוחה",
+    "persona": "A 38-year-old man who still drives his father's old car and has been waiting several weeks for an answer about a job offer in another city.",
+    "unsureAt": 1
+  }
+]

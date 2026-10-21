@@ -1,0 +1,1643 @@
+{
+  "run": "fix-dev-1",
+  "journeys": [
+    {
+      "plan": "short",
+      "kind": "קצר",
+      "text": "עמדתי בתחנת רכבת ריקה וחיכיתי. הרכבת לא הגיעה.",
+      "segments": [
+        "s0: עמדתי בתחנת רכבת ריקה וחיכיתי",
+        "s1: הרכבת לא הגיעה"
+      ],
+      "moments": [
+        {
+          "id": "m1",
+          "label": "הרכבת לא הגיעה",
+          "labelCandidate": "הרכבת לא הגיעה",
+          "text": "הרכבת לא הגיעה",
+          "priority": 4
+        },
+        {
+          "id": "m2",
+          "label": "תחנת רכבת ריקה",
+          "labelCandidate": "תחנת רכבת ריקה",
+          "text": "עמדתי בתחנת רכבת ריקה וחיכיתי",
+          "priority": 1
+        }
+      ],
+      "steps": [
+        {
+          "moment": "תחנת רכבת ריקה",
+          "momentText": "עמדתי בתחנת רכבת ריקה וחיכיתי",
+          "question": {
+            "text": "יש משהו ששומעים בתחנה הזאת כשהיא ריקה?",
+            "source": "adaptive",
+            "focus": "sense",
+            "subject": "תחנת רכבת ריקה",
+            "ms": 967,
+            "rejected": [
+              {
+                "question": "איך נראית התחנה הריקה מסביב לך?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"נראית\")"
+                ]
+              }
+            ]
+          },
+          "answer": "כן, שומעים את הרוח ונשימות של חוסר ודאות, כאילו הזמן עצר. תחושת המתנה שוררת באוויר.",
+          "alternative": null,
+          "followUp": null,
+          "insight": {
+            "observation": "עמדת בתחנת רכבת ריקה.",
+            "reflection": "אמרת ששומעים את הרוח ונשימות של חוסר ודאות, כאילו הזמן עצר, ותחושת המתנה שוררת באוויר.",
+            "possibility": "ייתכן שהתחנה הריקה יוצרת מרחב שבו אפשר להרגיש את ההמתנה והחוסר ודאות בצורה מוחשית יותר, דרך קולות ותחושות.",
+            "kind": "interpretive"
+          },
+          "insightReport": {
+            "dream": [
+              {
+                "status": "checked",
+                "reasons": []
+              }
+            ],
+            "user": [
+              {
+                "status": "checked",
+                "reasons": []
+              }
+            ],
+            "possibilities": [
+              [
+                "gives her a feeling she did not name (\"לשים\")",
+                "a time word neither the dream nor she used (\"תמיד\")"
+              ],
+              []
+            ]
+          },
+          "firstInsight": {
+            "observation": "עמדת בתחנת רכבת ריקה.",
+            "reflection": "אמרת ששומעים את הרוח ונשימות של חוסר ודאות, כאילו הזמן עצר, ותחושת המתנה שוררת באוויר.",
+            "possibility": "ייתכן שהתחנה הריקה יוצרת מרחב שבו אפשר להרגיש את ההמתנה והחוסר ודאות בצורה מוחשית יותר, דרך קולות ותחושות.",
+            "kind": "interpretive"
+          },
+          "replyMs": 2206,
+          "refreshMs": null,
+          "retryMs": null,
+          "unsureLook": false
+        }
+      ],
+      "wholeViews": [
+        {
+          "afterMoments": 1,
+          "attempt": 1,
+          "ms": 5553,
+          "kind": "first-look",
+          "notice": "זו התבוננות ראשונה, מתוך רגע אחד. רגעים נוספים יכולים להעמיק אותה.",
+          "overview": "",
+          "connections": [],
+          "recurring": null,
+          "contrast": null,
+          "readings": [
+            {
+              "basis": "עמדתי בתחנת רכבת ריקה וחיכיתי",
+              "reading": "אפשר לראות את התחנה הריקה כמקום שבו יש אפשרות לעצור רגע ולפגוש תחושות של חוסר ודאות והמתנה."
+            }
+          ],
+          "closingQuestion": "",
+          "invite": [
+            "הרכבת לא הגיעה"
+          ],
+          "report": {
+            "overview": [
+              {
+                "source": "dream",
+                "ok": false,
+                "reasons": [
+                  "the dreamer did this, the sentence says someone else did"
+                ]
+              },
+              {
+                "source": "user",
+                "ok": false,
+                "reasons": [
+                  "repeats what was already shown"
+                ]
+              }
+            ],
+            "connections": [],
+            "recurring": [],
+            "contrast": [],
+            "readings": [
+              []
+            ],
+            "closing": [
+              "a word that is in neither the dream nor her answers (\"המקום\")"
+            ]
+          }
+        }
+      ],
+      "avoided": 2
+    },
+    {
+      "plan": "rich",
+      "kind": "עשיר",
+      "text": "הייתי בחתונה של חברה. כולם לבשו לבן ואני לבשתי שחור. אחי הקטן נתן לי מפתח ואמר שזה למקום שעוד לא הייתי בו. הלכנו לאורך החוף, והים התרחק ולא חזר. מישהו שר שיר שלא הכרתי, אבל ידעתי את כל המילים. כשהגענו לדלת, המפתח היה קטן מדי.",
+      "segments": [
+        "s0: הייתי בחתונה של חברה",
+        "s1: כולם לבשו לבן ואני לבשתי שחור",
+        "s2: אחי הקטן נתן לי מפתח ואמר שזה למקום שעוד לא הייתי בו",
+        "s3: הלכנו לאורך החוף",
+        "s4: והים התרחק ולא חזר",
+        "s5: מישהו שר שיר שלא הכרתי, אבל ידעתי את כל המילים",
+        "s6: כשהגענו לדלת, המפתח היה קטן מדי"
+      ],
+      "moments": [
+        {
+          "id": "m1",
+          "label": "שיר לא מוכר",
+          "labelCandidate": "שיר לא מוכר",
+          "text": "מישהו שר שיר שלא הכרתי, אבל ידעתי את כל המילים",
+          "priority": 6
+        },
+        {
+          "id": "m2",
+          "label": "האח נתן מפתח",
+          "labelCandidate": "אחי נתן מפתח",
+          "text": "אחי הקטן נתן לי מפתח ואמר שזה למקום שעוד לא הייתי בו",
+          "priority": 4
+        },
+        {
+          "id": "m3",
+          "label": "הליכה לאורך החוף",
+          "labelCandidate": "הליכה לאורך החוף",
+          "text": "הלכנו לאורך החוף, והים התרחק ולא חזר",
+          "priority": 4
+        },
+        {
+          "id": "m4",
+          "label": "המפתח היה קטן מדי",
+          "labelCandidate": "המפתח היה קטן מדי",
+          "text": "כשהגענו לדלת, המפתח היה קטן מדי",
+          "priority": 2
+        },
+        {
+          "id": "m5",
+          "label": "כולם לבשו לבן",
+          "labelCandidate": "כולם לבשו לבן",
+          "text": "כולם לבשו לבן ואני לבשתי שחור",
+          "priority": 1
+        },
+        {
+          "id": "m6",
+          "label": "חתונה של חברה",
+          "labelCandidate": "חתונה של חברה",
+          "text": "הייתי בחתונה של חברה",
+          "priority": -1
+        }
+      ],
+      "steps": [
+        {
+          "moment": "המפתח היה קטן מדי",
+          "momentText": "כשהגענו לדלת, המפתח היה קטן מדי",
+          "question": {
+            "text": "מה עולה כשחוזרים לרגע הזה בחלום?",
+            "source": "fixed",
+            "focus": null,
+            "subject": null,
+            "ms": 3130,
+            "rejected": [
+              {
+                "question": "איך נראה המפתח כשהבנת שהוא קטן מדי?",
+                "reasons": [
+                  "presupposes something from another part of the dream (\"כשהבנת\")"
+                ]
+              },
+              {
+                "question": "מה עשית ברגע שהבחנת שהמפתח קטן מדי?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"עשית\")",
+                  "a word that is in neither the dream nor her answers (\"שהבחנת\")"
+                ]
+              },
+              {
+                "question": "איך נראה המפתח כששמתי לב שהוא קטן מדי?",
+                "reasons": [
+                  "first person in a question to the dreamer (e.g. \"אחי\" instead of \"אחיך\")",
+                  "a word that is in neither the dream nor her answers (\"כששמתי\")",
+                  "presupposes something from another part of the dream (\"לב\")"
+                ]
+              },
+              {
+                "question": "מה עשית כששמתי לב שהמפתח קטן מדי?",
+                "reasons": [
+                  "first person in a question to the dreamer (e.g. \"אחי\" instead of \"אחיך\")",
+                  "a word that is in neither the dream nor her answers (\"עשית\")",
+                  "a word that is in neither the dream nor her answers (\"כששמתי\")",
+                  "presupposes something from another part of the dream (\"לב\")"
+                ]
+              },
+              {
+                "question": "איך נראה המפתח כששמת לב שהוא קטן מדי?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"כששמת\")",
+                  "presupposes something from another part of the dream (\"לב\")"
+                ]
+              },
+              {
+                "question": "מה את עושה כשאת רואה שהמפתח קטן מדי?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"עושה\")"
+                ]
+              }
+            ]
+          },
+          "answer": "אני מרגישה עצב ומרוחקות. זה מזכיר לי את אחי והגעגועים אליו, וגם את ההרגשה שלי בחתונה.",
+          "alternative": null,
+          "followUp": null,
+          "insight": {
+            "observation": "המפתח היה קטן מדי",
+            "reflection": "אמרת ש'הרגשת עצב ומרוחקות' ברגע הזה. אמרת שזה הזכיר לך את אחיך ואת הגעגועים אליו, וגם את ההרגשה שלך בחתונה.",
+            "possibility": "אולי העובדה שהמפתח היה קטן מדי העלתה אצלך תחושה של עצב ומרוחקות.",
+            "kind": "interpretive"
+          },
+          "insightReport": {
+            "dream": [
+              {
+                "status": "checked",
+                "reasons": []
+              }
+            ],
+            "user": [
+              {
+                "status": "checked",
+                "reasons": []
+              },
+              {
+                "status": "checked",
+                "reasons": []
+              }
+            ],
+            "possibilities": [
+              [],
+              []
+            ]
+          },
+          "firstInsight": {
+            "observation": "המפתח היה קטן מדי",
+            "reflection": "אמרת ש'הרגשת עצב ומרוחקות' ברגע הזה. אמרת שזה הזכיר לך את אחיך ואת הגעגועים אליו, וגם את ההרגשה שלך בחתונה.",
+            "possibility": "אולי העובדה שהמפתח היה קטן מדי העלתה אצלך תחושה של עצב ומרוחקות.",
+            "kind": "interpretive"
+          },
+          "replyMs": 4583,
+          "refreshMs": null,
+          "retryMs": null,
+          "unsureLook": false
+        },
+        {
+          "moment": "הליכה לאורך החוף",
+          "momentText": "הלכנו לאורך החוף, והים התרחק ולא חזר",
+          "question": {
+            "text": "מה את רואה או שומעת כשאת הולכת לאורך החוף שם?",
+            "source": "adaptive",
+            "focus": "sense",
+            "subject": "הליכה לאורך החוף",
+            "ms": 1935,
+            "rejected": [
+              {
+                "question": "מה ראית או שמעת בזמן שהלכת לאורך החוף בחלום?",
+                "reasons": [
+                  "a time word the moment does not have (\"בזמן\")"
+                ]
+              },
+              {
+                "question": "איך הים נראה כשהוא התרחק בזמן שהלכת לאורך החוף?",
+                "reasons": [
+                  "a time word the moment does not have (\"בזמן\")",
+                  "asks about a feeling she already named"
+                ]
+              }
+            ]
+          },
+          "answer": "כשאני הולכת לאורך החוף, אני שומעת את הגלים מתנפצים והצעקות של הציפורים. זה מזכיר לי משהו שהיה עם אחי פעם.",
+          "alternative": null,
+          "followUp": {
+            "question": "את זוכרת מה בדיוק היה עם אחיך שהרגע הזה הזכיר לך?",
+            "missing": "מה היה אותו דבר שקרה פעם עם אחיך",
+            "answer": "כן, אני זוכרת שהיינו הולכים יחד לחוף הים, משחקים ועושים טיפוסים עם הסלעים. זה היה זמן מאוד מיוחד שלנו."
+          },
+          "insight": {
+            "observation": "הלכת לאורך החוף. הים התרחק ולא חזר.",
+            "reflection": "אמרת שכשהלכת לאורך החוף שמעת את הגלים מתנפצים ואת הצעקות של הציפורים, וזה הזכיר לך משהו שהיה עם אחיך פעם. אמרת: «כן, אני זוכרת שהיינו הולכים יחד לחוף הים, משחקים ועושים טיפוסים עם הסלעים. זה היה זמן מאוד מיוחד שלנו.»",
+            "possibility": "אולי ההליכה לאורך החוף בחלום העלתה אצלך זיכרון של הרגעים המיוחדים עם אחיך ליד הים.",
+            "kind": "interpretive"
+          },
+          "insightReport": {
+            "first": {
+              "dream": [
+                {
+                  "status": "quote",
+                  "reasons": [
+                    "the dreamer did this, the sentence says someone else did"
+                  ]
+                },
+                {
+                  "status": "checked",
+                  "reasons": []
+                }
+              ],
+              "user": [
+                {
+                  "status": "checked",
+                  "reasons": []
+                },
+                {
+                  "status": "checked",
+                  "reasons": []
+                }
+              ],
+              "possibilities": [
+                [],
+                []
+              ]
+            },
+            "refreshed": {
+              "dream": [
+                {
+                  "status": "checked",
+                  "reasons": []
+                },
+                {
+                  "status": "checked",
+                  "reasons": []
+                }
+              ],
+              "user": [
+                {
+                  "status": "checked",
+                  "reasons": []
+                },
+                {
+                  "status": "quote",
+                  "reasons": [
+                    "words she did not say (\"בשבילכם\")"
+                  ]
+                }
+              ],
+              "possibilities": [
+                [],
+                [
+                  "gives her a feeling she did not name (\"קרוב\")"
+                ]
+              ]
+            }
+          },
+          "firstInsight": {
+            "observation": "הים התרחק ולא חזר. «הלכנו לאורך החוף»",
+            "reflection": "אמרת שכשהלכת לאורך החוף שמעת את הגלים מתנפצים ואת הצעקות של הציפורים. אמרת שזה הזכיר לך משהו שהיה עם אחיך פעם.",
+            "possibility": "אולי ההליכה לאורך החוף יחד עם זה שהים התרחק מזמינים אותך לחשוב על שינויים או התרחקות שחשבת עליהם.",
+            "kind": "interpretive"
+          },
+          "replyMs": 6620,
+          "refreshMs": 2567,
+          "retryMs": null,
+          "unsureLook": false
+        },
+        {
+          "moment": "האח נתן מפתח",
+          "momentText": "אחי הקטן נתן לי מפתח ואמר שזה למקום שעוד לא הייתי בו",
+          "question": {
+            "text": "איך נראה המפתח שאחיך נתן לך שם בחלום?",
+            "source": "adaptive",
+            "focus": "detail",
+            "subject": "מפתח",
+            "ms": 1083,
+            "rejected": []
+          },
+          "answer": "המפתח היה קטן, יותר מידי קטן לדלת של המקום. הוא היה קצת מבריק, אבל לא יכולתי להשוות אותו לשום דבר אחר.",
+          "alternative": null,
+          "followUp": null,
+          "insight": {
+            "observation": "«אחי הקטן נתן לי מפתח ואמר שזה למקום שעוד לא הייתי בו»",
+            "reflection": "אמרת שהמפתח היה קטן, יותר מידי קטן לדלת של המקום, וקצת מבריק, ולא יכולת להשוות אותו לשום דבר אחר.",
+            "possibility": "אולי עצם זה שאחיך נתן לך מפתח קטן ומבריק בחלום מרמז על משהו ייחודי או מסתורי שקיבלת ממנו.",
+            "kind": "interpretive"
+          },
+          "insightReport": {
+            "dream": [
+              {
+                "status": "quote",
+                "reasons": [
+                  "first person in a sentence addressed to the dreamer",
+                  "names a different doer",
+                  "says it was done to someone else; the part says to the dreamer"
+                ]
+              }
+            ],
+            "user": [
+              {
+                "status": "checked",
+                "reasons": []
+              }
+            ],
+            "possibilities": [
+              [],
+              []
+            ]
+          },
+          "firstInsight": {
+            "observation": "«אחי הקטן נתן לי מפתח ואמר שזה למקום שעוד לא הייתי בו»",
+            "reflection": "אמרת שהמפתח היה קטן, יותר מידי קטן לדלת של המקום, וקצת מבריק, ולא יכולת להשוות אותו לשום דבר אחר.",
+            "possibility": "אולי עצם זה שאחיך נתן לך מפתח קטן ומבריק בחלום מרמז על משהו ייחודי או מסתורי שקיבלת ממנו.",
+            "kind": "interpretive"
+          },
+          "replyMs": 1713,
+          "refreshMs": null,
+          "retryMs": null,
+          "unsureLook": false
+        },
+        {
+          "moment": "כולם לבשו לבן",
+          "momentText": "כולם לבשו לבן ואני לבשתי שחור",
+          "question": {
+            "text": "מה עולה כשחוזרים לרגע הזה בחלום?",
+            "source": "fixed",
+            "focus": null,
+            "subject": null,
+            "ms": 4676,
+            "rejected": [
+              {
+                "question": "מה הדבר הראשון שאת שמה לב אליו ברגע שבו כולם לבשו לבן ואת בשחור?",
+                "reasons": [
+                  "a time word the moment does not have (\"הראשון\")",
+                  "asks about a feeling she already named"
+                ]
+              },
+              {
+                "question": "איך נראו האנשים סביבך כשכולם לבשו לבן ואת היית בשחור?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"נראו\")",
+                  "a word that is in neither the dream nor her answers (\"האנשים\")",
+                  "asks about a feeling she already named"
+                ]
+              },
+              {
+                "question": "מה את שמה לב בבגדים הלבנים של כולם שם?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"בבגדים\")"
+                ]
+              },
+              {
+                "question": "איזו תנועה או פעולה את רואה אצל האנשים שלבושים בלבן שם?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"תנועה\")",
+                  "a word that is in neither the dream nor her answers (\"פעולה\")",
+                  "a word that is in neither the dream nor her answers (\"אצל\")",
+                  "a word that is in neither the dream nor her answers (\"האנשים\")"
+                ]
+              },
+              {
+                "question": "איזה פרטים את זוכרת על הלבוש הלבן של כולם שם?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"פרטים\")"
+                ]
+              },
+              {
+                "question": "מה בלט לך במראה של האנשים שלבשו לבן שם?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"האנשים\")"
+                ]
+              }
+            ]
+          },
+          "answer": "כשאני חוזרת לרגע הזה, אני מרגישה את הכאב של הגעגועים לאחי והתחושה שאני לא שייכת. החוף והים מסמלים געגוע וזיכרונות יפים.",
+          "alternative": null,
+          "followUp": null,
+          "insight": {
+            "observation": "כולם לבשו לבן.",
+            "reflection": "אמרת שכשחזרת לרגע הזה הרגשת את הכאב של הגעגועים לאחיך ואת התחושה שלא שייכת. אמרת שהחוף והים מסמלים בשבילך געגוע וזיכרונות יפים.",
+            "possibility": "אולי העובדה שכולם לבשו לבן ואת לבשת שחור בחלום חידדה אצלך תחושת שונות או נבדלות.",
+            "kind": "interpretive"
+          },
+          "insightReport": {
+            "dream": [
+              {
+                "status": "checked",
+                "reasons": []
+              },
+              {
+                "status": "quote",
+                "reasons": [
+                  "the dreamer did this, the sentence says someone else did"
+                ]
+              }
+            ],
+            "user": [
+              {
+                "status": "checked",
+                "reasons": []
+              },
+              {
+                "status": "checked",
+                "reasons": []
+              }
+            ],
+            "possibilities": [
+              [],
+              []
+            ]
+          },
+          "firstInsight": {
+            "observation": "כולם לבשו לבן.",
+            "reflection": "אמרת שכשחזרת לרגע הזה הרגשת את הכאב של הגעגועים לאחיך ואת התחושה שלא שייכת. אמרת שהחוף והים מסמלים בשבילך געגוע וזיכרונות יפים.",
+            "possibility": "אולי העובדה שכולם לבשו לבן ואת לבשת שחור בחלום חידדה אצלך תחושת שונות או נבדלות.",
+            "kind": "interpretive"
+          },
+          "replyMs": 2294,
+          "refreshMs": null,
+          "retryMs": null,
+          "unsureLook": false
+        }
+      ],
+      "wholeViews": [
+        {
+          "afterMoments": 2,
+          "attempt": 1,
+          "ms": 6911,
+          "kind": "whole",
+          "notice": null,
+          "overview": "",
+          "connections": [
+            {
+              "from": "m3",
+              "to": "m4",
+              "title": "אחיך והחוף",
+              "basis": "«זה מזכיר לי משהו שהיה עם אחי פעם.» · «זה מזכיר לי את אחי והגעגועים אליו» — אולי הזיכרון של ההליכה עם אחיך לאורך החוף והתחושה שהמפתח קטן מדי מתחברים דרך הגעגוע אליו."
+            }
+          ],
+          "recurring": null,
+          "contrast": null,
+          "readings": [
+            {
+              "basis": "כשהגענו לדלת, המפתח היה קטן מדי",
+              "reading": "אפשר לראות שהמפתח הקטן מדי מביע תחושת פער או קושי להגיע לאותו מקום של חיבור שהיה לך עם אחיך."
+            }
+          ],
+          "closingQuestion": "",
+          "invite": [
+            "שיר לא מוכר",
+            "האח נתן מפתח",
+            "כולם לבשו לבן",
+            "חתונה של חברה"
+          ],
+          "report": {
+            "overview": [
+              {
+                "source": "dream",
+                "ok": false,
+                "reasons": [
+                  "brings in another part of the dream (\"אמרת\")",
+                  "states the dreamer's own detail as the dream's (\"הרגשת\")",
+                  "states the dreamer's own detail as the dream's (\"עצב\")",
+                  "states the dreamer's own detail as the dream's (\"ומרוחקות\")",
+                  "states the dreamer's own detail as the dream's (\"הזכיר\")",
+                  "states the dreamer's own detail as the dream's (\"אחיך\")",
+                  "states the dreamer's own detail as the dream's (\"ההרגשה\")",
+                  "states the dreamer's own detail as the dream's (\"בחתונה\")",
+                  "no verb of the part to check the event against"
+                ]
+              },
+              {
+                "source": "dream",
+                "ok": false,
+                "reasons": [
+                  "a word the dream does not have (\"סיפרת\")",
+                  "states the dreamer's own detail as the dream's (\"שכשאת\")",
+                  "states the dreamer's own detail as the dream's (\"שומעת\")",
+                  "states the dreamer's own detail as the dream's (\"גלים\")",
+                  "states the dreamer's own detail as the dream's (\"וציפורים\")",
+                  "states the dreamer's own detail as the dream's (\"מזכיר\")",
+                  "states the dreamer's own detail as the dream's (\"אחיך\")",
+                  "states the dreamer's own detail as the dream's (\"פעם\")",
+                  "no verb of the part to check the event against"
+                ]
+              }
+            ],
+            "connections": [
+              []
+            ],
+            "recurring": [
+              "\"בשני\" is not in the moments it names",
+              "\"הרגעים\" is not in the moments it names",
+              "\"והקשר\" is not in the moments it names"
+            ],
+            "contrast": [
+              "\"עלה\" is not in the two moments",
+              "\"וברגע\" is not in the two moments"
+            ],
+            "readings": [
+              [],
+              [
+                "gives her a feeling she did not name (\"קרבה\")",
+                "gives her a feeling she did not name (\"חסרים\")"
+              ]
+            ],
+            "closing": [
+              "a word that is in neither the dream nor her answers (\"הטובים\")"
+            ]
+          }
+        },
+        {
+          "afterMoments": 4,
+          "attempt": 1,
+          "ms": 12282,
+          "kind": "whole",
+          "notice": null,
+          "overview": "",
+          "connections": [
+            {
+              "from": "m5",
+              "to": "m4",
+              "title": "געגועים לאחיך",
+              "basis": "«כשאני חוזרת לרגע הזה, אני מרגישה את הכאב של הגעגועים לאחי והתחושה שאני לא שייכת. החוף והים מסמלים געגוע וזיכרונות יפים.» · «אני מרגישה עצב ומרוחקות. זה מזכיר לי את אחי והגעגועים אליו, וגם את ההרגשה שלי בחתונה.» — ייתכן שבשני הרגעים התחושה של געגוע לאחיך עלתה אצלך בעוצמה."
+            },
+            {
+              "from": "m3",
+              "to": "m2",
+              "title": "זיכרון עם אחיך",
+              "basis": "«כן, אני זוכרת שהיינו הולכים יחד לחוף הים, משחקים ועושים טיפוסים עם הסלעים. זה היה זמן מאוד מיוחד שלנו.» · «אחי הקטן נתן לי מפתח ואמר שזה למקום שעוד לא הייתי בו» — אפשר לראות שבשני הרגעים יש נוכחות של אחיך, פעם דרך זיכרון ילדות ופעם דרך מתנה או מסר."
+            }
+          ],
+          "recurring": null,
+          "contrast": null,
+          "readings": [],
+          "closingQuestion": "",
+          "invite": [
+            "שיר לא מוכר",
+            "חתונה של חברה"
+          ],
+          "report": {
+            "overview": [
+              {
+                "source": "dream",
+                "ok": false,
+                "reasons": [
+                  "no verb of the part to check the event against"
+                ]
+              },
+              {
+                "source": "user",
+                "ok": false,
+                "reasons": [
+                  "repeats what was already shown"
+                ]
+              },
+              {
+                "source": "dream",
+                "ok": false,
+                "reasons": [
+                  "no verb of the part to check the event against"
+                ]
+              },
+              {
+                "source": "user",
+                "ok": false,
+                "reasons": [
+                  "repeats what was already shown"
+                ]
+              },
+              {
+                "source": "user",
+                "ok": false,
+                "reasons": [
+                  "words she did not say (\"בשבילכם\")"
+                ]
+              },
+              {
+                "source": "dream",
+                "ok": false,
+                "reasons": [
+                  "no verb of the part to check the event against"
+                ]
+              }
+            ],
+            "connections": [
+              [],
+              []
+            ],
+            "recurring": [
+              "\"הופיעו\" is not in the moments it names"
+            ],
+            "contrast": [
+              "\"בחלום\" is not in the two moments",
+              "\"עלה\" is not in the two moments",
+              "\"ומשמח\" is not in the two moments",
+              "\"ליד\" is not in the two moments",
+              "\"עלתה\" is not in the two moments",
+              "\"תחושת\" is not in the two moments"
+            ],
+            "readings": [
+              [
+                "a time word neither the dream nor she used (\"לעולם\")"
+              ],
+              [
+                "a time word neither the dream nor she used (\"בתוך\")"
+              ]
+            ],
+            "closing": [
+              "a word that is in neither the dream nor her answers (\"רוצה\")",
+              "a word that is in neither the dream nor her answers (\"לומר\")",
+              "a word that is in neither the dream nor her answers (\"לשאול\")",
+              "a time word the moment does not have (\"מתוך\")",
+              "a word that is in neither the dream nor her answers (\"שהופיע\")",
+              "gives her a feeling she did not name"
+            ]
+          }
+        }
+      ],
+      "avoided": 8
+    },
+    {
+      "plan": "sensitive",
+      "kind": "רגיש",
+      "text": "רדפו אחריי במסדרון ארוך בבית חולים. הדלתות נסגרו אחת אחרי השנייה. בסוף הגעתי לחדר שבו אבא שלי ישן במיטה, ולא הצלחתי להעיר אותו.",
+      "segments": [
+        "s0: רדפו אחריי במסדרון ארוך בבית חולים",
+        "s1: הדלתות נסגרו אחת אחרי השנייה",
+        "s2: בסוף הגעתי לחדר שבו אבא שלי ישן במיטה, ולא הצלחתי להעיר אותו"
+      ],
+      "moments": [
+        {
+          "id": "m1",
+          "label": "לחדר אבא",
+          "labelCandidate": "הגעתי לחדר אבא",
+          "text": "בסוף הגעתי לחדר שבו אבא שלי ישן במיטה, ולא הצלחתי להעיר אותו",
+          "priority": 4
+        },
+        {
+          "id": "m2",
+          "label": "רדיפה במסדרון",
+          "labelCandidate": "רדיפה במסדרון",
+          "text": "רדפו אחריי במסדרון ארוך בבית חולים",
+          "priority": 1
+        },
+        {
+          "id": "m3",
+          "label": "הדלתות נסגרו אחת אחרי",
+          "labelCandidate": "סגירת דלתות שתר",
+          "text": "הדלתות נסגרו אחת אחרי השנייה",
+          "priority": 1
+        }
+      ],
+      "steps": [
+        {
+          "moment": "הדלתות נסגרו אחת אחרי",
+          "momentText": "הדלתות נסגרו אחת אחרי השנייה",
+          "question": {
+            "text": "מה שמעת או הרגשת כשראית דלת נסגרת שם?",
+            "source": "adaptive",
+            "focus": "feeling",
+            "subject": "דלת",
+            "ms": 2325,
+            "rejected": [
+              {
+                "question": "אפשר לתאר איך הדלתות נראו כשהן נסגרו במסדרון הזה?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"לתאר\")",
+                  "a word that is in neither the dream nor her answers (\"נראו\")",
+                  "presupposes something from another part of the dream (\"במסדרון\")"
+                ]
+              },
+              {
+                "question": "איך נשמעה הסגירה של הדלתות במסדרון בזמן הזה?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"נשמעה\")",
+                  "a word that is in neither the dream nor her answers (\"הסגירה\")",
+                  "presupposes something from another part of the dream (\"במסדרון\")",
+                  "a time word the moment does not have (\"בזמן\")"
+                ]
+              },
+              {
+                "question": "איך נראתה דלת אחת כשנסגרה במסדרון הזה?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"נראתה\")",
+                  "presupposes something from another part of the dream (\"במסדרון\")"
+                ]
+              }
+            ]
+          },
+          "answer": "לא יודעת.",
+          "alternative": {
+            "question": "מה הדבר הראשון שנראה או נשמע ברגע הזה?",
+            "source": "fixed",
+            "focus": "sense",
+            "ms": 4023,
+            "rejected": [
+              {
+                "question": "אפשר לתאר מה ראו דרך אחת הדלתות שנסגרו שם?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"לתאר\")",
+                  "a word that is in neither the dream nor her answers (\"ראו\")",
+                  "a word that is in neither the dream nor her answers (\"דרך\")",
+                  "repeats a question already asked"
+                ]
+              },
+              {
+                "question": "איזה צבע הייתה דלת אחת שנסגרה שם?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"צבע\")",
+                  "repeats a question already asked"
+                ]
+              },
+              {
+                "question": "איזו דלת נסגרה ראשונה במסדרון הזה?",
+                "reasons": [
+                  "a time word the moment does not have (\"ראשונה\")",
+                  "presupposes something from another part of the dream (\"במסדרון\")"
+                ]
+              }
+            ],
+            "answer": "הדבר הראשון שנשמע זה היה רעש של דלתות נסגרות, והראש שלי היה מלא במתח."
+          },
+          "followUp": null,
+          "insight": {
+            "observation": "הדלתות נסגרו אחת אחרי השנייה.",
+            "reflection": "אמרת: «הדבר הראשון שנשמע זה היה רעש של דלתות נסגרות, והראש שלי היה מלא במתח»",
+            "possibility": "אולי אפשר לראות בדלתות שנסגרו אחת אחרי השנייה משהו שמקשה לעבור או להתקדם.",
+            "kind": "interpretive"
+          },
+          "insightReport": {
+            "dream": [
+              {
+                "status": "checked",
+                "reasons": []
+              }
+            ],
+            "user": [
+              {
+                "status": "quote",
+                "reasons": [
+                  "words she did not say (\"ששמעת\")",
+                  "adds a time word (\"קודם\")"
+                ]
+              }
+            ],
+            "possibilities": [
+              [],
+              [
+                "gives her a feeling she did not name (\"לחץ\")"
+              ]
+            ]
+          },
+          "firstInsight": {
+            "observation": "הדלתות נסגרו אחת אחרי השנייה.",
+            "reflection": "אמרת: «הדבר הראשון שנשמע זה היה רעש של דלתות נסגרות, והראש שלי היה מלא במתח»",
+            "possibility": "אולי אפשר לראות בדלתות שנסגרו אחת אחרי השנייה משהו שמקשה לעבור או להתקדם.",
+            "kind": "interpretive"
+          },
+          "replyMs": 1458,
+          "refreshMs": null,
+          "retryMs": null,
+          "unsureLook": false
+        },
+        {
+          "moment": "לחדר אבא",
+          "momentText": "בסוף הגעתי לחדר שבו אבא שלי ישן במיטה, ולא הצלחתי להעיר אותו",
+          "question": {
+            "text": "איך נראה החדר שבו אבא שלך ישן במיטה ברגע הזה?",
+            "source": "adaptive",
+            "focus": "detail",
+            "subject": "החדר",
+            "ms": 2683,
+            "rejected": [
+              {
+                "question": "איך נראה החדר שנכנסת אליו שבו אבא שלך ישן?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"שנכנסת\")"
+                ]
+              },
+              {
+                "question": "מה היה הדבר הראשון ששמעת כשנכנסת לחדר של אבא שלך?",
+                "reasons": [
+                  "a word that is in neither the dream nor her answers (\"כשנכנסת\")"
+                ]
+              }
+            ]
+          },
+          "answer": "החדר היה חשוך וקטן, עם מיטה פשוטה. הרגשתי פחד וחוסר אונים כשהבנתי שלא מצליח לה awaken אותו.",
+          "alternative": null,
+          "followUp": null,
+          "insight": {
+            "observation": "הגעת לחדר שבו אבא שלך ישן במיטה.",
+            "reflection": "אמרת שהחדר היה חשוך וקטן, עם מיטה פשוטה. אמרת שהרגשת פחד וחוסר אונים כשהבנת שלא הצלחת להעיר אותו.",
+            "possibility": "אולי אפשר לראות בזה שלא הצלחת להעיר את אבא שלך משהו שקשה להשפיע עליו או לקבל ממנו תגובה.",
+            "kind": "interpretive"
+          },
+          "insightReport": {
+            "dream": [
+              {
+                "status": "checked",
+                "reasons": []
+              },
+              {
+                "status": "quote",
+                "reasons": [
+                  "names a different doer"
+                ]
+              },
+              {
+                "status": "quote",
+                "reasons": [
+                  "no verb of the part to check the event against"
+                ]
+              }
+            ],
+            "user": [
+              {
+                "status": "checked",
+                "reasons": []
+              }
+            ],
+            "possibilities": [
+              [],
+              [
+                "rests on no sentence that passed the checks"
+              ]
+            ]
+          },
+          "firstInsight": {
+            "observation": "הגעת לחדר שבו אבא שלך ישן במיטה.",
+            "reflection": "אמרת שהחדר היה חשוך וקטן, עם מיטה פשוטה. אמרת שהרגשת פחד וחוסר אונים כשהבנת שלא הצלחת להעיר אותו.",
+            "possibility": "אולי אפשר לראות בזה שלא הצלחת להעיר את אבא שלך משהו שקשה להשפיע עליו או לקבל ממנו תגובה.",
+            "kind": "interpretive"
+          },
+          "replyMs": 1978,
+          "refreshMs": null,
+          "retryMs": null,
+          "unsureLook": false
+        },
+        {
+          "moment": "רדיפה במסדרון",
+          "momentText": "רדפו אחריי במסדרון ארוך בבית חולים",
+          "question": {
+            "text": "מי או מה רדף אחריך במסדרון ברגע הזה?",
+            "source": "adaptive",
+            "focus": "figure",
+            "subject": "הרודפים",
+            "ms": 1060,
+            "rejected": [
+              {
+                "question": "מה הדבר הראשון שנראה או נשמע במסדרון בזמן שרדפו אחריך שם?",
+                "reasons": [
+                  "a time word the moment does not have (\"בזמן\")"
+                ]
+              }
+            ]
+          },
+          "answer": "אני לא בטוח מי רדף, אולי זה היה פחד מהעבר או דאגה לאבא שלי. הרגשתי לחץ גדול ומתח בכל הגוף.",
+          "alternative": null,
+          "followUp": null,
+          "insight": {
+            "observation": "רדפו אחריך במסדרון ארוך בבית חולים.",
+            "reflection": "אמרת שלא היית בטוח מי רדף, ואולי זה היה פחד מהעבר או דאגה לאבא שלך. אמרת שהרגשת לחץ גדול ומתח בכל הגוף.",
+            "possibility": "ייתכן שבמסדרון הארוך בבית החולים הופיעו מועקות ישנות או דאגות שקשורות לאבא שלך.",
+            "kind": "interpretive"
+          },
+          "insightReport": {
+            "dream": [
+              {
+                "status": "checked",
+                "reasons": []
+              }
+            ],
+            "user": [
+              {
+                "status": "checked",
+                "reasons": []
+              }
+            ],
+            "possibilities": [
+              [
+                "a time word neither the dream nor she used (\"תמיד\")"
+              ],
+              []
+            ]
+          },
+          "firstInsight": {
+            "observation": "רדפו אחריך במסדרון ארוך בבית חולים.",
+            "reflection": "אמרת שלא היית בטוח מי רדף, ואולי זה היה פחד מהעבר או דאגה לאבא שלך. אמרת שהרגשת לחץ גדול ומתח בכל הגוף.",
+            "possibility": "ייתכן שבמסדרון הארוך בבית החולים הופיעו מועקות ישנות או דאגות שקשורות לאבא שלך.",
+            "kind": "interpretive"
+          },
+          "replyMs": 11963,
+          "refreshMs": null,
+          "retryMs": null,
+          "unsureLook": false
+        }
+      ],
+      "wholeViews": [
+        {
+          "afterMoments": 3,
+          "attempt": 1,
+          "ms": 7159,
+          "kind": "whole",
+          "notice": null,
+          "overview": "",
+          "connections": [
+            {
+              "from": "m3",
+              "to": "m2",
+              "title": "מתח במסדרון",
+              "basis": "«הראש שלי היה מלא במתח» · «הרגשתי לחץ גדול ומתח בכל הגוף» — אפשר לראות שהמתח הופיע גם במסדרון וגם כשנסגרו הדלתות."
+            },
+            {
+              "from": "m1",
+              "to": "m2",
+              "title": "פחד ודאגה לאבא",
+              "basis": "«הרגשתי פחד וחוסר אונים כשהבנתי שלא מצליח לה awaken אותו» · «אולי זה היה פחד מהעבר או דאגה לאבא שלי» — אולי יש קשר בין הפחד שלא הצלחת להעיר את אבא שלך ובין הדאגה אליו שציינת ברדיפה."
+            }
+          ],
+          "recurring": null,
+          "contrast": null,
+          "readings": [
+            {
+              "basis": "בסוף הגעתי לחדר שבו אבא שלי ישן במיטה, ולא הצלחתי להעיר אותו",
+              "reading": "ייתכן שהחדר החשוך והפשוט שבו אבא שלך ישן משקף קושי לתקשר איתו או להגיע אליו כשקשה."
+            },
+            {
+              "basis": "הדלתות נסגרו אחת אחרי השנייה",
+              "reading": "אפשר לראות בדלתות שנסגרות אחת אחרי השנייה רצף של מחסומים שמפרידים בינך ובין מישהו שחשוב לך."
+            }
+          ],
+          "closingQuestion": "",
+          "invite": [],
+          "report": {
+            "overview": [
+              {
+                "source": "dream",
+                "ok": false,
+                "reasons": [
+                  "a word the dream does not have (\"במסדרון\")"
+                ]
+              },
+              {
+                "source": "user",
+                "ok": false,
+                "reasons": [
+                  "repeats what was already shown"
+                ]
+              },
+              {
+                "source": "dream",
+                "ok": false,
+                "reasons": [
+                  "states the dreamer's own detail as the dream's (\"חשוך\")",
+                  "states the dreamer's own detail as the dream's (\"וקטן\")",
+                  "names a different doer"
+                ]
+              },
+              {
+                "source": "user",
+                "ok": false,
+                "reasons": [
+                  "repeats what was already shown"
+                ]
+              },
+              {
+                "source": "dream",
+                "ok": false,
+                "reasons": [
+                  "repeats what was already shown"
+                ]
+              },
+              {
+                "source": "user",
+                "ok": false,
+                "reasons": [
+                  "repeats what was already shown"
+                ]
+              }
+            ],
+            "connections": [
+              [],
+              []
+            ],
+            "recurring": [
+              "\"הופיע\" is not in the moments it names",
+              "\"ברגע\" is not in the moments it names",
+              "\"סגירת\" is not in the moments it names"
+            ],
+            "contrast": [
+              "\"במסדרון\" is not in the two moments",
+              "\"בעיקר\" is not in the two moments",
+              "\"הופיעו\" is not in the two moments"
+            ],
+            "readings": [
+              [],
+              []
+            ],
+            "closing": [
+              "a word that is in neither the dream nor her answers (\"עוזר\")",
+              "a word that is in neither the dream nor her answers (\"השפעה\")",
+              "a word that is in neither the dream nor her answers (\"לפעול\")"
+            ]
+          }
+        }
+      ],
+      "avoided": 7
+    }
+  ],
+  "stoppedForBudget": null,
+  "spentThisRunUsd": 0.197434,
+  "calls": [
+    {
+      "at": "2026-10-21T05:31:33.538Z",
+      "run": "fix-dev-1",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3742,
+      "output": 295,
+      "usd": 0.0007383,
+      "ms": 3960
+    },
+    {
+      "at": "2026-10-21T05:31:35.207Z",
+      "run": "fix-dev-1",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 985,
+      "output": 21,
+      "usd": 0.00016035,
+      "ms": 1046
+    },
+    {
+      "at": "2026-10-21T05:31:36.170Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1531,
+      "output": 76,
+      "usd": 0.00367,
+      "ms": 954
+    },
+    {
+      "at": "2026-10-21T05:31:37.754Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 129,
+      "output": 34,
+      "usd": 0.00003975,
+      "ms": 1573
+    },
+    {
+      "at": "2026-10-21T05:31:39.770Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1859,
+      "output": 227,
+      "usd": 0.005534,
+      "ms": 2010
+    },
+    {
+      "at": "2026-10-21T05:31:45.501Z",
+      "run": "fix-dev-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2309,
+      "output": 384,
+      "usd": 0.00769,
+      "ms": 5536
+    },
+    {
+      "at": "2026-10-21T05:31:52.496Z",
+      "run": "fix-dev-1",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3807,
+      "output": 854,
+      "usd": 0.00108345,
+      "ms": 6978
+    },
+    {
+      "at": "2026-10-21T05:31:53.596Z",
+      "run": "fix-dev-1",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1119,
+      "output": 41,
+      "usd": 0.00019245,
+      "ms": 1094
+    },
+    {
+      "at": "2026-10-21T05:31:54.873Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1372,
+      "output": 68,
+      "usd": 0.003288,
+      "ms": 1274
+    },
+    {
+      "at": "2026-10-21T05:31:55.867Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1441,
+      "output": 74,
+      "usd": 0.003474,
+      "ms": 988
+    },
+    {
+      "at": "2026-10-21T05:31:56.727Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1463,
+      "output": 67,
+      "usd": 0.003462,
+      "ms": 855
+    },
+    {
+      "at": "2026-10-21T05:31:57.613Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 208,
+      "output": 34,
+      "usd": 0.000051599999999999994,
+      "ms": 884
+    },
+    {
+      "at": "2026-10-21T05:31:59.637Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1673,
+      "output": 283,
+      "usd": 0.00561,
+      "ms": 2023
+    },
+    {
+      "at": "2026-10-21T05:32:02.191Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1733,
+      "output": 210,
+      "usd": 0.005146,
+      "ms": 1700
+    },
+    {
+      "at": "2026-10-21T05:32:03.118Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1538,
+      "output": 81,
+      "usd": 0.003724,
+      "ms": 921
+    },
+    {
+      "at": "2026-10-21T05:32:04.129Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1580,
+      "output": 76,
+      "usd": 0.003768,
+      "ms": 1006
+    },
+    {
+      "at": "2026-10-21T05:32:05.122Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 271,
+      "output": 40,
+      "usd": 0.00006465,
+      "ms": 989
+    },
+    {
+      "at": "2026-10-21T05:32:07.235Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1894,
+      "output": 255,
+      "usd": 0.005828,
+      "ms": 2108
+    },
+    {
+      "at": "2026-10-21T05:32:11.731Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1947,
+      "output": 273,
+      "usd": 0.006078,
+      "ms": 4490
+    },
+    {
+      "at": "2026-10-21T05:32:12.875Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 300,
+      "output": 36,
+      "usd": 0.00006659999999999999,
+      "ms": 1129
+    },
+    {
+      "at": "2026-10-21T05:32:15.449Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply-refresh",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1968,
+      "output": 329,
+      "usd": 0.006568,
+      "ms": 2547
+    },
+    {
+      "at": "2026-10-21T05:32:22.344Z",
+      "run": "fix-dev-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2467,
+      "output": 771,
+      "usd": 0.011102,
+      "ms": 6875
+    },
+    {
+      "at": "2026-10-21T05:32:23.457Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1826,
+      "output": 83,
+      "usd": 0.004316,
+      "ms": 1078
+    },
+    {
+      "at": "2026-10-21T05:32:24.297Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 325,
+      "output": 34,
+      "usd": 0.00006915,
+      "ms": 835
+    },
+    {
+      "at": "2026-10-21T05:32:25.999Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2181,
+      "output": 228,
+      "usd": 0.006186,
+      "ms": 1701
+    },
+    {
+      "at": "2026-10-21T05:32:27.071Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2003,
+      "output": 87,
+      "usd": 0.004702,
+      "ms": 1060
+    },
+    {
+      "at": "2026-10-21T05:32:28.285Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2078,
+      "output": 86,
+      "usd": 0.004844,
+      "ms": 1193
+    },
+    {
+      "at": "2026-10-21T05:32:30.682Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2105,
+      "output": 92,
+      "usd": 0.004946,
+      "ms": 2388
+    },
+    {
+      "at": "2026-10-21T05:32:31.618Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 356,
+      "output": 46,
+      "usd": 0.000081,
+      "ms": 931
+    },
+    {
+      "at": "2026-10-21T05:32:33.882Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2376,
+      "output": 349,
+      "usd": 0.007544,
+      "ms": 2262
+    },
+    {
+      "at": "2026-10-21T05:32:46.146Z",
+      "run": "fix-dev-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2819,
+      "output": 1844,
+      "usd": 0.02039,
+      "ms": 12232
+    },
+    {
+      "at": "2026-10-21T05:32:50.217Z",
+      "run": "fix-dev-1",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3770,
+      "output": 500,
+      "usd": 0.0008655,
+      "ms": 4022
+    },
+    {
+      "at": "2026-10-21T05:32:51.261Z",
+      "run": "fix-dev-1",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1045,
+      "output": 31,
+      "usd": 0.00017535,
+      "ms": 1039
+    },
+    {
+      "at": "2026-10-21T05:32:52.904Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1611,
+      "output": 87,
+      "usd": 0.003918,
+      "ms": 1381
+    },
+    {
+      "at": "2026-10-21T05:32:53.843Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1728,
+      "output": 75,
+      "usd": 0.004056,
+      "ms": 934
+    },
+    {
+      "at": "2026-10-21T05:32:54.441Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 169,
+      "output": 5,
+      "usd": 0.000028349999999999998,
+      "ms": 593
+    },
+    {
+      "at": "2026-10-21T05:32:56.014Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1661,
+      "output": 43,
+      "usd": 0.003666,
+      "ms": 932
+    },
+    {
+      "at": "2026-10-21T05:32:57.460Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1733,
+      "output": 38,
+      "usd": 0.00377,
+      "ms": 986
+    },
+    {
+      "at": "2026-10-21T05:32:58.488Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1703,
+      "output": 41,
+      "usd": 0.003734,
+      "ms": 842
+    },
+    {
+      "at": "2026-10-21T05:32:59.831Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 175,
+      "output": 28,
+      "usd": 0.000043049999999999996,
+      "ms": 727
+    },
+    {
+      "at": "2026-10-21T05:33:01.283Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1927,
+      "output": 187,
+      "usd": 0.00535,
+      "ms": 1451
+    },
+    {
+      "at": "2026-10-21T05:33:03.006Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1810,
+      "output": 78,
+      "usd": 0.004244,
+      "ms": 1715
+    },
+    {
+      "at": "2026-10-21T05:33:03.970Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1865,
+      "output": 76,
+      "usd": 0.004338,
+      "ms": 961
+    },
+    {
+      "at": "2026-10-21T05:33:04.897Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 197,
+      "output": 35,
+      "usd": 0.000050549999999999995,
+      "ms": 923
+    },
+    {
+      "at": "2026-10-21T05:33:06.868Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2179,
+      "output": 285,
+      "usd": 0.006638,
+      "ms": 1970
+    },
+    {
+      "at": "2026-10-21T05:33:07.931Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1983,
+      "output": 80,
+      "usd": 0.004606,
+      "ms": 1055
+    },
+    {
+      "at": "2026-10-21T05:33:08.810Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 230,
+      "output": 34,
+      "usd": 0.0000549,
+      "ms": 873
+    },
+    {
+      "at": "2026-10-21T05:33:11.167Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2355,
+      "output": 282,
+      "usd": 0.006966,
+      "ms": 1815
+    },
+    {
+      "at": "2026-10-21T05:33:27.848Z",
+      "run": "fix-dev-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2781,
+      "output": 1119,
+      "usd": 0.014514,
+      "ms": 6532
+    }
+  ]
+}

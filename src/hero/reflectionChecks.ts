@@ -19,7 +19,7 @@ const QUOTED = /["“”«»][^"“”«»]*["“”«»]/g;
 
 /** Words a model tends to ADD to a dream: a circumstance, a motive, an intention, an expectation, a feeling of the dreamer's. Only flagged when neither the dream nor the dreamer's own words use them. */
 const HEBREW_INSERTIONS = [
-  'לבד', 'פתאום', 'בפתאומיות', 'בהפתעה', 'בכוונה', 'התכוונת', 'רצית', 'ציפית', 'תכננת', 'החלטת', 'קיווית',
+  'לבד', 'פתאום', 'בפתאומיות', 'מיד', 'מייד', 'בהפתעה', 'בכוונה', 'התכוונת', 'רצית', 'ציפית', 'תכננת', 'החלטת', 'קיווית',
   'פחדת', 'חששת', 'כעסת', 'התגעגעת', 'התבלבלת', 'נבהלת', 'שמחת', 'התרגשת', 'נעלבת', 'התאכזבת', 'הצטערת', 'התביישת', 'הופתעת', 'נלחצת',
   'מתוסכלת', 'מתוסכל', 'בודדה', 'בודד', 'מפוחדת', 'מפוחד', 'כועסת', 'כועס',
 ];
@@ -27,7 +27,7 @@ const HEBREW_INSERTIONS = [
 /** Feeling states named as nouns ("תחושת בדידות", "לתסכול") that the dreamer never gave. Any of the usual prefixes may attach (ה ב ל מ כ ו ש). */
 const HEBREW_FEELING_NOUNS = ['תסכול', 'אכזבה', 'בדידות', 'חרדה', 'חשש', 'אשמה', 'בושה', 'ייאוש', 'קנאה', 'מבוכה', 'חרטה', 'בהלה'];
 const ENGLISH_INSERTIONS = [
-  'alone', 'suddenly', 'unexpectedly', 'deliberately', 'on purpose', 'intended', 'wanted', 'expected', 'planned', 'decided', 'hoped',
+  'alone', 'suddenly', 'immediately', 'unexpectedly', 'deliberately', 'on purpose', 'intended', 'wanted', 'expected', 'planned', 'decided', 'hoped',
   'afraid', 'scared', 'angry', 'ashamed', 'excited', 'relieved', 'disappointed', 'frustrated', 'lonely', 'anxious', 'terrified',
   'loneliness', 'frustration', 'disappointment', 'anxiety', 'guilt', 'shame', 'despair', 'jealousy', 'embarrassment', 'regret', 'panic',
 ];
@@ -58,7 +58,7 @@ export function unsupportedInsertionNote(texts: readonly string[], sources: read
   return `\n\nCORRECTION: your previous attempt used wording that the dream and the dreamer's own words do not support: ${[...found].map((w) => `"${w}"`).join(', ')}. Do not add that the dreamer was alone, did something suddenly, intended, wanted, expected or planned anything, or felt anything they did not name. Regenerate the entire response using only what the dream and the dreamer's own words state.`;
 }
 
-const SYMBOL_HE = new RegExp(`(?<![${HEB}])${PREFIXES}(?:מסמל|מסמלת|מסמלים|מסמלות|מסמן|מסמנת|מסמנים|מסמנות|מייצג|מייצגת|מייצגים|מייצגות|סמל|סמלית)(?![${HEB}])`);
+const SYMBOL_HE = new RegExp(`(?<![${HEB}])${PREFIXES}(?:מסמל|מסמלת|מסמלים|מסמלות|מסמן|מסמנת|מסמנים|מסמנות|מייצג|מייצגת|מייצגים|מייצגות|ייצג|ייצגה|ייצגו|סימל|סימלה|סימלו|סמל|סמלית)(?![${HEB}])`);
 const SYMBOL_EN = /(?<![A-Za-z])(?:symbolizes?|symbolises?|symbolizing|represents?|representing|stands? for|signifies|signify)(?![A-Za-z])/i;
 
 /** An object or event "symbolizes" or "represents" something: the fixed-meaning wording this product never uses outside the one lens that is labelled as such. */

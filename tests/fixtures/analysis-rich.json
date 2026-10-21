@@ -1,0 +1,157 @@
+{
+  "sourceText": "הייתי בחתונה של חברה. כולם לבשו לבן ואני לבשתי שחור. אחי הקטן נתן לי מפתח ואמר שזה למקום שעוד לא הייתי בו. הלכנו לאורך החוף, והים התרחק ולא חזר. מישהו שר שיר שלא הכרתי, אבל ידעתי את כל המילים. כשהגענו לדלת, המפתח היה קטן מדי.",
+  "language": "he",
+  "summary": "החלום מתאר חתונה שבה כולם לבשו לבן, בעוד שהחלום לבש שחור. תוך כדי החלום, אח של החלום נתן לו מפתח למקום חדש והם הלכו לאורך חוף שבו הים התרחק ולא חזר. מישהו שר שיר לא מוכר, ובסוף, המפתח לא התאים לדלת.",
+  "people": [
+    {
+      "nameOrRole": "אחיו הקטן",
+      "description": "נתן מפתח",
+      "relationshipToDreamer": "אח",
+      "explicit": true,
+      "confidence": 1
+    },
+    {
+      "nameOrRole": "חברה",
+      "description": "חברה מהחתונה",
+      "relationshipToDreamer": "חברה",
+      "explicit": true,
+      "confidence": 1
+    }
+  ],
+  "places": [
+    {
+      "name": "חתונה",
+      "description": "חתונה של חברה",
+      "explicit": true,
+      "confidence": 1
+    },
+    {
+      "name": "חוף",
+      "description": "חוף לאורך שהלכו",
+      "explicit": true,
+      "confidence": 1
+    },
+    {
+      "name": "מקום חדש",
+      "description": "המקום שהמפתח מיועד לו",
+      "explicit": false,
+      "confidence": 0.7
+    }
+  ],
+  "objects": [
+    {
+      "name": "מפתח",
+      "description": "מפתח שנתן אחיו הקטן",
+      "explicit": true,
+      "confidence": 1
+    },
+    {
+      "name": "דלת",
+      "description": "דלת שמולאה במפתח",
+      "explicit": true,
+      "confidence": 1
+    }
+  ],
+  "actions": [
+    {
+      "subject": "אני",
+      "action": "לשיר",
+      "target": "שיר שלא הכרתי אבל ידעתי את כל המילים",
+      "explicit": false,
+      "confidence": 0.6
+    },
+    {
+      "subject": "הלכנו",
+      "action": "ללכת",
+      "target": "לאורך החוף",
+      "explicit": true,
+      "confidence": 1
+    },
+    {
+      "subject": "אחי הקטן",
+      "action": "נתן",
+      "target": "מפתח",
+      "explicit": true,
+      "confidence": 1
+    }
+  ],
+  "emotions": [],
+  "sensoryDetails": {
+    "visual": [
+      "כל האנשים בחתונה לבשו לבן",
+      "אני לבשתי שחור",
+      "הים התרחק"
+    ],
+    "sounds": [
+      "מישהו שר שיר שלא הכרתי"
+    ],
+    "physicalSensations": [],
+    "atmosphere": [
+      "אירוע חתונה",
+      "חוף"
+    ]
+  },
+  "unusualElements": [
+    "השיר שמעתי את כל המילים למרות שלא הכרתי אותו",
+    "המפתח היה קטן מדי לדלת"
+  ],
+  "relationships": [],
+  "sequence": [
+    {
+      "order": 1,
+      "description": "חתונה של חברה"
+    },
+    {
+      "order": 2,
+      "description": "אחי הקטן נתן לי מפתח"
+    },
+    {
+      "order": 3,
+      "description": "הלכנו לאורך החוף"
+    },
+    {
+      "order": 4,
+      "description": "הים התרחק"
+    },
+    {
+      "order": 5,
+      "description": "מישהו שר שיר"
+    },
+    {
+      "order": 6,
+      "description": "המפתח לא התאים לדלת"
+    }
+  ],
+  "unresolvedDetails": [],
+  "emotionalTone": null,
+  "reconstruction": {
+    "primarySetting": "חתונה",
+    "keyPeople": [
+      "אחיו הקטן",
+      "חברה"
+    ],
+    "keyObjects": [
+      "מפתח",
+      "דלת"
+    ],
+    "keyActions": [
+      "נתן מפתח",
+      "הלכנו לאורך החוף"
+    ],
+    "visualAtmosphere": [
+      "חתונה עם אנשים בלבן",
+      "שחור מול לבן",
+      "ים מתרחק"
+    ],
+    "emotionalAtmosphere": [
+      "חגיגית"
+    ]
+  },
+  "concepts": [
+    "friends_social",
+    "celebration",
+    "home_dwelling",
+    "travel_journey"
+  ],
+  "conceptVersion": 1
+}

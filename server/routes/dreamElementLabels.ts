@@ -13,6 +13,7 @@ import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js
 import { reserveLabelsAttempt, refundLabelsAttempt, getTrialAttemptState } from '../dreamAttempts.js';
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 import { handleDreamQuestions } from './dreamQuestions.js';
+import { explorationModeOf, handleExploration } from './dreamExploration.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
 
@@ -21,6 +22,9 @@ export async function handleDreamElementLabels(rawBody: unknown, requestHeaders:
   if (typeof rawBody === 'object' && rawBody !== null && (rawBody as { mode?: unknown }).mode === 'questions') {
     return handleDreamQuestions(rawBody, requestHeaders);
   }
+  // The multi-moment journey's question for a newly chosen moment (see dreamExploration.ts).
+  const explorationMode = explorationModeOf(rawBody, ['moment-question']);
+  if (explorationMode) return handleExploration(explorationMode, rawBody, requestHeaders);
   const resolved = await resolveCallerIdentity(requestHeaders);
   if (!resolved.ok) {
     return errorResult(resolved.status, resolved.reason, resolved.message);

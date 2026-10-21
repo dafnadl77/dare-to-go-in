@@ -84,9 +84,11 @@ test('the moments are explored in the dreamer\'s own order, and that order is ke
   assert.deepEqual(exploredInOrder(e).map((x) => x.moment.id), ['m4', 'm1', 'm3']);
 });
 
-test('only the FIRST moment may use its pre-written question; after an answer every question must be written with the answers', () => {
+// Changed in the stage 3b fix round (decision of 2026-10-21, doc 30): the first moment's question is written for it too; the
+// questions written in advance were written for the analysis's words, not for the moments the dreamer chooses.
+test('every moment\'s question is written for it, the first one too; after an answer every question is written with the answers', () => {
   let e = createExploration('att', seeds(3));
-  assert.deepEqual(questionPlanFor(e, 'm2'), { kind: 'ready', question: 'pre-written question 2?', source: 'pregenerated' });
+  assert.deepEqual(questionPlanFor(e, 'm2'), { kind: 'needs-call' }, 'not the pre-written question, not even for the first moment');
   e = explore(e, 'm2');
   assert.deepEqual(questionPlanFor(e, 'm1'), { kind: 'needs-call' }, 'an answer exists, so a pre-written question cannot be adaptive');
   assert.equal(needsQuestionCall(e, 'm1'), true);

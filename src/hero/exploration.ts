@@ -1,4 +1,17 @@
 import type { DreamReflectionResult } from './dreamReflectionSchema.js';
+import { containsVerbatim, isUnsureAnswer } from './hebrewText.js';
+
+/** What a question asks about (declared by the model, corrected by code where the words show it; see claimCheck.ts). */
+export type QuestionFocus = 'feeling' | 'sense' | 'figure' | 'action' | 'detail' | 'change' | 'memory' | 'salience' | 'surprise' | 'choice' | 'connection';
+const FOCI: readonly QuestionFocus[] = ['feeling', 'sense', 'figure', 'action', 'detail', 'change', 'memory', 'salience', 'surprise', 'choice', 'connection'];
+/** whole = a real link or difference across moments; first-look = one moment, never "the whole picture"; no-link = honest "nothing
+    joins them yet"; factual-summary = every interpretive part failed its checks, only verified facts (not counted as a whole view). */
+export type WholeViewKind = 'whole' | 'first-look' | 'no-link' | 'factual-summary';
+/** An insight is "factual" when no interpretation passed its checks (or the answer was "I don't know"): not a successful insight. */
+export type InsightKind = 'interpretive' | 'factual';
+/** One more interpretive try for a moment whose insight came back factual, one more whole view after a factual summary. */
+export const MAX_INSIGHT_RETRIES = 1;
+export const MAX_WHOLE_VIEW_FAILURES = 2;
 
 /**
  * THE MULTI-MOMENT DREAM JOURNEY: its data and the pure rules that move it forward (stage 3a; see
@@ -35,14 +48,19 @@ export interface ExplorationMoment {
   rawLabel: string | null;
   /** A sentence taken from the dream's own text, or null when none matches (see momentExcerpt.ts). */
   excerpt: string | null;
-  /** The question written for this moment in advance, if any (only honest as-is for the FIRST moment explored). */
+  /** The question written for this moment in advance, if any. Kept for older records; since the fix round (doc 30) even the first
+      moment gets a question written for it, so this is no longer asked as it is. */
   pregeneratedQuestion: string | null;
+  /** The parts of the dream this moment rests on (dreamSegments.ts ids); absent on older records (then found from the excerpt). */
+  segmentIds?: number[];
 }
 
 export interface MomentInsight {
   observation: string;
   reflection: string;
+  /** '' when no interpretation passed its checks (kind 'factual'). */
   possibility: string;
+  kind?: InsightKind;
 }
 
 export interface ExploredMoment {
@@ -60,6 +78,13 @@ export interface ExploredMoment {
   order: number;
   startedAt: string;
   exploredAt: string | null;
+  /** What the question asks about, so a later question never asks the same thing in other words. */
+  focus?: QuestionFocus | null;
+  subject?: string | null;
+  /** After an "I don't know": the first question and its answer, kept; `question` / `answer` are then the one different question. */
+  firstTry?: { question: string; answer: string } | null;
+  /** Interpretive retries used after a factual insight (at most MAX_INSIGHT_RETRIES). */
+  retries?: number;
 }
 
 export interface WholeViewConnection {
@@ -67,6 +92,11 @@ export interface WholeViewConnection {
   to: MomentId;
   title: string;
   basis: string;
+  /** The verbatim words each end rests on (her answer or the dream), so a later update can check the link still holds. */
+  fromQuote?: string;
+  toQuote?: string;
+  /** Kept from an earlier whole view of fewer moments (still resting on her unchanged words). */
+  carried?: boolean;
 }
 
 export interface WholeViewRecord {
@@ -78,8 +108,17 @@ export interface WholeViewRecord {
   recurring: string | null;
   contrast: string | null;
   readings: { basis: string; reading: string }[];
+  /** '' when no closing question passed its checks. */
   closingQuestion: string;
   connections: WholeViewConnection[];
+  /** Absent on older records (then 'whole'). */
+  kind?: WholeViewKind;
+  /** The plain sentence that says what this is when it is not a full whole view. */
+  notice?: string | null;
+  /** Moments not explored yet, offered to go deeper. */
+  invite?: MomentId[];
+  /** Factual summaries received in a row for the same answers (a retry is allowed while below MAX_WHOLE_VIEW_FAILURES). */
+  failures?: number;
 }
 
 export interface Exploration {
@@ -92,6 +131,10 @@ export interface Exploration {
   wholeViewCount: number;
   /** The feelings step is offered once per dream, after the first insight. */
   feelingsAsked: boolean;
+  /** An update whose every check failed (the earlier view stays shown): how many times, for these answers (one retry). */
+  wholeViewFailedFor?: { basedOn: string; count: number };
+  /** Earlier whole views, newest first (at most MAX_WHOLE_VIEWS): an update never loses what was shown before. */
+  wholeViewHistory?: WholeViewRecord[];
   /** Bumped on every change; a save to the account checks it so two tabs never overwrite each other. */
   rev: number;
 }
@@ -107,7 +150,14 @@ export interface MomentSeed {
   rawLabel?: string | null;
   excerpt?: string | null;
   pregeneratedQuestion?: string | null;
+  segmentIds?: readonly number[] | null;
 }
+
+const cleanSegmentIds = (v: unknown): number[] | undefined => {
+  if (!Array.isArray(v)) return undefined;
+  const ids = [...new Set(v.filter((x): x is number => Number.isInteger(x) && x >= 0 && x < 400))].slice(0, 12);
+  return ids.length ? ids : undefined;
+};
 
 /** Starts a journey from the moments the analysis offered. Empty labels are dropped; never more than MAX_MOMENTS; ids are m1..m6. */
 export function createExploration(attemptId: string, seeds: readonly MomentSeed[]): Exploration {
@@ -121,6 +171,7 @@ export function createExploration(attemptId: string, seeds: readonly MomentSeed[
       rawLabel: clean(seed.rawLabel, 200) || null,
       excerpt: clean(seed.excerpt, 300) || null,
       pregeneratedQuestion: clean(seed.pregeneratedQuestion, 300) || null,
+      ...(cleanSegmentIds(seed.segmentIds) ? { segmentIds: cleanSegmentIds(seed.segmentIds) } : {}),
     });
   }
   return { version: EXPLORATION_VERSION, attemptId: clean(attemptId, 100), moments, explored: {}, wholeView: null, wholeViewCount: 0, feelingsAsked: false, rev: 0 };
@@ -146,12 +197,18 @@ export function exploringId(e: Exploration): MomentId | null {
   return null;
 }
 
-/** The honest question source for the next moment: the pre-written question only when nothing was answered yet. */
-export function questionPlanFor(e: Exploration, id: MomentId): { kind: 'ready'; question: string; source: QuestionSource } | { kind: 'needs-call' } {
-  const m = momentById(e, id);
-  if (m && exploredCount(e) === 0 && m.pregeneratedQuestion) return { kind: 'ready', question: m.pregeneratedQuestion, source: 'pregenerated' };
+/** Every moment's question is written for it, the first one too (decision of 2026-10-21, doc 30): the questions written in advance
+    were written for the analysis's words, not for the moments the dreamer chooses. */
+export function questionPlanFor(_e: Exploration, _id: MomentId): { kind: 'ready'; question: string; source: QuestionSource } | { kind: 'needs-call' } {
   return { kind: 'needs-call' };
 }
+
+/** The answer says "I don't know" (it is never interpreted, never a source). */
+export const answeredUnsure = (entry: ExploredMoment | undefined) => Boolean(entry && entry.answer !== null && isUnsureAnswer(entry.answer));
+
+/** One different question may follow an "I don't know", once per moment. */
+export const alternativeQuestionAllowed = (entry: ExploredMoment | undefined) =>
+  Boolean(entry && entry.status === 'exploring' && answeredUnsure(entry) && !entry.firstTry && entry.insight === null);
 
 /** A stable fingerprint of what a whole view would be written from (moment ids, answers, clarification answers), in exploration order. */
 export function basedOnKey(e: Exploration): string {
@@ -181,10 +238,18 @@ export const needsQuestionCall = (e: Exploration, id: MomentId) => !e.explored[i
 export function needsReplyCall(e: Exploration, id: MomentId): boolean {
   const entry = e.explored[id];
   if (!entry || entry.status !== 'exploring' || entry.answer === null) return false;
+  // "I don't know" is not interpreted: the moment gets the dream's own words (unsureLook) and, once, a different question.
+  if (answeredUnsure(entry)) return false;
   if (entry.insight === null) return true;
   // The clarification was answered: exactly one refreshed insight, never a second.
-  return entry.followUp !== null && entry.followUp.answer !== null && !entry.insightFromFollowUp;
+  if (entry.followUp !== null && entry.followUp.answer !== null && !entry.insightFromFollowUp) return true;
+  // Only facts passed the checks: one more interpretive try, never a loop.
+  return entry.insight.kind === 'factual' && (entry.retries ?? 0) < MAX_INSIGHT_RETRIES && !followUpPending(entry);
 }
+
+/** The insight call about to be made is a retry of a factual insight (not a first insight, not a refresh). */
+export const isInsightRetry = (entry: ExploredMoment | undefined) =>
+  Boolean(entry && entry.insight && entry.insight.kind === 'factual' && !(entry.followUp && entry.followUp.answer !== null && !entry.insightFromFollowUp));
 
 /** The clarification is still waiting for an answer or a skip. */
 export const followUpPending = (entry: ExploredMoment) => entry.followUp !== null && entry.followUp.answer === null && !entry.followUp.skipped;
@@ -194,7 +259,10 @@ export const followUpPending = (entry: ExploredMoment) => entry.followUp !== nul
 export function canRequestWholeView(e: Exploration): boolean {
   if (exploredCount(e) === 0 || exploringId(e) !== null) return false;
   if (e.wholeViewCount >= MAX_WHOLE_VIEWS) return false;
-  return e.wholeView === null || wholeViewIsStale(e);
+  if (e.wholeViewFailedFor && e.wholeViewFailedFor.basedOn === basedOnKey(e) && e.wholeViewFailedFor.count >= MAX_WHOLE_VIEW_FAILURES) return false;
+  if (e.wholeView === null || wholeViewIsStale(e)) return true;
+  // The same answers: again only after a factual summary (every check failed), and only once.
+  return e.wholeView.kind === 'factual-summary' && (e.wholeView.failures ?? 1) < MAX_WHOLE_VIEW_FAILURES;
 }
 
 // ------------------------------------------------------------------------------------------------ steps (each returns the same object when not allowed)
@@ -216,6 +284,30 @@ export function abandonMoment(e: Exploration, id: MomentId): Exploration {
   return bump(e, { explored });
 }
 
+/** After an "I don't know": asks the moment once more, differently. The first question and answer are kept (firstTry). */
+export function beginAlternativeQuestion(e: Exploration, id: MomentId, question: string, focus: QuestionFocus | null = null, subject: string | null = null, _now = new Date()): Exploration {
+  const entry = e.explored[id];
+  const q = clean(question, 300);
+  if (!q || !alternativeQuestionAllowed(entry) || !entry || entry.answer === null) return e;
+  const next: ExploredMoment = { ...entry, firstTry: { question: entry.question, answer: entry.answer }, question: q, questionSource: 'adaptive', answer: null, focus: focus && FOCI.includes(focus) ? focus : null, subject: clean(subject, 80) || null };
+  return bump(e, { explored: { ...e.explored, [id]: next } });
+}
+
+/** Records what the new question asks about (from the question call), so later questions never repeat it in other words. */
+export function setQuestionFocus(e: Exploration, id: MomentId, focus: QuestionFocus | null, subject: string | null): Exploration {
+  const entry = e.explored[id];
+  if (!entry || entry.status !== 'exploring') return e;
+  return bump(e, { explored: { ...e.explored, [id]: { ...entry, focus: focus && FOCI.includes(focus) ? focus : null, subject: clean(subject, 80) || null } } });
+}
+
+/** An "I don't know" moment is closed with the dream's own words for it (no call, nothing interpreted). */
+export function receiveUnsureLook(e: Exploration, id: MomentId, observation: string): Exploration {
+  const entry = e.explored[id];
+  const o = clean(observation, 800);
+  if (!entry || entry.status !== 'exploring' || !answeredUnsure(entry) || !o) return e;
+  return bump(e, { explored: { ...e.explored, [id]: { ...entry, insight: { observation: o, reflection: '', possibility: '', kind: 'factual' }, retries: MAX_INSIGHT_RETRIES } } });
+}
+
 export function answerMoment(e: Exploration, id: MomentId, answer: string): Exploration {
   const entry = e.explored[id];
   const a = clean(answer, MAX_ANSWER_CHARS);
@@ -228,6 +320,11 @@ export function receiveReply(e: Exploration, id: MomentId, insight: MomentInsigh
   const entry = e.explored[id];
   const ins = cleanInsight(insight);
   if (!entry || entry.status !== 'exploring' || entry.answer === null || !ins) return e;
+  // A retry of a factual insight (never a clarification on a retry).
+  if (entry.insight !== null) {
+    if (!isInsightRetry(entry) || (entry.retries ?? 0) >= MAX_INSIGHT_RETRIES) return e;
+    return bump(e, { explored: { ...e.explored, [id]: { ...entry, insight: ins, retries: (entry.retries ?? 0) + 1 } } });
+  }
   // A clarification is offered at most once per moment.
   const fq = entry.followUp === null ? clean(followUpQuestion, 300) : '';
   return bump(e, { explored: { ...e.explored, [id]: { ...entry, insight: ins, followUp: fq ? { question: fq, answer: null, skipped: false } : entry.followUp } } });
@@ -270,7 +367,12 @@ export function receiveWholeView(e: Exploration, view: Omit<WholeViewRecord, 'ba
   const explored = new Set(exploredInOrder(e).map((x) => x.moment.id));
   const overview = clean(view.overview, 2000);
   const closingQuestion = clean(view.closingQuestion, 400);
-  if (!overview || !closingQuestion) return e;
+  const kind: WholeViewKind = view.kind && ['whole', 'first-look', 'no-link', 'factual-summary'].includes(view.kind) ? view.kind : 'whole';
+  if (!overview) return e;
+  // Only a whole view or a first look counts as one of the dream's whole views; a factual summary or "no link yet" does not.
+  const counts = kind === 'whole' || kind === 'first-look';
+  const failures = kind === 'factual-summary' ? (e.wholeView?.kind === 'factual-summary' && e.wholeView.basedOn === basedOn ? (e.wholeView.failures ?? 1) + 1 : 1) : 0;
+  const ids = new Set(e.moments.map((m) => m.id));
   const seen = new Set<string>();
   const connections: WholeViewConnection[] = [];
   for (const c of view.connections ?? []) {
@@ -279,8 +381,19 @@ export function receiveWholeView(e: Exploration, view: Omit<WholeViewRecord, 'ba
     const pair = [c.from, c.to].sort().join('|');
     if (c.from === c.to || !explored.has(c.from) || !explored.has(c.to) || !title || !basis || seen.has(pair)) continue;
     seen.add(pair);
-    connections.push({ from: c.from, to: c.to, title, basis });
+    const fromQuote = clean(c.fromQuote, 300);
+    const toQuote = clean(c.toQuote, 300);
+    connections.push({ from: c.from, to: c.to, title, basis, ...(fromQuote ? { fromQuote } : {}), ...(toQuote ? { toQuote } : {}) });
   }
+  // An update (more moments than the view before it): the earlier links that still rest on her unchanged words stay, the earlier view
+  // goes to the history. A link whose words are no longer in the answers is not carried.
+  const previous = e.wholeView && e.wholeView.basedOn !== basedOn && (e.wholeView.kind ?? 'whole') !== 'factual-summary' ? e.wholeView : null;
+  const carried = previous ? previous.connections.filter((c) => !seen.has([c.from, c.to].sort().join('|')) && linkStillHolds(e, c)).map((c) => ({ ...c, carried: true })) : [];
+  if (previous && kind === 'factual-summary') {
+    // every check of the update failed: the earlier view stays shown, and the failed update is remembered for its one retry
+    return bump(e, { wholeView: { ...previous, connections: [...previous.connections.filter((c) => linkStillHolds(e, c))] }, wholeViewFailedFor: { basedOn, count: (e.wholeViewFailedFor?.basedOn === basedOn ? e.wholeViewFailedFor.count : 0) + 1 } });
+  }
+  for (const c of carried) connections.push(c);
   const record: WholeViewRecord = {
     basedOn,
     momentIds: [...explored],
@@ -294,8 +407,34 @@ export function receiveWholeView(e: Exploration, view: Omit<WholeViewRecord, 'ba
       .slice(0, 2),
     closingQuestion,
     connections: connections.slice(0, 4),
+    kind,
+    notice: clean(view.notice, 400) || null,
+    invite: (view.invite ?? []).filter((x) => typeof x === 'string' && ids.has(x) && !explored.has(x)),
+    ...(failures ? { failures } : {}),
   };
-  return bump(e, { wholeView: record, wholeViewCount: e.wholeViewCount + 1 });
+  if (previous && kind === 'no-link' && carried.length) {
+    // nothing new joins the moments, but earlier links still hold: they stay, with the earlier opening if the update has none
+    record.kind = 'whole';
+    record.notice = null;
+    if (!record.closingQuestion) record.closingQuestion = previous.closingQuestion;
+  }
+  if (previous && !record.closingQuestion) record.closingQuestion = previous.closingQuestion;
+  if (previous) record.readings = [...record.readings, ...previous.readings.filter((r) => !record.readings.some((x) => x.reading === r.reading))].slice(0, 2);
+  const history = previous ? [{ ...previous, connections: previous.connections }, ...(e.wholeViewHistory ?? [])].slice(0, MAX_WHOLE_VIEWS) : e.wholeViewHistory;
+  return bump(e, { wholeView: record, wholeViewCount: e.wholeViewCount + (counts ? 1 : 0), ...(history ? { wholeViewHistory: history } : {}) });
+}
+
+/** A link of an earlier view still holds when both moments are explored and each end's words are still in that moment's sources. */
+function linkStillHolds(e: Exploration, c: WholeViewConnection): boolean {
+  if (!c.fromQuote || !c.toQuote) return false;
+  const holds = (id: MomentId, quote: string) => {
+    const entry = e.explored[id];
+    const m = momentById(e, id);
+    if (!entry || entry.status !== 'explored' || !m) return false;
+    const sources = [entry.answer ?? '', entry.followUp?.answer ?? '', m.excerpt ?? ''].filter(Boolean);
+    return sources.some((s) => containsVerbatim(s, quote));
+  };
+  return holds(c.from, c.fromQuote) && holds(c.to, c.toQuote);
 }
 
 function cleanInsight(insight: MomentInsight | null | undefined): MomentInsight | null {
@@ -303,7 +442,12 @@ function cleanInsight(insight: MomentInsight | null | undefined): MomentInsight 
   const observation = clean(insight.observation, 800);
   const reflection = clean(insight.reflection, 800);
   const possibility = clean(insight.possibility, 800);
-  return observation && reflection && possibility ? { observation, reflection, possibility } : null;
+  // A factual insight has no possibility (and, after "I don't know", nothing of hers to give back); an interpretive one has all three.
+  const kind: InsightKind = insight.kind === 'factual' || !possibility ? 'factual' : 'interpretive';
+  if (!observation) return null;
+  // (an interpretive insight is stored as it always was: no kind = interpretive)
+  if (kind === 'interpretive') return reflection ? { observation, reflection, possibility } : null;
+  return { observation, reflection, possibility: '', kind };
 }
 
 // ------------------------------------------------------------------------------------------------ reading back from storage
@@ -326,7 +470,8 @@ export function parseExploration(raw: unknown): Exploration | null {
     const id = str(m.id, 10);
     const label = str(m.label, 200);
     if (!id || !/^m[1-9]$/.test(id) || !label || moments.some((x) => x.id === id) || moments.length >= MAX_MOMENTS) continue;
-    moments.push({ id, label, rawLabel: str(m.rawLabel, 200), excerpt: str(m.excerpt, 300), pregeneratedQuestion: str(m.pregeneratedQuestion, 300) });
+    const segmentIds = cleanSegmentIds(m.segmentIds);
+    moments.push({ id, label, rawLabel: str(m.rawLabel, 200), excerpt: str(m.excerpt, 300), pregeneratedQuestion: str(m.pregeneratedQuestion, 300), ...(segmentIds ? { segmentIds } : {}) });
   }
   if (moments.length === 0) return null;
   const ids = new Set(moments.map((m) => m.id));
@@ -357,6 +502,13 @@ export function parseExploration(raw: unknown): Exploration | null {
         order: status === 'explored' && typeof v.order === 'number' && v.order > 0 ? Math.floor(v.order) : 0,
         startedAt: str(v.startedAt, 40) ?? '',
         exploredAt: str(v.exploredAt, 40),
+        // the fix-round fields, only when present (a record written before them reads back exactly as it was)
+        ...(typeof v.focus === 'string' && (FOCI as readonly string[]).includes(v.focus) ? { focus: v.focus as QuestionFocus } : v.focus === null ? { focus: null } : {}),
+        ...(str(v.subject, 80) ? { subject: str(v.subject, 80) } : v.subject === null ? { subject: null } : {}),
+        ...(isObj(v.firstTry) && str(v.firstTry.question, 300) && str(v.firstTry.answer, MAX_ANSWER_CHARS)
+          ? { firstTry: { question: str(v.firstTry.question, 300) as string, answer: str(v.firstTry.answer, MAX_ANSWER_CHARS) as string } }
+          : {}),
+        ...(typeof v.retries === 'number' ? { retries: Math.min(MAX_INSIGHT_RETRIES, Math.max(0, Math.floor(v.retries))) } : {}),
       };
     }
   }
@@ -370,34 +522,15 @@ export function parseExploration(raw: unknown): Exploration | null {
     feelingsAsked: raw.feelingsAsked === true,
     rev: typeof raw.rev === 'number' && raw.rev >= 0 ? Math.floor(raw.rev) : 0,
   };
-  if (isObj(raw.wholeView)) {
-    const w = raw.wholeView;
-    const overview = str(w.overview, 2000);
-    const closingQuestion = str(w.closingQuestion, 400);
-    const basedOn = str(w.basedOn, 80);
-    if (overview && closingQuestion && basedOn) {
-      const exploredIds = new Set(exploredInOrder(e).map((x) => x.moment.id));
-      e.wholeView = {
-        basedOn,
-        momentIds: Array.isArray(w.momentIds) ? w.momentIds.filter((x): x is string => typeof x === 'string' && ids.has(x)) : [],
-        generatedAt: str(w.generatedAt, 40) ?? '',
-        overview,
-        recurring: str(w.recurring, 800),
-        contrast: str(w.contrast, 800),
-        readings: Array.isArray(w.readings)
-          ? w.readings.filter(isObj).map((r) => ({ basis: str(r.basis, 300) ?? '', reading: str(r.reading, 800) ?? '' })).filter((r) => r.basis && r.reading).slice(0, 2)
-          : [],
-        closingQuestion,
-        connections: Array.isArray(w.connections)
-          ? w.connections
-              .filter(isObj)
-              .map((c) => ({ from: String(c.from), to: String(c.to), title: str(c.title, 120) ?? '', basis: str(c.basis, 400) ?? '' }))
-              .filter((c) => c.from !== c.to && exploredIds.has(c.from) && exploredIds.has(c.to) && c.title && c.basis)
-              .slice(0, 4)
-          : [],
-      };
-    }
+  const exploredIds = new Set(exploredInOrder(e).map((x) => x.moment.id));
+  const view = parseWholeViewRecord(raw.wholeView, ids, exploredIds);
+  if (view) e.wholeView = view;
+  if (Array.isArray(raw.wholeViewHistory)) {
+    const history = raw.wholeViewHistory.map((w) => parseWholeViewRecord(w, ids, exploredIds)).filter((w): w is WholeViewRecord => w !== null).slice(0, MAX_WHOLE_VIEWS);
+    if (history.length) e.wholeViewHistory = history;
   }
+  if (isObj(raw.wholeViewFailedFor) && str(raw.wholeViewFailedFor.basedOn, 80) && typeof raw.wholeViewFailedFor.count === 'number')
+    e.wholeViewFailedFor = { basedOn: str(raw.wholeViewFailedFor.basedOn, 80) as string, count: Math.min(MAX_WHOLE_VIEW_FAILURES, Math.max(1, Math.floor(raw.wholeViewFailedFor.count))) };
   return e;
 }
 
@@ -415,7 +548,8 @@ export function compatFieldsFromExploration(
 ): { selectedElement: string; reflectionResponse: string; dreamReflection: DreamReflectionResult } | null {
   const first = exploredInOrder(e)[0];
   if (!first || !first.entry.answer || !first.entry.insight) return null;
-  const w = e.wholeView;
+  // a factual summary or "no link yet" is not a whole view: the archive keeps the first moment's insight instead
+  const w = e.wholeView && (e.wholeView.kind ?? 'whole') !== 'factual-summary' && e.wholeView.kind !== 'no-link' ? e.wholeView : null;
   return {
     selectedElement: first.moment.label,
     reflectionResponse: first.entry.answer,
@@ -423,7 +557,7 @@ export function compatFieldsFromExploration(
       observation: w?.overview ?? first.entry.insight.observation,
       personalAssociation: first.entry.insight.reflection,
       possibleThread: first.entry.insight.possibility,
-      continuityQuestion: w?.closingQuestion ?? first.entry.question,
+      continuityQuestion: w?.closingQuestion || first.entry.question,
       lenses: { cognitive: null, jungian: null, psychodynamic: null },
       confidenceNotes: [],
       summary: null,
@@ -431,5 +565,43 @@ export function compatFieldsFromExploration(
       existentialLens: null,
       groundingStatement,
     },
+  };
+}
+
+function parseWholeViewRecord(raw: unknown, ids: Set<string>, exploredIds: Set<string>): WholeViewRecord | null {
+  if (!isObj(raw)) return null;
+  const w = raw;
+  const overview = str(w.overview, 2000);
+  const closingQuestion = str(w.closingQuestion, 400) ?? '';
+  const basedOn = str(w.basedOn, 80);
+  const kind: WholeViewKind = typeof w.kind === 'string' && ['whole', 'first-look', 'no-link', 'factual-summary'].includes(w.kind) ? (w.kind as WholeViewKind) : 'whole';
+  // an older whole view always had a closing question; a newer one may have none (it did not pass its checks)
+  if (!overview || !basedOn || (!closingQuestion && w.kind === undefined)) return null;
+  return {
+    basedOn,
+    momentIds: Array.isArray(w.momentIds) ? w.momentIds.filter((x): x is string => typeof x === 'string' && ids.has(x)) : [],
+    generatedAt: str(w.generatedAt, 40) ?? '',
+    overview,
+    recurring: str(w.recurring, 800),
+    contrast: str(w.contrast, 800),
+    readings: Array.isArray(w.readings)
+      ? w.readings.filter(isObj).map((r) => ({ basis: str(r.basis, 300) ?? '', reading: str(r.reading, 800) ?? '' })).filter((r) => r.basis && r.reading).slice(0, 2)
+      : [],
+    closingQuestion,
+    connections: Array.isArray(w.connections)
+      ? w.connections
+          .filter(isObj)
+          .map((c) => {
+            const fromQuote = str(c.fromQuote, 300);
+            const toQuote = str(c.toQuote, 300);
+            return { from: String(c.from), to: String(c.to), title: str(c.title, 120) ?? '', basis: str(c.basis, 400) ?? '', ...(fromQuote ? { fromQuote } : {}), ...(toQuote ? { toQuote } : {}), ...(c.carried === true ? { carried: true } : {}) };
+          })
+          .filter((c) => c.from !== c.to && exploredIds.has(c.from) && exploredIds.has(c.to) && c.title && c.basis)
+          .slice(0, 4)
+      : [],
+    kind,
+    notice: str(w.notice, 400),
+    invite: Array.isArray(w.invite) ? w.invite.filter((x): x is string => typeof x === 'string' && ids.has(x) && !exploredIds.has(x)) : [],
+    ...(kind === 'factual-summary' ? { failures: typeof w.failures === 'number' ? Math.min(MAX_WHOLE_VIEW_FAILURES, Math.max(1, Math.floor(w.failures))) : 1 } : {}),
   };
 }

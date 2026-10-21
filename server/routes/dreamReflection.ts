@@ -227,6 +227,13 @@ export function finalizeDeliveredReflection(
 }
 
 export async function handleDreamReflection(rawBody: unknown, requestHeaders: RequestHeaders): Promise<HandlerResult> {
+  // The multi-moment journey's insight for a moment and its whole view (see dreamExploration.ts). Imported lazily: that module
+  // imports this one, and a static import both ways would make the order of module loading matter.
+  const mode = typeof rawBody === 'object' && rawBody !== null ? (rawBody as { mode?: unknown }).mode : undefined;
+  if (mode === 'moment-reply' || mode === 'whole-view') {
+    const { handleExploration } = await import('./dreamExploration.js');
+    return handleExploration(mode, rawBody, requestHeaders);
+  }
   const resolved = await resolveCallerIdentity(requestHeaders);
   if (!resolved.ok) {
     return errorResult(resolved.status, resolved.reason, resolved.message);

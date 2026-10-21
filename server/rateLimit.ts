@@ -45,6 +45,16 @@ export function transcriptionRules(env: Record<string, string | undefined> = pro
   ];
 }
 
+/** The multi-moment journey's model calls (moment questions, replies, whole views), per account or trial: at most 40 an hour and
+    150 a day (override with the env vars, never below 1). A full six-moment dream needs about 20. Counted BEFORE each call and never
+    given back, so failures that return a per-dream slot still cannot add up to unbounded model use. */
+export function explorationRules(env: Record<string, string | undefined> = process.env): RateRule[] {
+  return [
+    { name: 'h', limit: readPositiveIntEnv(env.DARE_EXPLORE_PER_HOUR, 40), windowSeconds: 3600 },
+    { name: 'd', limit: readPositiveIntEnv(env.DARE_EXPLORE_PER_DAY, 150), windowSeconds: 86400 },
+  ];
+}
+
 /** The real store: the database function, called with the service role. */
 export const databaseRateLimitStore: RateLimitStore = {
   async take(bucket, limit, windowSeconds) {

@@ -1,0 +1,41 @@
+# Stage 3b fix round — the new failure tests run against the OLD pipeline (before any fix), 2026-10-21T04:57Z
+
+✖ reply: order invented: the key "came at the end, after the walk" (final-5, rich, step 1) (3.5945ms)
+✖ reply: the dreamer's own detail turned into the dream, and an invented "after" (final-5, rich, step 2) (0.4686ms)
+✖ reply: the song moved to the wedding, and the singer swapped to the dreamer (final-5, rich, step 4) (0.1827ms)
+✖ reply: invented silence, a flipped "could not wake him", "thought" for "felt", a diagnosis (final-5, sensitive, step 1) (0.1653ms)
+✖ reply: the dreamer's "threatening" put into the dream, the chase swapped, an invented "weakness" (final-5, sensitive, step 3) (0.515ms)
+✖ reply: who gave the key to whom (swapped), and a second sentence that states a "fact" (final-5, rich, step 3) (0.1588ms)
+✖ reply: a feeling she never said ("belonging"), given back as hers (0.15ms)
+✖ reply: a flashback: the story order is not the order of events (new case) (0.1437ms)
+✖ reply: a flipped negation: the train "came late" (new case) (0.2187ms)
+✖ whole view: two moments: an invented "after" and "with your brother", a contrast with invented words, a reading on a moment not explored (final-5, rich, first whole view) (3.1632ms)
+✖ whole view: four moments: "you sang", a forced "always", foreignness attributed to the brother, belonging she never said (final-5, rich, update) (0.9858ms)
+✖ whole view: "I don't know" used as evidence, and invented silence (final-5, sensitive) (1.1092ms)
+✖ whole view: one moment: never "the whole picture", never a link, and an invitation to go on (final-5, short) (0.2691ms)
+✖ whole view: every part fails: a verified factual summary, clearly not the whole view (new case) (0.4807ms)
+✖ question: presupposes the key was given at the door (final-5, rich, first question) (1.6433ms)
+✖ question: "my brother" in a question to her, too long, a conversation the dream never had (final-5, rich) (4.9343ms)
+✔ question: the same question in other words: a feeling about the train again (new case) (0.4655ms)
+✔ question: asks what she already answered, as a yes/no question (new case) (0.6755ms)
+✖ question: puts the closing doors in a room the dream never placed them in (new case) (1.3539ms)
+✖ moments: short: the train that did not arrive is a moment of its own (116.3895ms)
+✖ moments: rich: the unknown song and the clothes are moments; no two moments on the same sentence (515.7447ms)
+✖ moments: sensitive: the closing doors are a moment; father, room and "could not wake him" are one moment, not three (269.1699ms)
+✖ moments: repeat: the same event told twice in other words is one moment (0.3013ms)
+✖ moments: single: one event is one moment, never padded (0.3135ms)
+✖ label: "חיכיתי לרכבת" for "עמדתי בתחנת רכבת ריקה וחיכיתי" (0.2837ms)
+✖ label: "אחי הקטן" for "אחי הקטן נתן לי מפתח ואמר שזה למקום שעוד לא הייתי בו" (0.1501ms)
+✖ label: "לא הצלחתי להעיר" for "בסוף הגעתי לחדר שבו אבא שלי ישן במיטה, ולא הצלחתי להעיר אותו" (0.1316ms)
+✔ label: "הרכבת שלא הגיעה" for "הרכבת לא הגיעה" (0.194ms)
+✖ event order: a flashback is never read as "later"; with no word for it the order is unknown; "בסוף" is known (0.2266ms)
+✖ a quality check that fails on every attempt ends without text (it is not shown because the attempts ran out) (2.5006ms)
+✖ "לא יודעת": no insight call, and one different question may be offered instead (never twice) (2.6871ms)
+✖ a factual fallback insight keeps its slot (the call was made), is not a success, and may be retried once (3.7144ms)
+✖ a whole view that fails every check: 200 with the verified summary, the slot returned once (1.1064ms)
+✔ Hebrew that is grammatical word by word but broken as a phrase ("התחושה שלך שלבד וגעגוע") is not caught by a deterministic check (0.316ms) # TODO
+ℹ tests 34
+ℹ pass 3
+ℹ fail 30
+ℹ todo 1
+✖ failing tests:

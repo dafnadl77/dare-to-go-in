@@ -4,7 +4,13 @@ import { buildLanguageIntegrityRetryNote, findScriptIntrusion } from '../src/her
 // gpt-4o-mini drifts into a foreign script in ~1 of 8 Hebrew reflections regardless of prompt wording; independent attempts make 3 leave ~0.2% falling through to the client retry UI.
 const MAX_ATTEMPTS = 3;
 
-export type LanguageGuardOutcome<T> = { status: 'ok'; value: T } | { status: 'invalid' } | { status: 'language_intrusion' };
+export type LanguageGuardOutcome<T> =
+  | { status: 'ok'; value: T }
+  | { status: 'invalid' }
+  | { status: 'language_intrusion' }
+  /** Only with rejectExhaustedQuality: every attempt failed the quality check. `value` is the last attempt, for the caller to build a
+      safe fallback from its VERIFIED parts — never to show as it is. */
+  | { status: 'quality_failed'; value: T };
 
 /**
  * Runs one AI generation and, if the (already schema-valid) result contains
@@ -38,6 +44,12 @@ export async function runWithLanguageIntegrity<T>(
     qualityCheck?: (value: T) => string | null;
     /** How many fresh responses the quality check may ask for at most (default 2, never more than the attempts that remain). Each one costs a model call and several seconds. */
     maxQualityRetries?: number;
+    /**
+     * The journey's calls (stage 3b fix round): a result that still fails the quality check after the last allowed retry is NOT
+     * accepted; the outcome is 'quality_failed' and the caller falls back to verified content only. Off by default, so every other
+     * route keeps its behaviour.
+     */
+    rejectExhaustedQuality?: boolean;
   },
 ): Promise<LanguageGuardOutcome<T>> {
   let retryNote = '';
@@ -62,6 +74,10 @@ export async function runWithLanguageIntegrity<T>(
         // The note is fixed instruction text (never dream text), so its first words say which check asked for the fresh response.
         console.warn(`[language-integrity] ${policy.route}: attempt ${attempt} failed a quality check (${qualityNote.replace(/\s+/g, ' ').trim().slice(12, 80)}) — regenerating`);
         continue;
+      }
+      if (qualityNote && policy.rejectExhaustedQuality) {
+        console.warn(`[language-integrity] ${policy.route}: attempt ${attempt} failed a quality check and no retry is left — not shown`);
+        return { status: 'quality_failed', value };
       }
       return { status: 'ok', value };
     }

@@ -47,11 +47,16 @@ export function dreamSentences(sourceText: string): string[] {
     .filter((s) => s.length > 0);
 }
 
+/** The same word with a short Hebrew ending ("אח" / "אחי", "דלת" / "דלתות"): at most two more letters. */
+const withSuffix = (sentenceForm: string, labelForm: string) =>
+  /^[א-ת]/.test(labelForm) && sentenceForm.startsWith(labelForm) && sentenceForm.length - labelForm.length <= 2;
+
 function score(sentence: string, label: string): number {
-  const sentenceForms = new Set(words(sentence).flatMap(forms));
+  const sentenceForms = words(sentence).flatMap(forms);
+  const exact = new Set(sentenceForms);
   let hits = 0;
   for (const w of new Set(words(label))) {
-    if (forms(w).some((f) => f.length >= 2 && sentenceForms.has(f))) hits += 1;
+    if (forms(w).some((f) => f.length >= 2 && (exact.has(f) || sentenceForms.some((s) => withSuffix(s, f))))) hits += 1;
   }
   return hits;
 }

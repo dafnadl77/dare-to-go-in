@@ -1,0 +1,72 @@
+{
+  "sourceText": "עמדתי בתחנת רכבת ריקה וחיכיתי. הרכבת לא הגיעה.",
+  "language": "he",
+  "summary": "החולם עמד בתחנת רכבת ריקה וחיכה, אך הרכבת לא הגיעה.",
+  "people": [],
+  "places": [
+    {
+      "name": "תחנת רכבת",
+      "description": "ריקה",
+      "explicit": true,
+      "confidence": 1
+    }
+  ],
+  "objects": [],
+  "actions": [
+    {
+      "subject": "אני",
+      "action": "עמדתי",
+      "target": "בתחנת רכבת",
+      "explicit": true,
+      "confidence": 1
+    },
+    {
+      "subject": "הרכבת",
+      "action": "לא הגיעה",
+      "target": null,
+      "explicit": true,
+      "confidence": 1
+    }
+  ],
+  "emotions": [],
+  "sensoryDetails": {
+    "visual": [],
+    "sounds": [],
+    "physicalSensations": [],
+    "atmosphere": []
+  },
+  "unusualElements": [],
+  "relationships": [],
+  "sequence": [
+    {
+      "order": 1,
+      "description": "עמדתי בתחנת רכבת ריקה"
+    },
+    {
+      "order": 2,
+      "description": "חיכיתי"
+    },
+    {
+      "order": 3,
+      "description": "הרכבת לא הגיעה"
+    }
+  ],
+  "unresolvedDetails": [],
+  "emotionalTone": null,
+  "reconstruction": {
+    "primarySetting": "תחנת רכבת ריקה",
+    "keyPeople": [],
+    "keyObjects": [],
+    "keyActions": [
+      "עמדתי בתחנת רכבת",
+      "חיכיתי",
+      "הרכבת לא הגיעה"
+    ],
+    "visualAtmosphere": [],
+    "emotionalAtmosphere": []
+  },
+  "concepts": [
+    "lateness_missing"
+  ],
+  "conceptVersion": 1
+}

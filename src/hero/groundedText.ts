@@ -70,6 +70,19 @@ export function mostlyGrounded(text: string, ...sources: (string | null | undefi
   return matched / mine.length >= 0.7;
 }
 
+/**
+ * The share (0..1) of the meaningful words of `text` that also appear in the `sources`, with the same matching as above. 0 for a text
+ * without content words. Used to see whether a new sentence mostly repeats an earlier one (a question already asked, an insight
+ * already shown, an answer already given).
+ */
+export function overlapRatio(text: string, ...sources: (string | null | undefined)[]): number {
+  const mine = contentForms(text);
+  if (mine.length === 0) return 0;
+  const theirs = sources.flatMap((s) => (typeof s === 'string' ? contentForms(s) : []));
+  const matched = mine.filter((forms) => theirs.some((other) => forms.some((a) => other.some((b) => sameWord(a, b))))).length;
+  return matched / mine.length;
+}
+
 /** True when `text` has at least one content word in common with any of `sources`. */
 export function sharesContentWord(text: string, ...sources: (string | null | undefined)[]): boolean {
   const mine = contentForms(text);

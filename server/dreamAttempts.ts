@@ -137,15 +137,17 @@ export function refundTrialTranscription(trialId: string): Promise<void> {
   return callVoidRpc('refund_trial_transcription', { p_trial_id: trialId });
 }
 
-/** Bounded element-label calls per attempt (owner/trial-checked in SQL, like images/reflections). */
-export async function reserveLabelsAttempt(attemptId: string, identity: CallerIdentity): Promise<'reserved' | 'rejected' | null> {
+/** Bounded element-label calls per attempt (owner/trial-checked in SQL, like images/reflections). `max` is the ceiling of the shared
+    label_count for this kind of call: the labels and the pre-written questions keep MAX_LABEL_CALLS_PER_ATTEMPT; the moment calls of
+    the multi-moment journey pass a higher one (see server/routes/dreamExploration.ts). */
+export async function reserveLabelsAttempt(attemptId: string, identity: CallerIdentity, max: number = MAX_LABEL_CALLS_PER_ATTEMPT): Promise<'reserved' | 'rejected' | null> {
   const client = getSupabaseServiceClient();
   if (!client) return null;
   const { data, error } = await client.rpc('reserve_labels_attempt', {
     p_attempt_id: attemptId,
     p_owner_id: identity.kind === 'user' ? identity.userId : null,
     p_trial_id: identity.kind === 'trial' ? identity.trialId : null,
-    p_max: MAX_LABEL_CALLS_PER_ATTEMPT,
+    p_max: max,
   });
   if (error) return null;
   return typeof data === 'number' ? 'reserved' : 'rejected';

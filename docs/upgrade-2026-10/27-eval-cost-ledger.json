@@ -1,0 +1,5108 @@
+{
+  "capUsd": 3,
+  "stopAtUsd": 2.85,
+  "note": "Every OpenAI call of the stage-3 quality runs (synthetic dreams only). List prices; verify against the real bill.",
+  "totalUsd": 2.097673,
+  "entries": [
+    {
+      "at": "2026-10-20T16:18:18.553Z",
+      "run": "smoke-short",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3742,
+      "output": 241,
+      "usd": 0.0007059,
+      "ms": 5373
+    },
+    {
+      "at": "2026-10-20T16:18:21.304Z",
+      "run": "smoke-short",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1785,
+      "output": 123,
+      "usd": 0.004554,
+      "ms": 2746
+    },
+    {
+      "at": "2026-10-20T16:18:22.751Z",
+      "run": "smoke-short",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 136,
+      "output": 32,
+      "usd": 0.000039599999999999994,
+      "ms": 1433
+    },
+    {
+      "at": "2026-10-20T16:18:24.672Z",
+      "run": "smoke-short",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1646,
+      "output": 124,
+      "usd": 0.004284,
+      "ms": 1914
+    },
+    {
+      "at": "2026-10-20T16:18:28.683Z",
+      "run": "smoke-short",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1938,
+      "output": 242,
+      "usd": 0.005812,
+      "ms": 4003
+    },
+    {
+      "at": "2026-10-20T16:20:13.436Z",
+      "run": "short-v2",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3742,
+      "output": 219,
+      "usd": 0.0006927,
+      "ms": 3797
+    },
+    {
+      "at": "2026-10-20T16:20:14.437Z",
+      "run": "short-v2",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1771,
+      "output": 45,
+      "usd": 0.003902,
+      "ms": 994
+    },
+    {
+      "at": "2026-10-20T16:20:15.594Z",
+      "run": "short-v2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 135,
+      "output": 34,
+      "usd": 0.00004065,
+      "ms": 1147
+    },
+    {
+      "at": "2026-10-20T16:20:17.580Z",
+      "run": "short-v2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1683,
+      "output": 105,
+      "usd": 0.004206,
+      "ms": 1978
+    },
+    {
+      "at": "2026-10-20T16:20:19.961Z",
+      "run": "short-v2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2031,
+      "output": 161,
+      "usd": 0.00535,
+      "ms": 2365
+    },
+    {
+      "at": "2026-10-20T16:20:22.223Z",
+      "run": "short-v2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2057,
+      "output": 190,
+      "usd": 0.005634,
+      "ms": 2257
+    },
+    {
+      "at": "2026-10-20T16:20:37.924Z",
+      "run": "final-1",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3742,
+      "output": 302,
+      "usd": 0.0007425,
+      "ms": 4576
+    },
+    {
+      "at": "2026-10-20T16:20:40.815Z",
+      "run": "final-1",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1814,
+      "output": 121,
+      "usd": 0.004596,
+      "ms": 2886
+    },
+    {
+      "at": "2026-10-20T16:20:42.157Z",
+      "run": "final-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 137,
+      "output": 40,
+      "usd": 0.00004455,
+      "ms": 1305
+    },
+    {
+      "at": "2026-10-20T16:20:45.932Z",
+      "run": "final-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1724,
+      "output": 124,
+      "usd": 0.00444,
+      "ms": 3773
+    },
+    {
+      "at": "2026-10-20T16:20:48.126Z",
+      "run": "final-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2098,
+      "output": 198,
+      "usd": 0.00578,
+      "ms": 2181
+    },
+    {
+      "at": "2026-10-20T16:20:57.014Z",
+      "run": "final-1",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3807,
+      "output": 700,
+      "usd": 0.00099105,
+      "ms": 8865
+    },
+    {
+      "at": "2026-10-20T16:21:00.260Z",
+      "run": "final-1",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1573,
+      "output": 382,
+      "usd": 0.006202,
+      "ms": 3244
+    },
+    {
+      "at": "2026-10-20T16:21:01.321Z",
+      "run": "final-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 210,
+      "output": 40,
+      "usd": 0.0000555,
+      "ms": 1052
+    },
+    {
+      "at": "2026-10-20T16:21:02.907Z",
+      "run": "final-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1520,
+      "output": 125,
+      "usd": 0.00404,
+      "ms": 1585
+    },
+    {
+      "at": "2026-10-20T16:21:04.794Z",
+      "run": "final-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1461,
+      "output": 53,
+      "usd": 0.003346,
+      "ms": 1884
+    },
+    {
+      "at": "2026-10-20T16:21:05.928Z",
+      "run": "final-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 295,
+      "output": 44,
+      "usd": 0.00007065000000000001,
+      "ms": 1133
+    },
+    {
+      "at": "2026-10-20T16:21:07.981Z",
+      "run": "final-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1814,
+      "output": 137,
+      "usd": 0.004724,
+      "ms": 1391
+    },
+    {
+      "at": "2026-10-20T16:21:14.934Z",
+      "run": "final-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2190,
+      "output": 422,
+      "usd": 0.007756,
+      "ms": 6943
+    },
+    {
+      "at": "2026-10-20T16:21:19.001Z",
+      "run": "final-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2249,
+      "output": 394,
+      "usd": 0.00765,
+      "ms": 4059
+    },
+    {
+      "at": "2026-10-20T16:21:26.035Z",
+      "run": "final-1",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3770,
+      "output": 571,
+      "usd": 0.0009080999999999999,
+      "ms": 7028
+    },
+    {
+      "at": "2026-10-20T16:21:30.496Z",
+      "run": "final-1",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1914,
+      "output": 367,
+      "usd": 0.006764,
+      "ms": 4460
+    },
+    {
+      "at": "2026-10-20T16:21:31.388Z",
+      "run": "final-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 162,
+      "output": 36,
+      "usd": 0.0000459,
+      "ms": 886
+    },
+    {
+      "at": "2026-10-20T16:21:34.106Z",
+      "run": "final-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1783,
+      "output": 143,
+      "usd": 0.00471,
+      "ms": 2462
+    },
+    {
+      "at": "2026-10-20T16:21:35.370Z",
+      "run": "final-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1756,
+      "output": 43,
+      "usd": 0.003856,
+      "ms": 1025
+    },
+    {
+      "at": "2026-10-20T16:21:36.371Z",
+      "run": "final-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 219,
+      "output": 5,
+      "usd": 0.000035850000000000004,
+      "ms": 660
+    },
+    {
+      "at": "2026-10-20T16:21:38.167Z",
+      "run": "final-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2041,
+      "output": 132,
+      "usd": 0.005138,
+      "ms": 1795
+    },
+    {
+      "at": "2026-10-20T16:26:32.892Z",
+      "run": "final-2",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3742,
+      "output": 272,
+      "usd": 0.0007245,
+      "ms": 4263
+    },
+    {
+      "at": "2026-10-20T16:26:34.069Z",
+      "run": "final-2",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 853,
+      "output": 20,
+      "usd": 0.00013995,
+      "ms": 1172
+    },
+    {
+      "at": "2026-10-20T16:26:35.783Z",
+      "run": "final-2",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1795,
+      "output": 121,
+      "usd": 0.004558,
+      "ms": 1712
+    },
+    {
+      "at": "2026-10-20T16:26:36.887Z",
+      "run": "final-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 135,
+      "output": 31,
+      "usd": 0.000038849999999999996,
+      "ms": 1091
+    },
+    {
+      "at": "2026-10-20T16:26:39.641Z",
+      "run": "final-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1737,
+      "output": 113,
+      "usd": 0.004378,
+      "ms": 2753
+    },
+    {
+      "at": "2026-10-20T16:26:41.628Z",
+      "run": "final-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2058,
+      "output": 208,
+      "usd": 0.00578,
+      "ms": 1984
+    },
+    {
+      "at": "2026-10-20T16:27:02.884Z",
+      "run": "final-2",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3807,
+      "output": 728,
+      "usd": 0.0010078499999999998,
+      "ms": 21251
+    },
+    {
+      "at": "2026-10-20T16:27:04.052Z",
+      "run": "final-2",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 931,
+      "output": 32,
+      "usd": 0.00015884999999999999,
+      "ms": 1166
+    },
+    {
+      "at": "2026-10-20T16:27:07.338Z",
+      "run": "final-2",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1585,
+      "output": 366,
+      "usd": 0.006098,
+      "ms": 3283
+    },
+    {
+      "at": "2026-10-20T16:27:08.581Z",
+      "run": "final-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 208,
+      "output": 37,
+      "usd": 0.0000534,
+      "ms": 1172
+    },
+    {
+      "at": "2026-10-20T16:27:10.624Z",
+      "run": "final-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1578,
+      "output": 132,
+      "usd": 0.004212,
+      "ms": 2042
+    },
+    {
+      "at": "2026-10-20T16:27:12.032Z",
+      "run": "final-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1477,
+      "output": 52,
+      "usd": 0.00337,
+      "ms": 1398
+    },
+    {
+      "at": "2026-10-20T16:27:13.530Z",
+      "run": "final-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1514,
+      "output": 63,
+      "usd": 0.003532,
+      "ms": 1492
+    },
+    {
+      "at": "2026-10-20T16:27:14.841Z",
+      "run": "final-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 297,
+      "output": 46,
+      "usd": 0.00007214999999999999,
+      "ms": 1308
+    },
+    {
+      "at": "2026-10-20T16:27:17.648Z",
+      "run": "final-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1881,
+      "output": 157,
+      "usd": 0.005018,
+      "ms": 2803
+    },
+    {
+      "at": "2026-10-20T16:27:23.190Z",
+      "run": "final-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2233,
+      "output": 381,
+      "usd": 0.007514,
+      "ms": 5539
+    },
+    {
+      "at": "2026-10-20T16:27:24.502Z",
+      "run": "final-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1734,
+      "output": 43,
+      "usd": 0.003812,
+      "ms": 1298
+    },
+    {
+      "at": "2026-10-20T16:27:25.591Z",
+      "run": "final-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 308,
+      "output": 42,
+      "usd": 0.00007139999999999999,
+      "ms": 1081
+    },
+    {
+      "at": "2026-10-20T16:27:28.047Z",
+      "run": "final-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2123,
+      "output": 146,
+      "usd": 0.005414,
+      "ms": 2455
+    },
+    {
+      "at": "2026-10-20T16:27:29.923Z",
+      "run": "final-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2198,
+      "output": 142,
+      "usd": 0.005532,
+      "ms": 1867
+    },
+    {
+      "at": "2026-10-20T16:27:31.220Z",
+      "run": "final-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1957,
+      "output": 50,
+      "usd": 0.004314,
+      "ms": 1131
+    },
+    {
+      "at": "2026-10-20T16:27:32.560Z",
+      "run": "final-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 356,
+      "output": 52,
+      "usd": 0.0000846,
+      "ms": 1338
+    },
+    {
+      "at": "2026-10-20T16:27:34.385Z",
+      "run": "final-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2367,
+      "output": 150,
+      "usd": 0.005934,
+      "ms": 1823
+    },
+    {
+      "at": "2026-10-20T16:27:40.334Z",
+      "run": "final-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2710,
+      "output": 524,
+      "usd": 0.009612,
+      "ms": 5828
+    },
+    {
+      "at": "2026-10-20T16:27:46.002Z",
+      "run": "final-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2785,
+      "output": 528,
+      "usd": 0.009794,
+      "ms": 5656
+    },
+    {
+      "at": "2026-10-20T16:27:52.545Z",
+      "run": "final-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2785,
+      "output": 558,
+      "usd": 0.010034,
+      "ms": 6537
+    },
+    {
+      "at": "2026-10-20T16:27:59.130Z",
+      "run": "final-2",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3770,
+      "output": 544,
+      "usd": 0.0008918999999999999,
+      "ms": 6569
+    },
+    {
+      "at": "2026-10-20T16:28:00.312Z",
+      "run": "final-2",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 912,
+      "output": 36,
+      "usd": 0.00015839999999999997,
+      "ms": 1181
+    },
+    {
+      "at": "2026-10-20T16:28:03.710Z",
+      "run": "final-2",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1891,
+      "output": 302,
+      "usd": 0.006198,
+      "ms": 3394
+    },
+    {
+      "at": "2026-10-20T16:28:05.113Z",
+      "run": "final-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 161,
+      "output": 38,
+      "usd": 0.00004695,
+      "ms": 1226
+    },
+    {
+      "at": "2026-10-20T16:28:07.690Z",
+      "run": "final-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1820,
+      "output": 134,
+      "usd": 0.004712,
+      "ms": 2574
+    },
+    {
+      "at": "2026-10-20T16:28:08.859Z",
+      "run": "final-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1724,
+      "output": 45,
+      "usd": 0.003808,
+      "ms": 1029
+    },
+    {
+      "at": "2026-10-20T16:28:09.920Z",
+      "run": "final-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 223,
+      "output": 5,
+      "usd": 0.00003645,
+      "ms": 868
+    },
+    {
+      "at": "2026-10-20T16:28:12.444Z",
+      "run": "final-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2070,
+      "output": 124,
+      "usd": 0.005132,
+      "ms": 1816
+    },
+    {
+      "at": "2026-10-20T16:28:13.744Z",
+      "run": "final-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1894,
+      "output": 39,
+      "usd": 0.0041,
+      "ms": 1298
+    },
+    {
+      "at": "2026-10-20T16:28:14.873Z",
+      "run": "final-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1931,
+      "output": 58,
+      "usd": 0.004326,
+      "ms": 1128
+    },
+    {
+      "at": "2026-10-20T16:28:17.487Z",
+      "run": "final-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 233,
+      "output": 50,
+      "usd": 0.00006494999999999999,
+      "ms": 2498
+    },
+    {
+      "at": "2026-10-20T16:28:19.596Z",
+      "run": "final-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2303,
+      "output": 140,
+      "usd": 0.005726,
+      "ms": 2108
+    },
+    {
+      "at": "2026-10-20T16:28:28.626Z",
+      "run": "final-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2638,
+      "output": 444,
+      "usd": 0.008828,
+      "ms": 9024
+    },
+    {
+      "at": "2026-10-20T16:35:13.003Z",
+      "run": "final-3",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3742,
+      "output": 281,
+      "usd": 0.0007299,
+      "ms": 4637
+    },
+    {
+      "at": "2026-10-20T16:35:15.910Z",
+      "run": "final-3",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 854,
+      "output": 19,
+      "usd": 0.0001395,
+      "ms": 2509
+    },
+    {
+      "at": "2026-10-20T16:35:17.278Z",
+      "run": "final-3",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1804,
+      "output": 96,
+      "usd": 0.004376,
+      "ms": 1366
+    },
+    {
+      "at": "2026-10-20T16:35:18.634Z",
+      "run": "final-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 134,
+      "output": 38,
+      "usd": 0.0000429,
+      "ms": 1343
+    },
+    {
+      "at": "2026-10-20T16:35:20.718Z",
+      "run": "final-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1805,
+      "output": 126,
+      "usd": 0.004618,
+      "ms": 2081
+    },
+    {
+      "at": "2026-10-20T16:35:23.279Z",
+      "run": "final-3",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2138,
+      "output": 183,
+      "usd": 0.00574,
+      "ms": 2554
+    },
+    {
+      "at": "2026-10-20T16:35:46.012Z",
+      "run": "final-3",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3807,
+      "output": 739,
+      "usd": 0.0010144499999999999,
+      "ms": 22672
+    },
+    {
+      "at": "2026-10-20T16:35:46.965Z",
+      "run": "final-3",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 935,
+      "output": 31,
+      "usd": 0.00015884999999999999,
+      "ms": 945
+    },
+    {
+      "at": "2026-10-20T16:35:53.044Z",
+      "run": "final-3",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1548,
+      "output": 392,
+      "usd": 0.006232,
+      "ms": 6078
+    },
+    {
+      "at": "2026-10-20T16:35:53.993Z",
+      "run": "final-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 211,
+      "output": 31,
+      "usd": 0.00005025,
+      "ms": 938
+    },
+    {
+      "at": "2026-10-20T16:35:55.935Z",
+      "run": "final-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1588,
+      "output": 120,
+      "usd": 0.004136,
+      "ms": 1939
+    },
+    {
+      "at": "2026-10-20T16:35:57.291Z",
+      "run": "final-3",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1477,
+      "output": 36,
+      "usd": 0.003242,
+      "ms": 1353
+    },
+    {
+      "at": "2026-10-20T16:35:58.398Z",
+      "run": "final-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 269,
+      "output": 40,
+      "usd": 0.00006434999999999999,
+      "ms": 1105
+    },
+    {
+      "at": "2026-10-20T16:36:00.572Z",
+      "run": "final-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1851,
+      "output": 164,
+      "usd": 0.005014,
+      "ms": 2172
+    },
+    {
+      "at": "2026-10-20T16:36:01.720Z",
+      "run": "final-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 286,
+      "output": 36,
+      "usd": 0.0000645,
+      "ms": 1145
+    },
+    {
+      "at": "2026-10-20T16:36:03.660Z",
+      "run": "final-3",
+      "stage": "moment-reply-refresh",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1922,
+      "output": 151,
+      "usd": 0.005052,
+      "ms": 1935
+    },
+    {
+      "at": "2026-10-20T16:36:06.603Z",
+      "run": "final-3",
+      "stage": "moment-reply-refresh",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2001,
+      "output": 139,
+      "usd": 0.005114,
+      "ms": 2937
+    },
+    {
+      "at": "2026-10-20T16:36:10.478Z",
+      "run": "final-3",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2248,
+      "output": 365,
+      "usd": 0.007416,
+      "ms": 3872
+    },
+    {
+      "at": "2026-10-20T16:36:14.001Z",
+      "run": "final-3",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2323,
+      "output": 405,
+      "usd": 0.007886,
+      "ms": 3517
+    },
+    {
+      "at": "2026-10-20T16:36:15.233Z",
+      "run": "final-3",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1749,
+      "output": 76,
+      "usd": 0.004106,
+      "ms": 1225
+    },
+    {
+      "at": "2026-10-20T16:36:16.417Z",
+      "run": "final-3",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1786,
+      "output": 52,
+      "usd": 0.003988,
+      "ms": 1178
+    },
+    {
+      "at": "2026-10-20T16:36:17.437Z",
+      "run": "final-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 328,
+      "output": 43,
+      "usd": 0.000075,
+      "ms": 1018
+    },
+    {
+      "at": "2026-10-20T16:36:19.183Z",
+      "run": "final-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2136,
+      "output": 142,
+      "usd": 0.005408,
+      "ms": 1745
+    },
+    {
+      "at": "2026-10-20T16:36:21.105Z",
+      "run": "final-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2219,
+      "output": 134,
+      "usd": 0.00551,
+      "ms": 1919
+    },
+    {
+      "at": "2026-10-20T16:36:22.373Z",
+      "run": "final-3",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1962,
+      "output": 45,
+      "usd": 0.004284,
+      "ms": 1265
+    },
+    {
+      "at": "2026-10-20T16:36:23.856Z",
+      "run": "final-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 368,
+      "output": 43,
+      "usd": 0.000081,
+      "ms": 1478
+    },
+    {
+      "at": "2026-10-20T16:36:26.182Z",
+      "run": "final-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2353,
+      "output": 139,
+      "usd": 0.005818,
+      "ms": 2325
+    },
+    {
+      "at": "2026-10-20T16:36:31.716Z",
+      "run": "final-3",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2868,
+      "output": 464,
+      "usd": 0.009448,
+      "ms": 5530
+    },
+    {
+      "at": "2026-10-20T16:36:36.998Z",
+      "run": "final-3",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2944,
+      "output": 555,
+      "usd": 0.010328,
+      "ms": 5267
+    },
+    {
+      "at": "2026-10-20T16:36:42.041Z",
+      "run": "final-3",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2944,
+      "output": 451,
+      "usd": 0.009496,
+      "ms": 5036
+    },
+    {
+      "at": "2026-10-20T16:36:46.477Z",
+      "run": "final-3",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3770,
+      "output": 471,
+      "usd": 0.0008481,
+      "ms": 4427
+    },
+    {
+      "at": "2026-10-20T16:36:47.444Z",
+      "run": "final-3",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 905,
+      "output": 31,
+      "usd": 0.00015434999999999998,
+      "ms": 965
+    },
+    {
+      "at": "2026-10-20T16:36:50.636Z",
+      "run": "final-3",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1876,
+      "output": 294,
+      "usd": 0.006104,
+      "ms": 3191
+    },
+    {
+      "at": "2026-10-20T16:36:51.492Z",
+      "run": "final-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 163,
+      "output": 25,
+      "usd": 0.000039450000000000003,
+      "ms": 850
+    },
+    {
+      "at": "2026-10-20T16:36:52.983Z",
+      "run": "final-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1847,
+      "output": 124,
+      "usd": 0.004686,
+      "ms": 1487
+    },
+    {
+      "at": "2026-10-20T16:36:54.653Z",
+      "run": "final-3",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1739,
+      "output": 65,
+      "usd": 0.003998,
+      "ms": 1667
+    },
+    {
+      "at": "2026-10-20T16:36:55.399Z",
+      "run": "final-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 207,
+      "output": 5,
+      "usd": 0.000034049999999999994,
+      "ms": 741
+    },
+    {
+      "at": "2026-10-20T16:36:57.008Z",
+      "run": "final-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2087,
+      "output": 113,
+      "usd": 0.005078,
+      "ms": 1605
+    },
+    {
+      "at": "2026-10-20T16:36:58.589Z",
+      "run": "final-3",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1895,
+      "output": 43,
+      "usd": 0.004134,
+      "ms": 1580
+    },
+    {
+      "at": "2026-10-20T16:36:59.977Z",
+      "run": "final-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 205,
+      "output": 32,
+      "usd": 0.00004995,
+      "ms": 1386
+    },
+    {
+      "at": "2026-10-20T16:37:01.505Z",
+      "run": "final-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2275,
+      "output": 127,
+      "usd": 0.005566,
+      "ms": 1527
+    },
+    {
+      "at": "2026-10-20T16:37:04.851Z",
+      "run": "final-3",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2593,
+      "output": 379,
+      "usd": 0.008218,
+      "ms": 3342
+    },
+    {
+      "at": "2026-10-20T16:41:47.114Z",
+      "run": "final-4",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3742,
+      "output": 311,
+      "usd": 0.0007479,
+      "ms": 4288
+    },
+    {
+      "at": "2026-10-20T16:41:48.281Z",
+      "run": "final-4",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 866,
+      "output": 27,
+      "usd": 0.0001461,
+      "ms": 1079
+    },
+    {
+      "at": "2026-10-20T16:41:50.369Z",
+      "run": "final-4",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1818,
+      "output": 147,
+      "usd": 0.004812,
+      "ms": 2085
+    },
+    {
+      "at": "2026-10-20T16:41:51.817Z",
+      "run": "final-4",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1479,
+      "output": 32,
+      "usd": 0.003214,
+      "ms": 1428
+    },
+    {
+      "at": "2026-10-20T16:41:52.877Z",
+      "run": "final-4",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 130,
+      "output": 29,
+      "usd": 0.000036899999999999996,
+      "ms": 1058
+    },
+    {
+      "at": "2026-10-20T16:41:54.616Z",
+      "run": "final-4",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1796,
+      "output": 113,
+      "usd": 0.004496,
+      "ms": 1737
+    },
+    {
+      "at": "2026-10-20T16:41:57.561Z",
+      "run": "final-4",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2124,
+      "output": 199,
+      "usd": 0.00584,
+      "ms": 2878
+    },
+    {
+      "at": "2026-10-20T16:42:04.769Z",
+      "run": "final-4",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3807,
+      "output": 732,
+      "usd": 0.00101025,
+      "ms": 7200
+    },
+    {
+      "at": "2026-10-20T16:42:06.260Z",
+      "run": "final-4",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 939,
+      "output": 32,
+      "usd": 0.00016005,
+      "ms": 1256
+    },
+    {
+      "at": "2026-10-20T16:42:09.354Z",
+      "run": "final-4",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1594,
+      "output": 367,
+      "usd": 0.006124,
+      "ms": 3093
+    },
+    {
+      "at": "2026-10-20T16:42:10.690Z",
+      "run": "final-4",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 219,
+      "output": 36,
+      "usd": 0.00005445,
+      "ms": 1326
+    },
+    {
+      "at": "2026-10-20T16:42:12.339Z",
+      "run": "final-4",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1640,
+      "output": 137,
+      "usd": 0.004376,
+      "ms": 1551
+    },
+    {
+      "at": "2026-10-20T16:42:13.528Z",
+      "run": "final-4",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1553,
+      "output": 54,
+      "usd": 0.003538,
+      "ms": 1184
+    },
+    {
+      "at": "2026-10-20T16:42:15.079Z",
+      "run": "final-4",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 280,
+      "output": 44,
+      "usd": 0.00006840000000000001,
+      "ms": 1511
+    },
+    {
+      "at": "2026-10-20T16:42:16.709Z",
+      "run": "final-4",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1932,
+      "output": 123,
+      "usd": 0.004848,
+      "ms": 1564
+    },
+    {
+      "at": "2026-10-20T16:42:20.795Z",
+      "run": "final-4",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2257,
+      "output": 431,
+      "usd": 0.007962,
+      "ms": 4017
+    },
+    {
+      "at": "2026-10-20T16:42:22.713Z",
+      "run": "final-4",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1758,
+      "output": 69,
+      "usd": 0.004068,
+      "ms": 1874
+    },
+    {
+      "at": "2026-10-20T16:42:23.819Z",
+      "run": "final-4",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 308,
+      "output": 41,
+      "usd": 0.0000708,
+      "ms": 1098
+    },
+    {
+      "at": "2026-10-20T16:42:25.459Z",
+      "run": "final-4",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2142,
+      "output": 136,
+      "usd": 0.005372,
+      "ms": 1638
+    },
+    {
+      "at": "2026-10-20T16:42:26.646Z",
+      "run": "final-4",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1977,
+      "output": 33,
+      "usd": 0.004218,
+      "ms": 1179
+    },
+    {
+      "at": "2026-10-20T16:42:28.287Z",
+      "run": "final-4",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 336,
+      "output": 44,
+      "usd": 0.0000768,
+      "ms": 1293
+    },
+    {
+      "at": "2026-10-20T16:42:29.848Z",
+      "run": "final-4",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2355,
+      "output": 139,
+      "usd": 0.005822,
+      "ms": 1557
+    },
+    {
+      "at": "2026-10-20T16:42:34.218Z",
+      "run": "final-4",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2882,
+      "output": 569,
+      "usd": 0.010316,
+      "ms": 4359
+    },
+    {
+      "at": "2026-10-20T16:42:38.901Z",
+      "run": "final-4",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2957,
+      "output": 541,
+      "usd": 0.010242,
+      "ms": 4633
+    },
+    {
+      "at": "2026-10-20T16:42:47.981Z",
+      "run": "final-4",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2965,
+      "output": 543,
+      "usd": 0.010274,
+      "ms": 9047
+    },
+    {
+      "at": "2026-10-20T16:42:53.526Z",
+      "run": "final-4",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3770,
+      "output": 491,
+      "usd": 0.0008600999999999999,
+      "ms": 5529
+    },
+    {
+      "at": "2026-10-20T16:42:58.922Z",
+      "run": "final-4",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3832,
+      "output": 503,
+      "usd": 0.0008766,
+      "ms": 5390
+    },
+    {
+      "at": "2026-10-20T16:43:00.018Z",
+      "run": "final-4",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 914,
+      "output": 39,
+      "usd": 0.0001605,
+      "ms": 1093
+    },
+    {
+      "at": "2026-10-20T16:43:03.892Z",
+      "run": "final-4",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1891,
+      "output": 357,
+      "usd": 0.006638,
+      "ms": 3869
+    },
+    {
+      "at": "2026-10-20T16:43:04.955Z",
+      "run": "final-4",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 163,
+      "output": 39,
+      "usd": 0.00004785,
+      "ms": 1048
+    },
+    {
+      "at": "2026-10-20T16:43:06.964Z",
+      "run": "final-4",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1870,
+      "output": 126,
+      "usd": 0.004748,
+      "ms": 2004
+    },
+    {
+      "at": "2026-10-20T16:43:08.367Z",
+      "run": "final-4",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1769,
+      "output": 60,
+      "usd": 0.004018,
+      "ms": 1109
+    },
+    {
+      "at": "2026-10-20T16:43:09.195Z",
+      "run": "final-4",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 225,
+      "output": 5,
+      "usd": 0.00003675,
+      "ms": 825
+    },
+    {
+      "at": "2026-10-20T16:43:10.851Z",
+      "run": "final-4",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2112,
+      "output": 118,
+      "usd": 0.005168,
+      "ms": 1586
+    },
+    {
+      "at": "2026-10-20T16:43:11.779Z",
+      "run": "final-4",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1934,
+      "output": 43,
+      "usd": 0.004212,
+      "ms": 924
+    },
+    {
+      "at": "2026-10-20T16:43:12.764Z",
+      "run": "final-4",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 219,
+      "output": 37,
+      "usd": 0.000055049999999999996,
+      "ms": 982
+    },
+    {
+      "at": "2026-10-20T16:43:14.470Z",
+      "run": "final-4",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2311,
+      "output": 133,
+      "usd": 0.005686,
+      "ms": 1704
+    },
+    {
+      "at": "2026-10-20T16:43:18.644Z",
+      "run": "final-4",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2644,
+      "output": 451,
+      "usd": 0.008896,
+      "ms": 4168
+    },
+    {
+      "at": "2026-10-20T16:43:22.697Z",
+      "run": "final-4",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2734,
+      "output": 458,
+      "usd": 0.009132,
+      "ms": 4051
+    },
+    {
+      "at": "2026-10-20T16:46:27.059Z",
+      "run": "final-5",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3742,
+      "output": 262,
+      "usd": 0.0007185,
+      "ms": 3921
+    },
+    {
+      "at": "2026-10-20T16:46:27.913Z",
+      "run": "final-5",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 854,
+      "output": 19,
+      "usd": 0.0001395,
+      "ms": 842
+    },
+    {
+      "at": "2026-10-20T16:46:29.614Z",
+      "run": "final-5",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1795,
+      "output": 124,
+      "usd": 0.004582,
+      "ms": 1699
+    },
+    {
+      "at": "2026-10-20T16:46:30.962Z",
+      "run": "final-5",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 141,
+      "output": 34,
+      "usd": 0.00004155,
+      "ms": 1295
+    },
+    {
+      "at": "2026-10-20T16:46:32.854Z",
+      "run": "final-5",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1792,
+      "output": 105,
+      "usd": 0.004424,
+      "ms": 1883
+    },
+    {
+      "at": "2026-10-20T16:46:35.092Z",
+      "run": "final-5",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2134,
+      "output": 206,
+      "usd": 0.005916,
+      "ms": 2224
+    },
+    {
+      "at": "2026-10-20T16:46:38.350Z",
+      "run": "final-5",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2212,
+      "output": 209,
+      "usd": 0.006096,
+      "ms": 3250
+    },
+    {
+      "at": "2026-10-20T16:46:47.523Z",
+      "run": "final-5",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3807,
+      "output": 847,
+      "usd": 0.00107925,
+      "ms": 9165
+    },
+    {
+      "at": "2026-10-20T16:46:48.639Z",
+      "run": "final-5",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 939,
+      "output": 35,
+      "usd": 0.00016185,
+      "ms": 1108
+    },
+    {
+      "at": "2026-10-20T16:46:51.606Z",
+      "run": "final-5",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1591,
+      "output": 334,
+      "usd": 0.005854,
+      "ms": 2962
+    },
+    {
+      "at": "2026-10-20T16:46:52.744Z",
+      "run": "final-5",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 215,
+      "output": 36,
+      "usd": 0.000053849999999999994,
+      "ms": 1082
+    },
+    {
+      "at": "2026-10-20T16:46:54.167Z",
+      "run": "final-5",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1631,
+      "output": 121,
+      "usd": 0.00423,
+      "ms": 1418
+    },
+    {
+      "at": "2026-10-20T16:46:55.268Z",
+      "run": "final-5",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1521,
+      "output": 33,
+      "usd": 0.003306,
+      "ms": 1092
+    },
+    {
+      "at": "2026-10-20T16:46:56.569Z",
+      "run": "final-5",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 277,
+      "output": 39,
+      "usd": 0.00006494999999999999,
+      "ms": 1293
+    },
+    {
+      "at": "2026-10-20T16:46:58.331Z",
+      "run": "final-5",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1891,
+      "output": 186,
+      "usd": 0.00527,
+      "ms": 1759
+    },
+    {
+      "at": "2026-10-20T16:46:59.649Z",
+      "run": "final-5",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 302,
+      "output": 38,
+      "usd": 0.00006809999999999999,
+      "ms": 1313
+    },
+    {
+      "at": "2026-10-20T16:47:01.558Z",
+      "run": "final-5",
+      "stage": "moment-reply-refresh",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1969,
+      "output": 142,
+      "usd": 0.005074,
+      "ms": 1907
+    },
+    {
+      "at": "2026-10-20T16:47:03.290Z",
+      "run": "final-5",
+      "stage": "moment-reply-refresh",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2044,
+      "output": 136,
+      "usd": 0.005176,
+      "ms": 1719
+    },
+    {
+      "at": "2026-10-20T16:47:05.295Z",
+      "run": "final-5",
+      "stage": "moment-reply-refresh",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2028,
+      "output": 154,
+      "usd": 0.005288,
+      "ms": 1999
+    },
+    {
+      "at": "2026-10-20T16:47:10.117Z",
+      "run": "final-5",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2339,
+      "output": 433,
+      "usd": 0.008142,
+      "ms": 4811
+    },
+    {
+      "at": "2026-10-20T16:47:13.555Z",
+      "run": "final-5",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2398,
+      "output": 410,
+      "usd": 0.008076,
+      "ms": 3428
+    },
+    {
+      "at": "2026-10-20T16:47:16.986Z",
+      "run": "final-5",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2398,
+      "output": 421,
+      "usd": 0.008164,
+      "ms": 3414
+    },
+    {
+      "at": "2026-10-20T16:47:18.349Z",
+      "run": "final-5",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1810,
+      "output": 56,
+      "usd": 0.004068,
+      "ms": 1338
+    },
+    {
+      "at": "2026-10-20T16:47:19.376Z",
+      "run": "final-5",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 346,
+      "output": 41,
+      "usd": 0.0000765,
+      "ms": 1020
+    },
+    {
+      "at": "2026-10-20T16:47:20.979Z",
+      "run": "final-5",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2200,
+      "output": 135,
+      "usd": 0.00548,
+      "ms": 1598
+    },
+    {
+      "at": "2026-10-20T16:47:22.045Z",
+      "run": "final-5",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2027,
+      "output": 48,
+      "usd": 0.004438,
+      "ms": 1056
+    },
+    {
+      "at": "2026-10-20T16:47:23.556Z",
+      "run": "final-5",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 390,
+      "output": 40,
+      "usd": 0.0000825,
+      "ms": 1474
+    },
+    {
+      "at": "2026-10-20T16:47:25.325Z",
+      "run": "final-5",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2423,
+      "output": 155,
+      "usd": 0.006086,
+      "ms": 1761
+    },
+    {
+      "at": "2026-10-20T16:47:31.801Z",
+      "run": "final-5",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2988,
+      "output": 561,
+      "usd": 0.010464,
+      "ms": 6460
+    },
+    {
+      "at": "2026-10-20T16:47:36.038Z",
+      "run": "final-5",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3066,
+      "output": 421,
+      "usd": 0.0095,
+      "ms": 4194
+    },
+    {
+      "at": "2026-10-20T16:47:40.856Z",
+      "run": "final-5",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3770,
+      "output": 483,
+      "usd": 0.0008552999999999999,
+      "ms": 4803
+    },
+    {
+      "at": "2026-10-20T16:47:41.841Z",
+      "run": "final-5",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 905,
+      "output": 30,
+      "usd": 0.00015375,
+      "ms": 983
+    },
+    {
+      "at": "2026-10-20T16:47:45.573Z",
+      "run": "final-5",
+      "stage": "pre-written-questions",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1894,
+      "output": 324,
+      "usd": 0.00638,
+      "ms": 3730
+    },
+    {
+      "at": "2026-10-20T16:47:46.673Z",
+      "run": "final-5",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 173,
+      "output": 27,
+      "usd": 0.00004215,
+      "ms": 1065
+    },
+    {
+      "at": "2026-10-20T16:47:48.436Z",
+      "run": "final-5",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1871,
+      "output": 125,
+      "usd": 0.004742,
+      "ms": 1742
+    },
+    {
+      "at": "2026-10-20T16:47:49.809Z",
+      "run": "final-5",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1762,
+      "output": 77,
+      "usd": 0.00414,
+      "ms": 1370
+    },
+    {
+      "at": "2026-10-20T16:47:50.812Z",
+      "run": "final-5",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1838,
+      "output": 68,
+      "usd": 0.00422,
+      "ms": 1001
+    },
+    {
+      "at": "2026-10-20T16:47:51.638Z",
+      "run": "final-5",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 217,
+      "output": 5,
+      "usd": 0.00003555,
+      "ms": 823
+    },
+    {
+      "at": "2026-10-20T16:47:53.356Z",
+      "run": "final-5",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2111,
+      "output": 117,
+      "usd": 0.005158,
+      "ms": 1675
+    },
+    {
+      "at": "2026-10-20T16:47:55.705Z",
+      "run": "final-5",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2231,
+      "output": 130,
+      "usd": 0.005502,
+      "ms": 2346
+    },
+    {
+      "at": "2026-10-20T16:47:56.679Z",
+      "run": "final-5",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1936,
+      "output": 38,
+      "usd": 0.004176,
+      "ms": 968
+    },
+    {
+      "at": "2026-10-20T16:47:57.691Z",
+      "run": "final-5",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 209,
+      "output": 35,
+      "usd": 0.00005234999999999999,
+      "ms": 1007
+    },
+    {
+      "at": "2026-10-20T16:47:59.708Z",
+      "run": "final-5",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2315,
+      "output": 133,
+      "usd": 0.005694,
+      "ms": 2014
+    },
+    {
+      "at": "2026-10-20T16:48:04.297Z",
+      "run": "final-5",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2668,
+      "output": 456,
+      "usd": 0.008984,
+      "ms": 4586
+    },
+    {
+      "at": "2026-10-20T16:48:08.204Z",
+      "run": "final-5",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2758,
+      "output": 418,
+      "usd": 0.00886,
+      "ms": 3905
+    },
+    {
+      "at": "2026-10-21T04:40:21.609Z",
+      "run": "capture-analysis",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3742,
+      "output": 309,
+      "usd": 0.0007466999999999999,
+      "ms": 6712
+    },
+    {
+      "at": "2026-10-21T04:40:30.273Z",
+      "run": "capture-analysis",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3807,
+      "output": 792,
+      "usd": 0.00104625,
+      "ms": 8655
+    },
+    {
+      "at": "2026-10-21T04:40:37.153Z",
+      "run": "capture-analysis",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3770,
+      "output": 503,
+      "usd": 0.0008673,
+      "ms": 5538
+    },
+    {
+      "at": "2026-10-21T05:31:33.538Z",
+      "run": "fix-dev-1",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3742,
+      "output": 295,
+      "usd": 0.0007383,
+      "ms": 3960
+    },
+    {
+      "at": "2026-10-21T05:31:35.207Z",
+      "run": "fix-dev-1",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 985,
+      "output": 21,
+      "usd": 0.00016035,
+      "ms": 1046
+    },
+    {
+      "at": "2026-10-21T05:31:36.170Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1531,
+      "output": 76,
+      "usd": 0.00367,
+      "ms": 954
+    },
+    {
+      "at": "2026-10-21T05:31:37.754Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 129,
+      "output": 34,
+      "usd": 0.00003975,
+      "ms": 1573
+    },
+    {
+      "at": "2026-10-21T05:31:39.770Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1859,
+      "output": 227,
+      "usd": 0.005534,
+      "ms": 2010
+    },
+    {
+      "at": "2026-10-21T05:31:45.501Z",
+      "run": "fix-dev-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2309,
+      "output": 384,
+      "usd": 0.00769,
+      "ms": 5536
+    },
+    {
+      "at": "2026-10-21T05:31:52.496Z",
+      "run": "fix-dev-1",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3807,
+      "output": 854,
+      "usd": 0.00108345,
+      "ms": 6978
+    },
+    {
+      "at": "2026-10-21T05:31:53.596Z",
+      "run": "fix-dev-1",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1119,
+      "output": 41,
+      "usd": 0.00019245,
+      "ms": 1094
+    },
+    {
+      "at": "2026-10-21T05:31:54.873Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1372,
+      "output": 68,
+      "usd": 0.003288,
+      "ms": 1274
+    },
+    {
+      "at": "2026-10-21T05:31:55.867Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1441,
+      "output": 74,
+      "usd": 0.003474,
+      "ms": 988
+    },
+    {
+      "at": "2026-10-21T05:31:56.727Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1463,
+      "output": 67,
+      "usd": 0.003462,
+      "ms": 855
+    },
+    {
+      "at": "2026-10-21T05:31:57.613Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 208,
+      "output": 34,
+      "usd": 0.000051599999999999994,
+      "ms": 884
+    },
+    {
+      "at": "2026-10-21T05:31:59.637Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1673,
+      "output": 283,
+      "usd": 0.00561,
+      "ms": 2023
+    },
+    {
+      "at": "2026-10-21T05:32:02.191Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1733,
+      "output": 210,
+      "usd": 0.005146,
+      "ms": 1700
+    },
+    {
+      "at": "2026-10-21T05:32:03.118Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1538,
+      "output": 81,
+      "usd": 0.003724,
+      "ms": 921
+    },
+    {
+      "at": "2026-10-21T05:32:04.129Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1580,
+      "output": 76,
+      "usd": 0.003768,
+      "ms": 1006
+    },
+    {
+      "at": "2026-10-21T05:32:05.122Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 271,
+      "output": 40,
+      "usd": 0.00006465,
+      "ms": 989
+    },
+    {
+      "at": "2026-10-21T05:32:07.235Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1894,
+      "output": 255,
+      "usd": 0.005828,
+      "ms": 2108
+    },
+    {
+      "at": "2026-10-21T05:32:11.731Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1947,
+      "output": 273,
+      "usd": 0.006078,
+      "ms": 4490
+    },
+    {
+      "at": "2026-10-21T05:32:12.875Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 300,
+      "output": 36,
+      "usd": 0.00006659999999999999,
+      "ms": 1129
+    },
+    {
+      "at": "2026-10-21T05:32:15.449Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply-refresh",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1968,
+      "output": 329,
+      "usd": 0.006568,
+      "ms": 2547
+    },
+    {
+      "at": "2026-10-21T05:32:22.344Z",
+      "run": "fix-dev-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2467,
+      "output": 771,
+      "usd": 0.011102,
+      "ms": 6875
+    },
+    {
+      "at": "2026-10-21T05:32:23.457Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1826,
+      "output": 83,
+      "usd": 0.004316,
+      "ms": 1078
+    },
+    {
+      "at": "2026-10-21T05:32:24.297Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 325,
+      "output": 34,
+      "usd": 0.00006915,
+      "ms": 835
+    },
+    {
+      "at": "2026-10-21T05:32:25.999Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2181,
+      "output": 228,
+      "usd": 0.006186,
+      "ms": 1701
+    },
+    {
+      "at": "2026-10-21T05:32:27.071Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2003,
+      "output": 87,
+      "usd": 0.004702,
+      "ms": 1060
+    },
+    {
+      "at": "2026-10-21T05:32:28.285Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2078,
+      "output": 86,
+      "usd": 0.004844,
+      "ms": 1193
+    },
+    {
+      "at": "2026-10-21T05:32:30.682Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2105,
+      "output": 92,
+      "usd": 0.004946,
+      "ms": 2388
+    },
+    {
+      "at": "2026-10-21T05:32:31.618Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 356,
+      "output": 46,
+      "usd": 0.000081,
+      "ms": 931
+    },
+    {
+      "at": "2026-10-21T05:32:33.882Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2376,
+      "output": 349,
+      "usd": 0.007544,
+      "ms": 2262
+    },
+    {
+      "at": "2026-10-21T05:32:46.146Z",
+      "run": "fix-dev-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2819,
+      "output": 1844,
+      "usd": 0.02039,
+      "ms": 12232
+    },
+    {
+      "at": "2026-10-21T05:32:50.217Z",
+      "run": "fix-dev-1",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3770,
+      "output": 500,
+      "usd": 0.0008655,
+      "ms": 4022
+    },
+    {
+      "at": "2026-10-21T05:32:51.261Z",
+      "run": "fix-dev-1",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1045,
+      "output": 31,
+      "usd": 0.00017535,
+      "ms": 1039
+    },
+    {
+      "at": "2026-10-21T05:32:52.904Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1611,
+      "output": 87,
+      "usd": 0.003918,
+      "ms": 1381
+    },
+    {
+      "at": "2026-10-21T05:32:53.843Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1728,
+      "output": 75,
+      "usd": 0.004056,
+      "ms": 934
+    },
+    {
+      "at": "2026-10-21T05:32:54.441Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 169,
+      "output": 5,
+      "usd": 0.000028349999999999998,
+      "ms": 593
+    },
+    {
+      "at": "2026-10-21T05:32:56.014Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1661,
+      "output": 43,
+      "usd": 0.003666,
+      "ms": 932
+    },
+    {
+      "at": "2026-10-21T05:32:57.460Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1733,
+      "output": 38,
+      "usd": 0.00377,
+      "ms": 986
+    },
+    {
+      "at": "2026-10-21T05:32:58.488Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1703,
+      "output": 41,
+      "usd": 0.003734,
+      "ms": 842
+    },
+    {
+      "at": "2026-10-21T05:32:59.831Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 175,
+      "output": 28,
+      "usd": 0.000043049999999999996,
+      "ms": 727
+    },
+    {
+      "at": "2026-10-21T05:33:01.283Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1927,
+      "output": 187,
+      "usd": 0.00535,
+      "ms": 1451
+    },
+    {
+      "at": "2026-10-21T05:33:03.006Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1810,
+      "output": 78,
+      "usd": 0.004244,
+      "ms": 1715
+    },
+    {
+      "at": "2026-10-21T05:33:03.970Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1865,
+      "output": 76,
+      "usd": 0.004338,
+      "ms": 961
+    },
+    {
+      "at": "2026-10-21T05:33:04.897Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 197,
+      "output": 35,
+      "usd": 0.000050549999999999995,
+      "ms": 923
+    },
+    {
+      "at": "2026-10-21T05:33:06.868Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2179,
+      "output": 285,
+      "usd": 0.006638,
+      "ms": 1970
+    },
+    {
+      "at": "2026-10-21T05:33:07.931Z",
+      "run": "fix-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1983,
+      "output": 80,
+      "usd": 0.004606,
+      "ms": 1055
+    },
+    {
+      "at": "2026-10-21T05:33:08.810Z",
+      "run": "fix-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 230,
+      "output": 34,
+      "usd": 0.0000549,
+      "ms": 873
+    },
+    {
+      "at": "2026-10-21T05:33:11.167Z",
+      "run": "fix-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2355,
+      "output": 282,
+      "usd": 0.006966,
+      "ms": 1815
+    },
+    {
+      "at": "2026-10-21T05:33:27.848Z",
+      "run": "fix-dev-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2781,
+      "output": 1119,
+      "usd": 0.014514,
+      "ms": 6532
+    },
+    {
+      "at": "2026-10-21T05:43:08.161Z",
+      "run": "fix-dev-2",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3742,
+      "output": 227,
+      "usd": 0.0006975,
+      "ms": 2861
+    },
+    {
+      "at": "2026-10-21T05:43:10.656Z",
+      "run": "fix-dev-2",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 985,
+      "output": 23,
+      "usd": 0.00016155000000000002,
+      "ms": 923
+    },
+    {
+      "at": "2026-10-21T05:43:12.348Z",
+      "run": "fix-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1533,
+      "output": 79,
+      "usd": 0.003698,
+      "ms": 1152
+    },
+    {
+      "at": "2026-10-21T05:43:13.765Z",
+      "run": "fix-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 129,
+      "output": 33,
+      "usd": 0.000039149999999999996,
+      "ms": 905
+    },
+    {
+      "at": "2026-10-21T05:43:16.395Z",
+      "run": "fix-dev-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1860,
+      "output": 195,
+      "usd": 0.00528,
+      "ms": 1723
+    },
+    {
+      "at": "2026-10-21T05:43:18.923Z",
+      "run": "fix-dev-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1924,
+      "output": 259,
+      "usd": 0.00592,
+      "ms": 1932
+    },
+    {
+      "at": "2026-10-21T05:43:22.167Z",
+      "run": "fix-dev-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2341,
+      "output": 409,
+      "usd": 0.007954,
+      "ms": 2541
+    },
+    {
+      "at": "2026-10-21T05:43:24.905Z",
+      "run": "fix-dev-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2484,
+      "output": 494,
+      "usd": 0.00892,
+      "ms": 2725
+    },
+    {
+      "at": "2026-10-21T05:43:32.683Z",
+      "run": "fix-dev-2",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3807,
+      "output": 926,
+      "usd": 0.00112665,
+      "ms": 7264
+    },
+    {
+      "at": "2026-10-21T05:43:39.813Z",
+      "run": "fix-dev-2",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3872,
+      "output": 701,
+      "usd": 0.0010014,
+      "ms": 6385
+    },
+    {
+      "at": "2026-10-21T05:43:41.452Z",
+      "run": "fix-dev-2",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1119,
+      "output": 42,
+      "usd": 0.00019304999999999998,
+      "ms": 1198
+    },
+    {
+      "at": "2026-10-21T05:43:42.324Z",
+      "run": "fix-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1372,
+      "output": 75,
+      "usd": 0.003344,
+      "ms": 865
+    },
+    {
+      "at": "2026-10-21T05:43:43.251Z",
+      "run": "fix-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 212,
+      "output": 35,
+      "usd": 0.000052799999999999996,
+      "ms": 924
+    },
+    {
+      "at": "2026-10-21T05:43:45.432Z",
+      "run": "fix-dev-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1677,
+      "output": 245,
+      "usd": 0.005314,
+      "ms": 2180
+    },
+    {
+      "at": "2026-10-21T05:43:46.676Z",
+      "run": "fix-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1550,
+      "output": 88,
+      "usd": 0.003804,
+      "ms": 1236
+    },
+    {
+      "at": "2026-10-21T05:43:47.811Z",
+      "run": "fix-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 276,
+      "output": 29,
+      "usd": 0.0000588,
+      "ms": 1125
+    },
+    {
+      "at": "2026-10-21T05:43:50.279Z",
+      "run": "fix-dev-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1898,
+      "output": 258,
+      "usd": 0.00586,
+      "ms": 2049
+    },
+    {
+      "at": "2026-10-21T05:43:51.641Z",
+      "run": "fix-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 294,
+      "output": 34,
+      "usd": 0.0000645,
+      "ms": 1219
+    },
+    {
+      "at": "2026-10-21T05:43:54.052Z",
+      "run": "fix-dev-2",
+      "stage": "moment-reply-refresh",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1974,
+      "output": 305,
+      "usd": 0.006388,
+      "ms": 2187
+    },
+    {
+      "at": "2026-10-21T05:43:59.103Z",
+      "run": "fix-dev-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2506,
+      "output": 984,
+      "usd": 0.012884,
+      "ms": 4502
+    },
+    {
+      "at": "2026-10-21T05:44:00.083Z",
+      "run": "fix-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1820,
+      "output": 82,
+      "usd": 0.004296,
+      "ms": 922
+    },
+    {
+      "at": "2026-10-21T05:44:01.417Z",
+      "run": "fix-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 319,
+      "output": 43,
+      "usd": 0.00007365,
+      "ms": 1035
+    },
+    {
+      "at": "2026-10-21T05:44:04.078Z",
+      "run": "fix-dev-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2192,
+      "output": 301,
+      "usd": 0.006792,
+      "ms": 2659
+    },
+    {
+      "at": "2026-10-21T05:44:05.200Z",
+      "run": "fix-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2017,
+      "output": 88,
+      "usd": 0.004738,
+      "ms": 1104
+    },
+    {
+      "at": "2026-10-21T05:44:06.463Z",
+      "run": "fix-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 363,
+      "output": 38,
+      "usd": 0.00007725,
+      "ms": 1155
+    },
+    {
+      "at": "2026-10-21T05:44:08.192Z",
+      "run": "fix-dev-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2394,
+      "output": 196,
+      "usd": 0.006356,
+      "ms": 1728
+    },
+    {
+      "at": "2026-10-21T05:44:16.052Z",
+      "run": "fix-dev-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2855,
+      "output": 1746,
+      "usd": 0.019678,
+      "ms": 7273
+    },
+    {
+      "at": "2026-10-21T05:44:21.011Z",
+      "run": "fix-dev-2",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3770,
+      "output": 507,
+      "usd": 0.0008697,
+      "ms": 4475
+    },
+    {
+      "at": "2026-10-21T05:44:22.286Z",
+      "run": "fix-dev-2",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1045,
+      "output": 34,
+      "usd": 0.00017715,
+      "ms": 947
+    },
+    {
+      "at": "2026-10-21T05:44:23.288Z",
+      "run": "fix-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1614,
+      "output": 82,
+      "usd": 0.003884,
+      "ms": 991
+    },
+    {
+      "at": "2026-10-21T05:44:24.684Z",
+      "run": "fix-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 170,
+      "output": 5,
+      "usd": 0.0000285,
+      "ms": 1104
+    },
+    {
+      "at": "2026-10-21T05:44:25.508Z",
+      "run": "fix-dev-2",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1666,
+      "output": 41,
+      "usd": 0.00366,
+      "ms": 821
+    },
+    {
+      "at": "2026-10-21T05:44:27.083Z",
+      "run": "fix-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 174,
+      "output": 24,
+      "usd": 0.0000405,
+      "ms": 854
+    },
+    {
+      "at": "2026-10-21T05:44:28.804Z",
+      "run": "fix-dev-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1920,
+      "output": 255,
+      "usd": 0.00588,
+      "ms": 1719
+    },
+    {
+      "at": "2026-10-21T05:44:30.779Z",
+      "run": "fix-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1817,
+      "output": 82,
+      "usd": 0.00429,
+      "ms": 1026
+    },
+    {
+      "at": "2026-10-21T05:44:31.794Z",
+      "run": "fix-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 195,
+      "output": 28,
+      "usd": 0.000046049999999999994,
+      "ms": 1010
+    },
+    {
+      "at": "2026-10-21T05:44:33.881Z",
+      "run": "fix-dev-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2177,
+      "output": 280,
+      "usd": 0.006594,
+      "ms": 1857
+    },
+    {
+      "at": "2026-10-21T05:44:35.243Z",
+      "run": "fix-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1977,
+      "output": 78,
+      "usd": 0.004578,
+      "ms": 1067
+    },
+    {
+      "at": "2026-10-21T05:44:36.165Z",
+      "run": "fix-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 221,
+      "output": 45,
+      "usd": 0.00006015,
+      "ms": 917
+    },
+    {
+      "at": "2026-10-21T05:44:39.346Z",
+      "run": "fix-dev-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2359,
+      "output": 230,
+      "usd": 0.006558,
+      "ms": 1955
+    },
+    {
+      "at": "2026-10-21T05:44:46.347Z",
+      "run": "fix-dev-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2838,
+      "output": 1352,
+      "usd": 0.016492,
+      "ms": 6329
+    },
+    {
+      "at": "2026-10-21T06:07:11.616Z",
+      "run": "fix-dev-3",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3742,
+      "output": 236,
+      "usd": 0.0007029,
+      "ms": 3678
+    },
+    {
+      "at": "2026-10-21T06:07:14.768Z",
+      "run": "fix-dev-3",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 985,
+      "output": 22,
+      "usd": 0.00016094999999999998,
+      "ms": 1185
+    },
+    {
+      "at": "2026-10-21T06:07:16.477Z",
+      "run": "fix-dev-3",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1532,
+      "output": 117,
+      "usd": 0.004,
+      "ms": 1059
+    },
+    {
+      "at": "2026-10-21T06:07:18.414Z",
+      "run": "fix-dev-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 135,
+      "output": 40,
+      "usd": 0.00004425,
+      "ms": 1304
+    },
+    {
+      "at": "2026-10-21T06:07:20.977Z",
+      "run": "fix-dev-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1873,
+      "output": 224,
+      "usd": 0.005538,
+      "ms": 1865
+    },
+    {
+      "at": "2026-10-21T06:07:23.443Z",
+      "run": "fix-dev-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1933,
+      "output": 273,
+      "usd": 0.00605,
+      "ms": 2456
+    },
+    {
+      "at": "2026-10-21T06:07:25.156Z",
+      "run": "fix-dev-3",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2404,
+      "output": 165,
+      "usd": 0.006128,
+      "ms": 1704
+    },
+    {
+      "at": "2026-10-21T06:07:31.065Z",
+      "run": "fix-dev-3",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3807,
+      "output": 679,
+      "usd": 0.0009784499999999998,
+      "ms": 5890
+    },
+    {
+      "at": "2026-10-21T06:07:36.062Z",
+      "run": "fix-dev-3",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1119,
+      "output": 40,
+      "usd": 0.00019185,
+      "ms": 4992
+    },
+    {
+      "at": "2026-10-21T06:07:37.150Z",
+      "run": "fix-dev-3",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1372,
+      "output": 67,
+      "usd": 0.00328,
+      "ms": 849
+    },
+    {
+      "at": "2026-10-21T06:07:38.495Z",
+      "run": "fix-dev-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 207,
+      "output": 32,
+      "usd": 0.00005025,
+      "ms": 1252
+    },
+    {
+      "at": "2026-10-21T06:07:41.955Z",
+      "run": "fix-dev-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1670,
+      "output": 189,
+      "usd": 0.004852,
+      "ms": 1867
+    },
+    {
+      "at": "2026-10-21T06:07:43.120Z",
+      "run": "fix-dev-3",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1538,
+      "output": 81,
+      "usd": 0.003724,
+      "ms": 1157
+    },
+    {
+      "at": "2026-10-21T06:07:44.911Z",
+      "run": "fix-dev-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 268,
+      "output": 31,
+      "usd": 0.0000588,
+      "ms": 850
+    },
+    {
+      "at": "2026-10-21T06:07:47.902Z",
+      "run": "fix-dev-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1885,
+      "output": 263,
+      "usd": 0.005874,
+      "ms": 2985
+    },
+    {
+      "at": "2026-10-21T06:07:49.542Z",
+      "run": "fix-dev-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 290,
+      "output": 41,
+      "usd": 0.00006809999999999999,
+      "ms": 1369
+    },
+    {
+      "at": "2026-10-21T06:07:53.951Z",
+      "run": "fix-dev-3",
+      "stage": "moment-reply-refresh",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1967,
+      "output": 384,
+      "usd": 0.007006,
+      "ms": 2896
+    },
+    {
+      "at": "2026-10-21T06:08:10.393Z",
+      "run": "fix-dev-3",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2546,
+      "output": 668,
+      "usd": 0.010436,
+      "ms": 5154
+    },
+    {
+      "at": "2026-10-21T06:08:13.581Z",
+      "run": "fix-dev-3",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2716,
+      "output": 453,
+      "usd": 0.009056,
+      "ms": 3160
+    },
+    {
+      "at": "2026-10-21T06:08:14.558Z",
+      "run": "fix-dev-3",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1810,
+      "output": 78,
+      "usd": 0.004244,
+      "ms": 940
+    },
+    {
+      "at": "2026-10-21T06:08:15.822Z",
+      "run": "fix-dev-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 317,
+      "output": 37,
+      "usd": 0.00006975,
+      "ms": 1083
+    },
+    {
+      "at": "2026-10-21T06:08:18.550Z",
+      "run": "fix-dev-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2170,
+      "output": 251,
+      "usd": 0.006348,
+      "ms": 2726
+    },
+    {
+      "at": "2026-10-21T06:08:19.954Z",
+      "run": "fix-dev-3",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1983,
+      "output": 81,
+      "usd": 0.004614,
+      "ms": 1385
+    },
+    {
+      "at": "2026-10-21T06:08:21.119Z",
+      "run": "fix-dev-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 354,
+      "output": 43,
+      "usd": 0.00007890000000000001,
+      "ms": 1160
+    },
+    {
+      "at": "2026-10-21T06:08:23.268Z",
+      "run": "fix-dev-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2356,
+      "output": 327,
+      "usd": 0.007328,
+      "ms": 2148
+    },
+    {
+      "at": "2026-10-21T06:08:28.259Z",
+      "run": "fix-dev-3",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2989,
+      "output": 871,
+      "usd": 0.012946,
+      "ms": 4974
+    },
+    {
+      "at": "2026-10-21T06:08:32.695Z",
+      "run": "fix-dev-3",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3770,
+      "output": 479,
+      "usd": 0.0008529,
+      "ms": 4378
+    },
+    {
+      "at": "2026-10-21T06:08:33.841Z",
+      "run": "fix-dev-3",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1045,
+      "output": 34,
+      "usd": 0.00017715,
+      "ms": 1144
+    },
+    {
+      "at": "2026-10-21T06:08:34.873Z",
+      "run": "fix-dev-3",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1615,
+      "output": 80,
+      "usd": 0.00387,
+      "ms": 1028
+    },
+    {
+      "at": "2026-10-21T06:08:35.616Z",
+      "run": "fix-dev-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 166,
+      "output": 5,
+      "usd": 0.000027899999999999997,
+      "ms": 681
+    },
+    {
+      "at": "2026-10-21T06:08:36.524Z",
+      "run": "fix-dev-3",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1663,
+      "output": 42,
+      "usd": 0.003662,
+      "ms": 906
+    },
+    {
+      "at": "2026-10-21T06:08:37.351Z",
+      "run": "fix-dev-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 177,
+      "output": 33,
+      "usd": 0.00004635,
+      "ms": 819
+    },
+    {
+      "at": "2026-10-21T06:08:39.147Z",
+      "run": "fix-dev-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1934,
+      "output": 215,
+      "usd": 0.005588,
+      "ms": 1795
+    },
+    {
+      "at": "2026-10-21T06:08:41.575Z",
+      "run": "fix-dev-3",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1840,
+      "output": 81,
+      "usd": 0.004328,
+      "ms": 1178
+    },
+    {
+      "at": "2026-10-21T06:08:43.166Z",
+      "run": "fix-dev-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 202,
+      "output": 37,
+      "usd": 0.0000525,
+      "ms": 865
+    },
+    {
+      "at": "2026-10-21T06:08:45.648Z",
+      "run": "fix-dev-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2207,
+      "output": 360,
+      "usd": 0.007294,
+      "ms": 2078
+    },
+    {
+      "at": "2026-10-21T06:08:47.815Z",
+      "run": "fix-dev-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2283,
+      "output": 267,
+      "usd": 0.006702,
+      "ms": 2156
+    },
+    {
+      "at": "2026-10-21T06:08:48.879Z",
+      "run": "fix-dev-3",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2023,
+      "output": 75,
+      "usd": 0.004646,
+      "ms": 1053
+    },
+    {
+      "at": "2026-10-21T06:08:50.279Z",
+      "run": "fix-dev-3",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 240,
+      "output": 34,
+      "usd": 0.000056399999999999995,
+      "ms": 1116
+    },
+    {
+      "at": "2026-10-21T06:08:52.096Z",
+      "run": "fix-dev-3",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2395,
+      "output": 274,
+      "usd": 0.006982,
+      "ms": 1815
+    },
+    {
+      "at": "2026-10-21T06:08:56.861Z",
+      "run": "fix-dev-3",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2907,
+      "output": 862,
+      "usd": 0.01271,
+      "ms": 4755
+    },
+    {
+      "at": "2026-10-21T06:09:01.355Z",
+      "run": "fix-dev-3",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3027,
+      "output": 833,
+      "usd": 0.012718,
+      "ms": 4479
+    },
+    {
+      "at": "2026-10-21T06:09:07.220Z",
+      "run": "fix-dev-3",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2997,
+      "output": 794,
+      "usd": 0.012346,
+      "ms": 5845
+    },
+    {
+      "at": "2026-10-21T06:12:39.718Z",
+      "run": "fix-final",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3742,
+      "output": 311,
+      "usd": 0.0007479,
+      "ms": 3572
+    },
+    {
+      "at": "2026-10-21T06:12:40.905Z",
+      "run": "fix-final",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 985,
+      "output": 21,
+      "usd": 0.00016035,
+      "ms": 1150
+    },
+    {
+      "at": "2026-10-21T06:12:42.131Z",
+      "run": "fix-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1531,
+      "output": 79,
+      "usd": 0.003694,
+      "ms": 1220
+    },
+    {
+      "at": "2026-10-21T06:12:43.229Z",
+      "run": "fix-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 130,
+      "output": 39,
+      "usd": 0.0000429,
+      "ms": 1014
+    },
+    {
+      "at": "2026-10-21T06:12:45.044Z",
+      "run": "fix-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1865,
+      "output": 289,
+      "usd": 0.006042,
+      "ms": 1762
+    },
+    {
+      "at": "2026-10-21T06:12:47.197Z",
+      "run": "fix-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1929,
+      "output": 277,
+      "usd": 0.006074,
+      "ms": 2138
+    },
+    {
+      "at": "2026-10-21T06:12:49.362Z",
+      "run": "fix-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2406,
+      "output": 275,
+      "usd": 0.007012,
+      "ms": 2096
+    },
+    {
+      "at": "2026-10-21T06:12:56.262Z",
+      "run": "fix-final",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3807,
+      "output": 815,
+      "usd": 0.0010600499999999999,
+      "ms": 6821
+    },
+    {
+      "at": "2026-10-21T06:12:57.461Z",
+      "run": "fix-final",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1119,
+      "output": 43,
+      "usd": 0.00019365000000000002,
+      "ms": 1173
+    },
+    {
+      "at": "2026-10-21T06:12:58.418Z",
+      "run": "fix-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1375,
+      "output": 70,
+      "usd": 0.00331,
+      "ms": 952
+    },
+    {
+      "at": "2026-10-21T06:12:59.482Z",
+      "run": "fix-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 208,
+      "output": 39,
+      "usd": 0.00005459999999999999,
+      "ms": 1060
+    },
+    {
+      "at": "2026-10-21T06:13:01.788Z",
+      "run": "fix-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1678,
+      "output": 290,
+      "usd": 0.005676,
+      "ms": 2304
+    },
+    {
+      "at": "2026-10-21T06:13:02.799Z",
+      "run": "fix-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1561,
+      "output": 81,
+      "usd": 0.00377,
+      "ms": 997
+    },
+    {
+      "at": "2026-10-21T06:13:03.892Z",
+      "run": "fix-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 273,
+      "output": 36,
+      "usd": 0.00006255,
+      "ms": 943
+    },
+    {
+      "at": "2026-10-21T06:13:06.930Z",
+      "run": "fix-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1908,
+      "output": 289,
+      "usd": 0.006128,
+      "ms": 2429
+    },
+    {
+      "at": "2026-10-21T06:13:07.764Z",
+      "run": "fix-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 295,
+      "output": 36,
+      "usd": 0.00006584999999999999,
+      "ms": 821
+    },
+    {
+      "at": "2026-10-21T06:13:10.041Z",
+      "run": "fix-final",
+      "stage": "moment-reply-refresh",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1978,
+      "output": 375,
+      "usd": 0.006956,
+      "ms": 2275
+    },
+    {
+      "at": "2026-10-21T06:13:12.614Z",
+      "run": "fix-final",
+      "stage": "moment-reply-refresh",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2045,
+      "output": 378,
+      "usd": 0.007114,
+      "ms": 2559
+    },
+    {
+      "at": "2026-10-21T06:13:15.692Z",
+      "run": "fix-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2552,
+      "output": 456,
+      "usd": 0.008752,
+      "ms": 3063
+    },
+    {
+      "at": "2026-10-21T06:13:16.652Z",
+      "run": "fix-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1816,
+      "output": 75,
+      "usd": 0.004232,
+      "ms": 912
+    },
+    {
+      "at": "2026-10-21T06:13:17.901Z",
+      "run": "fix-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1867,
+      "output": 83,
+      "usd": 0.004398,
+      "ms": 1244
+    },
+    {
+      "at": "2026-10-21T06:13:18.904Z",
+      "run": "fix-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 326,
+      "output": 30,
+      "usd": 0.0000669,
+      "ms": 994
+    },
+    {
+      "at": "2026-10-21T06:13:21.265Z",
+      "run": "fix-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2169,
+      "output": 354,
+      "usd": 0.00717,
+      "ms": 2324
+    },
+    {
+      "at": "2026-10-21T06:13:22.816Z",
+      "run": "fix-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1993,
+      "output": 89,
+      "usd": 0.004698,
+      "ms": 1115
+    },
+    {
+      "at": "2026-10-21T06:13:23.865Z",
+      "run": "fix-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 358,
+      "output": 43,
+      "usd": 0.0000795,
+      "ms": 962
+    },
+    {
+      "at": "2026-10-21T06:13:26.346Z",
+      "run": "fix-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2370,
+      "output": 260,
+      "usd": 0.00682,
+      "ms": 2279
+    },
+    {
+      "at": "2026-10-21T06:13:33.044Z",
+      "run": "fix-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2927,
+      "output": 982,
+      "usd": 0.01371,
+      "ms": 6511
+    },
+    {
+      "at": "2026-10-21T06:13:39.036Z",
+      "run": "fix-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3084,
+      "output": 700,
+      "usd": 0.011768,
+      "ms": 5951
+    },
+    {
+      "at": "2026-10-21T06:13:43.994Z",
+      "run": "fix-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3079,
+      "output": 901,
+      "usd": 0.013366,
+      "ms": 4920
+    },
+    {
+      "at": "2026-10-21T06:13:49.296Z",
+      "run": "fix-final",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3770,
+      "output": 582,
+      "usd": 0.0009147000000000001,
+      "ms": 5258
+    },
+    {
+      "at": "2026-10-21T06:13:50.184Z",
+      "run": "fix-final",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1045,
+      "output": 27,
+      "usd": 0.00017294999999999998,
+      "ms": 885
+    },
+    {
+      "at": "2026-10-21T06:13:51.315Z",
+      "run": "fix-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1612,
+      "output": 83,
+      "usd": 0.003888,
+      "ms": 1130
+    },
+    {
+      "at": "2026-10-21T06:13:52.508Z",
+      "run": "fix-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1650,
+      "output": 84,
+      "usd": 0.003972,
+      "ms": 1191
+    },
+    {
+      "at": "2026-10-21T06:13:53.391Z",
+      "run": "fix-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 171,
+      "output": 5,
+      "usd": 0.00002865,
+      "ms": 862
+    },
+    {
+      "at": "2026-10-21T06:13:54.448Z",
+      "run": "fix-final",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1664,
+      "output": 45,
+      "usd": 0.003688,
+      "ms": 1054
+    },
+    {
+      "at": "2026-10-21T06:13:55.554Z",
+      "run": "fix-final",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1731,
+      "output": 38,
+      "usd": 0.003766,
+      "ms": 891
+    },
+    {
+      "at": "2026-10-21T06:13:56.628Z",
+      "run": "fix-final",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1700,
+      "output": 46,
+      "usd": 0.003768,
+      "ms": 1071
+    },
+    {
+      "at": "2026-10-21T06:13:57.399Z",
+      "run": "fix-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 175,
+      "output": 32,
+      "usd": 0.00004545,
+      "ms": 764
+    },
+    {
+      "at": "2026-10-21T06:13:59.105Z",
+      "run": "fix-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1929,
+      "output": 200,
+      "usd": 0.005458,
+      "ms": 1684
+    },
+    {
+      "at": "2026-10-21T06:14:05.912Z",
+      "run": "fix-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1982,
+      "output": 298,
+      "usd": 0.006348,
+      "ms": 6592
+    },
+    {
+      "at": "2026-10-21T06:14:07.746Z",
+      "run": "fix-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1820,
+      "output": 91,
+      "usd": 0.004368,
+      "ms": 1144
+    },
+    {
+      "at": "2026-10-21T06:14:08.473Z",
+      "run": "fix-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 200,
+      "output": 27,
+      "usd": 0.000046200000000000005,
+      "ms": 720
+    },
+    {
+      "at": "2026-10-21T06:14:10.839Z",
+      "run": "fix-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2180,
+      "output": 343,
+      "usd": 0.007104,
+      "ms": 2362
+    },
+    {
+      "at": "2026-10-21T06:14:13.133Z",
+      "run": "fix-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2257,
+      "output": 268,
+      "usd": 0.006658,
+      "ms": 1891
+    },
+    {
+      "at": "2026-10-21T06:14:14.381Z",
+      "run": "fix-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1982,
+      "output": 86,
+      "usd": 0.004652,
+      "ms": 1226
+    },
+    {
+      "at": "2026-10-21T06:14:15.798Z",
+      "run": "fix-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 230,
+      "output": 33,
+      "usd": 0.0000543,
+      "ms": 1307
+    },
+    {
+      "at": "2026-10-21T06:14:18.355Z",
+      "run": "fix-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2356,
+      "output": 296,
+      "usd": 0.00708,
+      "ms": 1934
+    },
+    {
+      "at": "2026-10-21T06:14:22.557Z",
+      "run": "fix-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2880,
+      "output": 811,
+      "usd": 0.012248,
+      "ms": 4188
+    },
+    {
+      "at": "2026-10-21T06:14:28.621Z",
+      "run": "fix-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2970,
+      "output": 913,
+      "usd": 0.013244,
+      "ms": 6028
+    },
+    {
+      "at": "2026-10-21T06:14:38.338Z",
+      "run": "fix-final",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3922,
+      "output": 1220,
+      "usd": 0.0013203,
+      "ms": 9576
+    },
+    {
+      "at": "2026-10-21T06:14:39.379Z",
+      "run": "fix-final",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1357,
+      "output": 43,
+      "usd": 0.00022935,
+      "ms": 1028
+    },
+    {
+      "at": "2026-10-21T06:14:41.430Z",
+      "run": "fix-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1621,
+      "output": 92,
+      "usd": 0.003978,
+      "ms": 1314
+    },
+    {
+      "at": "2026-10-21T06:14:42.416Z",
+      "run": "fix-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 305,
+      "output": 38,
+      "usd": 0.00006855,
+      "ms": 887
+    },
+    {
+      "at": "2026-10-21T06:14:45.215Z",
+      "run": "fix-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1931,
+      "output": 392,
+      "usd": 0.006998,
+      "ms": 2548
+    },
+    {
+      "at": "2026-10-21T06:14:47.383Z",
+      "run": "fix-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2527,
+      "output": 195,
+      "usd": 0.006614,
+      "ms": 2150
+    },
+    {
+      "at": "2026-10-21T06:14:48.656Z",
+      "run": "fix-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1832,
+      "output": 92,
+      "usd": 0.0044,
+      "ms": 1238
+    },
+    {
+      "at": "2026-10-21T06:14:50.503Z",
+      "run": "fix-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 348,
+      "output": 37,
+      "usd": 0.00007439999999999999,
+      "ms": 1208
+    },
+    {
+      "at": "2026-10-21T06:14:53.151Z",
+      "run": "fix-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2149,
+      "output": 290,
+      "usd": 0.006618,
+      "ms": 2091
+    },
+    {
+      "at": "2026-10-21T06:14:55.624Z",
+      "run": "fix-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2272,
+      "output": 379,
+      "usd": 0.007576,
+      "ms": 2422
+    },
+    {
+      "at": "2026-10-21T06:14:57.476Z",
+      "run": "fix-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2029,
+      "output": 92,
+      "usd": 0.004794,
+      "ms": 1186
+    },
+    {
+      "at": "2026-10-21T06:14:58.928Z",
+      "run": "fix-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 394,
+      "output": 32,
+      "usd": 0.00007829999999999999,
+      "ms": 778
+    },
+    {
+      "at": "2026-10-21T06:15:01.985Z",
+      "run": "fix-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2360,
+      "output": 514,
+      "usd": 0.008832,
+      "ms": 2882
+    },
+    {
+      "at": "2026-10-21T06:15:07.983Z",
+      "run": "fix-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2948,
+      "output": 651,
+      "usd": 0.011104,
+      "ms": 5901
+    },
+    {
+      "at": "2026-10-21T06:15:11.559Z",
+      "run": "fix-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3089,
+      "output": 526,
+      "usd": 0.010386,
+      "ms": 3364
+    },
+    {
+      "at": "2026-10-21T06:15:15.056Z",
+      "run": "fix-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3025,
+      "output": 475,
+      "usd": 0.00985,
+      "ms": 3021
+    },
+    {
+      "at": "2026-10-21T11:45:55.531Z",
+      "run": "q-dev-1",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3864,
+      "output": 997,
+      "usd": 0.0011778,
+      "ms": 13849
+    },
+    {
+      "at": "2026-10-21T11:45:57.398Z",
+      "run": "q-dev-1",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1231,
+      "output": 53,
+      "usd": 0.00021644999999999998,
+      "ms": 1785
+    },
+    {
+      "at": "2026-10-21T11:45:59.235Z",
+      "run": "q-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1685,
+      "output": 98,
+      "usd": 0.004154,
+      "ms": 1811
+    },
+    {
+      "at": "2026-10-21T11:46:00.632Z",
+      "run": "q-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 275,
+      "output": 41,
+      "usd": 0.00006584999999999999,
+      "ms": 1364
+    },
+    {
+      "at": "2026-10-21T11:46:02.787Z",
+      "run": "q-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1954,
+      "output": 348,
+      "usd": 0.006692,
+      "ms": 2146
+    },
+    {
+      "at": "2026-10-21T11:46:05.086Z",
+      "run": "q-dev-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2607,
+      "output": 189,
+      "usd": 0.006726,
+      "ms": 2236
+    },
+    {
+      "at": "2026-10-21T11:46:06.420Z",
+      "run": "q-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1920,
+      "output": 103,
+      "usd": 0.004664,
+      "ms": 1255
+    },
+    {
+      "at": "2026-10-21T11:46:07.711Z",
+      "run": "q-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 326,
+      "output": 41,
+      "usd": 0.0000735,
+      "ms": 1216
+    },
+    {
+      "at": "2026-10-21T11:46:10.430Z",
+      "run": "q-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2202,
+      "output": 382,
+      "usd": 0.00746,
+      "ms": 2715
+    },
+    {
+      "at": "2026-10-21T11:46:11.889Z",
+      "run": "q-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2152,
+      "output": 95,
+      "usd": 0.005064,
+      "ms": 1384
+    },
+    {
+      "at": "2026-10-21T11:46:13.799Z",
+      "run": "q-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 360,
+      "output": 42,
+      "usd": 0.0000792,
+      "ms": 1855
+    },
+    {
+      "at": "2026-10-21T11:46:15.939Z",
+      "run": "q-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2439,
+      "output": 393,
+      "usd": 0.008022,
+      "ms": 2136
+    },
+    {
+      "at": "2026-10-21T11:46:20.584Z",
+      "run": "q-dev-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3184,
+      "output": 832,
+      "usd": 0.013024,
+      "ms": 4518
+    },
+    {
+      "at": "2026-10-21T11:46:32.822Z",
+      "run": "q-dev-1",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3855,
+      "output": 975,
+      "usd": 0.00116325,
+      "ms": 11989
+    },
+    {
+      "at": "2026-10-21T11:46:34.330Z",
+      "run": "q-dev-1",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1205,
+      "output": 53,
+      "usd": 0.00021255000000000002,
+      "ms": 1396
+    },
+    {
+      "at": "2026-10-21T11:46:35.338Z",
+      "run": "q-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1644,
+      "output": 91,
+      "usd": 0.004016,
+      "ms": 1003
+    },
+    {
+      "at": "2026-10-21T11:46:36.251Z",
+      "run": "q-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 251,
+      "output": 36,
+      "usd": 0.00005925,
+      "ms": 902
+    },
+    {
+      "at": "2026-10-21T11:46:39.621Z",
+      "run": "q-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1893,
+      "output": 331,
+      "usd": 0.006434,
+      "ms": 3367
+    },
+    {
+      "at": "2026-10-21T11:46:41.436Z",
+      "run": "q-dev-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2533,
+      "output": 261,
+      "usd": 0.007154,
+      "ms": 1803
+    },
+    {
+      "at": "2026-10-21T11:46:42.515Z",
+      "run": "q-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1839,
+      "output": 86,
+      "usd": 0.004366,
+      "ms": 1047
+    },
+    {
+      "at": "2026-10-21T11:46:43.189Z",
+      "run": "q-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 298,
+      "output": 4,
+      "usd": 0.00004709999999999999,
+      "ms": 663
+    },
+    {
+      "at": "2026-10-21T11:46:44.148Z",
+      "run": "q-dev-1",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1890,
+      "output": 46,
+      "usd": 0.004148,
+      "ms": 955
+    },
+    {
+      "at": "2026-10-21T11:46:45.116Z",
+      "run": "q-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 303,
+      "output": 36,
+      "usd": 0.00006705,
+      "ms": 961
+    },
+    {
+      "at": "2026-10-21T11:46:47.263Z",
+      "run": "q-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2095,
+      "output": 350,
+      "usd": 0.00699,
+      "ms": 2140
+    },
+    {
+      "at": "2026-10-21T11:46:49.351Z",
+      "run": "q-dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2065,
+      "output": 101,
+      "usd": 0.004938,
+      "ms": 2058
+    },
+    {
+      "at": "2026-10-21T11:46:50.750Z",
+      "run": "q-dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 333,
+      "output": 39,
+      "usd": 0.00007335,
+      "ms": 1376
+    },
+    {
+      "at": "2026-10-21T11:46:53.033Z",
+      "run": "q-dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2337,
+      "output": 247,
+      "usd": 0.00665,
+      "ms": 2277
+    },
+    {
+      "at": "2026-10-21T11:46:57.754Z",
+      "run": "q-dev-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3049,
+      "output": 994,
+      "usd": 0.01405,
+      "ms": 4697
+    },
+    {
+      "at": "2026-10-21T11:47:02.488Z",
+      "run": "q-dev-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3091,
+      "output": 927,
+      "usd": 0.013598,
+      "ms": 4498
+    },
+    {
+      "at": "2026-10-21T11:47:06.902Z",
+      "run": "q-dev-1",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3225,
+      "output": 779,
+      "usd": 0.012682,
+      "ms": 4303
+    },
+    {
+      "at": "2026-10-21T11:50:33.566Z",
+      "run": "q-dev-2",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3864,
+      "output": 916,
+      "usd": 0.0011292000000000001,
+      "ms": 9965
+    },
+    {
+      "at": "2026-10-21T11:50:34.695Z",
+      "run": "q-dev-2",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1231,
+      "output": 41,
+      "usd": 0.00020925,
+      "ms": 1045
+    },
+    {
+      "at": "2026-10-21T11:50:35.919Z",
+      "run": "q-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1682,
+      "output": 81,
+      "usd": 0.004012,
+      "ms": 1198
+    },
+    {
+      "at": "2026-10-21T11:50:37.401Z",
+      "run": "q-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 275,
+      "output": 28,
+      "usd": 0.000058049999999999995,
+      "ms": 1452
+    },
+    {
+      "at": "2026-10-21T11:50:39.819Z",
+      "run": "q-dev-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1938,
+      "output": 331,
+      "usd": 0.006524,
+      "ms": 2413
+    },
+    {
+      "at": "2026-10-21T11:50:41.915Z",
+      "run": "q-dev-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2573,
+      "output": 260,
+      "usd": 0.007226,
+      "ms": 2063
+    },
+    {
+      "at": "2026-10-21T11:50:43.969Z",
+      "run": "q-dev-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2659,
+      "output": 267,
+      "usd": 0.007454,
+      "ms": 2013
+    },
+    {
+      "at": "2026-10-21T11:50:45.169Z",
+      "run": "q-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1886,
+      "output": 78,
+      "usd": 0.004396,
+      "ms": 1125
+    },
+    {
+      "at": "2026-10-21T11:50:46.302Z",
+      "run": "q-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 304,
+      "output": 33,
+      "usd": 0.0000654,
+      "ms": 1103
+    },
+    {
+      "at": "2026-10-21T11:50:48.983Z",
+      "run": "q-dev-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2151,
+      "output": 362,
+      "usd": 0.007198,
+      "ms": 2666
+    },
+    {
+      "at": "2026-10-21T11:50:50.119Z",
+      "run": "q-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2090,
+      "output": 89,
+      "usd": 0.004892,
+      "ms": 1035
+    },
+    {
+      "at": "2026-10-21T11:50:51.279Z",
+      "run": "q-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 346,
+      "output": 25,
+      "usd": 0.0000669,
+      "ms": 1136
+    },
+    {
+      "at": "2026-10-21T11:50:53.999Z",
+      "run": "q-dev-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2364,
+      "output": 359,
+      "usd": 0.0076,
+      "ms": 2707
+    },
+    {
+      "at": "2026-10-21T11:50:57.266Z",
+      "run": "q-dev-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3037,
+      "output": 482,
+      "usd": 0.00993,
+      "ms": 3048
+    },
+    {
+      "at": "2026-10-21T11:51:00.953Z",
+      "run": "q-dev-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3132,
+      "output": 576,
+      "usd": 0.010872,
+      "ms": 3633
+    },
+    {
+      "at": "2026-10-21T11:51:09.699Z",
+      "run": "q-dev-2",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3855,
+      "output": 928,
+      "usd": 0.0011350499999999999,
+      "ms": 8450
+    },
+    {
+      "at": "2026-10-21T11:51:11.208Z",
+      "run": "q-dev-2",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1205,
+      "output": 55,
+      "usd": 0.00021375,
+      "ms": 1482
+    },
+    {
+      "at": "2026-10-21T11:51:12.359Z",
+      "run": "q-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1642,
+      "output": 94,
+      "usd": 0.004036,
+      "ms": 1133
+    },
+    {
+      "at": "2026-10-21T11:51:13.451Z",
+      "run": "q-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 253,
+      "output": 34,
+      "usd": 0.000058349999999999995,
+      "ms": 1080
+    },
+    {
+      "at": "2026-10-21T11:51:15.148Z",
+      "run": "q-dev-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1893,
+      "output": 225,
+      "usd": 0.005586,
+      "ms": 1693
+    },
+    {
+      "at": "2026-10-21T11:51:17.309Z",
+      "run": "q-dev-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2516,
+      "output": 274,
+      "usd": 0.007224,
+      "ms": 2147
+    },
+    {
+      "at": "2026-10-21T11:51:19.592Z",
+      "run": "q-dev-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2569,
+      "output": 297,
+      "usd": 0.007514,
+      "ms": 2270
+    },
+    {
+      "at": "2026-10-21T11:51:21.218Z",
+      "run": "q-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1822,
+      "output": 89,
+      "usd": 0.004356,
+      "ms": 1596
+    },
+    {
+      "at": "2026-10-21T11:51:22.416Z",
+      "run": "q-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1857,
+      "output": 88,
+      "usd": 0.004418,
+      "ms": 1180
+    },
+    {
+      "at": "2026-10-21T11:51:23.484Z",
+      "run": "q-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1857,
+      "output": 89,
+      "usd": 0.004426,
+      "ms": 1052
+    },
+    {
+      "at": "2026-10-21T11:51:24.420Z",
+      "run": "q-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 286,
+      "output": 4,
+      "usd": 0.000045299999999999997,
+      "ms": 922
+    },
+    {
+      "at": "2026-10-21T11:51:25.315Z",
+      "run": "q-dev-2",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1863,
+      "output": 48,
+      "usd": 0.00411,
+      "ms": 868
+    },
+    {
+      "at": "2026-10-21T11:51:26.316Z",
+      "run": "q-dev-2",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1898,
+      "output": 47,
+      "usd": 0.004172,
+      "ms": 978
+    },
+    {
+      "at": "2026-10-21T11:51:27.176Z",
+      "run": "q-dev-2",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1898,
+      "output": 47,
+      "usd": 0.004172,
+      "ms": 851
+    },
+    {
+      "at": "2026-10-21T11:51:28.420Z",
+      "run": "q-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 295,
+      "output": 19,
+      "usd": 0.00005565,
+      "ms": 1238
+    },
+    {
+      "at": "2026-10-21T11:51:29.888Z",
+      "run": "q-dev-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2058,
+      "output": 177,
+      "usd": 0.005532,
+      "ms": 1451
+    },
+    {
+      "at": "2026-10-21T11:51:30.965Z",
+      "run": "q-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1990,
+      "output": 102,
+      "usd": 0.004796,
+      "ms": 1047
+    },
+    {
+      "at": "2026-10-21T11:51:32.213Z",
+      "run": "q-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2052,
+      "output": 95,
+      "usd": 0.004864,
+      "ms": 1213
+    },
+    {
+      "at": "2026-10-21T11:51:34.380Z",
+      "run": "q-dev-2",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2070,
+      "output": 85,
+      "usd": 0.00482,
+      "ms": 2141
+    },
+    {
+      "at": "2026-10-21T11:51:35.461Z",
+      "run": "q-dev-2",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 302,
+      "output": 33,
+      "usd": 0.0000651,
+      "ms": 1038
+    },
+    {
+      "at": "2026-10-21T11:51:37.812Z",
+      "run": "q-dev-2",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2246,
+      "output": 349,
+      "usd": 0.007284,
+      "ms": 2344
+    },
+    {
+      "at": "2026-10-21T11:51:41.987Z",
+      "run": "q-dev-2",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2958,
+      "output": 716,
+      "usd": 0.011644,
+      "ms": 4144
+    },
+    {
+      "at": "2026-10-21T14:09:45.531Z",
+      "run": "q-final",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3773,
+      "output": 412,
+      "usd": 0.0008131499999999999,
+      "ms": 6670
+    },
+    {
+      "at": "2026-10-21T14:09:46.806Z",
+      "run": "q-final",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1047,
+      "output": 24,
+      "usd": 0.00017145,
+      "ms": 1262
+    },
+    {
+      "at": "2026-10-21T14:09:48.019Z",
+      "run": "q-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1753,
+      "output": 91,
+      "usd": 0.004234,
+      "ms": 1207
+    },
+    {
+      "at": "2026-10-21T14:09:49.022Z",
+      "run": "q-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 161,
+      "output": 30,
+      "usd": 0.00004215,
+      "ms": 991
+    },
+    {
+      "at": "2026-10-21T14:09:51.310Z",
+      "run": "q-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2036,
+      "output": 311,
+      "usd": 0.00656,
+      "ms": 2284
+    },
+    {
+      "at": "2026-10-21T14:09:54.235Z",
+      "run": "q-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2623,
+      "output": 277,
+      "usd": 0.007462,
+      "ms": 2906
+    },
+    {
+      "at": "2026-10-21T14:09:55.836Z",
+      "run": "q-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1950,
+      "output": 100,
+      "usd": 0.0047,
+      "ms": 1587
+    },
+    {
+      "at": "2026-10-21T14:09:56.958Z",
+      "run": "q-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2003,
+      "output": 92,
+      "usd": 0.004742,
+      "ms": 1116
+    },
+    {
+      "at": "2026-10-21T14:09:58.606Z",
+      "run": "q-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2004,
+      "output": 92,
+      "usd": 0.004744,
+      "ms": 1642
+    },
+    {
+      "at": "2026-10-21T14:09:59.811Z",
+      "run": "q-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 186,
+      "output": 39,
+      "usd": 0.0000513,
+      "ms": 1108
+    },
+    {
+      "at": "2026-10-21T14:10:02.802Z",
+      "run": "q-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2241,
+      "output": 319,
+      "usd": 0.007034,
+      "ms": 2989
+    },
+    {
+      "at": "2026-10-21T14:10:12.293Z",
+      "run": "q-final",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3899,
+      "output": 1027,
+      "usd": 0.00120105,
+      "ms": 9479
+    },
+    {
+      "at": "2026-10-21T14:10:13.791Z",
+      "run": "q-final",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1303,
+      "output": 50,
+      "usd": 0.00022544999999999998,
+      "ms": 1487
+    },
+    {
+      "at": "2026-10-21T14:10:15.075Z",
+      "run": "q-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1717,
+      "output": 92,
+      "usd": 0.00417,
+      "ms": 1280
+    },
+    {
+      "at": "2026-10-21T14:10:15.762Z",
+      "run": "q-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 307,
+      "output": 5,
+      "usd": 0.00004905,
+      "ms": 676
+    },
+    {
+      "at": "2026-10-21T14:10:17.488Z",
+      "run": "q-final",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1770,
+      "output": 43,
+      "usd": 0.003884,
+      "ms": 1062
+    },
+    {
+      "at": "2026-10-21T14:10:18.406Z",
+      "run": "q-final",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1796,
+      "output": 41,
+      "usd": 0.00392,
+      "ms": 914
+    },
+    {
+      "at": "2026-10-21T14:10:19.251Z",
+      "run": "q-final",
+      "stage": "moment-question-alt",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1796,
+      "output": 40,
+      "usd": 0.003912,
+      "ms": 843
+    },
+    {
+      "at": "2026-10-21T14:10:20.088Z",
+      "run": "q-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 310,
+      "output": 25,
+      "usd": 0.0000615,
+      "ms": 834
+    },
+    {
+      "at": "2026-10-21T14:10:22.323Z",
+      "run": "q-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1955,
+      "output": 246,
+      "usd": 0.005878,
+      "ms": 2233
+    },
+    {
+      "at": "2026-10-21T14:10:26.070Z",
+      "run": "q-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2630,
+      "output": 283,
+      "usd": 0.007524,
+      "ms": 3737
+    },
+    {
+      "at": "2026-10-21T14:10:29.277Z",
+      "run": "q-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2689,
+      "output": 272,
+      "usd": 0.007554,
+      "ms": 3201
+    },
+    {
+      "at": "2026-10-21T14:10:32.151Z",
+      "run": "q-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2689,
+      "output": 288,
+      "usd": 0.007682,
+      "ms": 2865
+    },
+    {
+      "at": "2026-10-21T14:10:36.022Z",
+      "run": "q-final",
+      "stage": "whole-view-retry",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2630,
+      "output": 272,
+      "usd": 0.007436,
+      "ms": 2571
+    },
+    {
+      "at": "2026-10-21T14:10:37.469Z",
+      "run": "q-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1939,
+      "output": 93,
+      "usd": 0.004622,
+      "ms": 1436
+    },
+    {
+      "at": "2026-10-21T14:10:39.194Z",
+      "run": "q-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 332,
+      "output": 40,
+      "usd": 0.00007379999999999999,
+      "ms": 1651
+    },
+    {
+      "at": "2026-10-21T14:10:43.158Z",
+      "run": "q-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2206,
+      "output": 393,
+      "usd": 0.007556,
+      "ms": 3962
+    },
+    {
+      "at": "2026-10-21T14:10:45.088Z",
+      "run": "q-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2160,
+      "output": 92,
+      "usd": 0.005056,
+      "ms": 1914
+    },
+    {
+      "at": "2026-10-21T14:10:46.067Z",
+      "run": "q-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 376,
+      "output": 37,
+      "usd": 0.0000786,
+      "ms": 975
+    },
+    {
+      "at": "2026-10-21T14:10:52.062Z",
+      "run": "q-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2436,
+      "output": 290,
+      "usd": 0.007192,
+      "ms": 5993
+    },
+    {
+      "at": "2026-10-21T14:10:57.356Z",
+      "run": "q-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3167,
+      "output": 697,
+      "usd": 0.01191,
+      "ms": 5275
+    },
+    {
+      "at": "2026-10-21T14:11:09.951Z",
+      "run": "q-final",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3910,
+      "output": 1160,
+      "usd": 0.0012825,
+      "ms": 12543
+    },
+    {
+      "at": "2026-10-21T14:11:11.809Z",
+      "run": "q-final",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1336,
+      "output": 57,
+      "usd": 0.00023459999999999998,
+      "ms": 1841
+    },
+    {
+      "at": "2026-10-21T14:11:13.732Z",
+      "run": "q-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1738,
+      "output": 94,
+      "usd": 0.004228,
+      "ms": 1920
+    },
+    {
+      "at": "2026-10-21T14:11:14.809Z",
+      "run": "q-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 315,
+      "output": 30,
+      "usd": 0.00006525,
+      "ms": 1065
+    },
+    {
+      "at": "2026-10-21T14:11:17.111Z",
+      "run": "q-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1983,
+      "output": 328,
+      "usd": 0.00659,
+      "ms": 2300
+    },
+    {
+      "at": "2026-10-21T14:11:23.708Z",
+      "run": "q-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2644,
+      "output": 288,
+      "usd": 0.007592,
+      "ms": 6566
+    },
+    {
+      "at": "2026-10-21T14:11:27.852Z",
+      "run": "q-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2719,
+      "output": 287,
+      "usd": 0.007734,
+      "ms": 4132
+    },
+    {
+      "at": "2026-10-21T14:11:29.293Z",
+      "run": "q-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1950,
+      "output": 91,
+      "usd": 0.004628,
+      "ms": 1426
+    },
+    {
+      "at": "2026-10-21T14:11:30.808Z",
+      "run": "q-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 353,
+      "output": 35,
+      "usd": 0.00007395,
+      "ms": 1511
+    },
+    {
+      "at": "2026-10-21T14:11:32.694Z",
+      "run": "q-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2211,
+      "output": 260,
+      "usd": 0.006502,
+      "ms": 1884
+    },
+    {
+      "at": "2026-10-21T14:11:34.225Z",
+      "run": "q-final",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2134,
+      "output": 84,
+      "usd": 0.00494,
+      "ms": 1518
+    },
+    {
+      "at": "2026-10-21T14:11:35.517Z",
+      "run": "q-final",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 386,
+      "output": 42,
+      "usd": 0.0000831,
+      "ms": 1287
+    },
+    {
+      "at": "2026-10-21T14:11:37.559Z",
+      "run": "q-final",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2409,
+      "output": 225,
+      "usd": 0.006618,
+      "ms": 2040
+    },
+    {
+      "at": "2026-10-21T14:11:47.999Z",
+      "run": "q-final",
+      "stage": "whole-view",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3106,
+      "output": 759,
+      "usd": 0.012284,
+      "ms": 10426
+    }
+  ]
+}

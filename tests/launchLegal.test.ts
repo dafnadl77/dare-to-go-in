@@ -138,7 +138,7 @@ test('every OpenAI Responses call asks not to store the response, and nothing as
     }
     assert.ok(!/store: true/.test(src), `${f}: never store: true`);
   }
-  assert.equal(calls, 6, 'the six Responses API calls (analysis, element labels, dream questions, reflection, translation, pattern reflection)');
+  assert.equal(calls, 7, 'the seven Responses API calls (analysis, element labels, dream questions, reflection, translation, pattern reflection, and the one shared by the multi-moment journey\'s three calls)');
 });
 
 test('retention facts quoted in the documents are the real ones', () => {

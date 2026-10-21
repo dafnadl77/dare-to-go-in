@@ -1,0 +1,100 @@
+{
+  "sourceText": "רדפו אחריי במסדרון ארוך בבית חולים. הדלתות נסגרו אחת אחרי השנייה. בסוף הגעתי לחדר שבו אבא שלי ישן במיטה, ולא הצלחתי להעיר אותו.",
+  "language": "he",
+  "summary": "רדפו אחרי החלום במסדרון ארוך בבית חולים, כשהדלתות נסגרות. הגיע לחדר עם אביו ישן ולא הצליח להעיר אותו.",
+  "people": [
+    {
+      "nameOrRole": "אבא",
+      "description": "ישן במיטה",
+      "relationshipToDreamer": "הורה",
+      "explicit": true,
+      "confidence": 1
+    }
+  ],
+  "places": [
+    {
+      "name": "מסדרון בבית חולים",
+      "description": "מסדרון ארוך",
+      "explicit": true,
+      "confidence": 1
+    },
+    {
+      "name": "חדר",
+      "description": "החדר שבו אבא ישן",
+      "explicit": true,
+      "confidence": 1
+    }
+  ],
+  "objects": [],
+  "actions": [
+    {
+      "subject": "חלום",
+      "action": "רדפו אחרי",
+      "target": "במסדרון ארוך בבית חולים",
+      "explicit": true,
+      "confidence": 1
+    },
+    {
+      "subject": "אני",
+      "action": "הגעתי",
+      "target": "לחדר שבו אבא שלי ישן",
+      "explicit": true,
+      "confidence": 1
+    },
+    {
+      "subject": "אני",
+      "action": "לא הצלחתי להעיר",
+      "target": "אותו",
+      "explicit": true,
+      "confidence": 1
+    }
+  ],
+  "emotions": [],
+  "sensoryDetails": {
+    "visual": [],
+    "sounds": [],
+    "physicalSensations": [],
+    "atmosphere": []
+  },
+  "unusualElements": [],
+  "relationships": [],
+  "sequence": [
+    {
+      "order": 1,
+      "description": "רדפו אחרי במסדרון ארוך בבית חולים"
+    },
+    {
+      "order": 2,
+      "description": "דלתות נסגרות אחת אחרי השנייה"
+    },
+    {
+      "order": 3,
+      "description": "הגעתי לחדר שבו אבא ישן"
+    },
+    {
+      "order": 4,
+      "description": "לא הצלחתי להעיר אותו"
+    }
+  ],
+  "unresolvedDetails": [],
+  "emotionalTone": null,
+  "reconstruction": {
+    "primarySetting": "מסדרון בבית חולים",
+    "keyPeople": [
+      "אבא"
+    ],
+    "keyObjects": [],
+    "keyActions": [
+      "רדפו אחרי",
+      "הגעתי",
+      "לא הצלחתי להעיר"
+    ],
+    "visualAtmosphere": [],
+    "emotionalAtmosphere": []
+  },
+  "concepts": [
+    "family",
+    "home_dwelling"
+  ],
+  "conceptVersion": 1
+}

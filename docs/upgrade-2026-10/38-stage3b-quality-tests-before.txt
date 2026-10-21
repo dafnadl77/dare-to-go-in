@@ -1,0 +1,21 @@
+# Stage 3b quality round — the new tests against the code BEFORE this round's fixes, 2026-10-21T11:36Z
+
+✖ an update that finds no new link keeps the valid links already shown, and the earlier view stays in the history (9.7668ms)
+✔ an earlier link whose words are no longer in the answers is not carried into the update (1.6559ms)
+✖ when every opening sentence is refused, a short opening is built from her own words (not left empty) (13.4668ms)
+✖ a dream sentence that cannot be checked is replaced by a SHORT quote, never the whole long part (3.504ms)
+✖ a verb written as two words ("ניסיתי להדליק") is still checked as the event (5.8767ms)
+✖ a dictated dream: the switch, the hug and wanting to cry are separate parts; "ומה שהיה לפני זה" is never cut in two (1.3578ms)
+✖ words that only look like first person or a feeling are not refused ("שאינו", "שנתנו", "לשים לב", "מתרוקנת", "מעצבות", "מכשולים", "מתאימים") (0.7187ms)
+✖ a closing question about her life may use everyday words that also occur elsewhere in the dream ("מוכרים") (11.3811ms)
+✖ a possibility may not give an image a fixed meaning, "indicate" something, or give a figure an intention (1.261ms)
+✖ a possibility may not give her a feeling she did not say, in any wording ("מחסום רגשי", "שבריריות" for "פגיע"), nor broken Hebrew ("שלבד") (1.1601ms)
+✖ a link or opening may not put moments in an order the dream does not state ("רצף", "מוביל", "מתחילה כבר") (3.0645ms)
+✔ the guards are not "refuse everything": careful possibilities still pass (4.0963ms)
+✖ questions about what stood out, what surprised her, or why she chose the moment pass (7.0859ms)
+✖ two questions in one sentence, or a second descriptive question in a row, are refused (2.7653ms)
+✖ the question prompt asks for curiosity and personal connection without assuming a feeling (2.7359ms)
+ℹ tests 15
+ℹ pass 2
+ℹ fail 13
+✖ failing tests:

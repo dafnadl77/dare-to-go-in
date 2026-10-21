@@ -186,8 +186,9 @@ const MASCULINE_YOU = /(?<![\u0590-\u05FF])[ושכלבמה]{0,2}אתה(?![\u0590
  * (an object marker takes a noun: "את דלת המטבח"). Used only to catch a feminine form for a dreamer who never said she is a woman ('neutral'
  * address); it asks for a fresh response and never edits text. It misses some forms by design rather than risk rejecting good Hebrew.
  */
+// Also with a two-letter prefix ("כשאת", "ושאת") and with a negation in between ("ואת לא יודעת"): both slipped through in real samples.
 const FEMININE_YOU_VERB = new RegExp(
-  '(?<![\u0590-\u05FF])[ושכ]?את\\s+(?:מ[\u05D0-\u05EA]{2,}[תה]|פוגשת|חווה|רואה|יודעת|חשה|זוכרת|שומעת|עומדת|הולכת|מחפשת|נמצאת|בוחרת|כותבת|אומרת|חושבת|רוצה|צריכה|יכולה|אוהבת|מסוגלת|ממשיכה|מרגישה|מבינה|מנסה|ציינת|הרגשת|בחרת|אמרת|תיארת|כתבת)(?![\u0590-\u05FF])(?!\\s+ה)',
+  '(?<![\u0590-\u05FF])(?:כש|וש|[ושכ])?את\\s+(?:לא\\s+)?(?:מ[\u05D0-\u05EA]{2,}[תה]|פוגשת|חווה|רואה|יודעת|חשה|זוכרת|שומעת|עומדת|הולכת|מחפשת|נמצאת|בוחרת|כותבת|אומרת|חושבת|רוצה|צריכה|יכולה|אוהבת|מסוגלת|ממשיכה|מרגישה|מבינה|מנסה|ציינת|הרגשת|בחרת|אמרת|תיארת|כתבת|נזכרת|נכנסת|נשארת|נבהלת|נפגשת|נרדמת)(?![\u0590-\u05FF])(?!\\s+ה)',
 );
 
 export function findAddressViolation(texts: readonly string[], language: AppLanguage | null, preference: AddressPreference): string | null {
