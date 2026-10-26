@@ -1,0 +1,411 @@
+✖ 1. the moment part refers back by a pronoun: its referent is found in the part just before ("מטריה"), and only there (1.944ms)
+✖ 1. the run's 9 refused questions: none is refused any more for naming the umbrella, and every other reason stays (8.236ms)
+✔ 1. what is NOT the referent is still refused: another object of the dream, or a detail of the part before (5.7409ms)
+✖ 1. the dream sentence of the run ("ניסית לסגור את המטריה…") no longer counts as bringing in another part (2.2068ms)
+✖ 2. "למישהו שאני לא מכירה" is the dream's own words, not a vague reference: no clarification is demanded (the run's answer) (1.0476ms)
+✔ 2. a vague reference the dream does not have still asks for a clarification (0.3204ms)
+✖ 3. the run's anchor «נקרעה לך בידיים» is the dream's «נקרעה לי בידיים» told to her: accepted, and kept in the dream's own words (11.4057ms)
+✖ 3. only the person changes: an anchor with another word, or her answer put in the dream, is still refused (6.1595ms)
+✖ 4. the reply schema asks for exactly three possibilities (minItems/maxItems, supported in strict mode for base models) (0.3267ms)
+✖ 5. the run script stops before any client exists when it has no run name with a hard round cap (0.3004ms)
+✖ 5. started without a name, it exits with an error and the cost ledger is untouched (a test key: no call can be paid) (10357.9347ms)
+✖ 5. the run script keeps every model response (every attempt), not only the first and the last (0.842ms)
+✔ no regression: the possibility shown in the run, and the golden examples, keep their verdicts and levels (213.1976ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 3
+ℹ fail 10
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13628.3011
+
+✖ failing tests:
+
+test at tests\fix62.test.ts:29:1
+✖ 1. the moment part refers back by a pronoun: its referent is found in the part just before ("מטריה"), and only there (1.944ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix62.test.ts:30:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\fix62.test.ts:36:1
+✖ 1. the run's 9 refused questions: none is refused any more for naming the umbrella, and every other reason stays (8.236ms)
+  AssertionError [ERR_ASSERTION]: איזה פרט הכי תפס אותך ברגע שהמטריה נקרעה לך בידיים?: presupposes something from another part of the dream ("שהמטריה")
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix62.test.ts:41:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix62.test.ts:51:1
+✖ 1. the dream sentence of the run ("ניסית לסגור את המטריה…") no longer counts as bringing in another part (2.2068ms)
+  AssertionError [ERR_ASSERTION]: brings in another part of the dream ("המטריה")
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix62.test.ts:53:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix62.test.ts:58:1
+✖ 2. "למישהו שאני לא מכירה" is the dream's own words, not a vague reference: no clarification is demanded (the run's answer) (1.0476ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '\n' +
+  +   '\n' +
+  +   'CORRECTION: her answer points to something specific without naming it ("something that happened", "that time", "someone"): ask ONE clarification question about exactly that, and fill "missingInformation". Write the whole reply again.'
+  - null
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix62.test.ts:59:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '\n\nCORRECTION: her answer points to something specific without naming it ("something that happened", "that time", "someone"): ask ONE clarification question about exactly that, and fill "missingInformation". Write the whole reply again.',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\fix62.test.ts:70:1
+✖ 3. the run's anchor «נקרעה לך בידיים» is the dream's «נקרעה לי בידיים» told to her: accepted, and kept in the dream's own words (11.4057ms)
+  AssertionError [ERR_ASSERTION]: an anchor that is not in the dream ("נקרעה לך בידיים")
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix62.test.ts:73:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix62.test.ts:79:1
+✖ 3. only the person changes: an anchor with another word, or her answer put in the dream, is still refused (6.1595ms)
+  AssertionError [ERR_ASSERTION]: her own answer, told to her ("אני" → "את"), is hers
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix62.test.ts:86:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix62.test.ts:91:1
+✖ 4. the reply schema asks for exactly three possibilities (minItems/maxItems, supported in strict mode for base models) (0.3267ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  undefined !== 3
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix62.test.ts:94:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 3,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\fix62.test.ts:102:1
+✖ 5. the run script stops before any client exists when it has no run name with a hard round cap (0.3004ms)
+  AssertionError [ERR_ASSERTION]: the guard
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix62.test.ts:104:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix62.test.ts:110:1
+✖ 5. started without a name, it exits with an error and the cost ledger is untouched (a test key: no call can be paid) (10357.9347ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /run name/. Input:
+  
+  'E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\node_modules\\openai\\src\\core\\error.ts:75\r\n' +
+    '      return new AuthenticationError(status, error, message, headers);\r\n' +
+    '             ^\r\n' +
+    '\r\n' +
+    'AuthenticationError: 401 Incorrect API key provided: sk-test-*****-key. You can find your API key at https://platform.openai.com/account/api-keys.\r\n' +
+    '    at APIError.generate (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\node_modules\\openai\\src\\core\\error.ts:75:14)\r\n' +
+    '    at OpenAI.makeStatusError (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\node_modules\\openai\\src\\client.ts:679:28)\r\n' +
+    '    at OpenAI.makeRequest (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\node_modules\\openai\\src\\client.ts:1094:24)\r\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\r\n' +
+    '    at async Responses.real.responses.create (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\scripts\\explorationEval.ts:76:18)\r\n' +
+    '    at async <anonymous> (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\server\\routes\\dreamAnalysis.ts:36:24)\r\n' +
+    '    at async runWithLanguageIntegrity (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\server\\languageGuard.ts:58:19)\r\n' +
+    '    at async timed (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\scripts\\explorationEval.ts:198:17)\r\n' +
+    '    at async runJourney (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\scripts\\explorationEval.ts:222:23)\r\n' +
+    '    at async <anonymous> (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\scripts\\explorationEval.ts:423:5) {\r\n' +
+    '  status: 401,\r\n' +
+    '  headers: Headers {},\r\n' +
+    "  requestID: 'req_da9ec4817525416aa633ec15ac064a73',\r\n" +
+    '  error: {\r\n' +
+    "    message: 'Incorrect API key provided: sk-test-*****-key. You can find your API key at https://platform.openai.com/account/api-keys.',\r\n" +
+    "    type: 'invalid_request_error',\r\n" +
+    "    code: 'invalid_api_key',\r\n" +
+    '    param: null\r\n' +
+    '  },\r\n' +
+    "  code: 'invalid_api_key',\r\n" +
+    '  param: null,\r\n' +
+    "  type: 'invalid_request_error'\r\n" +
+    '}\r\n' +
+    '\r\n' +
+    'Node.js v24.22.1\r\n' +
+    'journey short...\n' +
+    'spent this run $0.0000; this round 0.0000 of 0; stage-3 total $2.5724 of $3\n'
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix62.test.ts:115:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: "E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\node_modules\\openai\\src\\core\\error.ts:75\r\n      return new AuthenticationError(status, error, message, headers);\r\n             ^\r\n\r\nAuthenticationError: 401 Incorrect API key provided: sk-test-*****-key. You can find your API key at https://platform.openai.com/account/api-keys.\r\n    at APIError.generate (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\node_modules\\openai\\src\\core\\error.ts:75:14)\r\n    at OpenAI.makeStatusError (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\node_modules\\openai\\src\\client.ts:679:28)\r\n    at OpenAI.makeRequest (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\node_modules\\openai\\src\\client.ts:1094:24)\r\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\r\n    at async Responses.real.responses.create (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\scripts\\explorationEval.ts:76:18)\r\n    at async <anonymous> (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\server\\routes\\dreamAnalysis.ts:36:24)\r\n    at async runWithLanguageIntegrity (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\server\\languageGuard.ts:58:19)\r\n    at async timed (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\scripts\\explorationEval.ts:198:17)\r\n    at async runJourney (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\scripts\\explorationEval.ts:222:23)\r\n    at async <anonymous> (E:\\DAFNA PROFILE\\DESKTOP\\קלוד\\פרוייקטים\\DARE TO GO IN\\scripts\\explorationEval.ts:423:5) {\r\n  status: 401,\r\n  headers: Headers {},\r\n  requestID: 'req_da9ec4817525416aa633ec15ac064a73',\r\n  error: {\r\n    message: 'Incorrect API key provided: sk-test-*****-key. You can find your API key at https://platform.openai.com/account/api-keys.',\r\n    type: 'invalid_request_error',\r\n    code: 'invalid_api_key',\r\n    param: null\r\n  },\r\n  code: 'invalid_api_key',\r\n  param: null,\r\n  type: 'invalid_request_error'\r\n}\r\n\r\nNode.js v24.22.1\r\njourney short...\nspent this run $0.0000; this round 0.0000 of 0; stage-3 total $2.5724 of $3\n",
+    expected: /run name/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\fix62.test.ts:119:1
+✖ 5. the run script keeps every model response (every attempt), not only the first and the last (0.842ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /responses\.push\(/. Input:
+  
+  '/**\n' +
+    " * STAGE 3B QUALITY RUN of the multi-moment journey (reworked for the fix round, doc 30), on SYNTHETIC dreams only (never a customer's\n" +
+    ' * dream; nothing is read from or written to Supabase; no image is generated). It runs the real server functions (analysis, the labels\n' +
+    ' * prompt, moment questions, replies, whole views and every check around them), plays each journey step by step through the real\n' +
+    ' * journey rules (exploration.ts), and records every model call with its measured tokens, time and cost, and what every check refused.\n' +
+    ' *\n' +
+    " * The dreamer's answers are SYNTHETIC: written by a small model (gpt-4o-mini) playing a person; they are labelled as such.\n" +
+    ' * The fourth dream ("hidden") is read from docs/upgrade-2026-10/31-hidden-dream.json, written by a separate agent and not read while\n' +
+    ' * the fix was developed (its SHA-256 is recorded in doc 30); its moments are explored in the order offered, with no hints.\n' +
+    ' *\n' +
+    ' * Budget: every call of every run of stage 3 is added to docs/upgrade-2026-10/27-eval-cost-ledger.json. Before each call the script\n' +
+    ' * adds the worst case of that call and STOPS if the stage-3 total would pass $2.85 (approved ceiling $3.00) or if this fix round\n' +
+    ' * (runs named "fix-…") would pass $1.20 (plan: $0.90 development + about $0.30 final run). List prices, to be checked against the bill.\n' +
+    ' *\n' +
+    ' * Run:  npx tsx scripts/explorationEval.ts <runName> [journeyKey]\n' +
+    ' *       npx tsx scripts/explorationEval.ts capture-analysis      (only the analysis of the three known dreams, as test fixtures)\n' +
+    ' */\n' +
+    "import 'dotenv/config';\n" +
+    "import { readFileSync, writeFileSync, existsSync } from 'node:fs';\n" +
+    "import { createHash } from 'node:crypto';\n" +
+    "import OpenAI from 'openai';\n" +
+    '\n' +
+    "process.env.OPENAI_QUESTIONS_MODEL ||= 'gpt-4.1';\n" +
+    "process.env.OPENAI_REFLECTION_MODEL ||= 'gpt-4.1';\n" +
+    '\n' +
+    "const { runAnalysisModel } = await import('../server/routes/dreamAnalysis.ts');\n" +
+    "const { generateMomentQuestion, generateMomentReply, generateWholeView, explorationContext, planCall } = await import('../server/routes/dreamExploration.ts');\n" +
+    "const { momentLabelRules } = await import('../src/hero/explorationSchema.ts');\n" +
+    "const { momentGroups, segmentDream, segmentsForMoment } = await import('../src/hero/dreamSegments.ts');\n" +
+    "const { checkLabel, unsureLook } = await import('../src/hero/claimCheck.ts');\n" +
+    "const { isUnsureAnswer } = await import('../src/hero/hebrewText.ts');\n" +
+    "const { buildDreamElementLabelSystemPrompt, DREAM_ELEMENT_LABELS_JSON_SCHEMA, validateElementLabels } = await import('../src/hero/dreamElementLabelsSchema.ts');\n" +
+    "const { normalizeLabel } = await import('../src/hero/dreamElementLabelQuality.ts');\n" +
+    "const X = await import('../src/hero/exploration.ts');\n" +
+    "type Exploration = import('../src/hero/exploration.ts').Exploration;\n" +
+    "type EmotionId = import('../src/hero/dreamEmotions.ts').EmotionId;\n" +
+    "type AddressPreference = import('../src/hero/addressPreference.ts').AddressPreference;\n" +
+    '\n' +
+    '// ------------------------------------------------------------------------------------------------ budget\n' +
+    '\n' +
+    "const LEDGER = new URL('../docs/upgrade-2026-10/27-eval-cost-ledger.json', import.meta.url);\n" +
+    'const CAP_USD = 3.0;\n' +
+    'const STOP_AT_USD = 2.85;\n' +
+    "/** Each round of stage-3 runs has its own cap inside the $3: the fix round ('fix-…') $1.20, the quality round ('q-…') $0.85. */\n" +
+    "const ROUND_CAPS: Record<string, number> = { fix: 1.2, q: 0.85, acc: 0.4, p2dev: 0.15, p3dev: 0.1 }; // 'acc-…': the acceptance run ($0.40); 'p2dev-…': the phase-2 development run ($0.15); 'p3dev-…': the run after the prompt hardening ($0.10); her hard caps\n" +
+    "const ROUND = (process.argv[2] ?? '').split('-')[0];\n" +
+    'const ROUND_CAP_USD = ROUND_CAPS[ROUND] ?? 0;\n' +
+    "const PRICES: Record<string, [number, number]> = { 'gpt-4.1-mini': [0.4, 1.6], 'gpt-4.1': [2, 8], 'gpt-4o-mini': [0.15, 0.6], 'gpt-4o': [2.5, 10] };\n" +
+    'const priceOf = (model: string): [number, number] => {\n' +
+    '  const key = Object.keys(PRICES).sort((a, b) => b.length - a.length).find((k) => model.startsWith(k));\n' +
+    '  return key ? PRICES[key] : [2.5, 10]; // unknown model: the most expensive assumption\n' +
+    '};\n' +
+    '\n' +
+    'interface LedgerEntry { at: string; run: string; stage: string; model: string; input: number; output: number; usd: number; ms: number }\n' +
+    'interface Ledger { capUsd: number; stopAtUsd: number; note: string; totalUsd: number; entries: LedgerEntry[] }\n' +
+    'const ledger: Ledger = existsSync(LEDGER)\n' +
+    "  ? JSON.parse(readFileSync(LEDGER, 'utf8'))\n" +
+    "  : { capUsd: CAP_USD, stopAtUsd: STOP_AT_USD, note: 'Every OpenAI call of the stage-3 quality runs (synthetic dreams only). List prices; verify against the real bill.', totalUsd: 0, entries: [] };\n" +
+    'const saveLedger = () => writeFileSync(LEDGER, JSON.stringify(ledger, null, 2));\n' +
+    'const roundSpent = () => ledger.entries.filter((x) => ROUND && x.run.startsWith(`${ROUND}-`)).reduce((a, x) => a + x.usd, 0);\n' +
+    '\n' +
+    'class BudgetStop extends Error {}\n' +
+    'const RUN = process.argv[2] || `run-${Date.now()}`;\n' +
+    "let stage = 'setup';\n" +
+    '\n' +
+    '/** Every model call goes through here: budget check before, measured usage after (saved at once, so a crash loses nothing). */\n' +
+    'function meteredClient(real: OpenAI): OpenAI {\n' +
+    '  const create = real.responses.create.bind(real.responses);\n' +
+    '  (real.responses as unknown as { create: unknown }).create = async (params: { model: string; instructions?: string; input?: unknown }) => {\n' +
+    "    const chars = (params.instructions?.length ?? 0) + JSON.stringify(params.input ?? '').length;\n" +
+    '    const [pin, pout] = priceOf(params.model);\n' +
+    '    const worst = ((chars / 2) * pin + 1800 * pout) / 1_000_000; // Hebrew tokenizes densely: chars/2 tokens is a safe upper estimate\n' +
+    '    if (ledger.totalUsd + worst > STOP_AT_USD) throw new BudgetStop(`budget: spent $${ledger.totalUsd.toFixed(4)}, next call up to $${worst.toFixed(4)}, stop at $${STOP_AT_USD}`);\n' +
+    '    if (ROUND_CAP_USD && roundSpent() + worst > ROUND_CAP_USD) throw new BudgetStop(`round budget: this round spent $${roundSpent().toFixed(4)}, next call up to $${worst.toFixed(4)}, round cap $${ROUND_CAP_USD}`);\n' +
+    '    const t0 = Date.now();\n' +
+    '    const res = (await create(params as never)) as { model: string; usage?: { input_tokens: number; output_tokens: number } };\n' +
+    '    const ms = Date.now() - t0;\n' +
+    '    const input = res.usage?.input_tokens ?? 0;\n' +
+    '    const output = res.usage?.output_tokens ?? 0;\n' +
+    '    const [ain, aout] = priceOf(res.model || params.model);\n' +
+    '    const usd = (input * ain + output * aout) / 1_000_000;\n' +
+    '    ledger.entries.push({ at: new Date().toISOString(), run: RUN, stage, model: res.model || params.model, input, output, usd, ms });\n' +
+    '    ledger.totalUsd = Number((ledger.totalUsd + usd).toFixed(6));\n' +
+    '    saveLedger();\n' +
+    '    return res;\n' +
+    '  };\n' +
+    '  return real;\n' +
+    '}\n' +
+    '\n' +
+    'const client = meteredClient(new OpenAI({ apiKey: process.env.OPENAI_API_KEY }));\n' +
+    '\n' +
+    '// ------------------------------------------------------------------------------------------------ the synthetic journeys\n' +
+    '\n' +
+    'interface Plan {\n' +
+    '  key: string;\n' +
+    '  kind: string;\n' +
+    '  text: string;\n' +
+    '  address: AddressPreference;\n' +
+    '  emotions: EmotionId[];\n' +
+    '  /** Which offered moments to explore, by words of the dream they contain, in this order (empty: in the order offered). */\n' +
+    '  pick: string[];\n' +
+    '  count: number;\n' +
+    '  /** After how many explored moments to ask for the whole view (more than one entry = an update). */\n' +
+    '  wholeAfter: number[];\n' +
+    '  persona: string;\n' +
+    `  /** Per explored index, a hint for the simulated dreamer (a vague answer, "I don't know"). */\n` +
+    '  hints: Record<string, string>;\n' +
+    '}\n' +
+    '\n' +
+    'const PLANS: Plan[] = [\n' +
+    '  {\n' +
+    "    key: 'short',\n" +
+    "    kind: 'קצר',\n" +
+    "    text: 'עמדתי בתחנת רכבת ריקה וחיכיתי. הרכבת לא הגיעה.',\n" +
+    "    address: 'neutral',\n" +
+    '    emotions: [],\n' +
+    "    pick: ['תחנת רכבת'],\n" +
+    '    count: 1,\n' +
+    '    wholeAfter: [1],\n' +
+    "    persona: 'You are a man in his forties. Lately you have been waiting for an answer about a job you applied for weeks ago.',\n" +
+    '    hints: {},\n' +
+    '  },\n' +
+    '  {\n' +
+    "    key: 'rich',\n" +
+    "    kind: 'עשיר',\n" +
+    "    text: 'הייתי בחתונה של חברה. כולם לבשו לבן ואני לבשתי שחור. אחי הקטן נתן לי מפתח ואמר שזה למקום שעוד לא הייתי בו. הלכנו לאורך החוף, והים התרחק ולא חזר. מישהו שר שיר שלא הכרתי, אבל ידעתי את כל המילים. כשהגענו לדלת, המפתח היה קטן מדי.',\n" +
+    "    address: 'feminine',\n" +
+    "    emotions: ['wonder', 'confusion'],\n" +
+    "    pick: ['קטן מדי', 'הים התרחק', 'אחי הקטן', 'לבשו לבן'],\n" +
+    '    count: 4,\n' +
+    '    wholeAfter: [2, 4],\n' +
+    `    persona: "You are a woman of 34. Your younger brother moved abroad last year; you miss him. At your friend's real wedding last month you felt out of place.",\n` +
+    `    hints: { 1: 'Answer vaguely: say it reminded you of "something that happened with my brother once", without saying what.' },\n` +
+    '  },\n' +
+    '  {\n' +
+    "    key: 'sensitive',\n" +
+    "    kind: 'רגיש',\n" +
+    "    text: 'רדפו אחריי במסדרון ארוך בבית חולים. הדלתות נסגרו אחת אחרי השנייה. בסוף הגעתי לחדר שבו אבא שלי ישן במיטה, ולא הצלחתי להעיר אותו.',\n" +
+    "    address: 'neutral',\n" +
+    "    emotions: ['fear', 'sadness'],\n" +
+    "    pick: ['הדלתות נסגרו', 'אבא', 'רדפו'],\n" +
+    '    count: 3,\n' +
+    '    wholeAfter: [3],\n' +
+    "    persona: 'You are a person in their fifties. Your father was in hospital two years ago and recovered; you rarely talk about that time.',\n" +
+    `    hints: { 0: 'Answer only: "לא יודעת".' },\n` +
+    '  },\n' +
+    '];\n' +
+    '\n' +
+    `/** The quality round's new synthetic dreams (doc 37): "dev" = the two development dreams, "sealed" = the three not read before the final run.\n` +
+    '    Explored in the order the moments are offered, three of them, a whole view after the first and the third. */\n' +
+    "function newDreamPlans(which: 'dev' | 'sealed' | 'acceptance'): Plan[] {\n" +
+    "  const url = new URL(which === 'acceptance' ? '../docs/upgrade-2026-10/47-acceptance-dreams.json' : `../docs/upgrade-2026-10/37-${which}-dreams.json`, import.meta.url);\n" +
+    '  if (!existsSync(url)) return [];\n' +
+    "  if (which === 'acceptance') {\n" +
+    '    // blind dreams: the file must be exactly the one whose SHA-256 was recorded before the run, or nothing is sent\n' +
+    "    const note = readFileSync(new URL('../docs/upgrade-2026-10/47-acceptance-dreams-note.md', import.meta.url), 'utf8');\n" +
+    '    const recorded = note.match(/`([0-9a-f]{64})`/)?.[1];\n' +
+    "    const actual = createHash('sha256').update(readFileSync(url)).digest('hex');\n" +
+    '    if (!recorded || recorded !== actual) throw new Error(`acceptance dreams changed: rec'... 15879 more characters
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix62.test.ts:120:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/**\n * STAGE 3B QUALITY RUN of the multi-moment journey (reworked for the fix round, doc 30), on SYNTHETIC dreams only (never a customer\'s\n * dream; nothing is read from or written to Supabase; no image is generated). It runs the real server functions (analysis, the labels\n * prompt, moment questions, replies, whole views and every check around them), plays each journey step by step through the real\n * journey rules (exploration.ts), and records every model call with its measured tokens, time and cost, and what every check refused.\n *\n * The dreamer\'s answers are SYNTHETIC: written by a small model (gpt-4o-mini) playing a person; they are labelled as such.\n * The fourth dream ("hidden") is read from docs/upgrade-2026-10/31-hidden-dream.json, written by a separate agent and not read while\n * the fix was developed (its SHA-256 is recorded in doc 30); its moments are explored in the order offered, with no hints.\n *\n * Budget: every call of every run of stage 3 is added to docs/upgrade-2026-10/27-eval-cost-ledger.json. Before each call the script\n * adds the worst case of that call and STOPS if the stage-3 total would pass $2.85 (approved ceiling $3.00) or if this fix round\n * (runs named "fix-…") would pass $1.20 (plan: $0.90 development + about $0.30 final run). List prices, to be checked against the bill.\n *\n * Run:  npx tsx scripts/explorationEval.ts <runName> [journeyKey]\n *       npx tsx scripts/explorationEval.ts capture-analysis      (only the analysis of the three known dreams, as test fixtures)\n */\nimport \'dotenv/config\';\nimport { readFileSync, writeFileSync, existsSync } from \'node:fs\';\nimport { createHash } from \'node:crypto\';\nimport OpenAI from \'openai\';\n\nprocess.env.OPENAI_QUESTIONS_MODEL ||= \'gpt-4.1\';\nprocess.env.OPENAI_REFLECTION_MODEL ||= \'gpt-4.1\';\n\nconst { runAnalysisModel } = await import(\'../server/routes/dreamAnalysis.ts\');\nconst { generateMomentQuestion, generateMomentReply, generateWholeView, explorationContext, planCall } = await import(\'../server/routes/dreamExploration.ts\');\nconst { momentLabelRules } = await import(\'../src/hero/explorationSchema.ts\');\nconst { momentGroups, segmentDream, segmentsForMoment } = await import(\'../src/hero/dreamSegments.ts\');\nconst { checkLabel, unsureLook } = await import(\'../src/hero/claimCheck.ts\');\nconst { isUnsureAnswer } = await import(\'../src/hero/hebrewText.ts\');\nconst { buildDreamElementLabelSystemPrompt, DREAM_ELEMENT_LABELS_JSON_SCHEMA, validateElementLabels } = await import(\'../src/hero/dreamElementLabelsSchema.ts\');\nconst { normalizeLabel } = await import(\'../src/hero/dreamElementLabelQuality.ts\');\nconst X = await import(\'../src/hero/exploration.ts\');\ntype Exploration = import(\'../src/hero/exploration.ts\').Exploration;\ntype EmotionId = import(\'../src/hero/dreamEmotions.ts\').EmotionId;\ntype AddressPreference = import(\'../src/hero/addressPreference.ts\').AddressPreference;\n\n// ------------------------------------------------------------------------------------------------ budget\n\nconst LEDGER = new URL(\'../docs/upgrade-2026-10/27-eval-cost-ledger.json\', import.meta.url);\nconst CAP_USD = 3.0;\nconst STOP_AT_USD = 2.85;\n/** Each round of stage-3 runs has its own cap inside the $3: the fix round (\'fix-…\') $1.20, the quality round (\'q-…\') $0.85. */\nconst ROUND_CAPS: Record<string, number> = { fix: 1.2, q: 0.85, acc: 0.4, p2dev: 0.15, p3dev: 0.1 }; // \'acc-…\': the acceptance run ($0.40); \'p2dev-…\': the phase-2 development run ($0.15); \'p3dev-…\': the run after the prompt hardening ($0.10); her hard caps\nconst ROUND = (process.argv[2] ?? \'\').split(\'-\')[0];\nconst ROUND_CAP_USD = ROUND_CAPS[ROUND] ?? 0;\nconst PRICES: Record<string, [number, number]> = { \'gpt-4.1-mini\': [0.4, 1.6], \'gpt-4.1\': [2, 8], \'gpt-4o-mini\': [0.15, 0.6], \'gpt-4o\': [2.5, 10] };\nconst priceOf = (model: string): [number, number] => {\n  const key = Object.keys(PRICES).sort((a, b) => b.length - a.length).find((k) => model.startsWith(k));\n  return key ? PRICES[key] : [2.5, 10]; // unknown model: the most expensive assumption\n};\n\ninterface LedgerEntry { at: string; run: string; stage: string; model: string; input: number; output: number; usd: number; ms: number }\ninterface Ledger { capUsd: number; stopAtUsd: number; note: string; totalUsd: number; entries: LedgerEntry[] }\nconst ledger: Ledger = existsSync(LEDGER)\n  ? JSON.parse(readFileSync(LEDGER, \'utf8\'))\n  : { capUsd: CAP_USD, stopAtUsd: STOP_AT_USD, note: \'Every OpenAI call of the stage-3 quality runs (synthetic dreams only). List prices; verify against the real bill.\', totalUsd: 0, entries: [] };\nconst saveLedger = () => writeFileSync(LEDGER, JSON.stringify(ledger, null, 2));\nconst roundSpent = () => ledger.entries.filter((x) => ROUND && x.run.startsWith(`${ROUND}-`)).reduce((a, x) => a + x.usd, 0);\n\nclass BudgetStop extends Error {}\nconst RUN = process.argv[2] || `run-${Date.now()}`;\nlet stage = \'setup\';\n\n/** Every model call goes through here: budget check before, measured usage after (saved at once, so a crash loses nothing). */\nfunction meteredClient(real: OpenAI): OpenAI {\n  const create = real.responses.create.bind(real.responses);\n  (real.responses as unknown as { create: unknown }).create = async (params: { model: string; instructions?: string; input?: unknown }) => {\n    const chars = (params.instructions?.length ?? 0) + JSON.stringify(params.input ?? \'\').length;\n    const [pin, pout] = priceOf(params.model);\n    const worst = ((chars / 2) * pin + 1800 * pout) / 1_000_000; // Hebrew tokenizes densely: chars/2 tokens is a safe upper estimate\n    if (ledger.totalUsd + worst > STOP_AT_USD) throw new BudgetStop(`budget: spent $${ledger.totalUsd.toFixed(4)}, next call up to $${worst.toFixed(4)}, stop at $${STOP_AT_USD}`);\n    if (ROUND_CAP_USD && roundSpent() + worst > ROUND_CAP_USD) throw new BudgetStop(`round budget: this round spent $${roundSpent().toFixed(4)}, next call up to $${worst.toFixed(4)}, round cap $${ROUND_CAP_USD}`);\n    const t0 = Date.now();\n    const res = (await create(params as never)) as { model: string; usage?: { input_tokens: number; output_tokens: number } };\n    const ms = Date.now() - t0;\n    const input = res.usage?.input_tokens ?? 0;\n    const output = res.usage?.output_tokens ?? 0;\n    const [ain, aout] = priceOf(res.model || params.model);\n    const usd = (input * ain + output * aout) / 1_000_000;\n    ledger.entries.push({ at: new Date().toISOString(), run: RUN, stage, model: res.model || params.model, input, output, usd, ms });\n    ledger.totalUsd = Number((ledger.totalUsd + usd).toFixed(6));\n    saveLedger();\n    return res;\n  };\n  return real;\n}\n\nconst client = meteredClient(new OpenAI({ apiKey: process.env.OPENAI_API_KEY }));\n\n// ------------------------------------------------------------------------------------------------ the synthetic journeys\n\ninterface Plan {\n  key: string;\n  kind: string;\n  text: string;\n  address: AddressPreference;\n  emotions: EmotionId[];\n  /** Which offered moments to explore, by words of the dream they contain, in this order (empty: in the order offered). */\n  pick: string[];\n  count: number;\n  /** After how many explored moments to ask for the whole view (more than one entry = an update). */\n  wholeAfter: number[];\n  persona: string;\n  /** Per explored index, a hint for the simulated dreamer (a vague answer, "I don\'t know"). */\n  hints: Record<string, string>;\n}\n\nconst PLANS: Plan[] = [\n  {\n    key: \'short\',\n    kind: \'קצר\',\n    text: \'עמדתי בתחנת רכבת ריקה וחיכיתי. הרכבת לא הגיעה.\',\n    address: \'neutral\',\n    emotions: [],\n    pick: [\'תחנת רכבת\'],\n    count: 1,\n    wholeAfter: [1],\n    persona: \'You are a man in his forties. Lately you have been waiting for an answer about a job you applied for weeks ago.\',\n    hints: {},\n  },\n  {\n    key: \'rich\',\n    kind: \'עשיר\',\n    text: \'הייתי בחתונה של חברה. כולם לבשו לבן ואני לבשתי שחור. אחי הקטן נתן לי מפתח ואמר שזה למקום שעוד לא הייתי בו. הלכנו לאורך החוף, והים התרחק ולא חזר. מישהו שר שיר שלא הכרתי, אבל ידעתי את כל המילים. כשהגענו לדלת, המפתח היה קטן מדי.\',\n    address: \'feminine\',\n    emotions: [\'wonder\', \'confusion\'],\n    pick: [\'קטן מדי\', \'הים התרחק\', \'אחי הקטן\', \'לבשו לבן\'],\n    count: 4,\n    wholeAfter: [2, 4],\n    persona: "You are a woman of 34. Your younger brother moved abroad last year; you miss him. At your friend\'s real wedding last month you felt out of place.",\n    hints: { 1: \'Answer vaguely: say it reminded you of "something that happened with my brother once", without saying what.\' },\n  },\n  {\n    key: \'sensitive\',\n    kind: \'רגיש\',\n    text: \'רדפו אחריי במסדרון ארוך בבית חולים. הדלתות נסגרו אחת אחרי השנייה. בסוף הגעתי לחדר שבו אבא שלי ישן במיטה, ולא הצלחתי להעיר אותו.\',\n    address: \'neutral\',\n    emotions: [\'fear\', \'sadness\'],\n    pick: [\'הדלתות נסגרו\', \'אבא\', \'רדפו\'],\n    count: 3,\n    wholeAfter: [3],\n    persona: \'You are a person in their fifties. Your father was in hospital two years ago and recovered; you rarely talk about that time.\',\n    hints: { 0: \'Answer only: "לא יודעת".\' },\n  },\n];\n\n/** The quality round\'s new synthetic dreams (doc 37): "dev" = the two development dreams, "sealed" = the three not read before the final run.\n    Explored in the order the moments are offered, three of them, a whole view after the first and the third. */\nfunction newDreamPlans(which: \'dev\' | \'sealed\' | \'acceptance\'): Plan[] {\n  const url = new URL(which === \'acceptance\' ? \'../docs/upgrade-2026-10/47-acceptance-dreams.json\' : `../docs/upgrade-2026-10/37-${which}-dreams.json`, import.meta.url);\n  if (!existsSync(url)) return [];\n  if (which === \'acceptance\') {\n    // blind dreams: the file must be exactly the one whose SHA-256 was recorded before the run, or nothing is sent\n    const note = readFileSync(new URL(\'../docs/upgrade-2026-10/47-acceptance-dreams-note.md\', import.meta.url), \'utf8\');\n    const recorded = note.match(/`([0-9a-f]{64})`/)?.[1];\n    const actual = createHash(\'sha256\').update(readFileSync(url)).digest(\'hex\');\n    if (!recorded || recorded !== actual) throw new Error(`acceptance dreams changed: rec'... 15879 more characters,
+    expected: /responses\.push\(/,
+    operator: 'match',
+    diff: 'simple'
+  }

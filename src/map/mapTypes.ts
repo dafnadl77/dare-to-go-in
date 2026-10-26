@@ -45,6 +45,8 @@ export interface WholeView {
   readings: { basis: string; reading: string }[];
   closingQuestion: string;
   connections: MapConnection[];
+  /** "מה לקחתי מהחלום" (doc 117): her own sentences, and the ideas DARE offered that she kept. Absent when there is none. */
+  takeaways?: { mine: string[]; ideas: string[]; open?: string[] };
 }
 
 export interface MapDream {

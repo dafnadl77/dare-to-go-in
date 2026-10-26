@@ -1,0 +1,50 @@
+/* The dream map inside the real journey: its own scrolling screen over the dream stage, below the site's fixed header, the way the
+   saved dream's page is (DreamDetail.css). The map itself keeps its approved look (DreamMap.css). */
+
+.dj-map {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  overflow-x: hidden;
+  overflow-y: auto;
+  pointer-events: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* the page starts below the fixed header */
+.dj-map .dm-page {
+  padding-top: calc(var(--gh-h) + 12px);
+}
+
+.dj-preparing {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding-inline: 6vw;
+  text-align: center;
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: clamp(1.05rem, 2.4vw, 1.3rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--dream-white, #f4f0e8);
+  text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.55);
+  animation: dj-preparing-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes dj-preparing-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dj-preparing {
+    animation: none;
+  }
+}

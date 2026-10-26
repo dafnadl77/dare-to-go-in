@@ -2,7 +2,8 @@ import OpenAI from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
 import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpResult.js';
 import type { ReconstructionBrief } from '../../src/hero/reconstructionBrief.js';
-import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
+import { type RequestHeaders } from '../callerIdentity.js';
+import { resolveAdultCaller } from '../ageGate.js';
 import { reserveImageAttempt, refundImageAttempt, getTrialAttemptState } from '../dreamAttempts.js';
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 
@@ -28,7 +29,7 @@ function isPlausibleBrief(candidate: unknown): candidate is ReconstructionBrief 
 }
 
 export async function handleDreamImage(rawBody: unknown, requestHeaders: RequestHeaders): Promise<HandlerResult> {
-  const resolved = await resolveCallerIdentity(requestHeaders);
+  const resolved = await resolveAdultCaller(requestHeaders);
   if (!resolved.ok) {
     return errorResult(resolved.status, resolved.reason, resolved.message);
   }

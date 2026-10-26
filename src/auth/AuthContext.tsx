@@ -185,7 +185,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: postAuthRedirectUrl(afterAuth), data: { [DISPLAY_NAME_METADATA_KEY]: cleanName } },
+          // The sign-up form's own 18+ box was ticked (it is required before this call): its time is kept with the account, nothing else.
+          options: { emailRedirectTo: postAuthRedirectUrl(afterAuth), data: { [DISPLAY_NAME_METADATA_KEY]: cleanName, age_confirmed_at: new Date().toISOString() } },
         });
         if (error) return { ok: false, error };
         // A real session comes back immediately only when the project's

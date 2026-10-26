@@ -1,0 +1,342 @@
+✖ a moment as a conversation: opened by DARE, her turns and DARE's, an offer she rejects, closed when she moves on (0.9912ms)
+✖ a moment is closed only after she said something; turns are bounded and cleaned on reading (0.4169ms)
+✖ opening a moment: one call, the moment slot and the rate limit as before; the reply is checked (5.3219ms)
+✖ a reply turn after her words; a bad quote costs no second call; nothing to ask when DARE spoke last (409) (0.2313ms)
+✖ "what came up" uses the whole-view slot, from the conversations so far (0.2176ms)
+✖ the live dependencies and the reflection endpoint know the conversation (1.08ms)
+✖ the browser side asks for a turn only when she spoke last, and keeps what it receives (0.3364ms)
+✖ the conversation page is development only and calls nothing (7.5662ms)
+node:internal/modules/esm/resolve:272
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\src\hero\conversationTurn' imported from E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\conversationTurn.test.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:272:11)
+    at moduleResolve (node:internal/modules/esm/resolve:879:10)
+    at defaultResolve (node:internal/modules/esm/resolve:1006:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:705:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:725:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///E:/DAFNA%20PROFILE/DESKTOP/%D7%A7%D7%9C%D7%95%D7%93/%D7%A4%D7%A8%D7%95%D7%99%D7%99%D7%A7%D7%98%D7%99%D7%9D/DARE%20TO%20GO%20IN/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///E:/DAFNA%20PROFILE/DESKTOP/%D7%A7%D7%9C%D7%95%D7%93/%D7%A4%D7%A8%D7%95%D7%99%D7%99%D7%A7%D7%98%D7%99%D7%9D/DARE%20TO%20GO%20IN/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///E:/DAFNA%20PROFILE/DESKTOP/%D7%A7%D7%9C%D7%95%D7%93/%D7%A4%D7%A8%D7%95%D7%99%D7%99%D7%A7%D7%98%D7%99%D7%9D/DARE%20TO%20GO%20IN/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///E:/DAFNA%20PROFILE/DESKTOP/%D7%A7%D7%9C%D7%95%D7%93/%D7%A4%D7%A8%D7%95%D7%99%D7%99%D7%A7%D7%98%D7%99%D7%9D/DARE%20TO%20GO%20IN/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///E:/DAFNA%20PROFILE/DESKTOP/%D7%A7%D7%9C%D7%95%D7%93/%D7%A4%D7%A8%D7%95%D7%99%D7%99%D7%A7%D7%98%D7%99%D7%9D/DARE%20TO%20GO%20IN/src/hero/conversationTurn'
+}
+
+Node.js v24.22.1
+✖ tests\conversationTurn.test.ts (1151.7028ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 0
+ℹ fail 9
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5728.2798
+
+✖ failing tests:
+
+test at tests\conversationFlow.test.ts:28:1
+✖ a moment as a conversation: opened by DARE, her turns and DARE's, an offer she rejects, closed when she moves on (0.9912ms)
+  TypeError [Error]: X_.beginConversation is not a function
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\conversationFlow.test.ts:30:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+
+test at tests\conversationFlow.test.ts:50:1
+✖ a moment is closed only after she said something; turns are bounded and cleaned on reading (0.4169ms)
+  TypeError [Error]: X_.beginConversation is not a function
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\conversationFlow.test.ts:52:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests\conversationFlow.test.ts:88:1
+✖ opening a moment: one call, the moment slot and the rate limit as before; the reply is checked (5.3219ms)
+  AssertionError [ERR_ASSERTION]: {"reason":"not_needed","message":"Nothing new to ask for this journey: the stored result is the answer."}
+  
+  409 !== 200
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\conversationFlow.test.ts:92:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 409,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\conversationFlow.test.ts:99:1
+✖ a reply turn after her words; a bad quote costs no second call; nothing to ask when DARE spoke last (409) (0.2313ms)
+  TypeError [Error]: X_.beginConversation is not a function
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\conversationFlow.test.ts:101:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\conversationFlow.test.ts:112:1
+✖ "what came up" uses the whole-view slot, from the conversations so far (0.2176ms)
+  TypeError [Error]: X_.beginConversation is not a function
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\conversationFlow.test.ts:114:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\conversationFlow.test.ts:127:1
+✖ the live dependencies and the reflection endpoint know the conversation (1.08ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /conversation-turn/. Input:
+  
+  "import OpenAI from 'openai';\r\n" +
+    "import { getOpenAIClient } from '../openaiClient.js';\r\n" +
+    "import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpResult.js';\r\n" +
+    "import { validateDreamAnalysis, type DreamAnalysis } from '../../src/hero/dreamAnalysisSchema.js';\r\n" +
+    'import {\r\n' +
+    '  buildDreamReflectionSystemPrompt,\r\n' +
+    '  DREAM_REFLECTION_JSON_SCHEMA,\r\n' +
+    '  getGroundingStatement,\r\n' +
+    '  validateDreamReflectionResult,\r\n' +
+    '  type DreamReflectionResult,\r\n' +
+    '  feelingsTextLooksDiagnostic,\r\n' +
+    '  diagnosticWordingNote,\r\n' +
+    '  reflectionLengthNote,\r\n' +
+    '  finalizeReflectionExtras,\r\n' +
+    "} from '../../src/hero/dreamReflectionSchema.js';\r\n" +
+    "import { computeDreamDepth, type DreamDepth } from '../../src/hero/dreamDepth.js';\r\n" +
+    "import type { AppLanguage } from '../../src/hero/appLanguage.js';\r\n" +
+    "import { emotionNamesForModel, mentionsUnlistedFeeling, normalizeEmotions, type EmotionId } from '../../src/hero/dreamEmotions.js';\r\n" +
+    "import { collectStrings, findAddressViolation, findHebrewSlashForm } from '../../src/hero/languageIntegrity.js';\r\n" +
+    "import { normalizeAddressPreference, type AddressPreference } from '../../src/hero/addressPreference.js';\r\n" +
+    "import { runWithLanguageIntegrity } from '../languageGuard.js';\r\n" +
+    "import { resolveCallerIdentity, type RequestHeaders, type CallerIdentity } from '../callerIdentity.js';\r\n" +
+    "import { reserveReflectionAttempt, refundReflectionAttempt, getTrialAttemptState, completeTrialAttempt } from '../dreamAttempts.js';\r\n" +
+    "import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';\r\n" +
+    "import { getSupabaseUserScopedClient } from '../supabaseUserScopedClient.js';\r\n" +
+    "import { logModelUsed, resolveStageModel } from '../stageModel.js';\r\n" +
+    'import {\r\n' +
+    '  attributedFeelingNote,\r\n' +
+    '  descriptionVersusInterpretationNote,\r\n' +
+    '  garbledTextNote,\r\n' +
+    '  symbolWordingNote,\r\n' +
+    '  unsupportedInsertionNote,\r\n' +
+    "} from '../../src/hero/reflectionChecks.js';\r\n" +
+    '\r\n' +
+    'function extractBearerToken(authorizationHeader: string): string | null {\r\n' +
+    '  const match = /^Bearer\\s+(.+)$/i.exec(authorizationHeader.trim());\r\n' +
+    '  return match ? match[1].trim() || null : null;\r\n' +
+    '}\r\n' +
+    '\r\n' +
+    '/** The SAME persisted, optional address preference Pattern Reflection uses\r\n' +
+    "    (see addressPreference.ts) — read fresh from the caller's own verified\r\n" +
+    '    user record, never trusted from the request body. A trial (anonymous,\r\n' +
+    '    pre-sign-in) caller has no account and therefore no preference to read\r\n' +
+    "    at all — 'neutral' is not a guess in that case, it's the only thing\r\n" +
+    '    that could ever be true for an identity with no metadata. */\r\n' +
+    'export async function resolveAddressPreference(identity: CallerIdentity, requestHeaders: RequestHeaders): Promise<AddressPreference> {\r\n' +
+    "  if (identity.kind !== 'user') return 'neutral';\r\n" +
+    '  const token = requestHeaders.authorization ? extractBearerToken(requestHeaders.authorization) : null;\r\n' +
+    "  if (!token) return 'neutral';\r\n" +
+    '  const scoped = getSupabaseUserScopedClient(token);\r\n' +
+    "  if (!scoped) return 'neutral';\r\n" +
+    '  const { data } = await scoped.auth.getUser();\r\n' +
+    '  return normalizeAddressPreference(data.user?.user_metadata?.addressPreference);\r\n' +
+    '}\r\n' +
+    '\r\n' +
+    "function actionPhrase(a: DreamAnalysis['actions'][number]): string {\r\n" +
+    "  return [a.subject, a.action, a.target].filter(Boolean).join(' ').trim();\r\n" +
+    '}\r\n' +
+    '\r\n' +
+    '/** What the dreamer was asked and answered beyond the chosen moment. All optional: an older client sends none of it. */\r\n' +
+    'export interface ReflectionInputExtras {\r\n' +
+    '  /** The association question as shown (written for this dream, or the fixed one). */\r\n' +
+    '  associationQuestion?: string;\r\n' +
+    "  /** The optional second question, and the dreamer's answer to it; both present only when they answered. */\r\n" +
+    '  linkQuestion?: string;\r\n' +
+    '  linkResponse?: string;\r\n' +
+    '}\r\n' +
+    '\r\n' +
+    "const boundedText = (value: unknown, max: number): string => (typeof value === 'string' ? value.trim().slice(0, max) : '');\r\n" +
+    '\r\n' +
+    'export function buildReflectionInput(\r\n' +
+    '  dreamAnalysis: DreamAnalysis,\r\n' +
+    '  selectedElement: string,\r\n' +
+    '  reflectionResponse: string,\r\n' +
+    '  reconstructionCorrections: string[],\r\n' +
+    '  emotions: readonly EmotionId[] = [],\r\n' +
+    "  language: AppLanguage = 'en',\r\n" +
+    '  extras: ReflectionInputExtras = {},\r\n' +
+    '): string {\r\n' +
+    '  const correctionsLine = reconstructionCorrections.length\r\n' +
+    "    ? `\\n- Corrections the dreamer made to the reconstruction afterward: ${reconstructionCorrections.join('; ')}`\r\n" +
+    "    : '';\r\n" +
+    '\r\n' +
+    '  return `DREAM (original text, verbatim): ${dreamAnalysis.sourceText}\r\n' +
+    '\r\n' +
+    'STRUCTURED FACTS FROM THE DREAM (already extracted, use only these — do not invent beyond them):\r\n' +
+    '- Summary: ${dreamAnalysis.summary}\r\n' +
+    "- People: ${dreamAnalysis.people.map((p) => p.nameOrRole).join(', ') || 'none'}\r\n" +
+    "- Places: ${dreamAnalysis.places.map((p) => p.name).join(', ') || 'none'}\r\n" +
+    "- Actions: ${dreamAnalysis.actions.map(actionPhrase).filter(Boolean).join('; ') || 'none'}\r\n" +
+    "- Unusual/surreal elements: ${dreamAnalysis.unusualElements.join('; ') || 'none'}\r\n" +
+    "- Emotional tone (if known): ${dreamAnalysis.emotionalTone ?? 'unknown'}${correctionsLine}\r\n" +
+    "- Named objects: ${dreamAnalysis.objects.filter((o) => o.explicit).map((o) => o.name).join(', ') || 'none'}\r\n" +
+    "- RELATIONSHIPS between people/things: ${dreamAnalysis.relationships.map((r) => `${r.from} -> ${r.to}: ${r.relationship}`).join('; ') || 'none'}\r\n" +
+    "- ORDER OF EVENTS: ${[...dreamAnalysis.sequence].sort((a, b) => a.order - b.order).map((s) => s.description).join(' > ') || 'unknown'}\r\n" +
+    "- LEFT UNRESOLVED or ambiguous in the dream: ${dreamAnalysis.unresolvedDetails.join('; ') || 'none'}\r\n" +
+    '\r\n' +
+    'DEPTH: ${computeDreamDepth(dreamAnalysis)}\r\n' +
+    '\r\n' +
+    'THE ELEMENT THE DREAMER CHOSE AS STANDING OUT TO THEM: ${selectedElement}${extras.associationQuestion ? `\r\n' +
+    '\r\n' +
+    'THE QUESTION THE DREAMER WAS ASKED ABOUT IT (already asked; do not repeat it): "${extras.associationQuestion}"` : \'\'}\r\n' +
+    '\r\n' +
+    'THE DREAMER\'S OWN ASSOCIATION WITH THAT ELEMENT (their exact words): "${reflectionResponse}"${\r\n' +
+    '    extras.linkQuestion && extras.linkResponse\r\n' +
+    '      ? `\r\n' +
+    '\r\n' +
+    'A SECOND, OPTIONAL QUESTION THE DREAMER CHOSE TO ANSWER (already asked; do not repeat it): "${extras.linkQuestion}"\r\n' +
+    'THEIR ANSWER (their exact words): "${extras.linkResponse}"`\r\n' +
+    "      : ''\r\n" +
+    '  }${\r\n' +
+    '    emotions.length\r\n' +
+    '      ? `\\n\\nFEELINGS THE DREAMER REPORTED (their own report, chosen from a fixed list after the dream; NOT part of what happened in the dream): ${emotionNamesForModel(emotions, language)}`\r\n' +
+    "      : ''\r\n" +
+    '  }`;\r\n' +
+    '}\r\n' +
+    '\r\n' +
+    '/** Every sentence of model prose in a reflection. The grounding line is overwritten by the server and the existential verdict is an internal label ("clear"), so neither is prose to check. */\r\n' +
+    "export const proseOf = (result: DreamReflectionResult): string[] => collectStrings({ ...result, groundingStatement: '', existentialFit: undefined });\r\n" +
+    '\r\n' +
+    '/** The generated prose that makes claims about the dream, without the three theory lenses (labelled as theory, they may speak of symbols) and without the copied "basis" quotes. */\r\n' +
+    'const claimsOf = (result: DreamReflectionResult): string[] =>\r\n' +
+    '  collectStrings({\r\n' +
+    '    observation: result.observation,\r\n' +
+    '    personalAssociation: result.personalAssociation,\r\n' +
+    '    possibleThread: result.possibleThread,\r\n' +
+    '    continuityQuestion: result.continuityQuestion,\r\n' +
+    '    emotionReflection: result.emotionReflection,\r\n' +
+    '    summary: result.summary,\r\n' +
+    '    readings: (result.alternativeReadings ?? []).map((r) => r.reading),\r\n' +
+    '    existential: result.existentialLens?.text,\r\n' +
+    '  });\r\n' +
+    '\r\n' +
+    'export interface GenerateReflectionParams {\r\n' +
+    '  /** The feelings the dreamer named (their own report), so a feeling nobody named can be caught. */\r\n' +
+    '  emotions?: readonly EmotionId[];\r\n' +
+    '  input: string;\r\n' +
+    '  language: AppLanguage;\r\n' +
+    '  addressPreference: AddressPreference;\r\n' +
+    '  /** Everything the dreamer themselves wrote — quoting it in another script is legitimate, so it is the context the language-integrity check excuses. */\r\n' +
+    '  dreamerText: string;\r\n' +
+    '  /** Reports the token usage of every model call (the quality-test script measures cost with it). */\r\n' +
+    '  onUsage?: (usage: { input: number; output: number; model: string }) => void;\r\n' +
+    '}\r\n' +
+    '\r\n' +
+    '/** The model call plus every regeneration check, with no request handling around it. The route and scripts/aiJourneyEval.ts both use exactly this. */\r\n' +
+    'export function generateDreamReflection(client: OpenAI, p: GenerateReflectionParams) {\r\n' +
+    '  const instructions = buildDreamReflectionSystemPrompt(p.language, p.addressPreference);\r\n' +
+    '  return runWithLanguageIntegrity(\r\n' +
+    '    async (retryNote) => {\r\n' +
+    '      // OPENAI_REFLECTION_MODEL is optional; unset, this uses the shared OPENAI_MODEL exactly as before. No other model is ever tried.\r\n' +
+    "      const requestedModel = resolveStageModel('OPENAI_REFLECTION_MODEL');\r\n" +
+    '      const response = await client.responses.create({\r\n' +
+    '        model: requestedModel,\r\n' +
+    '        store: false,\r\n' +
+    '        instructions: instructions + retryNote,\r\n' +
+    '        input: p.input,\r\n' +
+    '        text: {\r\n' +
+    '          format: {\r\n' +
+    "            type: 'json_schema',\r\n" +
+    "            name: 'dream_reflection',\r\n" +
+    '            schema: DREAM_REFLECTION_JSON_SCHEMA,\r\n' +
+    '            strict: true,\r\n' +
+    '          },\r\n' +
+    '        },\r\n' +
+    '      });\r\n' +
+    "      logModelUsed('dream-reflection', requestedModel, response.model);\r\n" +
+    '      if (response.usage) p.onUsage?.({ input: response.usage.input_tokens, output: response.usage.output_tokens, model: response.model });\r\n' +
+    '      try {\r\n' +
+    '        return validateDreamReflectionResult(JSON.parse(response.output_text));\r\n' +
+    '      } catch {\r\n' +
+    '        return null;\r\n' +
+    '      }\r\n' +
+    '    },\r\n' +
+    "    // groundingStatement is overwritten by the server below, so it isn't\r\n" +
+    '    // model prose worth checking.\r\n' +
+    '    (result) => proseOf(result),\r\n' +
+    '    {\r\n' +
+    "      route: 'dream-reflection',\r\n" +
+    '      language: p.language,\r\n' +
+    '      context: p.dreamerText,\r\n' +
+    '      // Hebrew only: an untranslated capitalised word, or the masculine "אתה" for someone who never chose masculine, regenerates (never edited).\r\n' +
+    '      strictLatin: true,\r\n' +
+    '      extraCheck: (result) =>\r\n' +
+    '        findAddressViolation(proseOf(result), p.language, p.addressPreference) ??\r\n' +
+    '        findHebrewSlashForm(proseOf(result), p.language) ??\r\n' +
+    '        diagnosticWordingNote(result),\r\n' +
+    '      // Quality (a fresh response is requested at most once, because every one costs a call and several second'... 10689 more characters
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\conversationFlow.test.ts:129:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'import OpenAI from \'openai\';\r\nimport { getOpenAIClient } from \'../openaiClient.js\';\r\nimport { okResult, errorResult, withHeaders, type HandlerResult } from \'../httpResult.js\';\r\nimport { validateDreamAnalysis, type DreamAnalysis } from \'../../src/hero/dreamAnalysisSchema.js\';\r\nimport {\r\n  buildDreamReflectionSystemPrompt,\r\n  DREAM_REFLECTION_JSON_SCHEMA,\r\n  getGroundingStatement,\r\n  validateDreamReflectionResult,\r\n  type DreamReflectionResult,\r\n  feelingsTextLooksDiagnostic,\r\n  diagnosticWordingNote,\r\n  reflectionLengthNote,\r\n  finalizeReflectionExtras,\r\n} from \'../../src/hero/dreamReflectionSchema.js\';\r\nimport { computeDreamDepth, type DreamDepth } from \'../../src/hero/dreamDepth.js\';\r\nimport type { AppLanguage } from \'../../src/hero/appLanguage.js\';\r\nimport { emotionNamesForModel, mentionsUnlistedFeeling, normalizeEmotions, type EmotionId } from \'../../src/hero/dreamEmotions.js\';\r\nimport { collectStrings, findAddressViolation, findHebrewSlashForm } from \'../../src/hero/languageIntegrity.js\';\r\nimport { normalizeAddressPreference, type AddressPreference } from \'../../src/hero/addressPreference.js\';\r\nimport { runWithLanguageIntegrity } from \'../languageGuard.js\';\r\nimport { resolveCallerIdentity, type RequestHeaders, type CallerIdentity } from \'../callerIdentity.js\';\r\nimport { reserveReflectionAttempt, refundReflectionAttempt, getTrialAttemptState, completeTrialAttempt } from \'../dreamAttempts.js\';\r\nimport { FREE_DREAM_USED_MESSAGE } from \'../trialAllowance.js\';\r\nimport { getSupabaseUserScopedClient } from \'../supabaseUserScopedClient.js\';\r\nimport { logModelUsed, resolveStageModel } from \'../stageModel.js\';\r\nimport {\r\n  attributedFeelingNote,\r\n  descriptionVersusInterpretationNote,\r\n  garbledTextNote,\r\n  symbolWordingNote,\r\n  unsupportedInsertionNote,\r\n} from \'../../src/hero/reflectionChecks.js\';\r\n\r\nfunction extractBearerToken(authorizationHeader: string): string | null {\r\n  const match = /^Bearer\\s+(.+)$/i.exec(authorizationHeader.trim());\r\n  return match ? match[1].trim() || null : null;\r\n}\r\n\r\n/** The SAME persisted, optional address preference Pattern Reflection uses\r\n    (see addressPreference.ts) — read fresh from the caller\'s own verified\r\n    user record, never trusted from the request body. A trial (anonymous,\r\n    pre-sign-in) caller has no account and therefore no preference to read\r\n    at all — \'neutral\' is not a guess in that case, it\'s the only thing\r\n    that could ever be true for an identity with no metadata. */\r\nexport async function resolveAddressPreference(identity: CallerIdentity, requestHeaders: RequestHeaders): Promise<AddressPreference> {\r\n  if (identity.kind !== \'user\') return \'neutral\';\r\n  const token = requestHeaders.authorization ? extractBearerToken(requestHeaders.authorization) : null;\r\n  if (!token) return \'neutral\';\r\n  const scoped = getSupabaseUserScopedClient(token);\r\n  if (!scoped) return \'neutral\';\r\n  const { data } = await scoped.auth.getUser();\r\n  return normalizeAddressPreference(data.user?.user_metadata?.addressPreference);\r\n}\r\n\r\nfunction actionPhrase(a: DreamAnalysis[\'actions\'][number]): string {\r\n  return [a.subject, a.action, a.target].filter(Boolean).join(\' \').trim();\r\n}\r\n\r\n/** What the dreamer was asked and answered beyond the chosen moment. All optional: an older client sends none of it. */\r\nexport interface ReflectionInputExtras {\r\n  /** The association question as shown (written for this dream, or the fixed one). */\r\n  associationQuestion?: string;\r\n  /** The optional second question, and the dreamer\'s answer to it; both present only when they answered. */\r\n  linkQuestion?: string;\r\n  linkResponse?: string;\r\n}\r\n\r\nconst boundedText = (value: unknown, max: number): string => (typeof value === \'string\' ? value.trim().slice(0, max) : \'\');\r\n\r\nexport function buildReflectionInput(\r\n  dreamAnalysis: DreamAnalysis,\r\n  selectedElement: string,\r\n  reflectionResponse: string,\r\n  reconstructionCorrections: string[],\r\n  emotions: readonly EmotionId[] = [],\r\n  language: AppLanguage = \'en\',\r\n  extras: ReflectionInputExtras = {},\r\n): string {\r\n  const correctionsLine = reconstructionCorrections.length\r\n    ? `\\n- Corrections the dreamer made to the reconstruction afterward: ${reconstructionCorrections.join(\'; \')}`\r\n    : \'\';\r\n\r\n  return `DREAM (original text, verbatim): ${dreamAnalysis.sourceText}\r\n\r\nSTRUCTURED FACTS FROM THE DREAM (already extracted, use only these — do not invent beyond them):\r\n- Summary: ${dreamAnalysis.summary}\r\n- People: ${dreamAnalysis.people.map((p) => p.nameOrRole).join(\', \') || \'none\'}\r\n- Places: ${dreamAnalysis.places.map((p) => p.name).join(\', \') || \'none\'}\r\n- Actions: ${dreamAnalysis.actions.map(actionPhrase).filter(Boolean).join(\'; \') || \'none\'}\r\n- Unusual/surreal elements: ${dreamAnalysis.unusualElements.join(\'; \') || \'none\'}\r\n- Emotional tone (if known): ${dreamAnalysis.emotionalTone ?? \'unknown\'}${correctionsLine}\r\n- Named objects: ${dreamAnalysis.objects.filter((o) => o.explicit).map((o) => o.name).join(\', \') || \'none\'}\r\n- RELATIONSHIPS between people/things: ${dreamAnalysis.relationships.map((r) => `${r.from} -> ${r.to}: ${r.relationship}`).join(\'; \') || \'none\'}\r\n- ORDER OF EVENTS: ${[...dreamAnalysis.sequence].sort((a, b) => a.order - b.order).map((s) => s.description).join(\' > \') || \'unknown\'}\r\n- LEFT UNRESOLVED or ambiguous in the dream: ${dreamAnalysis.unresolvedDetails.join(\'; \') || \'none\'}\r\n\r\nDEPTH: ${computeDreamDepth(dreamAnalysis)}\r\n\r\nTHE ELEMENT THE DREAMER CHOSE AS STANDING OUT TO THEM: ${selectedElement}${extras.associationQuestion ? `\r\n\r\nTHE QUESTION THE DREAMER WAS ASKED ABOUT IT (already asked; do not repeat it): "${extras.associationQuestion}"` : \'\'}\r\n\r\nTHE DREAMER\'S OWN ASSOCIATION WITH THAT ELEMENT (their exact words): "${reflectionResponse}"${\r\n    extras.linkQuestion && extras.linkResponse\r\n      ? `\r\n\r\nA SECOND, OPTIONAL QUESTION THE DREAMER CHOSE TO ANSWER (already asked; do not repeat it): "${extras.linkQuestion}"\r\nTHEIR ANSWER (their exact words): "${extras.linkResponse}"`\r\n      : \'\'\r\n  }${\r\n    emotions.length\r\n      ? `\\n\\nFEELINGS THE DREAMER REPORTED (their own report, chosen from a fixed list after the dream; NOT part of what happened in the dream): ${emotionNamesForModel(emotions, language)}`\r\n      : \'\'\r\n  }`;\r\n}\r\n\r\n/** Every sentence of model prose in a reflection. The grounding line is overwritten by the server and the existential verdict is an internal label ("clear"), so neither is prose to check. */\r\nexport const proseOf = (result: DreamReflectionResult): string[] => collectStrings({ ...result, groundingStatement: \'\', existentialFit: undefined });\r\n\r\n/** The generated prose that makes claims about the dream, without the three theory lenses (labelled as theory, they may speak of symbols) and without the copied "basis" quotes. */\r\nconst claimsOf = (result: DreamReflectionResult): string[] =>\r\n  collectStrings({\r\n    observation: result.observation,\r\n    personalAssociation: result.personalAssociation,\r\n    possibleThread: result.possibleThread,\r\n    continuityQuestion: result.continuityQuestion,\r\n    emotionReflection: result.emotionReflection,\r\n    summary: result.summary,\r\n    readings: (result.alternativeReadings ?? []).map((r) => r.reading),\r\n    existential: result.existentialLens?.text,\r\n  });\r\n\r\nexport interface GenerateReflectionParams {\r\n  /** The feelings the dreamer named (their own report), so a feeling nobody named can be caught. */\r\n  emotions?: readonly EmotionId[];\r\n  input: string;\r\n  language: AppLanguage;\r\n  addressPreference: AddressPreference;\r\n  /** Everything the dreamer themselves wrote — quoting it in another script is legitimate, so it is the context the language-integrity check excuses. */\r\n  dreamerText: string;\r\n  /** Reports the token usage of every model call (the quality-test script measures cost with it). */\r\n  onUsage?: (usage: { input: number; output: number; model: string }) => void;\r\n}\r\n\r\n/** The model call plus every regeneration check, with no request handling around it. The route and scripts/aiJourneyEval.ts both use exactly this. */\r\nexport function generateDreamReflection(client: OpenAI, p: GenerateReflectionParams) {\r\n  const instructions = buildDreamReflectionSystemPrompt(p.language, p.addressPreference);\r\n  return runWithLanguageIntegrity(\r\n    async (retryNote) => {\r\n      // OPENAI_REFLECTION_MODEL is optional; unset, this uses the shared OPENAI_MODEL exactly as before. No other model is ever tried.\r\n      const requestedModel = resolveStageModel(\'OPENAI_REFLECTION_MODEL\');\r\n      const response = await client.responses.create({\r\n        model: requestedModel,\r\n        store: false,\r\n        instructions: instructions + retryNote,\r\n        input: p.input,\r\n        text: {\r\n          format: {\r\n            type: \'json_schema\',\r\n            name: \'dream_reflection\',\r\n            schema: DREAM_REFLECTION_JSON_SCHEMA,\r\n            strict: true,\r\n          },\r\n        },\r\n      });\r\n      logModelUsed(\'dream-reflection\', requestedModel, response.model);\r\n      if (response.usage) p.onUsage?.({ input: response.usage.input_tokens, output: response.usage.output_tokens, model: response.model });\r\n      try {\r\n        return validateDreamReflectionResult(JSON.parse(response.output_text));\r\n      } catch {\r\n        return null;\r\n      }\r\n    },\r\n    // groundingStatement is overwritten by the server below, so it isn\'t\r\n    // model prose worth checking.\r\n    (result) => proseOf(result),\r\n    {\r\n      route: \'dream-reflection\',\r\n      language: p.language,\r\n      context: p.dreamerText,\r\n      // Hebrew only: an untranslated capitalised word, or the masculine "אתה" for someone who never chose masculine, regenerates (never edited).\r\n      strictLatin: true,\r\n      extraCheck: (result) =>\r\n        findAddressViolation(proseOf(result), p.language, p.addressPreference) ??\r\n        findHebrewSlashForm(proseOf(result), p.language) ??\r\n        diagnosticWordingNote(result),\r\n      // Quality (a fresh response is requested at most once, because every one costs a call and several second'... 10689 more characters,
+    expected: /conversation-turn/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\conversationFlow.test.ts:134:1
+✖ the browser side asks for a turn only when she spoke last, and keeps what it receives (0.3364ms)
+  TypeError [Error]: engine.turn is not a function
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\conversationFlow.test.ts:138:28)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\conversationFlow.test.ts:150:1
+✖ the conversation page is development only and calls nothing (7.5662ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(existsSync('conversation.html'))
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\conversationFlow.test.ts:151:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\conversationTurn.test.ts:1:1
+✖ tests\conversationTurn.test.ts (1151.7028ms)
+  'test failed'

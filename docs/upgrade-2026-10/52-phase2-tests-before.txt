@@ -1,0 +1,338 @@
+✖ safety: every real output with a claim she never gave is refused (R1–R3, R6–R10) (4.041ms)
+✖ safety: a psychological meaning is refused even with no "you" in the sentence, and "אולי" does not make it acceptable (R15–R20) (0.9176ms)
+✖ safety: a cause is hers only when she gave a cause herself, not when its words are hers (R3 vs her own "זה גרם לי") (0.2967ms)
+✖ relation: anchors must be verbatim and at least two different details (one event is enough) (0.3984ms)
+✖ relation: a link stated as a fact must be in the anchors; a possible link is fine only when offered openly (her note 2) (0.7496ms)
+✖ separation: an empty or echoing possibility is not "unsafe", it is rated level 0 and never shown as a possibility (R4, R5) (0.3473ms)
+✖ separation: therapy-like or artificial wording lowers the rating, it does not refuse (0.3751ms)
+✖ the written examples are safe and rated as doc 50 v2 rates them: six insights (3), three observations (2) (0.3526ms)
+✖ the good real outputs are safe and at least an observation (G1, G3); without a source card a sentence is never rated 3 (0.3768ms)
+✖ choice: the better version is shown whatever the order, and a link inside one event is not ranked below a distant one (her note 5) (0.5681ms)
+✖ choice: when the best candidate is only an echo, nothing is shown as a possibility (level 3 is never manufactured) (0.2426ms)
+✖ questions: the written questions and G2 pass every check of the moment (24.3004ms)
+✔ questions: a part of the dream that was already explored may be brought in; one that was not, may not (5.7344ms)
+✖ questions: "או איך" is two questions in one (1.3883ms)
+✖ questions: a creative question that tests nothing ranks below the floor; one about what the dream leaves open does not (R21, R22, W2, W14) (0.1839ms)
+✖ questions: the questionnaire of acc-3 (R13): the second and third "מה הדבר הראשון / התחושה הראשונה" rank below the floor (0.1396ms)
+✖ questions: the kind of question is planned from the moment (a wish not done, a figure that speaks, a change, an open possibility) (0.1286ms)
+✖ segmentation: in acc-1 the wish to apologise is its own part, the teacher's instruction keeps "לפני שהיא גומרת שורה" (0.3299ms)
+✖ priority: a charged moment is offered early, but not a sensitive one (illness, death, injury) (16.4382ms)
+✖ whole view: a closing never quotes her word with its "ו" (R12), and the modest opening does not take words that described someone else (3.402ms)
+✖ whole view: a reading that gives a psychological meaning is refused there too (17.9022ms)
+✖ insight: among candidates with source cards the best is shown, not the first; with nothing worth showing, an inviting question instead (8.1867ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 1
+ℹ fail 21
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3031.0832
+
+✖ failing tests:
+
+test at tests\interpretationLayer.test.ts:24:1
+✖ safety: every real output with a claim she never gave is refused (R1–R3, R6–R10) (4.041ms)
+  TypeError: api.verifyCandidate is not a function
+      at verdict (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:19:76)
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:26:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.start (node:internal/test_runner/test:1191:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+
+test at tests\interpretationLayer.test.ts:32:1
+✖ safety: a psychological meaning is refused even with no "you" in the sentence, and "אולי" does not make it acceptable (R15–R20) (0.9176ms)
+  TypeError: api.verifyCandidate is not a function
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:35:21)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+
+test at tests\interpretationLayer.test.ts:42:1
+✖ safety: a cause is hers only when she gave a cause herself, not when its words are hers (R3 vs her own "זה גרם לי") (0.2967ms)
+  TypeError: api.verifyCandidate is not a function
+      at verdict (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:19:76)
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:43:16)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7)
+
+test at tests\interpretationLayer.test.ts:50:1
+✖ relation: anchors must be verbatim and at least two different details (one event is enough) (0.3984ms)
+  TypeError: api.verifyCandidate is not a function
+      at verdict (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:19:76)
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:52:16)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7)
+
+test at tests\interpretationLayer.test.ts:61:1
+✖ relation: a link stated as a fact must be in the anchors; a possible link is fine only when offered openly (her note 2) (0.7496ms)
+  TypeError: api.verifyCandidate is not a function
+      at verdict (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:19:76)
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:63:16)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7)
+
+test at tests\interpretationLayer.test.ts:73:1
+✖ separation: an empty or echoing possibility is not "unsafe", it is rated level 0 and never shown as a possibility (R4, R5) (0.3473ms)
+  TypeError: api.verifyCandidate is not a function
+      at verdict (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:19:76)
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:75:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7)
+
+test at tests\interpretationLayer.test.ts:81:1
+✖ separation: therapy-like or artificial wording lowers the rating, it does not refuse (0.3751ms)
+  TypeError: api.verifyCandidate is not a function
+      at verdict (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:19:76)
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:83:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7)
+
+test at tests\interpretationLayer.test.ts:89:1
+✖ the written examples are safe and rated as doc 50 v2 rates them: six insights (3), three observations (2) (0.3526ms)
+  TypeError: api.verifyCandidate is not a function
+      at verdict (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:19:76)
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:91:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7)
+
+test at tests\interpretationLayer.test.ts:97:1
+✖ the good real outputs are safe and at least an observation (G1, G3); without a source card a sentence is never rated 3 (0.3768ms)
+  TypeError: api.verifyCandidate is not a function
+      at verdict (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:19:76)
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:99:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7)
+
+test at tests\interpretationLayer.test.ts:105:1
+✖ choice: the better version is shown whatever the order, and a link inside one event is not ranked below a distant one (her note 5) (0.5681ms)
+  TypeError: api.selectPossibility is not a function
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:111:24)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7)
+
+test at tests\interpretationLayer.test.ts:119:1
+✖ choice: when the best candidate is only an echo, nothing is shown as a possibility (level 3 is never manufactured) (0.2426ms)
+  TypeError: api.selectPossibility is not a function
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:121:20)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7)
+
+test at tests\interpretationLayer.test.ts:136:1
+✖ questions: the written questions and G2 pass every check of the moment (24.3004ms)
+  AssertionError [ERR_ASSERTION]: W9: באותו ערב בתחנה, האדים מהתה ירדו אל החול, ואף אוטובוס לא עצר. מה, אם בכלל, מחבר בשבילך בין השניים?
+  + actual - expected
+  
+  + [
+  +   'too long (at most 16 words)',
+  +   'presupposes something from another part of the dream ("ערב")',
+  +   'presupposes something from another part of the dream ("בתחנה")',
+  +   'presupposes something from another part of the dream ("אוטובוס")',
+  +   'presupposes something from another part of the dream ("עצר")'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:140:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'too long (at most 16 words)', 'presupposes something from another part of the dream ("ערב")', 'presupposes something from another part of the dream ("בתחנה")', 'presupposes something from another part of the dream ("אוטובוס")', 'presupposes something from another part of the dream ("עצר")' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\interpretationLayer.test.ts:150:1
+✖ questions: "או איך" is two questions in one (1.3883ms)
+  AssertionError [ERR_ASSERTION]
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:152:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\interpretationLayer.test.ts:155:1
+✖ questions: a creative question that tests nothing ranks below the floor; one about what the dream leaves open does not (R21, R22, W2, W14) (0.1839ms)
+  TypeError: api.questionQuality is not a function
+      at quality (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:156:109)
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:157:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7)
+
+test at tests\interpretationLayer.test.ts:162:1
+✖ questions: the questionnaire of acc-3 (R13): the second and third "מה הדבר הראשון / התחושה הראשונה" rank below the floor (0.1396ms)
+  TypeError: api.questionQuality is not a function
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:164:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7)
+
+test at tests\interpretationLayer.test.ts:169:1
+✖ questions: the kind of question is planned from the moment (a wish not done, a figure that speaks, a change, an open possibility) (0.1286ms)
+  TypeError: api.planQuestionFocus is not a function
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:170:20)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7)
+
+test at tests\interpretationLayer.test.ts:179:1
+✖ segmentation: in acc-1 the wish to apologise is its own part, the teacher's instruction keeps "לפני שהיא גומרת שורה" (0.3299ms)
+  AssertionError [ERR_ASSERTION]: חלמתי שאני בבריכה העירונית הישנה בשכונה של סבתא שלי רק שהמים היו חמים כמו מרק ועל הכיסא של המציל ישבה המורה שלי לפסנתר מהיסודי עמליה | והיא סרגה משהו ארוך כחול ואמרה לי שאני צריכה לשחות עד הקצה ולחזור | לפני שהיא גומרת שורה ניסיתי לשחות אבל הידיים שלי היו כבדות כאילו הן עשויות מספוג | ואז פתאום הייתי במטבח של סבתא | והיא קילפה תפוזים ושמה לי את הקליפות בכיס של הפיג'מה | ומה שהיה לפני זה בבריכה כאילו חזר כי מהתקרה של המטבח התחילו לטפטף מים חמים רציתי להגיד לסבתא שאני מצטערת שלא באתי בשבת אבל לא יצא לי קול רק בועות קטנות ואז התעוררתי
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:181:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\interpretationLayer.test.ts:186:1
+✖ priority: a charged moment is offered early, but not a sensitive one (illness, death, injury) (16.4382ms)
+  AssertionError [ERR_ASSERTION]: 6 < -2
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:193:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\interpretationLayer.test.ts:208:1
+✖ whole view: a closing never quotes her word with its "ו" (R12), and the modest opening does not take words that described someone else (3.402ms)
+  AssertionError [ERR_ASSERTION]: מה עוד עולה כשחוזרים למילה «והבדידות»?
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:209:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\interpretationLayer.test.ts:214:1
+✖ whole view: a reading that gives a psychological meaning is refused there too (17.9022ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(C.verifyInterpretation('אולי החלום הזה עוסק בפרידה.', [], new Set(), s, { requireBasis: false }).length > 0)
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:216:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\interpretationLayer.test.ts:222:1
+✖ insight: among candidates with source cards the best is shown, not the first; with nothing worth showing, an inviting question instead (8.1867ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + ''
+  - 'הכלב הולך אחורה כל הזמן, ובכל זאת מתרחק עד שהוא נעלם מאחורי פינה. ואת, שרצית לרוץ אחריו, נשארת עם רגליים דבוקות לחול. מי שהולך אחורה מגיע רחוק, ומי שרוצה לרוץ לא זז.'
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationLayer.test.ts:228:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '',
+    expected: 'הכלב הולך אחורה כל הזמן, ובכל זאת מתרחק עד שהוא נעלם מאחורי פינה. ואת, שרצית לרוץ אחריו, נשארת עם רגליים דבוקות לחול. מי שהולך אחורה מגיע רחוק, ומי שרוצה לרוץ לא זז.',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

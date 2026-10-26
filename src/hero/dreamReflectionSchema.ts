@@ -67,7 +67,9 @@ export type ReflectionErrorReason =
 
 export type ReflectionResult =
   | { status: 'ok'; reflection: DreamReflectionResult }
-  | { status: 'error'; reason: ReflectionErrorReason; message: string };
+  | { status: 'error'; reason: ReflectionErrorReason; message: string }
+  /** The distress path (doc 106/109): nothing was generated; the screen shows the fixed safety words. */
+  | { status: 'safety'; level: 'uncertain' | 'concern' | 'danger' | 'threat' };
 
 /**
  * The exact grounding line the UI must always show, verbatim per language

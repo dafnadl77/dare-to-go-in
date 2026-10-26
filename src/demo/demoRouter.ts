@@ -1,4 +1,7 @@
 import { emotionNamesForModel, normalizeEmotions } from '../hero/dreamEmotions';
+import { basedOnKey, exploredInOrder, MAX_QUESTIONS_PER_MOMENT, parseExploration, questionsAsked } from '../hero/exploration';
+import { checkLabel } from '../hero/claimCheck';
+import { saysItConnects } from '../hero/conversationTurn';
 
 /**
  * The browser-side stand-in for every server DARE talks to, used by demo mode only (see demoFlag.ts / installDemo.ts).
@@ -266,6 +269,58 @@ export function demoReflection(he: boolean, input: { sourceText?: unknown; selec
   };
 }
 
+/**
+ * The dream map's conversation in the demo: DARE's turns are plainly pre-written placeholders, tagged as such, that keep the journey's own
+ * rules (one question a turn, at most three in a moment, then the closing line with no question). Only the quoted moment titles and the
+ * visitor's own words are theirs.
+ */
+export function demoConversation(he: boolean, body: Json): Json | null {
+  const e = parseExploration(body.exploration);
+  if (!e) return null;
+  const tag = he ? DEMO_TAG.he : DEMO_TAG.en;
+  if (body.mode === 'conversation-summary') {
+    const turns = exploredInOrder(e).flatMap((x) => x.entry.turns ?? []);
+    const mine = turns.filter((t) => t.role === 'dreamer' && !t.rejection && !t.steer && saysItConnects(t.text)).map((t) => t.text).slice(0, 3);
+    const labels = exploredInOrder(e).map((x) => `«${x.moment.label}»`).join(he ? ' ו־' : ' and ');
+    return {
+      basedOn: basedOnKey(e),
+      wholeView: {
+        kind: 'whole',
+        notice: null,
+        overview: he
+          ? `(${tag}) כאן יופיע המבט השלם על החלום, שנכתב מתוך השיחה על ${labels}. בהדגמה זה טקסט מוכן מראש.`
+          : `(${tag}) Here the whole view of the dream would appear, written from the conversation about ${labels}. In the demo it is pre-written text.`,
+        connections: [],
+        recurring: null,
+        contrast: null,
+        readings: [],
+        closingQuestion: '',
+        invite: [],
+        takeaways: { mine, ideas: [he ? `(${tag}) כאן יופיע רעיון ש־DARE הציעה בשיחה ולא נדחה.` : `(${tag}) Here an idea DARE offered in the conversation, and that you did not turn down, would appear.`], open: [] },
+      },
+    };
+  }
+  const momentId = typeof body.momentId === 'string' ? body.momentId : '';
+  const moment = e.moments.find((m) => m.id === momentId);
+  if (!moment) return null;
+  if (questionsAsked(e, momentId) >= MAX_QUESTIONS_PER_MOMENT) {
+    return {
+      momentId,
+      turn: { role: 'dare', move: 'summarize', closing: true, text: he ? 'תודה על מה ששיתפת ברגע הזה. אפשר לעבור לרגע אחר, או לראות מה עלה.' : 'Thank you for what you shared in this moment. You can go to another moment, or see what came up.' },
+    };
+  }
+  const last = e.explored[momentId]?.turns?.slice(-1)[0];
+  const reply = last?.rejection
+    ? he
+      ? `(${tag}) כאן DARE תענה לכך שזה לא מתאים לך, ותציע כיוון אחר ברגע «${moment.label}».`
+      : `(${tag}) Here DARE would answer that this doesn't fit you, and offer another direction in «${moment.label}».`
+    : he
+      ? `(${tag}) כאן DARE תגיב למה שעלה ברגע «${moment.label}», מתוך החלום ומתוך המילים שלך.`
+      : `(${tag}) Here DARE would respond to what came up in «${moment.label}», from the dream and from your words.`;
+  const offer = he ? `(${tag}) אולי יש משהו ברגע הזה ששווה להתעכב עליו?` : `(${tag}) Maybe there is something in this moment worth staying with?`;
+  return { momentId, turn: { role: 'dare', move: 'offer', text: reply, offer, anchors: [] } };
+}
+
 /** Draws a clear "demo image" band onto the sample picture, so a picture that was NOT made from the visitor's dream cannot pass for one. */
 async function markDemoImage(dataUrl: string, he: boolean): Promise<string> {
   try {
@@ -403,6 +458,7 @@ export function createDemoRouter(deps: DemoRouterDeps) {
   const stats: DemoNetStats = { mocked: 0, passed: 0, blocked: 0, log: [] };
   const rows: Json[] = demoInitialRows(now());
   let userMetadata: Json = { displayName: 'Demo' };
+  let ageConfirmed = false;
   let sampleImage: Promise<string> | null = null;
   /** The picture shown for the most recent demo dream (the sample, with its "demo image" band), kept for the dream that gets saved. */
   let lastMarkedImage: string | null = null;
@@ -446,6 +502,12 @@ export function createDemoRouter(deps: DemoRouterDeps) {
       if (method === 'GET') return jsonResponse({ balance: 3, purchasedPackage: 'go_deeper_3', grantedCredits: 3, grantCount: 1, freeDreamUsed: true, freeGranted: 0, freeDream: 'used' });
       return jsonResponse({ reason: 'request_failed', message: 'Payments are switched off in the demo. Nothing was charged.' }, 503);
     }
+    // The age question (AgeGate.tsx): the demo account starts unconfirmed, so the question shows once; "18 or over" is kept in this page only.
+    if (path === '/api/trial-session' && body.action === 'age-status') return jsonResponse({ ageConfirmed });
+    if (path === '/api/trial-session' && body.action === 'confirm-age') {
+      ageConfirmed = body.adult === true;
+      return jsonResponse({ ageConfirmed });
+    }
     if (path === '/api/trial-session' || path === '/api/claim-trial') return jsonResponse({ ok: true });
     if (path === '/api/delete-account') return jsonResponse({ reason: 'request_failed', message: 'Accounts cannot be deleted in the demo.' }, 503);
     if (path === '/api/dream-analysis') {
@@ -470,9 +532,20 @@ export function createDemoRouter(deps: DemoRouterDeps) {
       });
     }
     if (path === '/api/dream-element-labels') {
-      // The moments are the visitor's own phrases: the labels are those same words, unchanged.
+      // The moments are the visitor's own phrases: the labels are those same words, unchanged. The dream map's moments (whole events) get
+      // a short title built from their own words by the journey's code check, with no model.
       const elements = Array.isArray(body.elements) ? body.elements.map((e) => String(e)) : [];
+      if (body.purpose === 'moments') {
+        const used: string[] = [];
+        for (const e of elements) used.push(checkLabel('', e, used, String(body.sourceText ?? '')));
+        return jsonResponse({ labels: used });
+      }
       return jsonResponse({ labels: elements });
+    }
+    if (path === '/api/dream-reflection' && (body.mode === 'conversation-turn' || body.mode === 'conversation-summary')) {
+      await delay(700);
+      const answer = demoConversation(he, body);
+      return answer ? jsonResponse(answer) : jsonResponse({ reason: 'invalid_response', message: 'The demo could not read this journey.' }, 400);
     }
     if (path === '/api/dream-reflection') {
       await delay(800);

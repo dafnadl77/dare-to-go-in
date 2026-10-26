@@ -19,7 +19,11 @@ import { emotionNamesForModel, mentionsUnlistedFeeling, normalizeEmotions, type 
 import { collectStrings, findAddressViolation, findHebrewSlashForm } from '../../src/hero/languageIntegrity.js';
 import { normalizeAddressPreference, type AddressPreference } from '../../src/hero/addressPreference.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
-import { resolveCallerIdentity, type RequestHeaders, type CallerIdentity } from '../callerIdentity.js';
+import { type RequestHeaders, type CallerIdentity, type ResolveCallerResult } from '../callerIdentity.js';
+import { resolveAdultCaller } from '../ageGate.js';
+import { realModerate, type Moderate } from '../safety/moderation.js';
+import { checkHerAnswers, dareWordsSafe, safetyBody } from '../safety/routeSafety.js';
+import { safetyAckOf } from '../../src/hero/safety/journeySafety.js';
 import { reserveReflectionAttempt, refundReflectionAttempt, getTrialAttemptState, completeTrialAttempt } from '../dreamAttempts.js';
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 import { getSupabaseUserScopedClient } from '../supabaseUserScopedClient.js';
@@ -226,15 +230,22 @@ export function finalizeDeliveredReflection(
   return validated;
 }
 
-export async function handleDreamReflection(rawBody: unknown, requestHeaders: RequestHeaders): Promise<HandlerResult> {
+export interface ReflectionDeps {
+  resolveIdentity?: (headers: RequestHeaders) => Promise<ResolveCallerResult>;
+  /** The second safety layer (moderation.ts). */
+  moderate?: Moderate;
+}
+
+export async function handleDreamReflection(rawBody: unknown, requestHeaders: RequestHeaders, deps: ReflectionDeps = {}): Promise<HandlerResult> {
   // The multi-moment journey's insight for a moment and its whole view (see dreamExploration.ts). Imported lazily: that module
   // imports this one, and a static import both ways would make the order of module loading matter.
   const mode = typeof rawBody === 'object' && rawBody !== null ? (rawBody as { mode?: unknown }).mode : undefined;
-  if (mode === 'moment-reply' || mode === 'whole-view') {
+  if (mode === 'moment-reply' || mode === 'whole-view' || mode === 'conversation-turn' || mode === 'conversation-summary') {
     const { handleExploration } = await import('./dreamExploration.js');
     return handleExploration(mode, rawBody, requestHeaders);
   }
-  const resolved = await resolveCallerIdentity(requestHeaders);
+  const resolved = await (deps.resolveIdentity ?? resolveAdultCaller)(requestHeaders);
+  const moderate = deps.moderate ?? realModerate;
   if (!resolved.ok) {
     return errorResult(resolved.status, resolved.reason, resolved.message);
   }
@@ -280,6 +291,11 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
   if (!attemptId) {
     return withHeaders(errorResult(400, 'invalid_response', 'attemptId is required.'), cookieHeaders);
   }
+
+  // The distress path (doc 106/109), before any model or slot: her words in this request, and her corrections.
+  const herNow = [reflectionResponse, typeof body.linkResponse === 'string' ? body.linkResponse.trim() : ''].filter(Boolean).join('. ');
+  const herCheck = await checkHerAnswers({ latest: herNow, earlier: reconstructionCorrections, ack: safetyAckOf((rawBody as { safetyAck?: unknown }).safetyAck), moderate });
+  if (!herCheck.allowed) return withHeaders(okResult(safetyBody(herCheck.level)), cookieHeaders);
 
   const client = getOpenAIClient();
   if (!client) {
@@ -338,6 +354,11 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
       );
     }
     const validated = finalizeDeliveredReflection(outcome.value, { emotions, language, depth, dreamerText, summary: dreamAnalysis.summary });
+    // DARE's words are checked before they are shown; not passing, or moderation down, = not delivered (the attempt is returned).
+    if (!(await dareWordsSafe(validated, moderate))) {
+      await refundReflectionAttempt(attemptId);
+      return withHeaders(errorResult(502, 'invalid_response', 'The reflection could not be completed.'), cookieHeaders);
+    }
 
     // THE completion point of an anonymous dreamer's ONE free dream: the
     // grounded reflection is generated and about to be delivered. Marked

@@ -12,6 +12,17 @@
       "autoPort": true
     },
     {
+      "name": "dare-pair-conversation",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5181",
+        "--strictPort"
+      ],
+      "port": 5181
+    },
+    {
       "name": "dare-model-bridge",
       "runtimeExecutable": "node",
       "runtimeArgs": [

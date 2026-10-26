@@ -13,11 +13,25 @@
  * (runs named "fix-…") would pass $1.20 (plan: $0.90 development + about $0.30 final run). List prices, to be checked against the bill.
  *
  * Run:  npx tsx scripts/explorationEval.ts <runName> [journeyKey]
- *       npx tsx scripts/explorationEval.ts capture-analysis      (only the analysis of the three known dreams, as test fixtures)
+ *       (capture-analysis, which had no round cap, is now refused: doc 62, item 5)
  */
 import 'dotenv/config';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import OpenAI from 'openai';
+
+// a paid run only with an explicit name whose round has a hard cap (doc 62, item 5): started (or imported) without one, the script stops
+// here, before any client exists and before the routes are loaded, so no call can be made by accident. ('capture-analysis' had no round
+// cap, so it is refused too.)
+/** Each round of stage-3 runs has its own cap inside the $3: the fix round ('fix-…') $1.20, the quality round ('q-…') $0.85. */
+const ROUND_CAPS: Record<string, number> = { fix: 1.2, q: 0.85, acc: 0.4, p2dev: 0.15, p3dev: 0.1, p4dev: 0.1, acc2: 0.4 }; // 'acc-…': the acceptance run ($0.40); 'p2dev-…': the phase-2 development run ($0.15); 'p3dev-…': the run after the prompt hardening ($0.10); 'p4dev-…': the run after the fix rounds of docs 62 and 65, with a whole view ($0.10); 'acc2-…': the second acceptance run, on the sealed dreams of doc 74 ($0.40, needs her separate approval); her hard caps
+const RUN = process.argv[2] ?? '';
+const ROUND = RUN.split('-')[0];
+const ROUND_CAP_USD = ROUND_CAPS[ROUND] ?? 0;
+if (!/^[a-z0-9]+-[\w-]+$/i.test(RUN) || !ROUND_CAP_USD) {
+  console.error(`explorationEval: a run name of a capped round is required (${Object.keys(ROUND_CAPS).map((k) => `${k}-…`).join(', ')}); nothing was run.`);
+  process.exit(1);
+}
 
 process.env.OPENAI_QUESTIONS_MODEL ||= 'gpt-4.1';
 process.env.OPENAI_REFLECTION_MODEL ||= 'gpt-4.1';
@@ -38,12 +52,13 @@ type AddressPreference = import('../src/hero/addressPreference.ts').AddressPrefe
 // ------------------------------------------------------------------------------------------------ budget
 
 const LEDGER = new URL('../docs/upgrade-2026-10/27-eval-cost-ledger.json', import.meta.url);
-const CAP_USD = 3.0;
-const STOP_AT_USD = 2.85;
-/** Each round of stage-3 runs has its own cap inside the $3: the fix round ('fix-…') $1.20, the quality round ('q-…') $0.85. */
-const ROUND_CAPS: Record<string, number> = { fix: 1.2, q: 0.85 };
-const ROUND = (process.argv[2] ?? '').split('-')[0];
-const ROUND_CAP_USD = ROUND_CAPS[ROUND] ?? 0;
+// her decision of 2026-10-22 (doc 73, step 3): the stage-3 cap raised by $0.12, from $3.00 to $3.12; the stop keeps its $0.15 margin
+// her decision of 2026-10-23 (doc 99): cap and stop raised by $0.0734 to $3.1934, for the pair fixed-input test (run cap $0.11)
+// her decision of 2026-10-24 (doc 105): raised by $0.15 to $3.3434, for one real conversation (run cap $0.20)
+const CAP_USD = 3.3434;
+// her decision of 2026-10-22 (doc 80): the stop moved to the cap; every call is still checked first against its worst-case cost, and each
+// round keeps its own hard cap (the acceptance run: $0.40)
+const STOP_AT_USD = 3.3434;
 const PRICES: Record<string, [number, number]> = { 'gpt-4.1-mini': [0.4, 1.6], 'gpt-4.1': [2, 8], 'gpt-4o-mini': [0.15, 0.6], 'gpt-4o': [2.5, 10] };
 const priceOf = (model: string): [number, number] => {
   const key = Object.keys(PRICES).sort((a, b) => b.length - a.length).find((k) => model.startsWith(k));
@@ -59,8 +74,9 @@ const saveLedger = () => writeFileSync(LEDGER, JSON.stringify(ledger, null, 2));
 const roundSpent = () => ledger.entries.filter((x) => ROUND && x.run.startsWith(`${ROUND}-`)).reduce((a, x) => a + x.usd, 0);
 
 class BudgetStop extends Error {}
-const RUN = process.argv[2] || `run-${Date.now()}`;
 let stage = 'setup';
+/** Every model response of the run, in order: every attempt, not only the first and the last that the reports keep (doc 62, item 5). */
+const responses: { run: string; at: string; stage: string; model: string; text: string }[] = [];
 
 /** Every model call goes through here: budget check before, measured usage after (saved at once, so a crash loses nothing). */
 function meteredClient(real: OpenAI): OpenAI {
@@ -79,6 +95,7 @@ function meteredClient(real: OpenAI): OpenAI {
     const [ain, aout] = priceOf(res.model || params.model);
     const usd = (input * ain + output * aout) / 1_000_000;
     ledger.entries.push({ at: new Date().toISOString(), run: RUN, stage, model: res.model || params.model, input, output, usd, ms });
+    responses.push({ run: RUN, at: new Date().toISOString(), stage, model: res.model || params.model, text: (res as { output_text?: string }).output_text ?? '' });
     ledger.totalUsd = Number((ledger.totalUsd + usd).toFixed(6));
     saveLedger();
     return res;
@@ -147,9 +164,21 @@ const PLANS: Plan[] = [
 
 /** The quality round's new synthetic dreams (doc 37): "dev" = the two development dreams, "sealed" = the three not read before the final run.
     Explored in the order the moments are offered, three of them, a whole view after the first and the third. */
-function newDreamPlans(which: 'dev' | 'sealed'): Plan[] {
-  const url = new URL(`../docs/upgrade-2026-10/37-${which}-dreams.json`, import.meta.url);
+/** Blind dreams and the note that recorded their SHA-256 before the run: the first acceptance set (doc 47), the second (doc 74). */
+const BLIND = { acceptance: ['47-acceptance-dreams.json', '47-acceptance-dreams-note.md'], acceptance2: ['74-acceptance-dreams-2.json', '74-acceptance-dreams-2-note.md'] } as const;
+
+function newDreamPlans(which: 'dev' | 'sealed' | 'acceptance' | 'acceptance2'): Plan[] {
+  const blind = which === 'acceptance' || which === 'acceptance2' ? BLIND[which] : null;
+  const url = new URL(blind ? `../docs/upgrade-2026-10/${blind[0]}` : `../docs/upgrade-2026-10/37-${which}-dreams.json`, import.meta.url);
   if (!existsSync(url)) return [];
+  if (blind) {
+    // blind dreams: the file must be exactly the one whose SHA-256 was recorded before the run, or nothing is sent
+    const note = readFileSync(new URL(`../docs/upgrade-2026-10/${blind[1]}`, import.meta.url), 'utf8');
+    const recorded = note.match(/`([0-9a-f]{64})`/)?.[1];
+    const actual = createHash('sha256').update(readFileSync(url)).digest('hex');
+    if (!recorded || recorded !== actual) throw new Error(`acceptance dreams changed: recorded ${recorded ?? '(none)'}, file ${actual}`);
+    console.log(`acceptance dreams: SHA-256 ${actual} matches the recorded one`);
+  }
   const list = JSON.parse(readFileSync(url, 'utf8')) as { key: string; kind: string; address: AddressPreference; text: string; persona: string; unsureAt: number | null }[];
   return list.map((d) => ({
     key: d.key,
@@ -206,8 +235,10 @@ interface Step {
   unsureLook: boolean;
 }
 
-async function runJourney(plan: Plan) {
-  const log = { plan: plan.key, kind: plan.kind, text: plan.text, segments: [] as string[], moments: [] as { id: string; label: string; labelCandidate: string; text: string; priority: number }[], steps: [] as Step[], wholeViews: [] as unknown[], avoided: 0 };
+/** The journey log is added to sink at once and filled as it goes: a run stopped by the budget still keeps what happened (doc 56, problem 6). */
+async function runJourney(plan: Plan, sink: unknown[]) {
+  const log = { complete: false, plan: plan.key, kind: plan.kind, text: plan.text, segments: [] as string[], moments: [] as { id: string; label: string; labelCandidate: string; text: string; priority: number }[], steps: [] as Step[], wholeViews: [] as unknown[], avoided: 0 };
+  sink.push(log);
   const analysisRun = await timed('analysis', () => runAnalysisModel(client, plan.text));
   if (analysisRun.value.status !== 'ok') throw new Error(`analysis failed for ${plan.key}`);
   const analysis = analysisRun.value.value;
@@ -281,6 +312,7 @@ async function runJourney(plan: Plan) {
       retryMs: null,
       unsureLook: false,
     };
+    log.steps.push(step); // kept even if the run stops before this moment is finished
 
     // 2. "I don't know": no insight call; one different question
     if (isUnsureAnswer(answer)) {
@@ -328,7 +360,7 @@ async function runJourney(plan: Plan) {
       }
       if (planCall('moment-reply', e, id, segmentsOf) === null) log.avoided += 1; // asking for the reply again: refused
       if (fq) {
-        const fAnswer = await dreamerAnswer(plan, fq, history, 'Now give the concrete detail that was missing.');
+        const fAnswer = await dreamerAnswer(plan, fq, history, rr.value.value.missingInformation ? 'Now give the concrete detail that was missing.' : 'Answer this question plainly, in one or two sentences.');
         history.push(fAnswer);
         e = X.answerFollowUp(e, id, fAnswer);
         step.followUp = { question: fq, missing: rr.value.value.missingInformation, answer: fAnswer };
@@ -350,7 +382,6 @@ async function runJourney(plan: Plan) {
     }
     const ins = e.explored[id].insight!;
     step.insight = { observation: ins.observation, reflection: ins.reflection, possibility: ins.possibility, kind: ins.kind ?? 'interpretive' };
-    log.steps.push(step);
 
     // 4. the whole view, when planned (and its one retry after a factual summary)
     if (plan.wholeAfter.includes(X.exploredCount(e))) {
@@ -367,6 +398,7 @@ async function runJourney(plan: Plan) {
       if (planCall('whole-view', e, null, segmentsOf) === null) log.avoided += 1; // the same whole view again: refused
     }
   }
+  log.complete = true;
   return log;
 }
 
@@ -389,20 +421,39 @@ const out: { run: string; journeys: unknown[]; stoppedForBudget: string | null; 
 const before = ledger.totalUsd;
 const only = process.argv[3];
 const plans =
-  only === 'dev' || only === 'sealed'
+  only === 'dev' || only === 'sealed' || only === 'acceptance' || only === 'acceptance2'
     ? newDreamPlans(only)
     : [...PLANS, ...(only === 'hidden' || only === 'all' ? [hiddenPlan()].filter((p): p is Plan => p !== null) : [])];
+// the phase-2 development run: the two development dreams only, two moments each, to stay inside $0.15 (dev-a: a first look and a whole view; dev-b, with its "I don't know": a whole view)
+if (ROUND === 'p2dev') {
+  if (only !== 'dev' || plans.length !== 2) throw new Error('the phase-2 development run uses the two development dreams only: npx tsx scripts/explorationEval.ts p2dev-1 dev');
+  for (const pl of plans) Object.assign(pl, { count: 2, wholeAfter: pl.key === 'dev-a' ? [1, 2] : [2] });
+}
+// the development run after the prompt hardening (doc 61), inside $0.10: dev-a as in p2dev-1 (to compare), then dev-b's first moment
+// (its "I don't know", masculine address) with a first look; the cap may stop dev-b, whose partial journey is now saved
+if (ROUND === 'p3dev') {
+  if (only !== 'dev' || plans.length !== 2) throw new Error('this development run uses the two development dreams only: npx tsx scripts/explorationEval.ts p3dev-1 dev');
+  for (const pl of plans) Object.assign(pl, pl.key === 'dev-a' ? { count: 2, wholeAfter: [1, 2] } : { count: 1, wholeAfter: [1] });
+}
+// the development run after the fix rounds of docs 62 and 65 (doc 68, option A), inside $0.10: the same plan as p2dev-1, to compare
+// (dev-a: a first look and a whole view; dev-b, with its "I don't know": a whole view); the cap may stop dev-b, which is then saved partly
+if (ROUND === 'p4dev') {
+  if (only !== 'dev' || plans.length !== 2) throw new Error('this development run uses the two development dreams only: npx tsx scripts/explorationEval.ts p4dev-1 dev');
+  for (const pl of plans) Object.assign(pl, { count: 2, wholeAfter: pl.key === 'dev-a' ? [1, 2] : [2] });
+}
+if (ROUND === 'acc2' && (only !== 'acceptance2' || plans.length !== 3)) throw new Error('the second acceptance run ("acc2-…") runs the three sealed dreams of doc 74 only: npx tsx scripts/explorationEval.ts acc2-1 acceptance2');
+if (ROUND === 'acc' && (only !== 'acceptance' || plans.length !== 3)) throw new Error('an acceptance run ("acc-…") runs the three blind dreams only: npx tsx scripts/explorationEval.ts acc-1 acceptance');
 try {
   for (const plan of plans) {
-    if (only && !['all', 'dev', 'sealed'].includes(only) && plan.key !== only) continue;
+    if (only && !['all', 'dev', 'sealed', 'acceptance', 'acceptance2'].includes(only) && plan.key !== only) continue;
     console.log(`journey ${plan.key}...`);
-    out.journeys.push(await runJourney(plan));
+    await runJourney(plan, out.journeys);
   }
 } catch (err) {
   if (err instanceof BudgetStop) out.stoppedForBudget = err.message;
   else throw err;
 } finally {
   out.spentThisRunUsd = Number((ledger.totalUsd - before).toFixed(6));
-  writeFileSync(new URL(`../docs/upgrade-2026-10/33-stage3b-fix-eval-${RUN}.json`, import.meta.url), JSON.stringify({ ...out, calls: ledger.entries.filter((x) => x.run === RUN) }, null, 2));
+  writeFileSync(new URL(`../docs/upgrade-2026-10/33-stage3b-fix-eval-${RUN}.json`, import.meta.url), JSON.stringify({ ...out, calls: ledger.entries.filter((x) => x.run === RUN), responses: responses.filter((r) => r.run === RUN) }, null, 2));
   console.log(`spent this run $${out.spentThisRunUsd.toFixed(4)}; this round ${roundSpent().toFixed(4)} of ${ROUND_CAP_USD}; stage-3 total $${ledger.totalUsd.toFixed(4)} of $${CAP_USD}`);
 }

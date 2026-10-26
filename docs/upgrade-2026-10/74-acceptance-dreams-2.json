@@ -1,0 +1,26 @@
+[
+  {
+    "key": "acc2-1",
+    "kind": "מוכתב",
+    "address": "feminine",
+    "text": "הייתי באולם של בית הספר היסודי שלי עם אחותי נועה והמורה שלי לחשבון מכיתה ד והיא נתנה לי מנורה קטנה כחולה ואמרה לי לשמור עליה עד שייגמר הטקס ואז האולם התחיל לזוז לאט ופתאום הבנתי שזה בעצם אונייה גדולה והייתי בטוחה שאנחנו נוסעים לקפריסין ונועה ישבה על ספסל ואכלה תפוז ולא הסתכלה עליי ואני רציתי לעלות למעלה לסיפון לראות לאן אנחנו שטים אבל המדרגות היו צרות מדי והרגליים שלי לא הצליחו לעלות אפילו מדרגה אחת ואז אבא שלי הופיע עם מגש של כוסות תה ושאל אותי איפה שמתי אותה ואני הסתכלתי על הידיים שלי והן היו ריקות ואז התעוררתי",
+    "persona": "A 34-year-old woman who works as a speech therapist at a public clinic in Be'er Sheva; she is married with a four-year-old son and recently started an evening photography course.",
+    "unsureAt": null
+  },
+  {
+    "key": "acc2-2",
+    "kind": "מתחלף",
+    "address": "masculine",
+    "text": "אני בחנות כלי עבודה ישנה, מחפש בורג מסוים למדף שאני בונה בבית. המוכר, איש מבוגר עם משקפיים עבים, מושיט לי קופסה מלאה ברגים, ואני מחפש ומחפש ולא מוצא את המידה הנכונה. כשאני מרים את הראש, המוכר כבר לא איש אלא עץ זית קטן בתוך עציץ, והוא אומר לי בשקט: \"אתה כבר יודע איזה צריך.\" אולי זה היה הקול של אחי. אני יוצא מהחנות בלי כלום ביד.",
+    "persona": "A 41-year-old man who works as a logistics coordinator for a food distributor in Haifa; he is divorced, sees his two daughters on weekends, and has been training for a 10K run.",
+    "unsureAt": 1
+  },
+  {
+    "key": "acc2-3",
+    "kind": "קצר",
+    "address": "neutral",
+    "text": "ישבתי על מרפסת של דירה שלא הכרתי, ומישהו בחדר הסמוך ניגן בפסנתר את אותו משפט קצר שוב ושוב. השמיים היו ורודים, ולא רציתי לזוז משם.",
+    "persona": "A 26-year-old graduate student in biology at a university in Jerusalem who works part-time at a plant nursery and shares an apartment with two roommates.",
+    "unsureAt": null
+  }
+]

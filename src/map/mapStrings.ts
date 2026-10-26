@@ -34,6 +34,10 @@ const HE = {
   contrast: 'מה שונה',
   readings: 'קריאות אפשריות',
   closingQuestion: 'שאלה להמשך',
+  takeaways: 'מה לקחתי מהחלום',
+  takeawaysMine: 'מה שהתחבר לי',
+  takeawaysIdeas: 'רעיונות ש־DARE הציעה',
+  takeawaysOpen: 'שאלות שנשארו פתוחות',
   stale: 'נחקרו רגעים חדשים מאז שהמבט השלם נכתב.',
   update: 'לעדכן את המבט השלם',
   updatesLeft: (n: number) => (n === 1 ? 'אפשר לעדכן עוד פעם אחת' : `אפשר לעדכן עוד ${n} פעמים`),
@@ -52,6 +56,17 @@ const HE = {
   exploreAnother: 'לחקור עוד רגע',
   allExplored: 'כל הרגעים נחקרו',
   protoNoop: 'באבטיפוס הכפתור הזה לא מוביל לשום מקום.',
+  // the map inside the real journey
+  continueJourney: 'להמשיך',
+  preparingMoments: 'מכינים את רגעי החלום…',
+  troubleTurn: 'DARE לא הצליחה לענות כרגע. אפשר לנסות שוב בעוד רגע.',
+  troubleLimit: 'הגענו לגבול השיחה לחלום הזה.',
+  rejectionsUsed: 'השתמשת בשלוש התגובות לדחייה בחלום הזה. אפשר לכתוב לאן להמשיך, או לבחור רגע אחר.',
+  summaryHeldBack: 'הסיכום לא עבר את בדיקת הבטיחות, ולכן הוא לא מוצג. אפשר לנסות שוב בעוד רגע.',
+  summaryLimit: 'כבר נוצרו כל הסיכומים האפשריים לחלום הזה.',
+  summarySafety: 'לא ניתן להכין סיכום לשיחה הזו. אם קשה לך עכשיו, אפשר לדבר עם ער"ן בטלפון 1201.',
+  summaryNeedsMoment: 'כדי לראות מה עלה, צריך קודם לשוחח על רגע אחד לפחות.',
+  summaryFailed: 'לא הצלחנו להכין את הסיכום כרגע. אפשר לנסות שוב בעוד רגע.',
 };
 
 type MapStrings = typeof HE;
@@ -89,6 +104,10 @@ const EN: MapStrings = {
   contrast: 'What differs',
   readings: 'Possible readings',
   closingQuestion: 'A question to keep',
+  takeaways: 'What I took from the dream',
+  takeawaysMine: 'What connected with me',
+  takeawaysIdeas: 'Ideas DARE offered',
+  takeawaysOpen: 'Questions left open',
   stale: 'New moments were explored since the whole view was written.',
   update: 'Update the whole view',
   updatesLeft: (n) => (n === 1 ? 'One more update is possible' : `${n} more updates are possible`),
@@ -107,6 +126,16 @@ const EN: MapStrings = {
   exploreAnother: 'Explore another moment',
   allExplored: 'Every moment is explored',
   protoNoop: 'In the prototype this button goes nowhere.',
+  continueJourney: 'Continue',
+  preparingMoments: 'Preparing the moments of your dream…',
+  troubleTurn: "DARE couldn't answer just now. You can try again in a moment.",
+  troubleLimit: 'This dream has reached the end of its conversation.',
+  rejectionsUsed: "You've used the three replies to “This doesn't fit me” for this dream. You can write where to go next, or choose another moment.",
+  summaryHeldBack: "The summary didn't pass the safety check, so it isn't shown. You can try again in a moment.",
+  summaryLimit: 'Every possible summary for this dream has already been made.',
+  summarySafety: "A summary can't be made for this conversation. If things feel hard right now, you can talk with ERAN at 1201.",
+  summaryNeedsMoment: 'To see what came up, talk about at least one moment first.',
+  summaryFailed: "We couldn't prepare the summary just now. You can try again in a moment.",
 };
 
 export function mapStrings(language: MapLanguage): MapStrings {

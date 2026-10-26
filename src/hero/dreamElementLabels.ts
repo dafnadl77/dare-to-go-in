@@ -20,7 +20,7 @@ const KNOWN_REASONS: ElementLabelErrorReason[] = [
  * content — a failure returns a controlled error result so the caller can
  * fall back to the raw elements rather than block.
  */
-export async function getElementLabelsInLanguage(sourceText: string, elements: string[], language: AppLanguage, attemptId?: string): Promise<ElementLabelsResult> {
+export async function getElementLabelsInLanguage(sourceText: string, elements: string[], language: AppLanguage, attemptId?: string, purpose?: 'moments'): Promise<ElementLabelsResult> {
   try {
     const authHeader = await getAuthHeader();
     // A timeout aborts and lands in the catch below as request_failed: the caller falls back to the raw elements.
@@ -29,7 +29,7 @@ export async function getElementLabelsInLanguage(sourceText: string, elements: s
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeader },
-        body: JSON.stringify({ sourceText, elements, language, attemptId }),
+        body: JSON.stringify({ sourceText, elements, language, attemptId, ...(purpose ? { purpose } : {}) }),
       },
       { timeoutMs: LABELS_TIMEOUT_MS },
     );
@@ -80,4 +80,9 @@ export async function getDisplayLabels(
   language: AppLanguage = getAppLanguage(),
 ): Promise<ElementLabelsResult> {
   return getElementLabelsInLanguage(sourceText, phrases, language, attemptId);
+}
+
+/** Short titles for the dream map's moments (each a whole event of the dream, in the dream's own words), in the journey's language. */
+export async function getMomentLabels(sourceText: string, momentTexts: string[], attemptId: string, language: AppLanguage): Promise<ElementLabelsResult> {
+  return getElementLabelsInLanguage(sourceText, momentTexts, language, attemptId, 'moments');
 }

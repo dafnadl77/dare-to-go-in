@@ -222,7 +222,8 @@ test('dev run 1: "ואני לא יודע" is the dreamer; "את תשומת לי�
 
 test('dev run 1: a modest closing goes back to her feeling word or to the moment by name, never to her first three words', () => {
   const s = { language: 'he' as const, sourceText: RICH, segments: SEGS, explored: [{ id: 'm1', label: 'המפתח הקטן מדי', segments: [seg('קטן מדי')], answers: ['כשגעתי אל הדלת ראיתי שהוא קטן'], question: 'q?', insight: null }], unexplored: [], previous: null, maxReadings: 2 };
-  assert.equal(C.modestClosing(s), 'מה עוד עולה כשחוזרים לרגע «המפתח הקטן מדי»?');
+  // (doc 70: an open question about the moment, never the general "מה עוד עולה…")
+  assert.equal(C.modestClosing(s), 'מה הרגע «המפתח הקטן מדי» מזכיר לך, אם בכלל?');
 });
 
 // ------------------------------------------------------------------------------------------------ found in development run q-dev-2 (added after it)

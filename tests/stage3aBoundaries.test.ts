@@ -68,9 +68,13 @@ test('an older dream (no exploration) reads exactly as before, and adding a jour
 });
 
 test('stage 3a did not touch the archive views or the saved-dream readers', () => {
-  for (const f of ['src/archive/DreamDetail.tsx', 'src/archive/archiveData.ts', 'src/archive/DreamArchive.tsx', 'src/hero/dreamRemoteStorage.ts', 'server/routes/patternReflection.ts']) {
+  for (const f of ['src/archive/archiveData.ts', 'src/archive/DreamArchive.tsx', 'src/hero/dreamRemoteStorage.ts', 'server/routes/patternReflection.ts']) {
     assert.doesNotMatch(read(f), /exploration|openJourney/i, f);
   }
+  // since the dream map joined the journey (approved 2026-10-26), the saved dream's page shows a map dream; it only reads it
+  const detail = read('src/archive/DreamDetail.tsx');
+  assert.match(detail, /parseExploration\(savedDream\.exploration\)/);
+  assert.doesNotMatch(detail, /openJourney/i);
 });
 
 // ------------------------------------------------------------------------------------------------ 4. resuming never makes a picture or spends a credit
@@ -95,8 +99,12 @@ test('a resumed journey carries what it needs so nothing is redone: the same att
 // ------------------------------------------------------------------------------------------------ 3. the prototype demo stays out of the regular app
 
 test('the prototype and its demo are reachable only from the development page, never from the app', () => {
+  // since the dream map joined the journey (approved 2026-10-26) the app imports the map itself, and only these files do
   const importersOfMap = sourceFiles('src/').filter((f) => !f.startsWith('src/map/') && /from ['"][./]*map\//.test(read(f)));
-  assert.deepEqual(importersOfMap, [], 'no app file imports src/map');
+  assert.deepEqual(importersOfMap.sort(), ['src/archive/DreamDetail.tsx', 'src/hero/HeroDream.tsx']);
+  // the development pages' own parts (prototype, scripted and live conversations) are never imported by the app or by the journey's map
+  const devOnly = /DreamMapPrototype|ConversationDemo|conversationScript|conversationLive|PairConversation|pairConversationScript|prototypeMain|conversationMain|syntheticDreams/;
+  for (const f of [...importersOfMap, 'src/map/DreamJourneyMap.tsx', 'src/map/journeyRecord.ts', 'src/map/DreamMap.tsx', 'src/map/ConversationThread.tsx']) assert.doesNotMatch(read(f), devOnly, f);
   assert.doesNotMatch(read('src/main.tsx') + read('src/App.tsx'), /src\/map|\.\/map\/|prototype/i);
   assert.match(read('dream-map-prototype.html'), /src\/map\/prototypeMain\.tsx/);
   assert.doesNotMatch(read('vite.config.ts'), /dream-map|rollupOptions|input:/, 'the build has one entry: index.html');

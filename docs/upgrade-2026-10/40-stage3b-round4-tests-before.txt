@@ -1,0 +1,17 @@
+# Stage 3b round 4 — the new tests against the code as committed in 2770e29 (before this round's fixes), 2026-10-21T16:02Z
+
+✖ 1. a possibility may not explain WHY with a cause she did not give ("כי", "גרם לך"), even hedged (8.5069ms)
+✖ 1. a possibility may not give her a wish or a therapy aim she did not say ("מרמז על רצון", "מבטא רצון", "לעבד תחושות") (1.6622ms)
+✖ 1. her own cause or wish may be given back: when she said "הייתי רוצה" or "כי", the possibility may use it (4.968ms)
+✖ 2. a question may not take a dream relationship as her real life ("מה את מרגישה כלפי אמא שלך ברגעים שבהם…") (13.9569ms)
+✔ 2. asking whether the dream reminds her of something in her life is welcome (7.7011ms)
+✖ 3. a dictated dream: the garden, the dog walking backwards and the school memory are separate, with no duplicate moments (0.3997ms)
+✖ 4. after "I don't know", a question about the same moment from another angle is not refused as a repeat (1.7773ms)
+✖ 5. a good label from the labels model is kept even with one paraphrase word ("סיום התור ללא קופאית", "חום ונפילה לחול") (1.3379ms)
+✖ 5. Hebrew read correctly: "באילו" asks a question; "ואף אחד לא" is one negation; "ראית" is the dream's "רואה" (9.1628ms)
+✖ 5. her own first-person sentence is given back naturally in the second person, not pasted as a quote (0.3963ms)
+✖ 6. plural feelings are feelings; plural ordinary nouns are not (0.3517ms)
+ℹ tests 11
+ℹ pass 1
+ℹ fail 10
+✖ failing tests:

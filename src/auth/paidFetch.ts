@@ -13,6 +13,7 @@
  * It is never retried here: a timeout must not become a second request.
  */
 import { carriesBearerToken, dropRevokedSession } from './revokedSession';
+import { AGE_REQUIRED_EVENT, sessionStopped } from '../hero/safety/sessionStop';
 
 let inFlight: Promise<void> | null = null;
 
@@ -51,7 +52,16 @@ export function ensureTrialSession(): Promise<void> {
 }
 
 async function runPaidFetch(input: string, init: RequestInit | undefined): Promise<Response> {
+  // After immediate danger or a threat this page asks nothing more of the AI (safety/sessionStop.ts): nothing is sent.
+  const stopped = sessionStopped();
+  if (stopped) return new Response(JSON.stringify({ safety: { level: stopped } }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   const res = await fetch(input, init);
+  if (res.status === 403) {
+    const reason = await res.clone().json().then((b: unknown) => (b && typeof b === 'object' ? (b as { reason?: unknown }).reason : null)).catch(() => null);
+    // The server asks for the age question (age_required): the app shows it; the caller still gets the refusal.
+    if (reason === 'age_required' && typeof window !== 'undefined') window.dispatchEvent(new Event(AGE_REQUIRED_EVENT));
+    return res;
+  }
   if (res.status !== 401) return res;
   const body: unknown = await res
     .clone()

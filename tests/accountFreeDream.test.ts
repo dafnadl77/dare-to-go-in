@@ -466,6 +466,7 @@ function analysisHarness(settle: DreamAnalysisDeps['settleFreeDream'], identity:
       models += 1;
       return { status: 'ok', value: { summary: 'x' } };
     }) as DreamAnalysisDeps['runModel'],
+    moderate: async () => ({ status: 'ok' as const, hit: false }),
     settleFreeDream: settle,
   };
   return { deps, starts, models: () => models };

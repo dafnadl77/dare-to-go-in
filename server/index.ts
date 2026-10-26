@@ -65,7 +65,7 @@ app.post('/api/dream-transcription', async (req, res) => {
 });
 
 app.post('/api/trial-session', async (req, res) => {
-  send(res, await handleTrialSession(requestHeaders(req)));
+  send(res, await handleTrialSession(requestHeaders(req), {}, req.body));
 });
 
 app.post('/api/delete-account', async (req, res) => {

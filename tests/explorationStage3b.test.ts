@@ -110,6 +110,7 @@ function fakeDeps(over: Partial<ExplorationDeps> = {}) {
       log.push('model');
       return { status: 'ok', value: { overview: 'מבט', recurring: null, contrast: null, readings: [], closingQuestion: 'שאלה?', connections: [] } };
     }) as never,
+    moderate: async () => ({ status: 'ok' as const, hit: false }),
     ...over,
   };
   return { deps, log };
@@ -369,7 +370,8 @@ test('real-sample gaps are now caught: feminine address with negation or a two-l
   );
   // (quality round, 2026-10-21: a closing question that fails its checks is replaced by a safe one built from her words, never left empty)
   assert.notEqual(w.view.closingQuestion, 'מה עוד מחכה מאחורי ההבטחה של אחיך?', 'the previous closing question is not asked again');
-  assert.match(w.view.closingQuestion, /«.+»\?$/, 'a safe closing question built from her own words takes its place');
+  // (doc 70: the code's closing is now an open question about her word, "מה המילה «…» מזכירה לך, אם בכלל?")
+  assert.match(w.view.closingQuestion, /«.+».*\?$/, 'a safe closing question built from her own words takes its place');
 });
 
 test('a vague answer ("something that happened with my brother") asks for its clarification; a mixed pair is never put in the feminine plural', async () => {

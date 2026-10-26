@@ -1,0 +1,23 @@
+# 111 · stage ב tests BEFORE the code (2026-10-24)
+ℹ tests 20
+ℹ pass 5
+ℹ fail 15
+  AssertionError [ERR_ASSERTION]: answer: «אני חושבת לבלוע את כל הכדורים שיש בארון» → none, expected concern / danger
+    expected: true,
+  AssertionError [ERR_ASSERTION]: answer: «אספתי כדורים כבר כמה שבועות, ליתר ביטחון» → none, expected concern / danger
+    expected: true,
+    expected: false,
+    expected: /const LIVE_WORDS_ENABLED = false;/,
+    expected: true,
+  Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\server\ageGate' imported from E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\stageB.test.ts
+  Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\server\ageGate' imported from E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\stageB.test.ts
+    expected: 200,
+    expected: /resolveAdultCaller/,
+    expected: true,
+    expected: /dareWordsSafe\(/,
+  Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\src\hero\safety\sessionStop' imported from E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\stageB.test.ts
+
+# 2026-10-24, her change: the live words STAY. Test 1 was rewritten before any code: it now requires them to stay and the privacy policy to name where their audio goes. Before:
+ℹ pass 0
+ℹ fail 1
+    expected: /speech recognition/i,

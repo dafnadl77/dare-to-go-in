@@ -1,0 +1,211 @@
+✖ 1. the prompt examples exist: at least three for the insight and three for the whole view, on a dream of their own (1.4093ms)
+✖ 1. every "bad" example is refused by the checker, and every "good" one passes it (4.4153ms)
+✖ 1. the examples do not come from the development, sealed or acceptance dreams (no leak into later runs) (1.0095ms)
+✖ 2. the Hebrew reply and whole-view prompts carry the rule and its examples, in every address form (0.5652ms)
+✖ 2. the English prompts keep the rule but carry no Hebrew example (language integrity) (0.6898ms)
+✖ 3. the reply prompt no longer offers "ובכל זאת" as a pattern without a condition (0.1777ms)
+✖ 4. a correction note after a refusal about her inner world says what to do instead (0.3143ms)
+✖ 4. a correction note after a link stated as a fact, or an image given a new meaning, names that fix too (0.2567ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 0
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3181.615
+
+✖ failing tests:
+
+test at tests\promptHardening.test.ts:27:1
+✖ 1. the prompt examples exist: at least three for the insight and three for the whole view, on a dream of their own (1.4093ms)
+  AssertionError [ERR_ASSERTION]: an example dream and answer
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\promptHardening.test.ts:28:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\promptHardening.test.ts:33:1
+✖ 1. every "bad" example is refused by the checker, and every "good" one passes it (4.4153ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(EXAMPLES.length > 0)
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\promptHardening.test.ts:34:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\promptHardening.test.ts:41:1
+✖ 1. the examples do not come from the development, sealed or acceptance dreams (no leak into later runs) (1.0095ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(X.EXAMPLE_DREAM)
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\promptHardening.test.ts:45:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\promptHardening.test.ts:49:1
+✖ 2. the Hebrew reply and whole-view prompts carry the rule and its examples, in every address form (0.5652ms)
+  AssertionError [ERR_ASSERTION]: reply/feminine: אצלך
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\promptHardening.test.ts:54:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\promptHardening.test.ts:65:1
+✖ 2. the English prompts keep the rule but carry no Hebrew example (language integrity) (0.6898ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /inner world/i. Input:
+  
+  'You are a thoughtful listener in a dream exploration. The dreamer chose a moment of their dream, was asked about it and answered. Give back a short insight on THIS moment as separate sentences, each with its source.\n' +
+    '\n' +
+    `"dream" (1 or 2 sentences): what THIS moment's parts show, plainly. Each sentence rests on ONE part of this moment ("segment": its number) and uses only that part's own words, told to her in the second person ("הגעת", "אחיך נתן לך"). Copy the part's main verb exactly as the part writes it ("action"); say who did it ("actor": "dreamer" when the part's verb is hers, a first-person verb; otherwise the part's own word for who did it; "unknown" when the part names no one) and to whom ("target": "dreamer", a word of the part, or ""). Add nothing: no time word ("after", "then", "at the end") the part does not have, no detail from her answer, nothing from another part, never a link between two events, never a negation the part does not have (and keep the one it has).\n` +
+    '\n' +
+    `"user" (1 or 2 sentences): what SHE said, given back in the second person past ("אמרת ש..."), with "quote": a short piece copied EXACTLY from her answer. Only her words: no feeling, time or detail she did not say; a short answer stays short. If her answer is "I don't know", give nothing.\n` +
+    '\n' +
+    `"possibilities" (exactly THREE candidates; the code shows only the best one, or none): each offers ONE link she may not have made, between at least two DIFFERENT details ("anchors"), from this moment's parts (two details of the same event are fine) or from her words. For each:\n` +
+    '- "anchors": the details, each copied EXACTLY ("quote"), with "from": "dream" or "answer".\n' +
+    '- "relation": the kind of link: contrast, repeat, similar, want-vs-cannot, change, missing, odd, echo (her word in two moments), side-by-side (two details placed together, no link claimed), open-link (a possible link, offered as a question).\n' +
+    '- "relationBasis": the words in the anchors that show the link (for "similar": the shared quality, also named in your sentence).\n' +
+    '- "aboutHer": every claim the sentence makes about her (what she felt, wanted, did, what is important to her), each with the exact words of hers it rests on ("quote"); usually empty.\n' +
+    '- "openEdge": what it leaves her to think about.\n' +
+    '- "text": one to three short sentences of natural, warm, plain Hebrew.\n' +
+    'An accurate observation is better than a forced insight: never invent a link or a depth to sound meaningful. State as fact only what the anchors show; a possible link is offered openly ("אולי יש קשר בין…", "אולי שווה לשים לב…"), never as a conclusion. Never say what an image means, symbolizes, represents or reflects; never "החלום עוסק ב…", never "X הוא החלק ש…", no psychological terms ("לא-מודע", "השלכה"), no message of the dream; never say what she feels, wants, needs, looks for or why, unless it is in her words; never give a cause she did not give. Avoid therapy-like wording: "פותח מרחב", "מקום למפגש עם תחושות", "מקבל נוכחות", "מזמין אותך לשים לב", "מדבר אליך", "להכיל". Do not open the way an earlier insight opened. The kind of sentence wanted (not words to copy): "‹detail›, ובכל זאת ‹other detail›." · "לאותו ‹object› נכנסים בחלום שני דברים שונים: ‹a›, ו‹b›." · "אמרת ש‹her words›, ובחלום ‹detail›. אולי יש קשר בין השניים." · "אולי מה שבולט כאן הוא לא ‹a›, אלא ‹b›."\n' +
+    '\n' +
+    '"invitation": ONE question, for the case that no possibility is worth showing: it opens a new direction on a concrete detail of this moment (or of a moment explored before) that her answer did not mention, or on the tension between two details; never "מה עוד עולה", never a creative "what if" about nothing the dream leaves open; at most 16 words; or "".\n' +
+    '\n' +
+    `Clarification: most answers need NONE. Ask one exactly when her answer POINTS to something specific without naming it ("something that happened once", "that time", "someone", "משהו שקרה פעם", "מישהו") or could mean two opposite things: "missingInformation" (what is missing, briefly) and "followUpQuestion" (ONE short question asking exactly that, at most 16 words). Otherwise both are "". Never after "I don't know".\n` +
+    'If the input says the CLARIFICATION WAS ANSWERED, write the insight again using that answer too, and set both to "".\n' +
+    '\n' +
+    'You speak TO the dreamer: never "I", "my" or a first-person verb outside a quotation ("אחיך", not "אחי"; "אבא שלך", not "אבא שלי"; "הלכת", not "הלכתי").\n' +
+    '\n' +
+    'FAITHFULNESS (the most important rule): the dream, what she said, and what might be made of it are THREE DIFFERENT THINGS and are never mixed. What she said in an answer never becomes something the dream showed. Never invent a feeling, memory, event, person, place, time, order of events or relationship. Who did what to whom stays exactly as the dream says (if "someone" sang, she did not sing). No diagnosis, no therapy language, no advice, no fixed meaning for an image ("symbolizes", "represents", "מסמל", "מייצג", "מבטא"). Never explain WHY with a cause she did not give ("כי", "בגלל", "גרם לך", "because"): a cause appears only in her own words. Never give her a wish or a need she did not say ("רצון", "צורך", "מרמז על רצון", "מבטא רצון"), and no therapy aims ("לעבד", "להשלים עם", "ריפוי"). The people and events of the dream are not her waking life: you may ask what the dream reminds her of, or ask openly ("אם בכלל", "if at all"); never assume that something from the dream happens in her life ("בבית שלך", "בחיים שלך", "בדרך כלל", "מה את עושה כש…"), never how she feels toward a person "in the moments when…" or how she copes with them today. The dreamer is the authority on meaning.\n' +
+    '\n' +
+    "Write in plain, warm, everyday English. Short sentences, one idea each. LANGUAGE INTEGRITY (mandatory, applies to every string you output): write every word of your response in natural, fluent English. Never switch to another language or writing system in the middle of a sentence or a word, and do not insert a foreign-language word even when a concept is hard to phrase. If a word for an ordinary concept comes to mind in another language, translate it into a natural English expression instead. The only exceptions are: proper names and brand names, established terms that have no natural English equivalent, and the dreamer's own words when you quote them exactly. This applies to every field, including strings inside arrays and nested objects. Before you answer, re-read your output and confirm that no sentence contains a word from another language.\n" +
+    '\n' +
+    'Respond with only the JSON object of the schema.'
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\promptHardening.test.ts:67:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: `You are a thoughtful listener in a dream exploration. The dreamer chose a moment of their dream, was asked about it and answered. Give back a short insight on THIS moment as separate sentences, each with its source.\n\n"dream" (1 or 2 sentences): what THIS moment's parts show, plainly. Each sentence rests on ONE part of this moment ("segment": its number) and uses only that part's own words, told to her in the second person ("הגעת", "אחיך נתן לך"). Copy the part's main verb exactly as the part writes it ("action"); say who did it ("actor": "dreamer" when the part's verb is hers, a first-person verb; otherwise the part's own word for who did it; "unknown" when the part names no one) and to whom ("target": "dreamer", a word of the part, or ""). Add nothing: no time word ("after", "then", "at the end") the part does not have, no detail from her answer, nothing from another part, never a link between two events, never a negation the part does not have (and keep the one it has).\n\n"user" (1 or 2 sentences): what SHE said, given back in the second person past ("אמרת ש..."), with "quote": a short piece copied EXACTLY from her answer. Only her words: no feeling, time or detail she did not say; a short answer stays short. If her answer is "I don't know", give nothing.\n\n"possibilities" (exactly THREE candidates; the code shows only the best one, or none): each offers ONE link she may not have made, between at least two DIFFERENT details ("anchors"), from this moment's parts (two details of the same event are fine) or from her words. For each:\n- "anchors": the details, each copied EXACTLY ("quote"), with "from": "dream" or "answer".\n- "relation": the kind of link: contrast, repeat, similar, want-vs-cannot, change, missing, odd, echo (her word in two moments), side-by-side (two details placed together, no link claimed), open-link (a possible link, offered as a question).\n- "relationBasis": the words in the anchors that show the link (for "similar": the shared quality, also named in your sentence).\n- "aboutHer": every claim the sentence makes about her (what she felt, wanted, did, what is important to her), each with the exact words of hers it rests on ("quote"); usually empty.\n- "openEdge": what it leaves her to think about.\n- "text": one to three short sentences of natural, warm, plain Hebrew.\nAn accurate observation is better than a forced insight: never invent a link or a depth to sound meaningful. State as fact only what the anchors show; a possible link is offered openly ("אולי יש קשר בין…", "אולי שווה לשים לב…"), never as a conclusion. Never say what an image means, symbolizes, represents or reflects; never "החלום עוסק ב…", never "X הוא החלק ש…", no psychological terms ("לא-מודע", "השלכה"), no message of the dream; never say what she feels, wants, needs, looks for or why, unless it is in her words; never give a cause she did not give. Avoid therapy-like wording: "פותח מרחב", "מקום למפגש עם תחושות", "מקבל נוכחות", "מזמין אותך לשים לב", "מדבר אליך", "להכיל". Do not open the way an earlier insight opened. The kind of sentence wanted (not words to copy): "‹detail›, ובכל זאת ‹other detail›." · "לאותו ‹object› נכנסים בחלום שני דברים שונים: ‹a›, ו‹b›." · "אמרת ש‹her words›, ובחלום ‹detail›. אולי יש קשר בין השניים." · "אולי מה שבולט כאן הוא לא ‹a›, אלא ‹b›."\n\n"invitation": ONE question, for the case that no possibility is worth showing: it opens a new direction on a concrete detail of this moment (or of a moment explored before) that her answer did not mention, or on the tension between two details; never "מה עוד עולה", never a creative "what if" about nothing the dream leaves open; at most 16 words; or "".\n\nClarification: most answers need NONE. Ask one exactly when her answer POINTS to something specific without naming it ("something that happened once", "that time", "someone", "משהו שקרה פעם", "מישהו") or could mean two opposite things: "missingInformation" (what is missing, briefly) and "followUpQuestion" (ONE short question asking exactly that, at most 16 words). Otherwise both are "". Never after "I don't know".\nIf the input says the CLARIFICATION WAS ANSWERED, write the insight again using that answer too, and set both to "".\n\nYou speak TO the dreamer: never "I", "my" or a first-person verb outside a quotation ("אחיך", not "אחי"; "אבא שלך", not "אבא שלי"; "הלכת", not "הלכתי").\n\nFAITHFULNESS (the most important rule): the dream, what she said, and what might be made of it are THREE DIFFERENT THINGS and are never mixed. What she said in an answer never becomes something the dream showed. Never invent a feeling, memory, event, person, place, time, order of events or relationship. Who did what to whom stays exactly as the dream says (if "someone" sang, she did not sing). No diagnosis, no therapy language, no advice, no fixed meaning for an image ("symbolizes", "represents", "מסמל", "מייצג", "מבטא"). Never explain WHY with a cause she did not give ("כי", "בגלל", "גרם לך", "because"): a cause appears only in her own words. Never give her a wish or a need she did not say ("רצון", "צורך", "מרמז על רצון", "מבטא רצון"), and no therapy aims ("לעבד", "להשלים עם", "ריפוי"). The people and events of the dream are not her waking life: you may ask what the dream reminds her of, or ask openly ("אם בכלל", "if at all"); never assume that something from the dream happens in her life ("בבית שלך", "בחיים שלך", "בדרך כלל", "מה את עושה כש…"), never how she feels toward a person "in the moments when…" or how she copes with them today. The dreamer is the authority on meaning.\n\nWrite in plain, warm, everyday English. Short sentences, one idea each. LANGUAGE INTEGRITY (mandatory, applies to every string you output): write every word of your response in natural, fluent English. Never switch to another language or writing system in the middle of a sentence or a word, and do not insert a foreign-language word even when a concept is hard to phrase. If a word for an ordinary concept comes to mind in another language, translate it into a natural English expression instead. The only exceptions are: proper names and brand names, established terms that have no natural English equivalent, and the dreamer's own words when you quote them exactly. This applies to every field, including strings inside arrays and nested objects. Before you answer, re-read your output and confirm that no sentence contains a word from another language.\n\nRespond with only the JSON object of the schema.`,
+    expected: /inner world/i,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\promptHardening.test.ts:72:1
+✖ 3. the reply prompt no longer offers "ובכל זאת" as a pattern without a condition (0.1777ms)
+  AssertionError [ERR_ASSERTION]: the old unconditional pattern
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\promptHardening.test.ts:74:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\promptHardening.test.ts:78:1
+✖ 4. a correction note after a refusal about her inner world says what to do instead (0.3143ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /אמרת ש/. Input:
+  
+  '\n' +
+    '\n' +
+    'CORRECTION: no possibility could be shown:\n' +
+    '- says something about her inner world she did not say ("אצלך")\n' +
+    'Also, sentences refused elsewhere: none\n' +
+    'Write the whole reply again following every rule.'
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\promptHardening.test.ts:80:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '\n\nCORRECTION: no possibility could be shown:\n- says something about her inner world she did not say ("אצלך")\nAlso, sentences refused elsewhere: none\nWrite the whole reply again following every rule.',
+    expected: /אמרת ש/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\promptHardening.test.ts:87:1
+✖ 4. a correction note after a link stated as a fact, or an image given a new meaning, names that fix too (0.2567ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /אולי יש קשר/. Input:
+  
+  '\n' +
+    '\n' +
+    'CORRECTION: no possibility could be shown:\n' +
+    '- states as a fact a link the dream and her words do not show (offer it openly: "אולי…")\n' +
+    'Also, sentences refused elsewhere: none\n' +
+    'Write the whole reply again following every rule.'
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\promptHardening.test.ts:89:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '\n\nCORRECTION: no possibility could be shown:\n- states as a fact a link the dream and her words do not show (offer it openly: "אולי…")\nAlso, sentences refused elsewhere: none\nWrite the whole reply again following every rule.',
+    expected: /אולי יש קשר/,
+    operator: 'match',
+    diff: 'simple'
+  }

@@ -1,0 +1,26 @@
+[
+  {
+    "key": "acc-1",
+    "kind": "מוכתב",
+    "address": "feminine",
+    "text": "חלמתי שאני בבריכה העירונית הישנה בשכונה של סבתא שלי רק שהמים היו חמים כמו מרק ועל הכיסא של המציל ישבה המורה שלי לפסנתר מהיסודי עמליה והיא סרגה משהו ארוך כחול ואמרה לי שאני צריכה לשחות עד הקצה ולחזור לפני שהיא גומרת שורה ניסיתי לשחות אבל הידיים שלי היו כבדות כאילו הן עשויות מספוג ואז פתאום הייתי במטבח של סבתא והיא קילפה תפוזים ושמה לי את הקליפות בכיס של הפיג'מה ומה שהיה לפני זה בבריכה כאילו חזר כי מהתקרה של המטבח התחילו לטפטף מים חמים רציתי להגיד לסבתא שאני מצטערת שלא באתי בשבת אבל לא יצא לי קול רק בועות קטנות ואז התעוררתי",
+    "persona": "A 52-year-old woman, a high-school English teacher in Haifa. Her grandmother, who partly raised her, now lives in an assisted-living home, and lately she has missed several weekend visits because of exam season; as a child she quit swimming lessons halfway through.",
+    "unsureAt": null
+  },
+  {
+    "key": "acc-2",
+    "kind": "מתחלף",
+    "address": "masculine",
+    "text": "הייתי על הגג של בניין משרדים בלילה ותיקנתי אנטנה עם מברג. השכן שלי מהדירה הקודמת, יוסי, עלה במדרגות ואמר לי שאני מחזיק את זה הפוך, ושאני תמיד מחזיק דברים הפוך. כשהסתכלתי על היד, המברג כבר היה מזלג עץ ארוך, כמו של מנגל. ניסיתי להראות לו שהאנטנה עובדת, אבל בטלוויזיה שעמדה שם על הגג לא הופיע כלום חוץ מהשעה, והיא הייתה שעה אחרת בכל פעם שהסתכלתי. יוסי צחק, אבל בלי קול.",
+    "persona": "A 41-year-old man who works as the maintenance manager of an office building in Petah Tikva. He moved apartments a year ago and lost touch with a neighbour he used to fix things with, and his teenage son keeps telling him he does everything the old way.",
+    "unsureAt": 1
+  },
+  {
+    "key": "acc-3",
+    "kind": "קצר",
+    "address": "neutral",
+    "text": "ישבתי בתחנת אוטובוס ליד הים, לפנות ערב. על הספסל לידי היה ספל תה חם, והאדים ממנו ירדו למטה, אל החול. חיכיתי, ואף אוטובוס לא עצר.",
+    "persona": "A 29-year-old person who prefers gender-neutral address and works evening and night shifts at a hotel reception desk in Eilat. They usually take the first bus home along the beach road after a shift.",
+    "unsureAt": null
+  }
+]

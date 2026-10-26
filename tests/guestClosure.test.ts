@@ -105,6 +105,7 @@ function analysisHarness(identity: CallerIdentity, guestsAllowed?: () => boolean
     abandon: async () => {},
     complete: async () => true,
     runModel: (async () => ((calls.model += 1), { status: 'ok', value: { summary: 'x' } })) as DreamAnalysisDeps['runModel'],
+    moderate: async () => ({ status: 'ok' as const, hit: false }),
     ...(guestsAllowed ? { guestsAllowed } : {}),
   };
   return { deps, calls };

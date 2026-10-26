@@ -129,6 +129,7 @@ function deps(over: Partial<ExplorationDeps>) {
     reserveWhole: async () => (log.push('reserve-whole'), 'reserved'),
     refundWhole: async () => void log.push('refund-whole'),
     address: async () => 'neutral',
+    moderate: async () => ({ status: 'ok' as const, hit: false }),
     ...over,
   } as unknown as ExplorationDeps;
   return { d, log };

@@ -14,7 +14,10 @@ import {
 import type { AppLanguage } from '../../src/hero/appLanguage.js';
 import { collectStrings, findAddressViolation, findHebrewSlashForm } from '../../src/hero/languageIntegrity.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
-import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
+import { type RequestHeaders } from '../callerIdentity.js';
+import { resolveAdultCaller } from '../ageGate.js';
+import { realModerate } from '../safety/moderation.js';
+import { dareWordsSafe } from '../safety/routeSafety.js';
 import { reserveLabelsAttempt, refundLabelsAttempt, getTrialAttemptState } from '../dreamAttempts.js';
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 import { resolveAddressPreference } from './dreamReflection.js';
@@ -86,7 +89,7 @@ export function generateDreamQuestions(client: OpenAI, p: GenerateQuestionsParam
  * the interface simply keeps its fixed questions, so a failure refunds its allowance and never blocks the journey.
  */
 export async function handleDreamQuestions(rawBody: unknown, requestHeaders: RequestHeaders): Promise<HandlerResult> {
-  const resolved = await resolveCallerIdentity(requestHeaders);
+  const resolved = await resolveAdultCaller(requestHeaders);
   if (!resolved.ok) {
     return errorResult(resolved.status, resolved.reason, resolved.message);
   }
@@ -136,6 +139,11 @@ export async function handleDreamQuestions(rawBody: unknown, requestHeaders: Req
   try {
     const outcome = await generateDreamQuestions(client, { sourceText, moments, facts, language, addressPreference });
     if (outcome.status !== 'ok') {
+      await refundLabelsAttempt(attemptId);
+      return withHeaders(errorResult(502, 'invalid_response', 'The AI response was not usable for dream questions.'), cookieHeaders);
+    }
+    // Checked before shown (DARE's own check + moderation); not passing, or moderation down, = not shown.
+    if (!(await dareWordsSafe(outcome.value.kept, realModerate))) {
       await refundLabelsAttempt(attemptId);
       return withHeaders(errorResult(502, 'invalid_response', 'The AI response was not usable for dream questions.'), cookieHeaders);
     }

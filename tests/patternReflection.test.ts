@@ -535,7 +535,8 @@ const read = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), 'u
 
 test('the pattern-reflection route requires resolveCallerIdentity, requires a real user (never a trial), and never mints one', () => {
   const src = read('server/routes/patternReflection.ts');
-  assert.ok(src.includes('resolveCallerIdentity('));
+  // the identity check with the age check (ageGate.ts calls resolveCallerIdentity)
+  assert.ok(src.includes('resolveAdultCaller('));
   assert.ok(src.includes("kind !== 'user'"));
   assert.ok(!src.includes('mintTrialIdentity'));
   assert.ok(!src.includes('createNewTrialIdentity'));

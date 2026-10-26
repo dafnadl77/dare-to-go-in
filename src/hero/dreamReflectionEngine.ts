@@ -4,6 +4,7 @@ import { validateDreamReflectionResult, type ReflectionResult, type ReflectionEr
 import { getAppLanguage, type AppLanguage } from './appLanguage';
 import { REFLECTION_TIMEOUT_MS } from './requestTimeouts';
 import { getAuthHeader } from '../auth/getAccessToken';
+import { safetyLevelOf } from './safety/safetyResponse';
 import type { EmotionId } from './dreamEmotions';
 
 const KNOWN_REASONS: ReflectionErrorReason[] = [
@@ -34,6 +35,8 @@ export interface DreamReflectionRequest {
   attemptId: string;
   /** The journey's own language, fixed once generation began, so a UI language switch mid-journey cannot change it. Falls back to the current app language when omitted. */
   language?: AppLanguage;
+  /** Her answer on the distress path, sent with this one request only (never stored). */
+  safetyAck?: 'dream' | 'not-immediate';
 }
 
 /**
@@ -57,6 +60,8 @@ export async function getDreamReflection(request: DreamReflectionRequest): Promi
     );
 
     const data: unknown = await res.json().catch(() => null);
+    const safety = res.ok ? safetyLevelOf(data) : null;
+    if (safety) return { status: 'safety', level: safety };
 
     if (!res.ok) {
       if (data && typeof data === 'object' && 'reason' in data && 'message' in data) {

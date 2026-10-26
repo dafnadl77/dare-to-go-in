@@ -1,0 +1,48 @@
+✖ C1. "אולי יש משהו בכך ש…" (acc-2, first look) is an empty frame: it says there is something without saying what (16.071ms)
+✔ C1. no harm: "אולי יש קשר בין…", "אולי שווה לשים לב…" and G1 are not empty frames (14.4274ms)
+✖ C9. "אפשר לראות בספל התה החם רגע שמדגיש את האפשרות לחמימות…" (acc-3, whole view) gives the image a meaning (1.8883ms)
+✔ C9. no harm: G1 ("לראות את תחנת האוטובוס… כמקום שבו הבדידות והגעגוע נמצאים") and plain seeing keep passing that check (7.9218ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1514.3055
+
+✖ failing tests:
+
+test at tests\fix78.test.ts:27:1
+✖ C1. "אולי יש משהו בכך ש…" (acc-2, first look) is an empty frame: it says there is something without saying what (16.071ms)
+  AssertionError [ERR_ASSERTION]
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix78.test.ts:29:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix78.test.ts:44:1
+✖ C9. "אפשר לראות בספל התה החם רגע שמדגיש את האפשרות לחמימות…" (acc-3, whole view) gives the image a meaning (1.8883ms)
+  AssertionError [ERR_ASSERTION]
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix78.test.ts:46:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

@@ -31,7 +31,7 @@ test('pressing START while signed out opens sign-up (never the recorder or the w
 
 test('safety net: words are never analyzed for a visitor who is not signed in; they are kept for the return', () => {
   const hero = code('src/hero/HeroDream.tsx');
-  assert.match(hero, /const runAnalysis = \(input: DreamInput\) => \{\s*if \(!user && !authLoading\) \{\s*saveDreamDraft\(dreamInputSourceText\(input\)\);\s*onStartRequiresSignIn\(\);\s*return;\s*\}/);
+  assert.match(hero, /const runAnalysis = \(input: DreamInput, safetyAck\?: 'dream' \| 'not-immediate'\) => \{\s*if \(!user && !authLoading\) \{\s*saveDreamDraft\(dreamInputSourceText\(input\)\);\s*onStartRequiresSignIn\(\);\s*return;\s*\}/);
 });
 
 test('App: the gate opens SIGN-UP with the start intent; after sign-in the dreamer goes to the writing screen, not the archive; leaving the screen drops the intent', () => {

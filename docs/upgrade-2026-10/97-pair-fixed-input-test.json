@@ -1,0 +1,779 @@
+{
+  "run": "pfi-1",
+  "mode": "send",
+  "stopped": null,
+  "runCap": 0.11,
+  "spentUsd": 0.05572,
+  "calls": [
+    {
+      "key": "acc2-1#1",
+      "usd": 0.006738,
+      "input": 2401,
+      "output": 242,
+      "ms": 4227
+    },
+    {
+      "key": "acc2-1#2",
+      "usd": 0.007568,
+      "input": 2608,
+      "output": 294,
+      "ms": 2484
+    },
+    {
+      "key": "acc2-1#3",
+      "usd": 0.007286,
+      "input": 2803,
+      "output": 210,
+      "ms": 2118
+    },
+    {
+      "key": "acc2-2#1",
+      "usd": 0.00571,
+      "input": 2255,
+      "output": 150,
+      "ms": 2116
+    },
+    {
+      "key": "acc2-2#2",
+      "usd": 0.007562,
+      "input": 2441,
+      "output": 335,
+      "ms": 2243
+    },
+    {
+      "key": "acc2-2#3",
+      "usd": 0.007556,
+      "input": 2630,
+      "output": 287,
+      "ms": 2360
+    },
+    {
+      "key": "acc2-3#1",
+      "usd": 0.006014,
+      "input": 2447,
+      "output": 140,
+      "ms": 1371
+    },
+    {
+      "key": "acc2-3#2",
+      "usd": 0.007286,
+      "input": 2635,
+      "output": 252,
+      "ms": 2375
+    }
+  ],
+  "measures": {
+    "moments": 8,
+    "invalid": 0,
+    "candidates": 8,
+    "approved": 1,
+    "questionsReplaced": 0,
+    "eligibleWithPair": 1,
+    "eligible": 5,
+    "shownUnderPacing": 1,
+    "consecutiveShown": 0
+  },
+  "decisionRule": [
+    {
+      "id": 1,
+      "he": "ציטוט לא מדויק (בודק ושופט)",
+      "pass": "0"
+    },
+    {
+      "id": 2,
+      "he": "זוג שהקשר בו מלאכותי, או שנשען רק על מילה שחוזרת",
+      "pass": "0"
+    },
+    {
+      "id": 3,
+      "he": "שאלה שמובילה, או מניחה רגש או פרט",
+      "pass": "0"
+    },
+    {
+      "id": 4,
+      "he": "מהזוגות שהבודק אישר: שווים מחשבה",
+      "pass": "80% לפחות"
+    },
+    {
+      "id": 5,
+      "he": "רגעים שאפשר להציע בהם זוג (לא רגע ראשון) עם זוג מאושר",
+      "pass": "2 מתוך 5 לפחות"
+    },
+    {
+      "id": 6,
+      "he": "עברית טבעית בזוג ובשאלה",
+      "pass": "בכולם"
+    },
+    {
+      "id": 7,
+      "he": "הד במשמעות בזוג שמוצג בפועל (אחרי חוקי הקצב)",
+      "pass": "0"
+    },
+    {
+      "id": 8,
+      "he": "שיחה מקשיבה ולא שאלון (שופט, לכל מסע)",
+      "pass": "3 מתוך 3"
+    },
+    {
+      "id": 9,
+      "he": "התקדמות: כל זוג שמוצג בפועל מוביל למקום חדש, ואף מסע לא חוזר על עצמו במשמעות",
+      "pass": "בכולם"
+    },
+    {
+      "id": 10,
+      "he": "זוג בשני רגעים רצופים",
+      "pass": "0 (נבדק בקוד)"
+    }
+  ],
+  "results": [
+    {
+      "key": "acc2-1#1",
+      "plan": "acc2-1",
+      "label": "לעלות לסיפון",
+      "momentText": "ואני רציתי לעלות למעלה לסיפון לראות לאן אנחנו שטים אבל המדרגות היו צרות מדי והרגליים שלי לא הצליחו לעלות אפילו מדרגה אחת",
+      "question": "מה הכי תפס אותך ברגע שבו רצית לעלות למעלה לסיפון?",
+      "answer": "הרגשתי חוסר אונים, כאילו אני מנסה להתקדם אבל משהו עוצר אותי. זה היה מתסכל ולא נעים.",
+      "invalid": false,
+      "value": {
+        "insight": {
+          "observation": "רצית לעלות למעלה לסיפון לראות לאן אתם שטים.",
+          "reflection": "אמרת שהרגשת חוסר אונים, כאילו את מנסה להתקדם אבל משהו עוצר אותך.",
+          "possibility": "",
+          "kind": "listening"
+        },
+        "followUpQuestion": null,
+        "missingInformation": null,
+        "report": {
+          "dream": [
+            {
+              "status": "checked",
+              "reasons": []
+            },
+            {
+              "status": "quote",
+              "reasons": [
+                "names a different doer"
+              ]
+            }
+          ],
+          "user": [
+            {
+              "status": "checked",
+              "reasons": []
+            }
+          ],
+          "possibilities": [],
+          "quality": [],
+          "chosen": -1,
+          "invitation": null,
+          "cards": [],
+          "texts": {
+            "dream": [
+              "רצית לעלות למעלה לסיפון לראות לאן אתם שטים.",
+              "הרגליים שלך לא הצליחו לעלות אפילו מדרגה אחת."
+            ],
+            "user": [
+              "אמרת שהרגשת חוסר אונים, כאילו את מנסה להתקדם אבל משהו עוצר אותך."
+            ],
+            "possibilities": []
+          }
+        },
+        "pairs": {
+          "allowed": false,
+          "why": "the first moment listens",
+          "verdicts": [],
+          "chosen": null
+        }
+      },
+      "approved": [],
+      "refused": [
+        {
+          "a": "רצית לעלות למעלה לסיפון לראות לאן אתם שטים",
+          "b": "הרגליים שלך לא הצליחו לעלות אפילו מדרגה אחת",
+          "reasons": [
+            "a detail that is not in the dream (\"רצית לעלות למעלה לסיפון לראות לאן אתם שט\")"
+          ]
+        }
+      ],
+      "raw": "{\"dream\":[{\"segment\":5,\"action\":\"רציתי לעלות למעלה לסיפון לראות לאן אנחנו שטים\",\"actor\":\"dreamer\",\"target\":\"\",\"text\":\"רצית לעלות למעלה לסיפון לראות לאן אתם שטים.\"},{\"segment\":5,\"action\":\"לא הצליחו לעלות אפילו מדרגה אחת\",\"actor\":\"הרגליים שלי\",\"target\":\"\",\"text\":\"הרגליים שלך לא הצליחו לעלות אפילו מדרגה אחת.\"}],\"user\":[{\"quote\":\"הרגשתי חוסר אונים, כאילו אני מנסה להתקדם אבל משהו עוצר אותי\",\"text\":\"אמרת שהרגשת חוסר אונים, כאילו את מנסה להתקדם אבל משהו עוצר אותך.\"}],\"pairs\":[{\"a\":{\"quote\":\"רצית לעלות למעלה לסיפון לראות לאן אתם שטים\",\"from\":\"dream\"},\"b\":{\"quote\":\"הרגליים שלך לא הצליחו לעלות אפילו מדרגה אחת\",\"from\":\"dream\"},\"relation\":\"wanted-not-managed\",\"question\":\"מה את רואה כשהשניים האלה מופיעים יחד?\"}],\"missingInformation\":\"\",\"followUpQuestion\":\"\"}"
+    },
+    {
+      "key": "acc2-1#2",
+      "plan": "acc2-1",
+      "label": "נוסעים לקפריסין",
+      "momentText": "והייתי בטוחה שאנחנו נוסעים לקפריסין ונועה ישבה על ספסל ואכלה תפוז ולא הסתכלה עליי",
+      "question": "איך נראית קפריסין ברגע הזה כשאת בטוחה שאתם נוסעים לשם?",
+      "answer": "קפריסין נראית לי כמו מקום שמשדר חופש ושמש, עם חופים יפים ומים turquoise. אני מדמיינת את עצמי יושבת בסופו של מסע רוגע.",
+      "invalid": false,
+      "value": {
+        "insight": {
+          "observation": "היית בטוחה שאתם נוסעים לקפריסין. נועה ישבה על ספסל ואכלה תפוז ולא הסתכלה עלייך.",
+          "reflection": "אמרת שקפריסין נראית לך כמו מקום שמשדר חופש ושמש, עם חופים יפים ומים turquoise.",
+          "possibility": "",
+          "kind": "listening"
+        },
+        "followUpQuestion": null,
+        "missingInformation": null,
+        "report": {
+          "dream": [
+            {
+              "status": "checked",
+              "reasons": []
+            },
+            {
+              "status": "checked",
+              "reasons": []
+            }
+          ],
+          "user": [
+            {
+              "status": "checked",
+              "reasons": []
+            },
+            {
+              "status": "checked",
+              "reasons": []
+            }
+          ],
+          "possibilities": [],
+          "quality": [],
+          "chosen": -1,
+          "invitation": null,
+          "cards": [],
+          "texts": {
+            "dream": [
+              "היית בטוחה שאתם נוסעים לקפריסין.",
+              "נועה ישבה על ספסל ואכלה תפוז ולא הסתכלה עלייך."
+            ],
+            "user": [
+              "אמרת שקפריסין נראית לך כמו מקום שמשדר חופש ושמש, עם חופים יפים ומים turquoise.",
+              "אמרת שאת מדמיינת את עצמך יושבת בסופו של מסע רוגע."
+            ],
+            "possibilities": []
+          }
+        },
+        "pairs": {
+          "allowed": true,
+          "why": "",
+          "verdicts": [
+            {
+              "reasons": [
+                "a detail that is not in the dream (\"היית בטוחה שאתם נוסעים לקפריסין\")",
+                "a detail that is not in her answer (\"אמרת שאת מדמיינת את עצמך יושבת בסופו של \")"
+              ],
+              "pair": null
+            }
+          ],
+          "chosen": null
+        }
+      },
+      "approved": [],
+      "refused": [
+        {
+          "a": "היית בטוחה שאתם נוסעים לקפריסין",
+          "b": "אמרת שאת מדמיינת את עצמך יושבת בסופו של מסע רוגע",
+          "reasons": [
+            "a detail that is not in the dream (\"היית בטוחה שאתם נוסעים לקפריסין\")",
+            "a detail that is not in her answer (\"אמרת שאת מדמיינת את עצמך יושבת בסופו של \")"
+          ]
+        }
+      ],
+      "raw": "{\"dream\":[{\"segment\":4,\"action\":\"הייתי בטוחה\",\"actor\":\"dreamer\",\"target\":\"אנחנו\",\"text\":\"היית בטוחה שאתם נוסעים לקפריסין.\"},{\"segment\":4,\"action\":\"ישבה\",\"actor\":\"נועה\",\"target\":\"\",\"text\":\"נועה ישבה על ספסל ואכלה תפוז ולא הסתכלה עלייך.\"}],\"user\":[{\"quote\":\"קפריסין נראית לי כמו מקום שמשדר חופש ושמש, עם חופים יפים ומים turquoise\",\"text\":\"אמרת שקפריסין נראית לך כמו מקום שמשדר חופש ושמש, עם חופים יפים ומים turquoise.\"},{\"quote\":\"אני מדמיינת את עצמי יושבת בסופו של מסע רוגע\",\"text\":\"אמרת שאת מדמיינת את עצמך יושבת בסופו של מסע רוגע.\"}],\"pairs\":[{\"a\":{\"quote\":\"היית בטוחה שאתם נוסעים לקפריסין\",\"from\":\"dream\"},\"b\":{\"quote\":\"אמרת שאת מדמיינת את עצמך יושבת בסופו של מסע רוגע\",\"from\":\"answer\"},\"relation\":\"change\",\"question\":\"מה את רואה כשאת מחזיקה יחד את הוודאות שאתם נוסעים לקפריסין ואת הדמיון שלך יושבת בסופו של מסע רוגע?\"}],\"missingInformation\":\"\",\"followUpQuestion\":\"\"}"
+    },
+    {
+      "key": "acc2-1#3",
+      "plan": "acc2-1",
+      "label": "הבנה על אונייה",
+      "momentText": "ופתאום הבנתי שזה בעצם אונייה גדולה",
+      "question": "מה הפתיע אותך כשפתאום הבנת שהאולם הוא בעצם אונייה גדולה?",
+      "answer": "זה הפתיע אותי שאפילו במציאות שאני מכירה, דברים יכולים להשתנות ולפתע להראות אחרת. זה הרגיש כאילו אני לא מצליחה להבין את הסיטואציה.",
+      "invalid": false,
+      "value": {
+        "insight": {
+          "observation": "פתאום הבנת שזה בעצם אונייה גדולה",
+          "reflection": "אמרת שזה הפתיע אותך שאפילו במציאות שאת מכירה, דברים יכולים להשתנות ולפתע להראות אחרת.",
+          "possibility": "",
+          "kind": "listening"
+        },
+        "followUpQuestion": null,
+        "missingInformation": null,
+        "report": {
+          "dream": [
+            {
+              "status": "checked",
+              "reasons": []
+            }
+          ],
+          "user": [
+            {
+              "status": "checked",
+              "reasons": []
+            },
+            {
+              "status": "checked",
+              "reasons": []
+            }
+          ],
+          "possibilities": [],
+          "quality": [],
+          "chosen": -1,
+          "invitation": null,
+          "cards": [],
+          "texts": {
+            "dream": [
+              "פתאום הבנת שזה בעצם אונייה גדולה"
+            ],
+            "user": [
+              "אמרת שזה הפתיע אותך שאפילו במציאות שאת מכירה, דברים יכולים להשתנות ולפתע להראות אחרת.",
+              "אמרת שזה הרגיש לך כאילו את לא מצליחה להבין את הסיטואציה."
+            ],
+            "possibilities": []
+          }
+        },
+        "pairs": {
+          "allowed": true,
+          "why": "",
+          "verdicts": [
+            {
+              "reasons": [
+                "the dream does not say anything changed"
+              ],
+              "pair": null
+            }
+          ],
+          "chosen": null
+        }
+      },
+      "approved": [],
+      "refused": [
+        {
+          "a": "הבנתי שזה בעצם אונייה גדולה",
+          "b": "דברים יכולים להשתנות ולפתע להראות אחרת",
+          "reasons": [
+            "the dream does not say anything changed"
+          ]
+        }
+      ],
+      "raw": "{\"dream\":[{\"segment\":3,\"action\":\"הבנתי\",\"actor\":\"dreamer\",\"target\":\"\",\"text\":\"פתאום הבנת שזה בעצם אונייה גדולה\"}],\"user\":[{\"quote\":\"זה הפתיע אותי שאפילו במציאות שאני מכירה, דברים יכולים להשתנות ולפתע להראות אחרת\",\"text\":\"אמרת שזה הפתיע אותך שאפילו במציאות שאת מכירה, דברים יכולים להשתנות ולפתע להראות אחרת.\"},{\"quote\":\"זה הרגיש כאילו אני לא מצליחה להבין את הסיטואציה\",\"text\":\"אמרת שזה הרגיש לך כאילו את לא מצליחה להבין את הסיטואציה.\"}],\"pairs\":[{\"a\":{\"quote\":\"הבנתי שזה בעצם אונייה גדולה\",\"from\":\"dream\"},\"b\":{\"quote\":\"דברים יכולים להשתנות ולפתע להראות אחרת\",\"from\":\"answer\"},\"relation\":\"change\",\"question\":\"מה את רואה כשהמילים האלה עומדות יחד?\"}],\"missingInformation\":\"\",\"followUpQuestion\":\"\"}"
+    },
+    {
+      "key": "acc2-2#1",
+      "plan": "acc2-2",
+      "label": "המוכר לתוך העץ",
+      "momentText": "כשאני מרים את הראש, המוכר כבר לא איש אלא עץ זית קטן בתוך עציץ",
+      "question": "איך נראה עץ הזית בעציץ ברגע הזה?",
+      "answer": "עץ הזית הקטן היה פשוט וקליל, עם עלים ירוקים כהים וגזע דק. הוא נתן תחושה של שקט ושלווה.",
+      "invalid": false,
+      "value": {
+        "insight": {
+          "observation": "המוכר כבר לא איש אלא עץ זית קטן בתוך עציץ.",
+          "reflection": "אמרת שעץ הזית הקטן היה פשוט וקליל, עם עלים ירוקים כהים וגזע דק, ושהוא נתן תחושה של שקט ושלווה.",
+          "possibility": "",
+          "kind": "listening"
+        },
+        "followUpQuestion": null,
+        "missingInformation": null,
+        "report": {
+          "dream": [
+            {
+              "status": "checked",
+              "reasons": []
+            }
+          ],
+          "user": [
+            {
+              "status": "checked",
+              "reasons": []
+            }
+          ],
+          "possibilities": [],
+          "quality": [],
+          "chosen": -1,
+          "invitation": null,
+          "cards": [],
+          "texts": {
+            "dream": [
+              "המוכר כבר לא איש אלא עץ זית קטן בתוך עציץ."
+            ],
+            "user": [
+              "אמרת שעץ הזית הקטן היה פשוט וקליל, עם עלים ירוקים כהים וגזע דק, ושהוא נתן תחושה של שקט ושלווה."
+            ],
+            "possibilities": []
+          }
+        },
+        "pairs": {
+          "allowed": false,
+          "why": "the first moment listens",
+          "verdicts": [],
+          "chosen": null
+        }
+      },
+      "approved": [],
+      "refused": [],
+      "raw": "{\"dream\":[{\"segment\":5,\"action\":\"כבר לא איש אלא עץ זית קטן בתוך עציץ\",\"actor\":\"המוכר\",\"target\":\"\",\"text\":\"המוכר כבר לא איש אלא עץ זית קטן בתוך עציץ.\"}],\"user\":[{\"quote\":\"עץ הזית הקטן היה פשוט וקליל, עם עלים ירוקים כהים וגזע דק. הוא נתן תחושה של שקט ושלווה.\",\"text\":\"אמרת שעץ הזית הקטן היה פשוט וקליל, עם עלים ירוקים כהים וגזע דק, ושהוא נתן תחושה של שקט ושלווה.\"}],\"pairs\":[],\"missingInformation\":\"\",\"followUpQuestion\":\"\"}"
+    },
+    {
+      "key": "acc2-2#2",
+      "plan": "acc2-2",
+      "label": "המוכר עם הקופסה",
+      "momentText": "המוכר, איש מבוגר עם משקפיים עבים, מושיט לי קופסה מלאה ברגים, ואני מחפש ומחפש ולא מוצא את המידה הנכונה",
+      "question": "איזה פרט בקופסה המלאה ברגים הכי תפס את העין שלך ברגע הזה?",
+      "answer": "הפרט שהכי תפס את העין שלי היה מגוון הברגים. היו שם סוגים שונים, אבל אף אחד מהם לא היה מה שהייתי צריך באמת.",
+      "invalid": false,
+      "value": {
+        "insight": {
+          "observation": "המוכר, איש מבוגר עם משקפיים עבים. «מושיט לי קופסה מלאה ברגים» «ואני מחפש ומחפש ולא מוצא את המידה הנכונה»",
+          "reflection": "אמרת שהפרט שהכי תפס את העין שלך היה מגוון הברגים.",
+          "possibility": "",
+          "kind": "listening"
+        },
+        "followUpQuestion": null,
+        "missingInformation": null,
+        "report": {
+          "dream": [
+            {
+              "status": "checked",
+              "reasons": []
+            },
+            {
+              "status": "quote",
+              "reasons": [
+                "says it was done to someone else; the part says to the dreamer"
+              ]
+            },
+            {
+              "status": "quote",
+              "reasons": [
+                "names a different doer"
+              ]
+            }
+          ],
+          "user": [
+            {
+              "status": "checked",
+              "reasons": []
+            },
+            {
+              "status": "checked",
+              "reasons": []
+            }
+          ],
+          "possibilities": [],
+          "quality": [],
+          "chosen": -1,
+          "invitation": null,
+          "cards": [],
+          "texts": {
+            "dream": [
+              "המוכר, איש מבוגר עם משקפיים עבים.",
+              "המוכר מושיט לך קופסה מלאה ברגים.",
+              "אתה מחפש ומחפש ולא מוצא את המידה הנכונה."
+            ],
+            "user": [
+              "אמרת שהפרט שהכי תפס את העין שלך היה מגוון הברגים.",
+              "אמרת שאף אחד מהם לא היה מה שהיית צריך באמת."
+            ],
+            "possibilities": []
+          }
+        },
+        "pairs": {
+          "allowed": true,
+          "why": "",
+          "verdicts": [
+            {
+              "reasons": [
+                "the dream does not say anything changed"
+              ],
+              "pair": null
+            },
+            {
+              "reasons": [
+                "not one detail but a run of them (\"מחפש ומחפש ולא מוצא את המידה הנכונה\")",
+                "a negation (or something missing) on both sides: the same thing twice, not one side against the other"
+              ],
+              "pair": null
+            }
+          ],
+          "chosen": null
+        }
+      },
+      "approved": [],
+      "refused": [
+        {
+          "a": "קופסה מלאה ברגים",
+          "b": "מגוון הברגים",
+          "reasons": [
+            "the dream does not say anything changed"
+          ]
+        },
+        {
+          "a": "מחפש ומחפש ולא מוצא את המידה הנכונה",
+          "b": "אבל אף אחד מהם לא היה מה שהייתי צריך באמת",
+          "reasons": [
+            "not one detail but a run of them (\"מחפש ומחפש ולא מוצא את המידה הנכונה\")",
+            "a negation (or something missing) on both sides: the same thing twice, not one side against the other"
+          ]
+        }
+      ],
+      "raw": "{\"dream\":[{\"segment\":2,\"action\":\"היה\",\"actor\":\"המוכר\",\"target\":\"\",\"text\":\"המוכר, איש מבוגר עם משקפיים עבים.\"},{\"segment\":3,\"action\":\"מושיט\",\"actor\":\"המוכר\",\"target\":\"לך\",\"text\":\"המוכר מושיט לך קופסה מלאה ברגים.\"},{\"segment\":4,\"action\":\"מחפש ולא מוצא\",\"actor\":\"החולם\",\"target\":\"את המידה הנכונה\",\"text\":\"אתה מחפש ומחפש ולא מוצא את המידה הנכונה.\"}],\"user\":[{\"quote\":\"הפרט שהכי תפס את העין שלי היה מגוון הברגים\",\"text\":\"אמרת שהפרט שהכי תפס את העין שלך היה מגוון הברגים.\"},{\"quote\":\"אבל אף אחד מהם לא היה מה שהייתי צריך באמת\",\"text\":\"אמרת שאף אחד מהם לא היה מה שהיית צריך באמת.\"}],\"pairs\":[{\"a\":{\"quote\":\"קופסה מלאה ברגים\",\"from\":\"dream\"},\"b\":{\"quote\":\"מגוון הברגים\",\"from\":\"answer\"},\"relation\":\"change\",\"question\":\"מה אתה רואה כשאתה עומד מול הקופסה המלאה ומול מגוון הברגים?\"},{\"a\":{\"quote\":\"מחפש ומחפש ולא מוצא את המידה הנכונה\",\"from\":\"dream\"},\"b\":{\"quote\":\"אבל אף אחד מהם לא היה מה שהייתי צריך באמת\",\"from\":\"answer\"},\"relation\":\"negation\",\"question\":\"מה אתה רואה כשאתה שם יחד את שני אלה?\"}],\"missingInformation\":\"\",\"followUpQuestion\":\"\"}"
+    },
+    {
+      "key": "acc2-2#3",
+      "plan": "acc2-2",
+      "label": "יוצא מהחנות ריק",
+      "momentText": "אני יוצא מהחנות בלי כלום ביד",
+      "question": "מה היה הדבר הכי מפתיע בשבילך ברגע שיצאת מהחנות בלי כלום ביד?",
+      "answer": "הדבר הכי מפתיע היה שהבנתי שאני מחפש משהו, אבל בעצם ידעתי כבר מה אני צריך. הרגשתי חוסר ומוזרות.",
+      "invalid": false,
+      "value": {
+        "insight": {
+          "observation": "",
+          "reflection": "אמרת שהרגשת חוסר ומוזרות.",
+          "possibility": "",
+          "kind": "listening",
+          "pair": {
+            "a": {
+              "quote": "שהבנתי שאני מחפש משהו אבל בעצם ידעתי כבר מה אני צריך",
+              "from": "answer"
+            },
+            "b": {
+              "quote": "יוצא מהחנות בלי כלום ביד",
+              "from": "dream"
+            },
+            "question": "מה אתה רואה כשאתה עומד בין הידיעה מה אתה צריך לבין היציאה בלי כלום?"
+          }
+        },
+        "followUpQuestion": "מה אתה רואה כשאתה עומד בין הידיעה מה אתה צריך לבין היציאה בלי כלום?",
+        "missingInformation": null,
+        "report": {
+          "dream": [
+            {
+              "status": "checked",
+              "reasons": []
+            }
+          ],
+          "user": [
+            {
+              "status": "checked",
+              "reasons": []
+            }
+          ],
+          "possibilities": [],
+          "quality": [],
+          "chosen": -1,
+          "invitation": null,
+          "cards": [],
+          "texts": {
+            "dream": [
+              "יצאת מהחנות בלי כלום ביד"
+            ],
+            "user": [
+              "אמרת שהכי הפתיע אותך זה שהבנת שאתה מחפש משהו, אבל בעצם כבר ידעת מה אתה צריך. אמרת שהרגשת חוסר ומוזרות."
+            ],
+            "possibilities": []
+          }
+        },
+        "pairs": {
+          "allowed": true,
+          "why": "",
+          "verdicts": [
+            {
+              "reasons": [
+                "a negation (or something missing) on both sides: the same thing twice, not one side against the other"
+              ],
+              "pair": null
+            },
+            {
+              "reasons": [],
+              "pair": {
+                "a": {
+                  "quote": "שהבנתי שאני מחפש משהו אבל בעצם ידעתי כבר מה אני צריך",
+                  "from": "answer"
+                },
+                "b": {
+                  "quote": "יוצא מהחנות בלי כלום ביד",
+                  "from": "dream"
+                },
+                "question": "מה אתה רואה כשאתה עומד בין הידיעה מה אתה צריך לבין היציאה בלי כלום?",
+                "relation": "negation",
+                "differentImages": true
+              }
+            }
+          ],
+          "chosen": 1
+        }
+      },
+      "approved": [
+        {
+          "a": {
+            "quote": "שהבנתי שאני מחפש משהו אבל בעצם ידעתי כבר מה אני צריך",
+            "from": "answer"
+          },
+          "b": {
+            "quote": "יוצא מהחנות בלי כלום ביד",
+            "from": "dream"
+          },
+          "question": "מה אתה רואה כשאתה עומד בין הידיעה מה אתה צריך לבין היציאה בלי כלום?",
+          "questionReplaced": false,
+          "differentImages": true
+        }
+      ],
+      "refused": [
+        {
+          "a": "יוצא מהחנות בלי כלום ביד",
+          "b": "הרגשתי חוסר ומוזרות",
+          "reasons": [
+            "a negation (or something missing) on both sides: the same thing twice, not one side against the other"
+          ]
+        }
+      ],
+      "raw": "{\"dream\":[{\"segment\":8,\"action\":\"יוצא\",\"actor\":\"dreamer\",\"target\":\"החנות\",\"text\":\"יצאת מהחנות בלי כלום ביד\"}],\"user\":[{\"quote\":\"הדבר הכי מפתיע היה שהבנתי שאני מחפש משהו, אבל בעצם ידעתי כבר מה אני צריך. הרגשתי חוסר ומוזרות.\",\"text\":\"אמרת שהכי הפתיע אותך זה שהבנת שאתה מחפש משהו, אבל בעצם כבר ידעת מה אתה צריך. אמרת שהרגשת חוסר ומוזרות.\"}],\"pairs\":[{\"a\":{\"quote\":\"יוצא מהחנות בלי כלום ביד\",\"from\":\"dream\"},\"b\":{\"quote\":\"הרגשתי חוסר ומוזרות\",\"from\":\"answer\"},\"relation\":\"negation\",\"question\":\"מה אתה רואה כשאתה עומד בין היציאה מהחנות בלי כלום לבין תחושת החוסר והמוזרות?\"},{\"a\":{\"quote\":\"הבנת שאני מחפש משהו, אבל בעצם ידעתי כבר מה אני צריך\",\"from\":\"answer\"},\"b\":{\"quote\":\"יוצא מהחנות בלי כלום ביד\",\"from\":\"dream\"},\"relation\":\"negation\",\"question\":\"מה אתה רואה כשאתה עומד בין הידיעה מה אתה צריך לבין היציאה בלי כלום?\"}],\"missingInformation\":\"\",\"followUpQuestion\":\"\"}"
+    },
+    {
+      "key": "acc2-3#1",
+      "plan": "acc2-3",
+      "label": "ניגון בפסנתר",
+      "momentText": "ישבתי על מרפסת של דירה שלא הכרתי, ומישהו בחדר הסמוך ניגן בפסנתר את אותו משפט קצר שוב ושוב",
+      "question": "איזה צליל או תחושה מהפסנתר הכי נשארו לך בזיכרון מהרגע הזה?",
+      "answer": "הצליל היה מאוד מרגיע, כאילו הוא חיבר בין השמיים הוורודים לממדי הזמן. זה היה רגע של שלווה שנשאר לי בראש.",
+      "invalid": false,
+      "value": {
+        "insight": {
+          "observation": "ישבת על מרפסת של דירה שלא הכרת. «ומישהו בחדר הסמוך ניגן בפסנתר את אותו משפט קצר שוב ושוב»",
+          "reflection": "אמרת שהצליל היה מאוד מרגיע.",
+          "possibility": "",
+          "kind": "listening"
+        },
+        "followUpQuestion": null,
+        "missingInformation": null,
+        "report": {
+          "dream": [
+            {
+              "status": "checked",
+              "reasons": []
+            },
+            {
+              "status": "quote",
+              "reasons": [
+                "names a different doer"
+              ]
+            }
+          ],
+          "user": [
+            {
+              "status": "checked",
+              "reasons": []
+            }
+          ],
+          "possibilities": [],
+          "quality": [],
+          "chosen": -1,
+          "invitation": null,
+          "cards": [],
+          "texts": {
+            "dream": [
+              "ישבת על מרפסת של דירה שלא הכרת.",
+              "מישהו בחדר הסמוך ניגן בפסנתר את אותו משפט קצר שוב ושוב."
+            ],
+            "user": [
+              "אמרת שהצליל היה מאוד מרגיע."
+            ],
+            "possibilities": []
+          }
+        },
+        "pairs": {
+          "allowed": false,
+          "why": "the first moment listens",
+          "verdicts": [],
+          "chosen": null
+        }
+      },
+      "approved": [],
+      "refused": [],
+      "raw": "{\"dream\":[{\"segment\":0,\"action\":\"ישבתי\",\"actor\":\"dreamer\",\"target\":\"על מרפסת של דירה שלא הכרתי\",\"text\":\"ישבת על מרפסת של דירה שלא הכרת.\"},{\"segment\":1,\"action\":\"ניגן\",\"actor\":\"מישהו\",\"target\":\"בפסנתר את אותו משפט קצר שוב ושוב\",\"text\":\"מישהו בחדר הסמוך ניגן בפסנתר את אותו משפט קצר שוב ושוב.\"}],\"user\":[{\"quote\":\"הצליל היה מאוד מרגיע\",\"text\":\"אמרת שהצליל היה מאוד מרגיע.\"}],\"pairs\":[],\"missingInformation\":\"\",\"followUpQuestion\":\"\"}"
+    },
+    {
+      "key": "acc2-3#2",
+      "plan": "acc2-3",
+      "label": "שמים ורודים",
+      "momentText": "השמיים היו ורודים, ולא רציתי לזוז משם",
+      "question": "מה עלה לך בראש כששמת לב שהשמים ורודים דווקא באותו רגע?",
+      "answer": "המפגש בין הצלילים לשמיים הוורודים גרם לי להרגיש כאילו אני במקום אינטימי ומיוחד, כמו חלום שמזמין רגעים יפים.",
+      "invalid": false,
+      "value": {
+        "insight": {
+          "observation": "השמיים היו ורודים. «ולא רציתי לזוז משם»",
+          "reflection": "אמרת שהמפגש בין הצלילים לשמיים הוורודים גרם לך להרגיש במקום אינטימי ומיוחד, כמו חלום שמזמין רגעים יפים.",
+          "possibility": "",
+          "kind": "listening"
+        },
+        "followUpQuestion": null,
+        "missingInformation": null,
+        "report": {
+          "dream": [
+            {
+              "status": "checked",
+              "reasons": []
+            },
+            {
+              "status": "quote",
+              "reasons": [
+                "first person in a sentence addressed to the dreamer",
+                "the dreamer did this, the sentence does not say \"you\" did"
+              ]
+            }
+          ],
+          "user": [
+            {
+              "status": "checked",
+              "reasons": []
+            }
+          ],
+          "possibilities": [],
+          "quality": [],
+          "chosen": -1,
+          "invitation": null,
+          "cards": [],
+          "texts": {
+            "dream": [
+              "השמיים היו ורודים.",
+              "לא רציתי לזוז משם."
+            ],
+            "user": [
+              "אמרת שהמפגש בין הצלילים לשמיים הוורודים גרם לך להרגיש במקום אינטימי ומיוחד, כמו חלום שמזמין רגעים יפים."
+            ],
+            "possibilities": []
+          }
+        },
+        "pairs": {
+          "allowed": true,
+          "why": "",
+          "verdicts": [
+            {
+              "reasons": [
+                "not one detail but a run of them (\"המפגש בין הצלילים לשמיים הוורודים גרם לי\")",
+                "her own sentence already holds the dream's detail: a link she already made herself",
+                "the dream does not say anything changed"
+              ],
+              "pair": null
+            }
+          ],
+          "chosen": null
+        }
+      },
+      "approved": [],
+      "refused": [
+        {
+          "a": "השמיים היו ורודים",
+          "b": "המפגש בין הצלילים לשמיים הוורודים גרם לי להרגיש כאילו אני במקום אינטימי ומיוחד, כמו חלום שמזמין רגעים יפים.",
+          "reasons": [
+            "not one detail but a run of them (\"המפגש בין הצלילים לשמיים הוורודים גרם לי\")",
+            "her own sentence already holds the dream's detail: a link she already made herself",
+            "the dream does not say anything changed"
+          ]
+        }
+      ],
+      "raw": "{\"dream\":[{\"segment\":2,\"action\":\"היו\",\"actor\":\"השמיים\",\"target\":\"\",\"text\":\"השמיים היו ורודים.\"},{\"segment\":3,\"action\":\"רציתי\",\"actor\":\"dreamer\",\"target\":\"לזוז משם\",\"text\":\"לא רציתי לזוז משם.\"}],\"user\":[{\"quote\":\"המפגש בין הצלילים לשמיים הוורודים גרם לי להרגיש כאילו אני במקום אינטימי ומיוחד, כמו חלום שמזמין רגעים יפים.\",\"text\":\"אמרת שהמפגש בין הצלילים לשמיים הוורודים גרם לך להרגיש במקום אינטימי ומיוחד, כמו חלום שמזמין רגעים יפים.\"}],\"pairs\":[{\"a\":{\"quote\":\"השמיים היו ורודים\",\"from\":\"dream\"},\"b\":{\"quote\":\"המפגש בין הצלילים לשמיים הוורודים גרם לי להרגיש כאילו אני במקום אינטימי ומיוחד, כמו חלום שמזמין רגעים יפים.\",\"from\":\"answer\"},\"relation\":\"change\",\"question\":\"מה עולה בך כשרואים את השניים יחד?\"}],\"missingInformation\":\"\",\"followUpQuestion\":\"\"}"
+    }
+  ]
+}

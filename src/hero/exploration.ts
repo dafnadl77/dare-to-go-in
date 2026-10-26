@@ -2,13 +2,19 @@ import type { DreamReflectionResult } from './dreamReflectionSchema.js';
 import { containsVerbatim, isUnsureAnswer } from './hebrewText.js';
 
 /** What a question asks about (declared by the model, corrected by code where the words show it; see claimCheck.ts). */
-export type QuestionFocus = 'feeling' | 'sense' | 'figure' | 'action' | 'detail' | 'change' | 'memory' | 'salience' | 'surprise' | 'choice' | 'connection';
-const FOCI: readonly QuestionFocus[] = ['feeling', 'sense', 'figure', 'action', 'detail', 'change', 'memory', 'salience', 'surprise', 'choice', 'connection'];
+/**
+ * The kinds of question, defined once: the checker (claimCheck) re-exports this list, so a kind it plans ('whatif', phase 2) is never
+ * dropped when the journey stores it or is resumed (doc 65, issue 1).
+ */
+export const FOCI = ['feeling', 'sense', 'figure', 'action', 'detail', 'change', 'memory', 'salience', 'surprise', 'choice', 'connection', 'whatif'] as const;
+export type QuestionFocus = (typeof FOCI)[number];
 /** whole = a real link or difference across moments; first-look = one moment, never "the whole picture"; no-link = honest "nothing
     joins them yet"; factual-summary = every interpretive part failed its checks, only verified facts (not counted as a whole view). */
 export type WholeViewKind = 'whole' | 'first-look' | 'no-link' | 'factual-summary';
-/** An insight is "factual" when no interpretation passed its checks (or the answer was "I don't know"): not a successful insight. */
-export type InsightKind = 'interpretive' | 'factual';
+/** An insight is "factual" when no interpretation passed its checks (or the answer was "I don't know"): not a successful insight.
+    "listening" (doc 90 v3): DARE gave back what the dream shows and what she said, perhaps with two details side by side and a
+    question; nothing interpreted, and never a reason for another (paid) try — most moments are listening ones. */
+export type InsightKind = 'interpretive' | 'factual' | 'listening';
 /** One more interpretive try for a moment whose insight came back factual, one more whole view after a factual summary. */
 export const MAX_INSIGHT_RETRIES = 1;
 export const MAX_WHOLE_VIEW_FAILURES = 2;
@@ -55,12 +61,47 @@ export interface ExplorationMoment {
   segmentIds?: number[];
 }
 
+/** What DARE chose to do in a turn of the conversation (doc 102). */
+export const MOVES = ['reflect', 'ask', 'offer', 'deepen', 'summarize'] as const;
+export type Move = (typeof MOVES)[number];
+/** The longest conversation kept for one moment, and the longest turn. */
+export const MAX_TURNS_PER_MOMENT = 60;
+const MAX_TURN_CHARS = 1500;
+
+/** One turn of a moment's conversation (doc 102). */
+export interface ConversationTurn {
+  role: 'dare' | 'dreamer';
+  text: string;
+  move?: Move;
+  /** An angle DARE offered, shown apart with "זה לא מתאים לי". */
+  offer?: string;
+  /** She said the offer does not fit her. */
+  rejected?: boolean;
+  /** Her turn made by the "זה לא מתאים לי" button (her bubble with that text; DARE answers it at once). */
+  rejection?: true;
+  /** Her turn made by a direction button, "להמשיך בכיוון" / "לשנות כיוון" (doc 117): a regular turn DARE answers at once. */
+  steer?: 'deepen' | 'shift';
+  /** What DARE's offer rested on, as really written: an angle she turns down is not offered again (doc 114). */
+  anchors?: string[];
+  /** DARE's closing line of a moment after its third question: no question; nothing more is asked in that moment. */
+  closing?: true;
+}
+
+/** Two details side by side, each in its own exact words, and one open question (doc 90 v3). What joins them is never said. */
+export interface MomentPair {
+  a: { quote: string; from: 'dream' | 'answer' };
+  b: { quote: string; from: 'dream' | 'answer' };
+  question: string;
+}
+
 export interface MomentInsight {
   observation: string;
   reflection: string;
-  /** '' when no interpretation passed its checks (kind 'factual'). */
+  /** '' when no interpretation passed its checks (kind 'factual'), and always in a listening insight. */
   possibility: string;
   kind?: InsightKind;
+  /** Only in a listening insight. Its question is the moment's follow-up question; her answer is kept there, given back by code. */
+  pair?: MomentPair;
 }
 
 export interface ExploredMoment {
@@ -85,6 +126,9 @@ export interface ExploredMoment {
   firstTry?: { question: string; answer: string } | null;
   /** Interpretive retries used after a factual insight (at most MAX_INSIGHT_RETRIES). */
   retries?: number;
+  /** The conversation of this moment (doc 102), in order; absent on every earlier record. `question` is its opening turn, `answer`
+      her first words, so the map and older readers still read a question and an answer. */
+  turns?: ConversationTurn[];
 }
 
 export interface WholeViewConnection {
@@ -119,7 +163,18 @@ export interface WholeViewRecord {
   invite?: MomentId[];
   /** Factual summaries received in a row for the same answers (a retry is allowed while below MAX_WHOLE_VIEW_FAILURES). */
   failures?: number;
+  /** "מה לקחתי מהחלום" (doc 117): her own sentences where something connected, and DARE's ideas she kept. Absent when there is none. */
+  takeaways?: { mine: string[]; ideas: string[]; open?: string[] };
 }
+
+/** The takeaways as stored: strings only, at most three each, absent when both are empty. */
+const cleanTakeaways = (v: unknown): { mine: string[]; ideas: string[]; open?: string[] } | undefined => {
+  if (!isObj(v)) return undefined;
+  const list = (x: unknown) => (Array.isArray(x) ? x : []).map((s) => clean(s, 300)).filter(Boolean).slice(0, 3);
+  const open = list(v.open).slice(0, 2);
+  const t = { mine: list(v.mine), ideas: list(v.ideas), ...(open.length ? { open } : {}) };
+  return t.mine.length || t.ideas.length || open.length ? t : undefined;
+};
 
 export interface Exploration {
   version: typeof EXPLORATION_VERSION;
@@ -137,6 +192,8 @@ export interface Exploration {
   wholeViewHistory?: WholeViewRecord[];
   /** Bumped on every change; a save to the account checks it so two tabs never overwrite each other. */
   rev: number;
+  /** Questions DARE already asked in a moment that was left unanswered (and so removed): kept, so coming back does not start over. */
+  asked?: Record<MomentId, number>;
 }
 
 const clean = (value: unknown, max: number): string => (typeof value === 'string' ? value.trim().slice(0, max) : '');
@@ -241,6 +298,8 @@ export function needsReplyCall(e: Exploration, id: MomentId): boolean {
   // "I don't know" is not interpreted: the moment gets the dream's own words (unsureLook) and, once, a different question.
   if (answeredUnsure(entry)) return false;
   if (entry.insight === null) return true;
+  // Her answer to a pair is given back by code (pairAnswerReflection), never by another call.
+  if (entry.insight.pair) return false;
   // The clarification was answered: exactly one refreshed insight, never a second.
   if (entry.followUp !== null && entry.followUp.answer !== null && !entry.insightFromFollowUp) return true;
   // Only facts passed the checks: one more interpretive try, never a loop.
@@ -275,13 +334,145 @@ export function beginMoment(e: Exploration, id: MomentId, question: string, sour
   return bump(e, { explored: { ...e.explored, [id]: entry } });
 }
 
+// ------------------------------------------------------------------------------------------------ the conversation (doc 102)
+
+const cleanTurn = (t: unknown): ConversationTurn | null => {
+  if (!isObj(t) || (t.role !== 'dare' && t.role !== 'dreamer')) return null;
+  const text = clean(t.text, MAX_TURN_CHARS);
+  const offer = clean(t.offer, 800);
+  if (!text && !offer) return null;
+  return {
+    role: t.role,
+    text,
+    ...(t.role === 'dare' && typeof t.move === 'string' && (MOVES as readonly string[]).includes(t.move) ? { move: t.move as Move } : {}),
+    ...(t.role === 'dare' && offer ? { offer } : {}),
+    ...(t.role === 'dare' && offer && t.rejected === true ? { rejected: true } : {}),
+    ...(t.role === 'dare' && offer && Array.isArray(t.anchors) ? { anchors: t.anchors.filter((a): a is string => typeof a === 'string').map((a) => clean(a, 200)).filter(Boolean).slice(0, 4) } : {}),
+    ...(t.role === 'dreamer' && t.rejection === true ? { rejection: true as const } : {}),
+    ...(t.role === 'dreamer' && (t.steer === 'deepen' || t.steer === 'shift') ? { steer: t.steer } : {}),
+    ...(t.role === 'dare' && t.closing === true ? { closing: true as const } : {}),
+  };
+};
+
+// ------------------------------------------------------------------------------------------------ three questions a moment
+
+/** At most this many questions of DARE in a moment (approved 2026-10-25); then a closing line and the ways out. */
+export const MAX_QUESTIONS_PER_MOMENT = 3;
+/** A request to answer without a question mark: "ספרי לי…", "אשמח לשמוע…". */
+const INDIRECT_ASK = /(?<![א-ת])(?:ספרי|ספר|תספרי|תספר|תארי|תאר|תתארי|אשמח\s+לשמוע|מעניין\s+(?:אותי\s+)?(?:לשמוע|לדעת)|נסי\s+לתאר|נסה\s+לתאר)(?![א-ת])|\b(?:tell\s+me|describe|i'?d\s+love\s+to\s+hear)\b/i;
+/** A turn of DARE that asks her to answer: a question mark, or an indirect request. The closing line never does. */
+export const isQuestionTurn = (t: ConversationTurn): boolean => t.role === 'dare' && !t.closing && (/\?/.test(`${t.text} ${t.offer ?? ''}`) || INDIRECT_ASK.test(`${t.text} ${t.offer ?? ''}`));
+/** Questions asked in a moment so far, including those of an earlier, unanswered visit. */
+export function questionsAsked(e: Exploration, id: MomentId): number {
+  return (e.asked?.[id] ?? 0) + (e.explored[id]?.turns ?? []).filter(isQuestionTurn).length;
+}
+/** The moment had its closing line: nothing more is asked in it. */
+export const momentClosed = (e: Exploration, id: MomentId): boolean => Boolean(e.explored[id]?.turns?.some((t) => t.role === 'dare' && t.closing));
+const withTurns = (e: Exploration, id: MomentId, entry: ExploredMoment, turns: ConversationTurn[], patch: Partial<ExploredMoment> = {}) =>
+  bump(e, { explored: { ...e.explored, [id]: { ...entry, ...patch, turns: turns.slice(-MAX_TURNS_PER_MOMENT) } } });
+
+/** Opens a moment as a conversation: DARE's first turn is its question. */
+export function beginConversation(e: Exploration, id: MomentId, opening: ConversationTurn, now = new Date()): Exploration {
+  const t = cleanTurn({ ...opening, role: 'dare' });
+  if (!t) return e;
+  const opened = beginMoment(e, id, t.text || t.offer || '', 'adaptive', now);
+  if (opened === e) return e;
+  return withTurns(opened, id, opened.explored[id], [t]);
+}
+
+/** Her words in the conversation. Her first words are also the moment's answer. */
+export function addDreamerTurn(e: Exploration, id: MomentId, text: string): Exploration {
+  const entry = e.explored[id];
+  const t = cleanTurn({ role: 'dreamer', text: clean(text, MAX_ANSWER_CHARS) });
+  if (!entry || entry.status !== 'exploring' || !entry.turns || !t) return e;
+  return withTurns(e, id, entry, [...entry.turns, t], entry.answer === null ? { answer: t.text } : {});
+}
+
+/** DARE's turn, received after hers. */
+export function addDareTurn(e: Exploration, id: MomentId, turn: ConversationTurn): Exploration {
+  const entry = e.explored[id];
+  const t = cleanTurn({ ...turn, role: 'dare' });
+  if (!entry || entry.status !== 'exploring' || !entry.turns || !t || entry.turns[entry.turns.length - 1]?.role !== 'dreamer') return e;
+  return withTurns(e, id, entry, [...entry.turns, t]);
+}
+
+/** DARE answers "זה לא מתאים לי" at once up to this many times in a dream, apart from the moment calls (approved 2026-10-25). */
+export const MAX_REJECTION_REPLIES = 3;
+export const REJECTION_TEXT = 'זה לא מתאים לי';
+
+/** Rejections DARE already answered in this dream: her button-bubble followed by DARE's turn. */
+export function rejectionRepliesUsed(e: Exploration): number {
+  let n = 0;
+  for (const x of Object.values(e.explored)) {
+    const turns = x.turns ?? [];
+    turns.forEach((t, i) => {
+      if (t.role === 'dreamer' && t.rejection && turns[i + 1]?.role === 'dare') n += 1;
+    });
+  }
+  return n;
+}
+
+/**
+ * The "זה לא מתאים לי" button (doc 114, option ב): the last offer is marked, and — while the dream has rejection replies left — her
+ * bubble with that text is added, so DARE answers it at once. Only DARE's last turn, only an offer not yet rejected: a second click,
+ * or a click while DARE is writing, adds nothing. With no replies left the offer is only marked (reply: false).
+ */
+export function rejectWithReply(e: Exploration, id: MomentId, text = REJECTION_TEXT): { e: Exploration; reply: boolean } {
+  const entry = e.explored[id];
+  const last = entry?.turns?.[entry.turns.length - 1];
+  if (!entry || entry.status !== 'exploring' || !entry.turns || last?.role !== 'dare' || !last.offer || last.rejected) return { e, reply: false };
+  const marked = rejectOffer(e, id);
+  if (rejectionRepliesUsed(e) >= MAX_REJECTION_REPLIES) return { e: marked, reply: false };
+  const m = marked.explored[id];
+  return { e: withTurns(marked, id, m, [...(m.turns ?? []), { role: 'dreamer', text, rejection: true }]), reply: true };
+}
+
+export const STEER_TEXT = { deepen: 'להמשיך בכיוון', shift: 'לשנות כיוון' } as const;
+
+/**
+ * A direction button (doc 117): her bubble with its words, and DARE answers at once — a regular turn, out of the 16. Only right after
+ * DARE spoke: a second click, or a click while DARE is writing, adds nothing (null).
+ */
+export function steerWithReply(e: Exploration, id: MomentId, kind: 'deepen' | 'shift', text: string = STEER_TEXT[kind]): Exploration | null {
+  const entry = e.explored[id];
+  const last = entry?.turns?.[entry.turns.length - 1];
+  if (!entry || entry.status !== 'exploring' || !entry.turns || last?.role !== 'dare') return null;
+  return withTurns(e, id, entry, [...entry.turns, { role: 'dreamer', text, steer: kind }]);
+}
+
+/** "זה לא מתאים לי": the last offer does not fit her. */
+export function rejectOffer(e: Exploration, id: MomentId): Exploration {
+  const entry = e.explored[id];
+  if (!entry || entry.status !== 'exploring' || !entry.turns) return e;
+  const at = entry.turns.map((t) => t.role === 'dare' && Boolean(t.offer)).lastIndexOf(true);
+  if (at < 0) return e;
+  return withTurns(e, id, entry, entry.turns.map((t, i) => (i === at ? { ...t, rejected: true } : t)));
+}
+
+/** A turn is asked for only after she spoke. */
+export function needsTurnCall(e: Exploration, id: MomentId): boolean {
+  const entry = e.explored[id];
+  // after the closing line of a moment nothing more is asked in it, whatever is added
+  return Boolean(entry && entry.status === 'exploring' && entry.turns && entry.turns[entry.turns.length - 1]?.role === 'dreamer' && !entry.turns.some((t) => t.role === 'dare' && t.closing));
+}
+
+/** She moves on: the moment is explored once she has said something in it. */
+export function completeConversation(e: Exploration, id: MomentId, now = new Date()): Exploration {
+  const entry = e.explored[id];
+  if (!entry || entry.status !== 'exploring' || !entry.turns?.some((t) => t.role === 'dreamer')) return e;
+  const order = exploredCount(e) + 1;
+  return bump(e, { explored: { ...e.explored, [id]: { ...entry, status: 'explored', order, exploredAt: nowIso(now) } } });
+}
+
 /** Leaves a moment that was opened but not answered (the dreamer went back to the map). */
 export function abandonMoment(e: Exploration, id: MomentId): Exploration {
   const entry = e.explored[id];
   if (!entry || entry.status !== 'exploring' || entry.answer !== null) return e;
   const explored = { ...e.explored };
   delete explored[id];
-  return bump(e, { explored });
+  // the questions of this unanswered visit stay counted: coming back does not start the moment over
+  const asked = (entry.turns ?? []).filter(isQuestionTurn).length;
+  return bump(e, { explored, ...(asked ? { asked: { ...(e.asked ?? {}), [id]: (e.asked?.[id] ?? 0) + asked } } : {}) });
 }
 
 /** After an "I don't know": asks the moment once more, differently. The first question and answer are kept (firstTry). */
@@ -353,7 +544,7 @@ export function completeMoment(e: Exploration, id: MomentId, now = new Date(), o
   const entry = e.explored[id];
   if (!entry || entry.status !== 'exploring' || entry.answer === null || entry.insight === null) return e;
   if (entry.followUp && followUpPending(entry)) return e;
-  if (entry.followUp?.answer && !entry.insightFromFollowUp && !options.keepFirstInsight) return e;
+  if (entry.followUp?.answer && !entry.insightFromFollowUp && !entry.insight.pair && !options.keepFirstInsight) return e;
   const order = exploredCount(e) + 1;
   return bump(e, { explored: { ...e.explored, [id]: { ...entry, status: 'explored', order, exploredAt: nowIso(now) } } });
 }
@@ -410,6 +601,7 @@ export function receiveWholeView(e: Exploration, view: Omit<WholeViewRecord, 'ba
     kind,
     notice: clean(view.notice, 400) || null,
     invite: (view.invite ?? []).filter((x) => typeof x === 'string' && ids.has(x) && !explored.has(x)),
+    ...(cleanTakeaways(view.takeaways) ? { takeaways: cleanTakeaways(view.takeaways) } : {}),
     ...(failures ? { failures } : {}),
   };
   if (previous && kind === 'no-link' && carried.length) {
@@ -437,10 +629,28 @@ function linkStillHolds(e: Exploration, c: WholeViewConnection): boolean {
   return holds(c.from, c.fromQuote) && holds(c.to, c.toQuote);
 }
 
+function cleanPair(pair: unknown): MomentPair | null {
+  if (!isObj(pair) || !isObj(pair.a) || !isObj(pair.b)) return null;
+  const side = (x: Record<string, unknown>): MomentPair['a'] | null => {
+    const quote = clean(x.quote, 300);
+    return quote && (x.from === 'dream' || x.from === 'answer') ? { quote, from: x.from } : null;
+  };
+  const a = side(pair.a);
+  const b = side(pair.b);
+  const question = clean(pair.question, 300);
+  return a && b && question ? { a, b, question } : null;
+}
+
 function cleanInsight(insight: MomentInsight | null | undefined): MomentInsight | null {
   if (!insight) return null;
   const observation = clean(insight.observation, 800);
   const reflection = clean(insight.reflection, 800);
+  if (insight.kind === 'listening') {
+    // the dream line may be left out when the pair is about to show it (doc 90 v3): something must still be said
+    const pair = cleanPair(insight.pair);
+    if (!observation && !reflection && !pair) return null;
+    return { observation, reflection, possibility: '', kind: 'listening', ...(pair ? { pair } : {}) };
+  }
   const possibility = clean(insight.possibility, 800);
   // A factual insight has no possibility (and, after "I don't know", nothing of hers to give back); an interpretive one has all three.
   const kind: InsightKind = insight.kind === 'factual' || !possibility ? 'factual' : 'interpretive';
@@ -485,7 +695,11 @@ export function parseExploration(raw: unknown): Exploration | null {
       const insight = isObj(v.insight) ? cleanInsight(v.insight as unknown as MomentInsight) : null;
       const answer = str(v.answer, MAX_ANSWER_CHARS);
       if (!question || !status) continue;
-      if (status === 'explored' && (!answer || !insight)) continue;
+      // a conversation (doc 102) is kept with its turns; an explored one needs her words, not an insight
+      const turns = Array.isArray(v.turns) ? v.turns.slice(-MAX_TURNS_PER_MOMENT).map(cleanTurn).filter((t): t is ConversationTurn => t !== null) : null;
+      // a conversation moment is explored once she answered in it, in words or with a button (then it has no first words): kept
+      const hasHers = Boolean(turns?.some((t) => t.role === 'dreamer'));
+      if (status === 'explored' && !hasHers && (!answer || !insight)) continue;
       const fuAnswer = isObj(v.followUp) ? str(v.followUp.answer, MAX_ANSWER_CHARS) : null;
       const fu =
         isObj(v.followUp) && str(v.followUp.question, 300)
@@ -509,6 +723,7 @@ export function parseExploration(raw: unknown): Exploration | null {
           ? { firstTry: { question: str(v.firstTry.question, 300) as string, answer: str(v.firstTry.answer, MAX_ANSWER_CHARS) as string } }
           : {}),
         ...(typeof v.retries === 'number' ? { retries: Math.min(MAX_INSIGHT_RETRIES, Math.max(0, Math.floor(v.retries))) } : {}),
+        ...(turns && turns.length ? { turns } : {}),
       };
     }
   }
@@ -522,6 +737,12 @@ export function parseExploration(raw: unknown): Exploration | null {
     feelingsAsked: raw.feelingsAsked === true,
     rev: typeof raw.rev === 'number' && raw.rev >= 0 ? Math.floor(raw.rev) : 0,
   };
+  // the questions of earlier, unanswered visits (whole numbers, known moments only)
+  if (isObj(raw.asked)) {
+    const asked: Record<MomentId, number> = {};
+    for (const [id, n] of Object.entries(raw.asked)) if (ids.has(id) && typeof n === 'number' && n > 0) asked[id] = Math.min(MAX_QUESTIONS_PER_MOMENT, Math.floor(n));
+    if (Object.keys(asked).length) e.asked = asked;
+  }
   const exploredIds = new Set(exploredInOrder(e).map((x) => x.moment.id));
   const view = parseWholeViewRecord(raw.wholeView, ids, exploredIds);
   if (view) e.wholeView = view;
@@ -602,6 +823,7 @@ function parseWholeViewRecord(raw: unknown, ids: Set<string>, exploredIds: Set<s
     kind,
     notice: str(w.notice, 400),
     invite: Array.isArray(w.invite) ? w.invite.filter((x): x is string => typeof x === 'string' && ids.has(x) && !exploredIds.has(x)) : [],
+    ...(cleanTakeaways(w.takeaways) ? { takeaways: cleanTakeaways(w.takeaways) } : {}),
     ...(kind === 'factual-summary' ? { failures: typeof w.failures === 'number' ? Math.min(MAX_WHOLE_VIEW_FAILURES, Math.max(1, Math.floor(w.failures))) : 1 } : {}),
   };
 }

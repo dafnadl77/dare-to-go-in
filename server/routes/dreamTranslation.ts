@@ -8,7 +8,10 @@ import {
   type TranslationTarget,
 } from '../../src/archive/dreamTranslationSchema.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
-import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
+import { type RequestHeaders } from '../callerIdentity.js';
+import { resolveAdultCaller } from '../ageGate.js';
+import { realModerate } from '../safety/moderation.js';
+import { dareWordsSafe } from '../safety/routeSafety.js';
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
 
@@ -19,7 +22,7 @@ const DEFAULT_MODEL = 'gpt-4o-mini';
     authenticated user specifically; an anonymous trial identity is not
     enough (there is no such thing as an anonymous archive). */
 export async function handleDreamTranslation(rawBody: unknown, requestHeaders: RequestHeaders): Promise<HandlerResult> {
-  const resolved = await resolveCallerIdentity(requestHeaders);
+  const resolved = await resolveAdultCaller(requestHeaders);
   if (!resolved.ok) {
     return errorResult(resolved.status, resolved.reason, resolved.message);
   }
@@ -82,6 +85,8 @@ ${texts.map((t, i) => `${i + 1}. ${t}`).join('\n')}`;
       );
     }
 
+    // Checked before shown (DARE's own check + moderation); not passing, or moderation down, = not shown.
+    if (!(await dareWordsSafe(outcome.value, realModerate, 'retelling'))) return errorResult(502, 'invalid_response', 'The translation could not be completed.');
     return okResult({ translations: outcome.value });
   } catch (err) {
     if (err instanceof OpenAI.APIError) {

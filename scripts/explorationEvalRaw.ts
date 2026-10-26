@@ -34,7 +34,21 @@ function report(r: unknown, indent = '  ') {
   }
   (c.dream ?? []).forEach((x, i) => p(`${indent}- dream ${i} [${x.status}]: ${t.dream[i] ?? ''}${x.reasons?.length ? ` — ${x.reasons.join('; ')}` : ''}`));
   (c.user ?? []).forEach((x, i) => p(`${indent}- her ${i} [${x.status}]: ${t.user[i] ?? ''}${x.reasons?.length ? ` — ${x.reasons.join('; ')}` : ''}`));
-  (c.possibilities ?? []).forEach((x, i) => p(`${indent}- possibility ${i} [${x.length ? 'refused' : 'passed'}]: ${t.possibilities[i] ?? ''}${x.length ? ` — ${x.join('; ')}` : ''}`));
+  const q = (o as { quality?: { level: number; score: number; notes: string[] }[] }).quality;
+  const cards = (o as { cards?: ({ anchors: { quote: string; from: string }[]; relation: string; basis: string[]; aboutHer: { claim: string; quote: string }[]; openEdge: string } | null)[] }).cards;
+  const chosen = (o as { chosen?: number }).chosen;
+  (c.possibilities ?? []).forEach((x, i) => {
+    p(`${indent}- possibility ${i} [${x.length ? 'refused' : 'passed'}]${chosen === i ? ' **← shown**' : ''}: ${t.possibilities[i] ?? ''}${x.length ? ` — ${x.join('; ')}` : ''}`);
+    if (q?.[i]) p(`${indent}  - quality: level ${q[i].level}, score ${q[i].score}${q[i].notes.length ? ` — ${q[i].notes.join('; ')}` : ''}`);
+    const k = cards?.[i];
+    if (k) {
+      p(`${indent}  - card: relation ${k.relation}${k.basis.length ? `; basis ${k.basis.map((b) => `«${b}»`).join(', ')}` : ''}${k.openEdge ? `; open edge: ${k.openEdge}` : ''}`);
+      k.anchors.forEach((a) => p(`${indent}    - anchor (${a.from}): «${a.quote}»`));
+      k.aboutHer.forEach((h) => p(`${indent}    - about her: ${h.claim} ← «${h.quote}»`));
+    } else if (cards) p(`${indent}  - card: none`);
+  });
+  const inv = (o as { invitation?: { question: string; shown: boolean; reasons: string[] } | null }).invitation;
+  if (inv) p(`${indent}- inviting question [${inv.shown ? 'may be shown' : 'refused'}]: ${inv.question}${inv.reasons.length ? ` — ${inv.reasons.join('; ')}` : ''}`);
 }
 
 p(`# הריצה ${RUN}: הפלט של המערכת כפי שנשמר, בלי שום עריכה`);
@@ -44,7 +58,7 @@ if (d.stoppedForBudget) p(`\n**הריצה נעצרה בגלל התקציב:** ${
 
 for (const j of d.journeys) {
   p();
-  p(`## ${j.plan} (${j.kind})`);
+  p(`## ${j.plan} (${j.kind})${j.complete === false ? " — **המסע לא הושלם: הריצה נעצרה באמצעו**" : ""}`);
   p();
   p(`**טקסט החלום:** ${j.text}`);
   p();
@@ -139,6 +153,29 @@ const median = (a: number[]) => {
   return x.length % 2 ? x[(x.length - 1) / 2] : Math.round((x[x.length / 2 - 1] + x[x.length / 2]) / 2);
 };
 p();
+// every model response of the run, each attempt in order (runs from doc 62 on keep them; older runs do not have them)
+const responses = (d.responses ?? []) as { stage: string; text: string }[];
+if (responses.length) {
+  p('## כל תשובות המודל, לפי הסדר (כל ניסיון, גם אלה שנפסלו)');
+  p();
+  responses.forEach((r, i) => {
+    let j: Record<string, unknown> | null = null;
+    try {
+      j = JSON.parse(r.text);
+    } catch {
+      j = null;
+    }
+    const list = (k: string, f: string) => (Array.isArray(j?.[k]) ? (j![k] as Record<string, unknown>[]).map((x) => String(x[f] ?? '')) : []);
+    if (r.stage === 'moment-question' && j) p(`${i + 1}. ${r.stage}: ${list('candidates', 'question').map((q) => `"${q}"`).join(' · ')}`);
+    else if (r.stage.startsWith('moment-reply') && j) {
+      const poss = list('possibilities', 'text');
+      p(`${i + 1}. ${r.stage}: ${poss.length} מועמדות${j.followUpQuestion ? `; שאלת הבהרה: "${j.followUpQuestion}"` : ''}`);
+      poss.forEach((t) => p(`   - "${t}"`));
+    } else p(`${i + 1}. ${r.stage}: ${r.text.replace(/\s+/g, ' ').slice(0, 160)}${r.text.length > 160 ? '…' : ''}`);
+  });
+  p();
+}
+
 p('## עלות, קריאות, ניסיונות כתיבה מחדש וזמנים (נמדד)');
 p();
 p('| שלב | קריאות שהמשתמשת מחכה להן | תשובות מהמודל | כתיבות מחדש | חציון המתנה | מקסימום | עלות |');

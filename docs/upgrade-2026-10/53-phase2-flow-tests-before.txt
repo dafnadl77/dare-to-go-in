@@ -1,0 +1,136 @@
+[ai-model] moment-reply: MISMATCH requested gpt-4o-mini, answered by stub
+[language-integrity] moment-reply: attempt 1 failed a quality check (no possibility could be shown: - rests on no sentence that passed th) — regenerating
+[ai-model] moment-reply: MISMATCH requested gpt-4o-mini, answered by stub
+[language-integrity] moment-reply: attempt 2 failed a quality check (no possibility could be shown: - rests on no sentence that passed th) — regenerating
+[ai-model] moment-reply: MISMATCH requested gpt-4o-mini, answered by stub
+[language-integrity] moment-reply: attempt 3 failed a quality check and no retry is left — not shown
+[ai-model] moment-reply: MISMATCH requested gpt-4o-mini, answered by stub
+[language-integrity] moment-reply: attempt 1 failed a quality check (no possibility could be shown: - rests on no sentence that passed th) — regenerating
+[ai-model] moment-reply: MISMATCH requested gpt-4o-mini, answered by stub
+[language-integrity] moment-reply: attempt 2 failed a quality check (no possibility could be shown: - rests on no sentence that passed th) — regenerating
+[ai-model] moment-reply: MISMATCH requested gpt-4o-mini, answered by stub
+[language-integrity] moment-reply: attempt 3 failed a quality check and no retry is left — not shown
+[ai-model] moment-question: MISMATCH requested gpt-4o-mini, answered by stub
+✖ schema: each possibility comes with its source card, three candidates, and an inviting question for when none is worth showing (1.6504ms)
+✖ parse: a card is read; an older reply without cards is still read (its sentences rest on ids) (0.5667ms)
+✖ reply: the route shows the best candidate, not the first that passes (91.1645ms)
+✖ reply: with nothing worth showing, the inviting question becomes the follow-up question; never more than two in a journey (18.026ms)
+✖ question: the plan carries the kind of question for the moment, and the input tells the model (1.1557ms)
+✖ question: among passing candidates the route asks the better one (not "what stood out" again), not the first (11.4442ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 0
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 71996.8482
+
+✖ failing tests:
+
+test at tests\interpretationFlow.test.ts:49:1
+✖ schema: each possibility comes with its source card, three candidates, and an inviting question for when none is worth showing (1.6504ms)
+  AssertionError [ERR_ASSERTION]: anchors
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationFlow.test.ts:51:104)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.start (node:internal/test_runner/test:1191:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\interpretationFlow.test.ts:59:1
+✖ parse: a card is read; an older reply without cards is still read (its sentences rest on ids) (0.5667ms)
+  TypeError: Cannot read properties of undefined (reading 'relation')
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationFlow.test.ts:68:42)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+
+test at tests\interpretationFlow.test.ts:78:1
+✖ reply: the route shows the best candidate, not the first that passes (91.1645ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + ''
+  - 'הכלב הולך אחורה כל הזמן, ובכל זאת מתרחק עד שהוא נעלם מאחורי פינה. ואת, שרצית לרוץ אחריו, נשארת עם רגליים דבוקות לחול. מי שהולך אחורה מגיע רחוק, ומי שרוצה לרוץ לא זז.'
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationFlow.test.ts:87:35)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '',
+    expected: 'הכלב הולך אחורה כל הזמן, ובכל זאת מתרחק עד שהוא נעלם מאחורי פינה. ואת, שרצית לרוץ אחריו, נשארת עם רגליים דבוקות לחול. מי שהולך אחורה מגיע רחוק, ומי שרוצה לרוץ לא זז.',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\interpretationFlow.test.ts:90:1
+✖ reply: with nothing worth showing, the inviting question becomes the follow-up question; never more than two in a journey (18.026ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'האדים מהתה ירדו אל החול, ואף אוטובוס לא עצר. מה, אם בכלל, מחבר בשבילך בין השניים?'
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationFlow.test.ts:101:12)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'האדים מהתה ירדו אל החול, ואף אוטובוס לא עצר. מה, אם בכלל, מחבר בשבילך בין השניים?',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\interpretationFlow.test.ts:113:1
+✖ question: the plan carries the kind of question for the moment, and the input tells the model (1.1557ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - 'feeling'
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationFlow.test.ts:116:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'feeling',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\interpretationFlow.test.ts:121:1
+✖ question: among passing candidates the route asks the better one (not "what stood out" again), not the first (11.4442ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'מה הדבר הראשון שתפס את העין שלך בספל התה החם הזה על הספסל?'
+  - 'מה מוזר בעינייך באדים שירדו מהתה למטה, אל החול?'
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\interpretationFlow.test.ts:130:35)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'מה הדבר הראשון שתפס את העין שלך בספל התה החם הזה על הספסל?',
+    expected: 'מה מוזר בעינייך באדים שירדו מהתה למטה, אל החול?',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

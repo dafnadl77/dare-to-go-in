@@ -1,0 +1,14 @@
+# 120 · moment limit and summary tests BEFORE the code (2026-10-25)
+✖ a question is any turn of DARE that asks her to answer — a question mark or an indirect request; a statement or the closing line is not (2.6719ms)
+✖ one question per turn: a second question in the same turn is not shown (3.5323ms)
+✖ after her third answer DARE closes: a short line, no question, no offer — and nothing more is asked in that moment (77.9142ms)
+✖ the direction buttons and "זה לא מתאים לי" do not get round it: after three questions they lead to the closing line (6.0012ms)
+✖ the counter is kept per moment: leaving a moment unanswered and opening it again does not start it over; an explored moment cannot be reopened (0.9843ms)
+✖ the summary fix: a moment answered only with buttons is kept by the server, so the summary covers what the page shows (2.0789ms)
+✔ a summary is made from one moment and from several (7.0062ms)
+✖ summary failures are named: held back by the safety check, the AI not available, the test budget — never a summary that was not made (3.5947ms)
+✖ "מה לקחתי מהחלום" keeps open questions apart, only questions that really came up (1.3419ms)
+✖ the window: after the closing line, two clear ways out instead of the writing box; leaving early is always possible; finish closes every open moment (81.6006ms)
+ℹ tests 10
+ℹ pass 1
+ℹ fail 9

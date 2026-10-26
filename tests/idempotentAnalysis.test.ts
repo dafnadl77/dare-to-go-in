@@ -127,6 +127,7 @@ function harness(opts: { slowModel?: boolean; failModel?: boolean; who?: () => s
       if (opts.failModel) throw new Error('provider failure');
       return { status: 'ok', value: { ...ANALYSIS } };
     }) as DreamAnalysisDeps['runModel'],
+    moderate: async () => ({ status: 'ok' as const, hit: false }),
   };
   return { db, deps, modelCalls, gate: null, gateControl: { open: () => openGate() } };
 }
@@ -477,14 +478,15 @@ test('only a hash of the dream is stored client-side, never the text, and the ke
 test('HeroDream wiring: the key is created per submission, reused for TRY AGAIN, dropped only on a definitive answer, and never retried automatically', () => {
   const hero = read('src/hero/HeroDream.tsx');
   assert.match(hero, /keyForSubmission\(dreamInputSourceText\(input\), submissionStore\)/);
-  assert.match(hero, /analyzeDream\(input, idempotencyKey\)/);
+  assert.match(hero, /analyzeDream\(input, idempotencyKey, safetyAck\)/);
   assert.match(hero, /if \(!uncertain\) endSubmission\(submissionStore\);/);
   assert.match(hero, /const uncertain = result\.status === 'error' && result\.uncertain === true;/);
   // an abandoned journey does not drop an unanswered key (re-sending the same dream then replays it)
   const goHome = hero.slice(hero.indexOf('const handleGoHome'), hero.indexOf('const handleGoHome') + 700);
   assert.ok(!/endSubmission/.test(goHome));
   const client = read('src/hero/dreamAnalysis.ts');
-  assert.match(client, /JSON\.stringify\(\{ sourceText, inputMode: dreamInput\.inputMode, idempotencyKey \}\)/);
+  // the key is always sent; her answer on the distress path rides along only when there is one
+  assert.match(client, /JSON\.stringify\(\{ sourceText, inputMode: dreamInput\.inputMode, idempotencyKey, \.\.\.\(safetyAck \? \{ safetyAck \} : \{\}\) \}\)/);
   assert.equal((client.match(/uncertain: true/g) ?? []).length, 3, 'timeout/disconnect, platform error page, unusable 200');
   assert.match(client, /uncertain: reason === 'analysis_in_progress'/);
 });

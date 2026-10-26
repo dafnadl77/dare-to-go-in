@@ -1,0 +1,64 @@
+/* The development bar of the conversation page (doc 102, step 2): the prototype page's bar, with the scenario tabs and the script hint. */
+
+.cvd-bar {
+  position: sticky;
+  top: 0;
+}
+
+.cvd-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cvd-tab {
+  min-height: 40px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 240, 232, 0.4);
+  background: transparent;
+  color: #f4f0e8;
+  font-size: 15px;
+}
+
+.cvd-tab[aria-selected='true'] {
+  border-color: rgba(233, 199, 135, 0.95);
+  color: #f3dcaa;
+}
+
+.cvd-hint {
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px dashed rgba(140, 200, 255, 0.7);
+  color: #d6ebff;
+  font-size: 15px;
+}
+
+@media (max-width: 600px) {
+  .cvd-bar {
+    position: relative;
+  }
+}
+
+/* the plain steps of the page, in one quiet line */
+.cvd-guide {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  flex-basis: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: cvd;
+  color: #f4f0e8;
+  font-size: 15px;
+}
+
+.cvd-guide li {
+  counter-increment: cvd;
+}
+
+.cvd-guide li::before {
+  content: counter(cvd) '. ';
+  color: #f3dcaa;
+}

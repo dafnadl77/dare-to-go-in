@@ -162,18 +162,21 @@ test('the fonts statement agrees with the Content-Security-Policy', () => {
   for (const lang of ['he', 'en'] as const) assert.equal(/Google Fonts/.test(text(lang, 'privacy')), !GOOGLE_FONTS_SELF_HOSTED, `${lang}: Google Fonts disclosure present exactly while fonts are loaded from Google`);
 });
 
-test('Terms: personal reflection and entertainment, not a therapeutic service; liability limited without taking away statutory rights; user content rights; distress line', () => {
+test('Terms: her wording of the service and of the limitation of liability (2026-10-24), not a therapeutic service; user content rights; distress line', () => {
   const e = text('en', 'terms');
   const h = text('he', 'terms');
-  assert.match(e, /personal reflection and entertainment only/);
-  assert.match(e, /not a medical, psychological, psychiatric, counselling or therapeutic service/);
+  assert.match(e, /intended for exploring dreams, personal reflection and encouraging thought/);
+  assert.match(e, /does not provide mental-health, psychological, psychiatric or medical treatment services/);
   assert.ok(!/wellness/i.test(e), 'the word "wellness" suggests a therapeutic service');
-  assert.match(h, /להתבוננות אישית ולבידור בלבד/);
+  assert.match(h, /המיועדת לחקירת חלומות, להתבוננות אישית ולעידוד מחשבה/);
+  assert.ok(!/לבידור/.test(h) && !/entertainment/.test(e));
   assert.ok(!/רווחה אישית/.test(h));
   assert.match(e, /as is/);
-  assert.match(e, /Nothing in these terms excludes or limits liability that cannot be excluded or limited by law/);
-  assert.match(e, /including your rights as a consumer/);
-  assert.match(h, /אין בתנאים אלו כדי להוציא או להגביל אחריות שאי אפשר להוציא או להגביל לפי דין/);
+  // removed at her explicit request (2026-10-24)
+  assert.doesNotMatch(e, /Nothing in these terms excludes or limits liability/);
+  assert.doesNotMatch(h, /אין בתנאים אלו כדי להוציא או להגביל אחריות/);
+  assert.match(e, /to the extent the law permits such a limitation of liability/);
+  assert.match(h, /ככל שהדין מאפשר הגבלת אחריות כאמור/);
   assert.match(e, /Your dream text, corrections and associations remain yours/);
   assert.match(h, /טקסט החלומות, התיקונים והאסוציאציות שלכם נשארים שלכם/);
   assert.match(e, /ERAN/);

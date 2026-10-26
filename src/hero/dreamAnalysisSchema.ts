@@ -125,7 +125,9 @@ export type AnalysisErrorReason =
 export type AnalysisResult =
   | { status: 'ok'; analysis: DreamAnalysis; attemptId: string }
   /** `uncertain`: no definitive answer reached the client (timeout, dropped connection, a platform error page, or the server still working), so a paid analysis MAY have started or finished on the server. Absent/false = the server answered and released the attempt. */
-  | { status: 'error'; reason: AnalysisErrorReason; message: string; uncertain?: boolean };
+  | { status: 'error'; reason: AnalysisErrorReason; message: string; uncertain?: boolean }
+  /** The distress path (doc 106/109): nothing was analyzed and nothing was spent; the screen shows the fixed safety words. */
+  | { status: 'safety'; level: 'uncertain' | 'concern' | 'danger' | 'threat' };
 
 /**
  * The exact instruction the analysis backend uses. Reconstruction, not

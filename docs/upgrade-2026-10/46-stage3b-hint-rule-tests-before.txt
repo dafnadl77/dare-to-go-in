@@ -1,0 +1,36 @@
+✖ a careful "אולי … מרמז על" is shown when what it hints at is what she said (9.1362ms)
+✔ …and refused when what it hints at is not what she said, even hedged (8.056ms)
+✔ the conditions around it still hold: hedged, no fixed meaning, and the stronger forms stay as they were (1.1586ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 2
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1201.6414
+
+✖ failing tests:
+
+test at tests\explorationStage3bHintRule.test.ts:27:1
+✖ a careful "אולי … מרמז על" is shown when what it hints at is what she said (9.1362ms)
+  AssertionError [ERR_ASSERTION]: her wish, in her words
+  + actual - expected
+  
+  + [
+  +   'reads an image as a sign of something ("מצביע על", "מרמז על")'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\explorationStage3bHintRule.test.ts:28:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.start (node:internal/test_runner/test:1191:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'reads an image as a sign of something ("מצביע על", "מרמז על")' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

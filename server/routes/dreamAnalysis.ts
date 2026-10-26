@@ -11,7 +11,11 @@ import {
 import { resolveAnalysisModel } from '../analysisModel.js';
 import { collectStrings } from '../../src/hero/languageIntegrity.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
-import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
+import { type RequestHeaders, type ResolveCallerResult } from '../callerIdentity.js';
+import { resolveAdultCaller } from '../ageGate.js';
+import { realModerate, type Moderate } from '../safety/moderation.js';
+import { checkDreamText, dareWordsSafe, safetyBody } from '../safety/routeSafety.js';
+import { safetyAckOf } from '../../src/hero/safety/journeySafety.js';
 import {
   createAttemptForIdentity,
   abandonAttempt,
@@ -65,7 +69,7 @@ export async function runAnalysisModel(client: OpenAI, sourceText: string) {
 }
 
 export interface DreamAnalysisDeps {
-  resolveIdentity: typeof resolveCallerIdentity;
+  resolveIdentity: (headers: RequestHeaders) => Promise<ResolveCallerResult>;
   getClient: () => OpenAI | null;
   start: AnalysisStartDeps;
   abandon: typeof abandonAttempt;
@@ -75,10 +79,12 @@ export interface DreamAnalysisDeps {
   settleFreeDream?: (userId: string, cookieHeader: string | null | undefined) => Promise<boolean>;
   /** Whether a guest (cookie) may start a new dream. Default: the DARE_GUEST_DREAMS setting, which keeps that closed. */
   guestsAllowed?: () => boolean;
+  /** The second safety layer (moderation.ts). Default: the real service. */
+  moderate?: Moderate;
 }
 
 const realDeps: DreamAnalysisDeps = {
-  resolveIdentity: resolveCallerIdentity,
+  resolveIdentity: (h) => resolveAdultCaller(h),
   getClient: getOpenAIClient,
   start: {
     startLegacy: createAttemptForIdentity,
@@ -138,6 +144,11 @@ export async function handleDreamAnalysis(
     }
     idempotencyKey = body.idempotencyKey;
   }
+
+  // The distress path (doc 106/109), before any credit, attempt or model: a dream is a dream unless it says it is real life now.
+  const moderate = deps.moderate ?? realModerate;
+  const herCheck = await checkDreamText(sourceText, safetyAckOf((rawBody as { safetyAck?: unknown } | null)?.safetyAck), moderate);
+  if (!herCheck.allowed) return withHeaders(okResult(safetyBody(herCheck.level)), cookieHeaders);
 
   const client = deps.getClient();
   if (!client) {
@@ -211,6 +222,13 @@ export async function handleDreamAnalysis(
         ),
         cookieHeaders,
       );
+    }
+
+    // What comes back is checked before it is shown (her own dream text, already checked above, is not read again). Not passing, or
+    // moderation being down, is an ordinary failure: the attempt is released, as for any failed analysis.
+    if (!(await dareWordsSafe({ ...outcome.value, sourceText: '' }, moderate, 'retelling'))) {
+      await deps.abandon(resolved.identity, attemptId);
+      return withHeaders(errorResult(502, 'invalid_response', 'The analysis could not be completed.'), cookieHeaders);
     }
 
     // Record the result on its attempt so a retry of the same submission returns it instead of paying again.

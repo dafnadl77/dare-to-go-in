@@ -1,0 +1,426 @@
+{
+  "run": "p3dev-1",
+  "journeys": [
+    {
+      "complete": false,
+      "plan": "dev-a",
+      "kind": "שוק, מטריה מנייר וכד שעבר ידיים",
+      "text": "הייתי בשוק עם אחותי וחברה שלי מהעבודה, וחיפשנו מתנה למישהי שאני בכלל לא מכירה. אחותי התמקחה עם מוכר על כד חרס כחול, והחברה שלי כל הזמן הלכה קדימה ונעלמה בין הדוכנים. ואז קניתי מטריה, וכשפתחתי אותה היא נפתחה הפוך והבד שלה היה עשוי מנייר. ניסיתי לסגור אותה אבל היא נקרעה לי בידיים. בסוף מצאתי את החברה שלי יושבת על מדרגות ומחזיקה את הכד שאחותי רצתה, ולא הבנתי איך הוא הגיע אליה.",
+      "segments": [
+        "s0: הייתי בשוק עם אחותי וחברה שלי מהעבודה",
+        "s1: וחיפשנו מתנה למישהי שאני בכלל לא מכירה",
+        "s2: אחותי התמקחה עם מוכר על כד חרס כחול",
+        "s3: והחברה שלי כל הזמן הלכה קדימה ונעלמה בין הדוכנים",
+        "s4: ואז קניתי מטריה",
+        "s5: וכשפתחתי אותה היא נפתחה הפוך והבד שלה היה עשוי מנייר",
+        "s6: ניסיתי לסגור אותה אבל היא נקרעה לי בידיים",
+        "s7: בסוף מצאתי את החברה שלי יושבת על מדרגות ומחזיקה את הכד שאחותי רצתה",
+        "s8: ולא הבנתי איך הוא הגיע אליה"
+      ],
+      "moments": [
+        {
+          "id": "m1",
+          "label": "המטריה נקרעה בידיים",
+          "labelCandidate": "המטריה נקרעה בידיים",
+          "text": "ניסיתי לסגור אותה אבל היא נקרעה לי בידיים",
+          "priority": 5
+        },
+        {
+          "id": "m2",
+          "label": "שוק לחיפוש מתנה",
+          "labelCandidate": "שוק לחיפוש מתנה",
+          "text": "הייתי בשוק עם אחותי וחברה שלי מהעבודה, וחיפשנו מתנה למישהי שאני בכלל לא מכירה",
+          "priority": 4
+        },
+        {
+          "id": "m3",
+          "label": "המפגש עם החברה על המדרגות",
+          "labelCandidate": "המפגש עם החברה על המדרגות",
+          "text": "בסוף מצאתי את החברה שלי יושבת על מדרגות ומחזיקה את הכד שאחותי רצתה, ולא הבנתי איך הוא הגיע אליה",
+          "priority": 4
+        },
+        {
+          "id": "m4",
+          "label": "המטריה הפוכה מנייר",
+          "labelCandidate": "המטריה הפוכה מנייר",
+          "text": "ואז קניתי מטריה, וכשפתחתי אותה היא נפתחה הפוך והבד שלה היה עשוי מנייר",
+          "priority": 3
+        },
+        {
+          "id": "m5",
+          "label": "התמקחות על כד חרס",
+          "labelCandidate": "התמקחות על כד חרס",
+          "text": "אחותי התמקחה עם מוכר על כד חרס כחול, והחברה שלי כל הזמן הלכה קדימה ונעלמה בין הדוכנים",
+          "priority": 1
+        }
+      ],
+      "steps": [
+        {
+          "moment": "המטריה נקרעה בידיים",
+          "momentText": "ניסיתי לסגור אותה אבל היא נקרעה לי בידיים",
+          "question": {
+            "text": "מה בלט לך ברגע הזה?",
+            "source": "fixed",
+            "focus": "salience",
+            "subject": null,
+            "ms": 6134,
+            "rejected": [
+              {
+                "question": "איזה פרט הכי תפס אותך ברגע שהמטריה נקרעה לך בידיים?",
+                "reasons": [
+                  "presupposes something from another part of the dream (\"שהמטריה\")"
+                ]
+              },
+              {
+                "question": "מה הרגשת בידיים שלך כשניסית לסגור את המטריה והיא נקרעה?",
+                "reasons": [
+                  "presupposes something from another part of the dream (\"המטריה\")"
+                ]
+              },
+              {
+                "question": "אם היית יכולה לעצור את הרגע הזה, מה היית בוחרת לבדוק במטריה בדיוק כשנקרעה?",
+                "reasons": [
+                  "presupposes something from another part of the dream (\"במטריה\")",
+                  "too many words that are in neither the dream nor her answers (\"לעצור\", \"לבדוק\", \"בדיוק\")"
+                ]
+              },
+              {
+                "question": "איזה חלק במטריה נקרע לך קודם בידיים?",
+                "reasons": [
+                  "presupposes something from another part of the dream (\"במטריה\")",
+                  "places the moment before or after another event (\"קודם\")"
+                ]
+              },
+              {
+                "question": "מה עובר לך בגוף כשאת מרגישה את הקריעה של המטריה?",
+                "reasons": [
+                  "presupposes something from another part of the dream (\"המטריה\")"
+                ]
+              },
+              {
+                "question": "אם היית מצליחה לסגור את המטריה, איך לדעתך זה היה מרגיש ברגע הזה?",
+                "reasons": [
+                  "presupposes something from another part of the dream (\"המטריה\")"
+                ]
+              },
+              {
+                "question": "איזה חלק של המטריה נקרע לך בידיים, ואיך זה נראה או הרגיש?",
+                "reasons": [
+                  "two questions in one sentence",
+                  "presupposes something from another part of the dream (\"המטריה\")"
+                ]
+              },
+              {
+                "question": "מה הדבר הראשון ששמת לב אליו כשנקרעה לך המטריה בידיים?",
+                "reasons": [
+                  "presupposes something from another part of the dream (\"המטריה\")"
+                ]
+              },
+              {
+                "question": "אם היית יכולה להגיד משהו לעצמך ברגע שהמטריה נקרעה, מה היית אומרת?",
+                "reasons": [
+                  "presupposes something from another part of the dream (\"שהמטריה\")"
+                ]
+              }
+            ]
+          },
+          "answer": "ברגע הזה בלט לי שאני מרגישה לא נוחה כשאני צריכה לבחור מתנה למישהו שאני לא מכירה, והכל היה מאוד מבולגן.",
+          "alternative": null,
+          "followUp": null,
+          "insight": {
+            "observation": "«ניסיתי לסגור אותה אבל היא נקרעה לי בידיים»",
+            "reflection": "אמרת שברגע הזה הרגשת לא נוחה כשאת צריכה לבחור מתנה למישהו שאת לא מכירה. אמרת שהכל היה מאוד מבולגן.",
+            "possibility": "אמרת ש'הכל היה מאוד מבולגן', ובחלום המטריה נקרעה לך בידיים. אולי יש קשר בין התחושה לבין מה שקרה למטריה.",
+            "kind": "interpretive"
+          },
+          "insightReport": {
+            "first": {
+              "dream": [
+                {
+                  "status": "quote",
+                  "reasons": [
+                    "brings in another part of the dream (\"המטריה\")"
+                  ]
+                }
+              ],
+              "user": [
+                {
+                  "status": "checked",
+                  "reasons": []
+                },
+                {
+                  "status": "checked",
+                  "reasons": []
+                }
+              ],
+              "possibilities": [
+                [
+                  "an anchor that is not in the dream (\"נקרעה לך בידיים\")"
+                ]
+              ],
+              "quality": [
+                {
+                  "level": 3,
+                  "score": 308,
+                  "notes": [
+                    "links details, touches her words or a charged detail, and leaves something open"
+                  ]
+                }
+              ],
+              "chosen": -1,
+              "invitation": null,
+              "cards": [
+                {
+                  "anchors": [
+                    {
+                      "quote": "הכל היה מאוד מבולגן",
+                      "from": "answer"
+                    },
+                    {
+                      "quote": "נקרעה לך בידיים",
+                      "from": "dream"
+                    }
+                  ],
+                  "relation": "open-link",
+                  "basis": [
+                    "מבולגן",
+                    "נקרעה"
+                  ],
+                  "aboutHer": [
+                    {
+                      "claim": "הכל היה מאוד מבולגן",
+                      "quote": "הכל היה מאוד מבולגן"
+                    }
+                  ],
+                  "openEdge": "מה הקשר בין התחושה למה שקרה למטריה?"
+                }
+              ],
+              "texts": {
+                "dream": [
+                  "ניסית לסגור את המטריה אבל היא נקרעה לך בידיים."
+                ],
+                "user": [
+                  "אמרת שברגע הזה הרגשת לא נוחה כשאת צריכה לבחור מתנה למישהו שאת לא מכירה.",
+                  "אמרת שהכל היה מאוד מבולגן."
+                ],
+                "possibilities": [
+                  "אמרת ש'הכל היה מאוד מבולגן', ובחלום המטריה נקרעה לך בידיים. אולי יש קשר בין התחושה לבין מה שקרה למטריה."
+                ]
+              }
+            },
+            "retry": {
+              "dream": [
+                {
+                  "status": "quote",
+                  "reasons": [
+                    "brings in another part of the dream (\"המטריה\")",
+                    "says it was done to someone else; the part says to the dreamer"
+                  ]
+                }
+              ],
+              "user": [
+                {
+                  "status": "checked",
+                  "reasons": []
+                },
+                {
+                  "status": "checked",
+                  "reasons": []
+                }
+              ],
+              "possibilities": [
+                []
+              ],
+              "quality": [
+                {
+                  "level": 2,
+                  "score": 208,
+                  "notes": [
+                    "the basis named in the card is not in its anchors",
+                    "an open edge, but on nothing she said or charged"
+                  ]
+                }
+              ],
+              "chosen": 0,
+              "invitation": null,
+              "cards": [
+                {
+                  "anchors": [
+                    {
+                      "quote": "הכל היה מאוד מבולגן",
+                      "from": "answer"
+                    },
+                    {
+                      "quote": "נקרעה לי בידיים",
+                      "from": "dream"
+                    }
+                  ],
+                  "relation": "similar",
+                  "basis": [
+                    "חוסר סדר",
+                    "התפרקות"
+                  ],
+                  "aboutHer": [
+                    {
+                      "claim": "הרגשת שהכל מבולגן",
+                      "quote": "הכל היה מאוד מבולגן"
+                    }
+                  ],
+                  "openEdge": "אולי שווה לשים לב איך שני הדברים האלה מתחברים עבורך."
+                }
+              ],
+              "texts": {
+                "dream": [
+                  "ניסית לסגור את המטריה והיא נקרעה לך בידיים."
+                ],
+                "user": [
+                  "אמרת שברגע הזה הרגשת לא נוחה כשאת צריכה לבחור מתנה למישהו שאת לא מכירה.",
+                  "אמרת שהכל היה מאוד מבולגן."
+                ],
+                "possibilities": [
+                  "אמרת ש'הכל היה מאוד מבולגן', ובחלום המטריה נקרעה לך בידיים. אולי יש קשר בין התחושה לבין מה שקרה למטריה."
+                ]
+              }
+            }
+          },
+          "firstInsight": {
+            "observation": "«ניסיתי לסגור אותה אבל היא נקרעה לי בידיים»",
+            "reflection": "אמרת שברגע הזה הרגשת לא נוחה כשאת צריכה לבחור מתנה למישהו שאת לא מכירה. אמרת שהכל היה מאוד מבולגן.",
+            "possibility": "",
+            "kind": "factual"
+          },
+          "replyMs": 12831,
+          "refreshMs": null,
+          "retryMs": 11519,
+          "unsureLook": false
+        }
+      ],
+      "wholeViews": [],
+      "avoided": 2
+    }
+  ],
+  "stoppedForBudget": "round budget: this round spent $0.0769, next call up to $0.0252, round cap $0.1",
+  "spentThisRunUsd": 0.076938,
+  "calls": [
+    {
+      "at": "2026-10-22T15:07:48.269Z",
+      "run": "p3dev-1",
+      "stage": "analysis",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 3864,
+      "output": 917,
+      "usd": 0.0011298,
+      "ms": 26524
+    },
+    {
+      "at": "2026-10-22T15:07:50.128Z",
+      "run": "p3dev-1",
+      "stage": "labels",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 1231,
+      "output": 47,
+      "usd": 0.00021285,
+      "ms": 1806
+    },
+    {
+      "at": "2026-10-22T15:07:52.139Z",
+      "run": "p3dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 1979,
+      "output": 140,
+      "usd": 0.005078,
+      "ms": 1969
+    },
+    {
+      "at": "2026-10-22T15:07:54.612Z",
+      "run": "p3dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2076,
+      "output": 128,
+      "usd": 0.005176,
+      "ms": 2439
+    },
+    {
+      "at": "2026-10-22T15:07:56.286Z",
+      "run": "p3dev-1",
+      "stage": "moment-question",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 2044,
+      "output": 144,
+      "usd": 0.00524,
+      "ms": 1644
+    },
+    {
+      "at": "2026-10-22T15:07:57.978Z",
+      "run": "p3dev-1",
+      "stage": "simulated-dreamer",
+      "model": "gpt-4o-mini-2024-07-18",
+      "input": 265,
+      "output": 35,
+      "usd": 0.00006075,
+      "ms": 1675
+    },
+    {
+      "at": "2026-10-22T15:08:02.599Z",
+      "run": "p3dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3202,
+      "output": 519,
+      "usd": 0.010556,
+      "ms": 4602
+    },
+    {
+      "at": "2026-10-22T15:08:07.496Z",
+      "run": "p3dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3247,
+      "output": 436,
+      "usd": 0.009982,
+      "ms": 4863
+    },
+    {
+      "at": "2026-10-22T15:08:10.809Z",
+      "run": "p3dev-1",
+      "stage": "moment-reply",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3265,
+      "output": 380,
+      "usd": 0.00957,
+      "ms": 3292
+    },
+    {
+      "at": "2026-10-22T15:08:15.436Z",
+      "run": "p3dev-1",
+      "stage": "moment-reply-retry",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3202,
+      "output": 490,
+      "usd": 0.010324,
+      "ms": 4609
+    },
+    {
+      "at": "2026-10-22T15:08:19.172Z",
+      "run": "p3dev-1",
+      "stage": "moment-reply-retry",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3247,
+      "output": 440,
+      "usd": 0.010014,
+      "ms": 3707
+    },
+    {
+      "at": "2026-10-22T15:08:22.328Z",
+      "run": "p3dev-1",
+      "stage": "moment-reply-retry",
+      "model": "gpt-4.1-2025-04-14",
+      "input": 3265,
+      "output": 383,
+      "usd": 0.009594,
+      "ms": 3113
+    }
+  ]
+}

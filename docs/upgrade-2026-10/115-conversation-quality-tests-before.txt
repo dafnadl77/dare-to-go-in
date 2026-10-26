@@ -1,0 +1,21 @@
+# 115 · conversation quality tests BEFORE the code (2026-10-25)
+✖ 1. an offer stated as a fact is not shown; the same thought as a possibility is; "מסמל" itself is allowed (3.221ms)
+✔ 1. every approved prepared conversation still shows its offers (3.6408ms)
+✖ 1. the instructions say it in her terms: grounded, a possibility, nothing attributed to her, meaning words allowed (0.7987ms)
+✖ 2. "not sure there is a meaning" is heard — for the next turn only (0.9131ms)
+✖ 2. the same angle in other words is not offered again; she can bring it back herself (0.2985ms)
+✖ 3. a rejection marks the offer, adds her bubble once, and asks DARE for one reply (1.7592ms)
+✖ 3. three replies to rejections per dream, apart from the 16; then the button only marks (0.2219ms)
+✖ 3. the route: a rejection is answered once, on its own allowance (the 16 stay whole); never twice; never past 3 (0.2606ms)
+✖ 3. a forged fourth rejection bubble is refused by the server; safety still comes first (0.2623ms)
+✖ 3. the browser: two quick clicks send one request (0.4049ms)
+✖ 3. the page: the button uses the new rejection; when the 3 are used it only marks, with a short line (57.5378ms)
+✖ 4. "finish": the page goes to the whole-view panel and focuses it; loading and errors are shown in the panel (123.1633ms)
+ℹ tests 12
+ℹ pass 1
+ℹ fail 11
+✖ 1. an offer stated as a fact is not shown; the same thought as a possibility is; "מסמל" itself is allowed (3.221ms)
+✖ 1. the instructions say it in her terms: grounded, a possibility, nothing attributed to her, meaning words allowed (0.7987ms)
+✖ 2. "not sure there is a meaning" is heard — for the next turn only (0.9131ms)
+✖ 2. the same angle in other words is not offered again; she can bring it back herself (0.2985ms)
+✖ 3. a rejection marks the offer, adds her bubble once, and asks DARE for one reply (1.7592ms)

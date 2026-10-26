@@ -2,7 +2,10 @@ import OpenAI from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
 import { okResult, errorResult, type HandlerResult } from '../httpResult.js';
 import { getSupabaseUserScopedClient } from '../supabaseUserScopedClient.js';
-import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
+import { type RequestHeaders } from '../callerIdentity.js';
+import { resolveAdultCaller } from '../ageGate.js';
+import { realModerate } from '../safety/moderation.js';
+import { dareWordsSafe } from '../safety/routeSafety.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { collectStrings } from '../../src/hero/languageIntegrity.js';
 import { CONCEPTS, type ConceptId } from '../../src/hero/conceptTaxonomy.js';
@@ -54,7 +57,7 @@ interface DreamRow {
  * dreamAnalysis.concepts. No service-role key is ever touched by this route.
  */
 export async function handlePatternReflection(rawBody: unknown, requestHeaders: RequestHeaders): Promise<HandlerResult> {
-  const resolved = await resolveCallerIdentity(requestHeaders);
+  const resolved = await resolveAdultCaller(requestHeaders);
   if (!resolved.ok) {
     return errorResult(resolved.status, resolved.reason, resolved.message);
   }
@@ -225,6 +228,8 @@ export async function handlePatternReflection(rawBody: unknown, requestHeaders: 
 
     switch (outcome.status) {
       case 'ok':
+        // Checked before shown, also when it comes from the cache (DARE's own check + moderation; down = not shown).
+        if (!(await dareWordsSafe(outcome.reflection, realModerate))) return errorResult(502, 'invalid_response', 'The reflection could not be completed.');
         return okResult({ reflection: outcome.reflection, totalDreamCount: outcome.totalDreamCount, synthesizedDreamCount: outcome.synthesizedDreamCount });
       case 'invalid_concept':
         return errorResult(400, 'invalid_concept', 'conceptId must be a known concept from the DARE taxonomy.');

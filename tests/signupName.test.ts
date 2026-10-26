@@ -19,7 +19,7 @@ test('sign-up stores the validated name under the same metadata key the app alre
   assert.match(signUp, /if \(cleanName === null\) return \{ ok: false/);
   // refused BEFORE any Supabase call
   assert.ok(signUp.indexOf('cleanName === null') < signUp.indexOf('supabase.auth.signUp'));
-  assert.match(signUp, /data: \{ \[DISPLAY_NAME_METADATA_KEY\]: cleanName \}/);
+  assert.match(signUp, /data: \{ \[DISPLAY_NAME_METADATA_KEY\]: cleanName, age_confirmed_at: new Date\(\)\.toISOString\(\) \}/);
   assert.equal(DISPLAY_NAME_METADATA_KEY, 'displayName');
   // the Settings editor writes the very same key
   const edit = auth.slice(auth.indexOf('async updateDisplayName'), auth.indexOf('async signOut'));

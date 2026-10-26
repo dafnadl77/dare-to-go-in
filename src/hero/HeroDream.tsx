@@ -26,7 +26,11 @@ import DreamReconstruction, { type ReconstructionPhase, type InsideStep } from '
 import { buildReconstructionBrief, type ReconstructionBrief } from './reconstructionBrief';
 import { pickMemoryFragments } from './memoryFragments';
 import { deriveDreamElements, wholeDreamReference } from './dreamElements';
-import { getDisplayLabels } from './dreamElementLabels';
+import { getDisplayLabels, getMomentLabels } from './dreamElementLabels';
+import { DREAM_MAP_JOURNEY } from './journeyMode';
+import type { Exploration } from './exploration';
+import DreamJourneyMap from '../map/DreamJourneyMap';
+import { mapJourneyFrom, mapMomentTexts, reflectionFromJourney, savedFieldsFromJourney } from '../map/journeyRecord';
 import { getDreamQuestions } from './dreamQuestions';
 import type { DreamQuestions } from './dreamQuestionsSchema';
 import { generateDreamImage, type ImageResult } from './dreamImage';
@@ -38,6 +42,10 @@ import { saveDreamRemote } from './dreamRemoteStorage';
 import { extractAccentColor, extractDreamPalette, isImageCenterLight, type AccentColor } from './dreamAccentColor';
 import type { CentralMode } from './centralMode';
 import { useAuth } from '../auth/AuthContext';
+import SafetyOverlay from './safety/SafetyOverlay';
+import type { CrisisLevel } from './safety/crisisTexts';
+import { stopForSession } from './safety/sessionStop';
+import { addressPreferenceOfUser } from './addressPreference';
 import AppFooter from '../legal/AppFooter';
 import { HowItWorksPanel, HowItWorksTagline, HowItWorksTeaser } from './HowItWorks';
 import type { LegalKey } from '../legal/legalContent';
@@ -193,6 +201,9 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   const [linkResponse, setLinkResponse] = useState<string | null>(null);
   // The feelings the dreamer named at the optional feelings step (empty when skipped).
   const [selectedEmotions, setSelectedEmotions] = useState<EmotionId[]>([]);
+  // The dream map journey (journeyMode.ts): the dream's moments, the conversations in them and the whole view. Null until the moments
+  // are prepared; saved with the dream.
+  const [exploration, setExploration] = useState<Exploration | null>(null);
 
   // JOURNEY EPOCH — see journeyEpoch.ts. Every async result below is applied only if it
   // still belongs to the journey that started it. Bumped when the journey is abandoned
@@ -240,6 +251,23 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   const [saveFailed, setSaveFailed] = useState(false);
   useEffect(() => () => clearTimeout(saveTimerRef.current), []);
 
+  // The distress path (doc 106/109) over this screen: the fixed words, and what her answer resends (with that answer, once).
+  const [safety, setSafety] = useState<{ level: CrisisLevel; resend: (ack: 'dream' | 'not-immediate') => void } | null>(null);
+  const showSafety = useCallback((level: 'uncertain' | 'concern' | 'danger' | 'threat', resend: (ack: 'dream' | 'not-immediate') => void) => {
+    if (level === 'danger' || level === 'threat') stopForSession(level);
+    setSafety({ level, resend });
+  }, []);
+  const chooseSafety = (choice: 'dream' | 'also-now' | 'in-danger' | 'not-immediate') => {
+    if (!safety) return;
+    if (choice === 'also-now') return setSafety({ ...safety, level: 'concern' });
+    if (choice === 'in-danger') {
+      stopForSession('danger');
+      return setSafety({ ...safety, level: 'danger' });
+    }
+    setSafety(choice === 'not-immediate' ? { ...safety, level: 'after-not-immediate' } : null);
+    safety.resend(choice);
+  };
+
   const startReflectionEngine = useCallback((token: string, request: DreamReflectionRequest) => {
     if (reflectionTokenRef.current === token) return;
     reflectionTokenRef.current = token;
@@ -252,9 +280,11 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         if (reflectionTokenRef.current !== token) return; // superseded by a newer request in this journey
         setReflectionEngineResult(result);
         setReflectionPending(false);
+        // her answer is needed first: the same request again, with it
+        if (result.status === 'safety') showSafety(result.level, (ack) => startReflectionEngine(`${token}|${ack}`, { ...request, safetyAck: ack }));
       },
     );
-  }, [epoch]);
+  }, [epoch, showSafety]);
 
   // Real image generation. `displayedImageUrl` is the last fully-settled
   // image; `incomingImageUrl` is a freshly generated one mid-reveal during
@@ -313,7 +343,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     return false;
   };
 
-  const runAnalysis = (input: DreamInput) => {
+  const runAnalysis = (input: DreamInput, safetyAck?: 'dream' | 'not-immediate') => {
     // Safety net behind the entry gate: words are never analyzed for a visitor who is not signed in; they are kept for their return.
     if (!user && !authLoading) {
       saveDreamDraft(dreamInputSourceText(input));
@@ -331,7 +361,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     // EDIT) has started since; an abandoned analysis can never resurrect an old journey.
     runInJourney(
       epoch,
-      () => analyzeDream(input, idempotencyKey),
+      () => analyzeDream(input, idempotencyKey, safetyAck),
       (result) => {
         if (seq !== analysisSeqRef.current) return;
         setAnalysisPending(false);
@@ -340,6 +370,12 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         // A definitive answer reached the client: the submission is over (its key is dropped, so even
         // identical text submitted next is a new dream). An uncertain one keeps its key for the retry.
         if (!uncertain) endSubmission(submissionStore);
+        // Nothing was analyzed or spent: the distress path, and her answer resends the same dream with it.
+        if (result.status === 'safety') {
+          setAnalysisResult(result);
+          showSafety(result.level, (ack) => runAnalysis(input, ack));
+          return;
+        }
         // Whatever sends the dreamer to another screen first keeps what they wrote: it is back in the typing box on return.
         if (result.status === 'error' && result.reason === 'free_dream_used') {
           saveDreamDraft(dreamInputSourceText(input));
@@ -403,7 +439,27 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     const rawElements = deriveDreamElements(analysis);
     const combined = [...rawFragments, ...rawElements];
     setElementsResolved(false);
-    if (combined.length > 0) {
+    if (DREAM_MAP_JOURNEY) {
+      // The map's moments are the dream's own events (journeyRecord.ts), titled by the labels call with the moment rules; the memory
+      // fragments keep their own labels call. A failed call never blocks: raw fragments, and titles built from the moments' own words.
+      if (journeyLanguageRef.current === null) journeyLanguageRef.current = getAppLanguage();
+      const journeyLanguage = journeyLanguageRef.current;
+      const attemptId = analysisResult.attemptId;
+      if (rawFragments.length > 0) {
+        runInJourney(
+          epoch,
+          () => getDisplayLabels(analysis.sourceText, rawFragments, attemptId, journeyLanguage),
+          (result) => setFragments(result.status === 'ok' ? result.labels : rawFragments),
+        );
+      }
+      const momentTexts = mapMomentTexts(analysis).map((m) => m.text);
+      runInJourney(
+        epoch,
+        () => (momentTexts.length > 0 ? getMomentLabels(analysis.sourceText, momentTexts, attemptId, journeyLanguage) : Promise.resolve(null)),
+        (result) => setExploration(mapJourneyFrom(attemptId, analysis, result?.status === 'ok' ? result.labels : null)),
+      );
+      setElementsResolved(true);
+    } else if (combined.length > 0) {
       // First language-dependent generation: the journey's language is fixed here.
       if (journeyLanguageRef.current === null) journeyLanguageRef.current = getAppLanguage();
       const journeyLanguage = journeyLanguageRef.current;
@@ -572,11 +628,13 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // stage's beginning. Straight to the terminal "WHAT STANDS OUT TO YOU?",
   // no quiet pause, no look-around, no return to a bare fullscreen image.
   useEffect(() => {
-    if (reconstructionPhase === 'inside') setInsideStep('prompt');
+    // the dream map journey goes straight to the feelings step, and from it to the map
+    if (reconstructionPhase === 'inside') setInsideStep(DREAM_MAP_JOURNEY ? 'emotions' : 'prompt');
   }, [reconstructionPhase]);
 
   useEffect(() => {
-    if (reconstructionPhase !== 'inside') return;
+    // the dream map journey has no single choice: the earlier path's own steps never run (it starts at the feelings step)
+    if (reconstructionPhase !== 'inside' || DREAM_MAP_JOURNEY) return;
     // 'prompt' holds alone briefly, then the real choices reveal beneath it
     // — but only if there actually are any real elements to choose from.
     if (insideStep === 'prompt' && dreamElements.length > 0) {
@@ -636,6 +694,11 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // Feelings chosen (or skipped: an empty list) -> the ONE existing reflection request, now carrying the feelings.
   const handleSubmitEmotions = (emotions: EmotionId[]) => {
     setSelectedEmotions(emotions);
+    // the dream map journey: the feelings travel with every conversation turn and the whole view, and the map opens
+    if (DREAM_MAP_JOURNEY) {
+      setInsideStep('map');
+      return;
+    }
     setInsideStep('interpreting');
     if (analysisResult?.status === 'ok' && selectedElement && reflectionResponse) {
       startReflectionEngine('initial', {
@@ -689,26 +752,40 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
 
   const handleContinueFromReflection = () => setInsideStep('closing');
 
+  // A finished dream map journey in the saved record's own shape (journeyRecord.ts); null until its whole view is there.
+  const journeyReflection = DREAM_MAP_JOURNEY && exploration ? reflectionFromJourney(exploration, journeyLanguageRef.current ?? getAppLanguage()) : null;
+
+  /** The finished dream as it is saved, built once and reused by every retry; null when the journey is not finished yet. */
+  const buildRecord = (): SavedDream | null => {
+    if (analysisResult?.status !== 'ok') return null;
+    const common = {
+      sourceText: analysisResult.analysis.sourceText,
+      inputMode: dreamInputRef.current?.inputMode ?? ('text' as const),
+      dreamAnalysis: analysisResult.analysis,
+      dreamImageDataUrl: displayedImageUrl,
+      corrections,
+      emotions: selectedEmotions,
+      appLanguage: journeyLanguageRef.current ?? undefined,
+    };
+    if (DREAM_MAP_JOURNEY) {
+      if (!exploration || !journeyReflection) return null;
+      return buildSavedDream({ ...common, ...savedFieldsFromJourney(exploration), dreamReflection: journeyReflection, exploration });
+    }
+    if (!selectedElement || !reflectionResponse || reflectionEngineResult?.status !== 'ok') return null;
+    return buildSavedDream({
+      ...common,
+      selectedElement,
+      reflectionResponse,
+      dreamReflection: reflectionEngineResult.reflection,
+      ...(linkQuestion && linkResponse ? { linkQuestion, linkResponse } : {}),
+    });
+  };
+
   const handleSaveDream = () => {
     if (dreamSavedRef.current) return;
-    if (analysisResult?.status !== 'ok' || !selectedElement || !reflectionResponse) return;
-    if (reflectionEngineResult?.status !== 'ok') return;
+    const record = savedRecordRef.current ?? (savedRecordRef.current = buildRecord());
+    if (!record) return;
     dreamSavedRef.current = true;
-    const record =
-      savedRecordRef.current ??
-      (savedRecordRef.current = buildSavedDream({
-        sourceText: analysisResult.analysis.sourceText,
-        inputMode: dreamInputRef.current?.inputMode ?? 'text',
-        dreamAnalysis: analysisResult.analysis,
-        dreamImageDataUrl: displayedImageUrl,
-        selectedElement,
-        reflectionResponse,
-        dreamReflection: reflectionEngineResult.reflection,
-        corrections,
-        emotions: selectedEmotions,
-        ...(linkQuestion && linkResponse ? { linkQuestion, linkResponse } : {}),
-        appLanguage: journeyLanguageRef.current ?? undefined,
-      }));
     if (!user) {
       // Signed OUT — a dream must belong to a real account, never the
       // anonymous localStorage archive by default (see App.tsx's
@@ -866,6 +943,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     setDreamQuestions(null);
     setLinkResponse(null);
     setSelectedEmotions([]);
+    setExploration(null);
     setCorrections([]);
     setDisplayedImageUrl(null);
     setAccentColor(null);
@@ -937,6 +1015,15 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
 
   return (
     <div className="hero-dream">
+      {safety && (
+        <SafetyOverlay
+          level={safety.level}
+          address={addressPreferenceOfUser(user)}
+          language={journeyLanguageRef.current ?? getAppLanguage()}
+          onChoice={chooseSafety}
+          onClose={() => setSafety(null)}
+        />
+      )}
       <DreamVideo videoARef={videoARef} videoBRef={videoBRef} />
       <MemoryVeil
         videoARef={videoARef}
@@ -975,7 +1062,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
             openWriting={openWriting}
             onWritingOpened={onWritingOpened}
             reconstructing={isReconstructing}
-            analysisFailed={analysisResult?.status === 'error'}
+            analysisFailed={analysisResult?.status === 'error' || analysisResult?.status === 'safety'}
             analysisUncertain={!!user && analysisUncertain}
             onRetryAnalysis={handleRetryAnalysis}
             capturedDreamText={dreamInputRef.current ? dreamInputSourceText(dreamInputRef.current) : ''}
@@ -997,8 +1084,8 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         fragments={fragments}
         dreamElements={dreamElements}
         selectedElement={selectedElement}
-        reflectionResult={reflectionEngineResult?.status === 'ok' ? reflectionEngineResult.reflection : null}
-        reflectionErrored={reflectionEngineResult?.status === 'error'}
+        reflectionResult={reflectionEngineResult?.status === 'ok' ? reflectionEngineResult.reflection : journeyReflection}
+        reflectionErrored={reflectionEngineResult?.status === 'error' || reflectionEngineResult?.status === 'safety'}
         continueVisible={continueVisible}
         displayedImageUrl={displayedImageUrl}
         incomingImageUrl={incomingImageUrl}
@@ -1027,6 +1114,20 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         onReturnToRoom={handleReturnToRoom}
         onGoToArchive={onGoToArchive}
       />
+
+      {/* The dream map journey (journeyMode.ts): the map of the dream's moments over the dream stage, after the feelings step. */}
+      {DREAM_MAP_JOURNEY && reconstructionPhase === 'inside' && insideStep === 'map' && analysisResult?.status === 'ok' && (
+        <DreamJourneyMap
+          analysis={analysisResult.analysis}
+          exploration={exploration}
+          onChange={setExploration}
+          imageSrc={displayedImageUrl ?? ''}
+          language={journeyLanguageRef.current ?? getAppLanguage()}
+          address={addressPreferenceOfUser(user)}
+          emotions={selectedEmotions}
+          onContinue={() => setInsideStep('closing')}
+        />
+      )}
 
       {/* Development aid only — never part of the normal user journey.
           Visit with ?debug=1 to inspect the raw DreamAnalysis. */}

@@ -21,6 +21,7 @@ import { readPaymentReturnParam } from './payments/paymentLink';
 import LeaveDreamDialog from './ui/LeaveDreamDialog';
 import { createLeaveGate, handleBeforeUnload } from './hero/unsavedJourney';
 import AccessibilityControl from './a11y/AccessibilityControl';
+import AgeGate from './auth/AgeGate';
 import GlobalHeader, { type GlobalNavKey } from './ui/GlobalHeader';
 
 /** Which top-level experience is mounted. No router is introduced for
@@ -598,6 +599,7 @@ function App() {
         />
       )}
       <AccessibilityControl />
+      <AgeGate />
     </>
   );
 }

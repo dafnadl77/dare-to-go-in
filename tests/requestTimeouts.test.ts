@@ -144,7 +144,9 @@ test('transcription keeps its own cancel and gets NO client deadline (its user-f
 test('a timed-out analysis is never retried automatically: the only re-submit paths are the dreamer\'s own TRY AGAIN / EDIT', () => {
   const hero = read('src/hero/HeroDream.tsx');
   const calls = hero.match(/runAnalysis\(/g) ?? [];
-  assert.equal(calls.length, 2, 'only handleDreamCapture and handleRetryAnalysis (both dreamer-initiated) call it');
+  // handleDreamCapture, handleRetryAnalysis, and the safety window's resend after her own answer: all dreamer-initiated
+  assert.equal(calls.length, 3, 'only handleDreamCapture, handleRetryAnalysis and her answer in the safety window call it');
+  assert.match(hero, /showSafety\(result\.level, \(ack\) => runAnalysis\(input, ack\)\)/);
   assert.match(hero, /const handleDreamCapture = \(input: DreamInput\) => \{\s*dreamInputRef\.current = input;\s*runAnalysis\(input\);/);
   assert.match(hero, /const handleRetryAnalysis = \(\) => \{\s*if \(!dreamInputRef\.current\) return;\s*runAnalysis\(dreamInputRef\.current\);/);
   assert.ok(!/setTimeout\([^)]*runAnalysis|setInterval\([^)]*runAnalysis/.test(hero));

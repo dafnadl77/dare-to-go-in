@@ -5,7 +5,7 @@ import { createNewTrialIdentity, ensureTrialIdentityExists } from './dreamAttemp
 export type CallerIdentity = { kind: 'user'; userId: string } | { kind: 'trial'; trialId: string };
 
 export type ResolveCallerResult =
-  | { ok: true; identity: CallerIdentity; setCookieHeader?: string }
+  | { ok: true; identity: CallerIdentity; setCookieHeader?: string; /** Accounts only: when the account confirmed it is 18 or over (its own metadata), or null. */ ageConfirmedAt?: string | null }
   | { ok: false; status: number; reason: string; message: string };
 
 export interface RequestHeaders {
@@ -19,7 +19,7 @@ function extractBearerToken(authorizationHeader: string): string | null {
 }
 
 export type VerifyBearerResult =
-  | { ok: true; userId: string }
+  | { ok: true; userId: string; ageConfirmedAt?: string | null }
   | { ok: false; status: number; reason: string; message: string };
 
 /** Shared by resolveCallerIdentity below and routes/claimTrial.ts, which
@@ -42,7 +42,8 @@ export async function verifyBearerToken(authorizationHeader: string): Promise<Ve
     console.warn(`auth_token_rejected status=${(error as { status?: number } | null)?.status ?? 'none'} code=${(error as { code?: string } | null)?.code ?? 'none'}`);
     return { ok: false, status: 401, reason: 'not_authenticated', message: 'Your session is invalid or has expired. Please sign in again.' };
   }
-  return { ok: true, userId: data.user.id };
+  const age = (data.user.user_metadata as Record<string, unknown> | null | undefined)?.age_confirmed_at;
+  return { ok: true, userId: data.user.id, ageConfirmedAt: typeof age === 'string' && age ? age : null };
 }
 
 /** The four collaborators identity resolution needs — injectable so the rules
@@ -90,7 +91,7 @@ export async function resolveCallerIdentity(headers: RequestHeaders, deps: Ident
     if (!verified.ok) {
       return { ok: false, status: verified.status, reason: verified.reason, message: verified.message };
     }
-    return { ok: true, identity: { kind: 'user', userId: verified.userId } };
+    return { ok: true, identity: { kind: 'user', userId: verified.userId }, ageConfirmedAt: verified.ageConfirmedAt ?? null };
   }
 
   const existingTrialId = deps.readTrialId(headers.cookie);

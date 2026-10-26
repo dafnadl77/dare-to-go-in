@@ -33,7 +33,7 @@ export interface DreamMomentGroup {
 
 const SENTENCE_END = /[.!?…]+|\n+/g;
 /** Where a long unpunctuated sentence may be cut: discourse words that open a new step. */
-const CUT_BEFORE = /^(ואז|אז|ופתאום|פתאום|ואחר|אחר|ואחרי|אחרי|ובסוף|בסוף|ולפני|לפני|וכש\S*|כש\S*|then|suddenly|after|before|when|finally)$/i;
+const CUT_BEFORE = /^(ואז|אז|ופתאום|פתאום|ואחר|אחר|ואחרי|אחרי|ובסוף|בסוף|ולפני|לפני|וכש\S*|כש\S*|קודם|וקודם|מקודם|ויש|ואין|then|suddenly|after|before|when|finally|earlier)$/i;
 /** "and" + a person who then acts: a new event in a dictated sentence ("ואמא שלי חיבקה", "ואני הרגשתי", "והשכנה עלתה"). */
 const NEW_ACTOR = /^ו(אני|אנחנו|אמא|אבא|אחי|אחותי|אחיו|סבתא|סבא|השכנה|השכן|החבר|החברה|מישהו|מישהי|הוא|היא|הם|הן|הילד|הילדה|הכלב|החתול|and I|and she|and he)$/;
 const CONTRAST_START =/^(אבל|אך|אלא|למרות|ולמרות|but|although|yet|though)$/i;
@@ -84,7 +84,11 @@ function cutRunOn(src: string, s: Span): Span[] {
     const w = at(i);
     // a new step: a discourse word, "and I ...", or "and <someone>" who acts next ("ואמא שלי חיבקה", "ואני הרגשתי")
     const dreamerNext = /^ו/.test(w) && w.length >= 3 && (at(i + 1) === 'אני' || at(i + 2) === 'אני'); // "ובכביש אני עוצר"
-    const startsStep = CUT_BEFORE.test(w) || NEW_ACTOR.test(w) || dreamerNext || (/^ו/.test(w) && isFirstPersonVerb(w) && w.length >= 5);
+    // "…מים חמים רציתי להגיד…": a first-person verb right after a content word opens a new step, even without "ו" (doc 50 v2, א7)
+    const bareFirstPerson = !/^[ושכ]/.test(w) && isFirstPersonVerb(w) && contentWords(at(i - 1)).length > 0 && !CUT_BEFORE.test(at(i - 1)) && !/^(לא|אני|גם|רק|כבר|עוד)$/.test(at(i - 1));
+    // "ולחזור לפני שהיא גומרת שורה": a bare "לפני ש…" / "אחרי ש…" belongs to the clause before it
+    if (/^(לפני|אחרי)$/.test(w) && /^ש/.test(at(i + 1))) continue;
+    const startsStep = CUT_BEFORE.test(w) || NEW_ACTOR.test(w) || dreamerNext || bareFirstPerson || (/^ו/.test(w) && isFirstPersonVerb(w) && w.length >= 5);
     if (!startsStep) continue;
     // a look back ("ומה שהיה לפני זה ...") opens with its own words: the cut goes before "ומה שהיה", not between them
     let cut = i;
@@ -181,9 +185,23 @@ export function textOfSegments(sourceText: string, segments: readonly DreamSegme
 
 const SETTING_VERBS = new Set(['הייתי', 'היינו', 'היה', 'הייתה', 'היו', 'עמדתי', 'ישבתי', 'שכבתי', 'was', 'were', 'stood', 'sat'].map(norm));
 
+/** Illness, death, injury: such a moment is never moved up by the signals below (doc 50 v2, א7); she can still choose it. */
+const SENSITIVE = /(בית חולים|בבית החולים|חולה|מחלה|(?<![א-ת])מת(?![א-ת])|(?<![א-ת])מתה(?![א-ת])|מוות|הלוויה|קבר|(?<![א-ת])דם(?![א-ת])|פצוע|פציעה|נפגע|נפגעה|תאונה)/;
+const WANTED = /(?<![א-ת])(?:[ושכ]{0,2})(רציתי|רוצה|ניסיתי)(?![א-ת])/;
+const COULD_NOT = /(לא הצלח|לא יצא|לא יכול|לא יכולה|דבוק)/;
+const SAID_TO_ME = /(?<![א-ת])(?:ו)?(אמר|אמרה|אמרו|שאל|שאלה|צעק|צעקה)\s+(לי|שאני)/;
+const CHANGED = /(הפך|הפכה|הופך|נהיה|נהייתה|כבר היה|כבר הייתה|התחיל להיות)/;
+
 function priorityOf(text: string, unusual: readonly string[]): number {
   const ws = words(text);
   let p = 0;
+  // what makes a moment charged: a wish not done, someone who says something to her, something that turns into something else, "always"
+  if (!SENSITIVE.test(text)) {
+    if (WANTED.test(text) && COULD_NOT.test(text)) p += 3;
+    if (SAID_TO_ME.test(text)) p += 2;
+    if (CHANGED.test(text)) p += 2;
+    if (ws.some((w) => /^(?:ו|ש)?(תמיד|always)$/.test(w))) p += 1;
+  }
   if (ws.some((w, i) => isNegation(w) && i < ws.length - 1)) p += 3; // something did not happen / could not be done
   if (ws.some((w) => /^(אבל|אך|למרות|ולמרות|but|although)$/.test(w))) p += 2; // a contradiction inside the moment
   if (ws.some((w) => /^(פתאום|ופתאום|suddenly)$/.test(w))) p += 2;
@@ -192,6 +210,7 @@ function priorityOf(text: string, unusual: readonly string[]): number {
   if (ws.some((w, i) => i < 3 && !isFirstPersonWord(w) && contentWords(w).length > 0 && /^[א-ת]/.test(w) && ws.slice(i + 1, i + 3).some((v) => !isFirstPersonVerb(v)))) p += 1;
   const verbs = ws.filter((w) => isFirstPersonVerb(w) || SETTING_VERBS.has(norm(w)));
   if (verbs.length > 0 && verbs.every((w) => SETTING_VERBS.has(norm(w))) && p <= 1) p -= 2; // only a setting ("הייתי בחתונה")
+  if (SENSITIVE.test(text)) p = Math.min(p, 0);
   return p;
 }
 

@@ -1,0 +1,187 @@
+/* A moment's conversation in the map's window (doc 102). The dream map's tokens and the bubbles of the approved design page: DARE
+   at the start side on a night plate, her words at the end side with the gold edge, an offered angle apart with its own way out. */
+
+.cv-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cv-turns {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cv-dare,
+.cv-her {
+  max-width: min(100%, 560px);
+  padding: 14px 18px;
+  border-radius: 18px;
+  font-size: 17px;
+  line-height: 1.65;
+  animation: cv-in 0.45s var(--dm-ease) both;
+}
+
+.cv-dare {
+  align-self: flex-start;
+  border-start-start-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(244, 240, 232, 0.14);
+}
+
+.cv-her {
+  align-self: flex-end;
+  border-start-end-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(var(--dm-gold), 0.4);
+}
+
+/* one response, one bubble (2026-10-26): the suggestion is the next paragraph of the same bubble, no inner box */
+.cv-dare p + p {
+  margin-top: 10px;
+}
+
+.cv-angle[data-rejected='true'] {
+  opacity: 0.6;
+}
+
+.cv-dare .cv-offer-mark {
+  display: block;
+  margin-top: 6px;
+}
+
+.cv-offer-no {
+  min-height: 40px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 240, 232, 0.5);
+  background: transparent;
+  color: var(--dm-text);
+  font-size: 15px;
+}
+
+.cv-offer-no:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cv-offer-mark {
+  font-size: 15px;
+  color: var(--dm-text-dim);
+}
+
+.cv-pending p {
+  color: var(--dm-text-dim);
+}
+
+.cv-answer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cv-answer textarea {
+  width: 100%;
+  min-height: 88px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(244, 240, 232, 0.4);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--dm-text);
+  font: inherit;
+  font-size: 17px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.cv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cv-note {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px dashed rgba(140, 200, 255, 0.7);
+  background: rgba(10, 20, 40, 0.9);
+  font-size: 15px;
+  color: #d6ebff;
+}
+
+@keyframes cv-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cv-dare,
+  .cv-her {
+    animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .cv-dare,
+  .cv-her {
+    max-width: 100%;
+    padding: 12px 14px;
+  }
+}
+
+/* where the conversation stands: plain, quiet, always under it */
+.cv-state {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--dm-text-dim);
+}
+
+.cv-state[data-state='waiting'] {
+  color: var(--dm-gold-text);
+}
+
+.cv-state:empty {
+  display: none;
+}
+
+/* the direction buttons (doc 117): the same quiet pills as "זה לא מתאים לי", above the writing box */
+.cv-steer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+/* "שאלה X מתוך 3" under the moment's title: quiet, always readable */
+.cv-progress {
+  margin: -6px 0 0;
+  font-size: 14px;
+  color: var(--dm-text-dim);
+  letter-spacing: 0.01em;
+}
+
+/* the three ways on as one group: on a narrow phone they share one row in equal columns (a long label wraps inside its own
+   button), so none looks bigger than the others and nothing scrolls sideways */
+@media (max-width: 480px) {
+  .cv-steer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .cv-steer .cv-offer-no {
+    min-height: 44px;
+    padding: 6px 8px;
+    font-size: 14px;
+    line-height: 1.25;
+    white-space: normal;
+  }
+}

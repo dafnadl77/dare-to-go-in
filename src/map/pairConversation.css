@@ -1,0 +1,447 @@
+/* PAIR-AND-QUESTION design page (doc 90 v3). Built on the dream map's tokens (DreamMap.css): night plates for every text, gold
+   edges, Heebo, the app's outline buttons. The conversation is one calm column; the two-details block is the one place that
+   lifts, and the whole view keeps the map's panel. Logical properties throughout. */
+
+.pc-root {
+  padding-bottom: 120px;
+}
+
+.pc-bar {
+  position: sticky;
+  top: 0;
+}
+
+.pc-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pc-tab {
+  min-height: 40px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 240, 232, 0.4);
+  background: transparent;
+  color: #f4f0e8;
+  font-size: 15px;
+}
+
+.pc-tab[aria-selected='true'] {
+  border-color: rgba(233, 199, 135, 0.95);
+  color: #f3dcaa;
+  box-shadow: 0 0 16px rgba(233, 199, 135, 0.25);
+}
+
+.pc-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #f4f0e8;
+  font-size: 15px;
+}
+
+.pc-page {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 36px 16px 0;
+}
+
+/* ------------------------------------------------------------ header */
+.pc-head {
+  margin-bottom: 28px;
+  padding: 22px 24px;
+  border-radius: 24px;
+  background: var(--dm-plate);
+  border: 1px solid rgba(var(--dm-gold), 0.28);
+}
+
+.pc-kicker {
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--dm-gold-text);
+}
+
+.pc-title {
+  margin-block: 2px 12px;
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.pc-dream summary {
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--dm-gold-text);
+}
+
+.pc-dream p {
+  margin-top: 8px;
+  padding-inline-start: 12px;
+  border-inline-start: 2px solid rgba(var(--dm-gold), 0.45);
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--dm-text-dim);
+}
+
+/* ------------------------------------------------------------ the conversation */
+.pc-log {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pc-step {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scroll-margin-top: 90px;
+  animation: pc-in 0.6s var(--dm-ease) both;
+}
+
+.pc-turn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* DARE speaks on a night plate, at the start side. */
+.pc-dare {
+  align-self: flex-start;
+  max-width: min(100%, 600px);
+  padding: 16px 20px;
+  border-radius: 20px;
+  border-start-start-radius: 6px;
+  background: var(--dm-plate);
+  border: 1px solid rgba(244, 240, 232, 0.14);
+}
+
+.pc-dare-text {
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.pc-ask {
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.pc-reflect-dream {
+  padding-inline-start: 12px;
+  border-inline-start: 2px solid rgba(var(--dm-gold), 0.45);
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--dm-text-dim);
+}
+
+.pc-reflect-her {
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+/* Her words, at the end side, with the gold edge of "your words" from the map. */
+.pc-her {
+  align-self: flex-end;
+  max-width: min(92%, 560px);
+  padding: 14px 20px;
+  border-radius: 20px;
+  border-start-end-radius: 6px;
+  background: var(--dm-plate-strong);
+  border: 1px solid rgba(var(--dm-gold), 0.4);
+}
+
+.pc-her p {
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.pc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+}
+
+.pc-chip {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 240, 232, 0.3);
+  font-size: 15px;
+  color: var(--dm-text-dim);
+}
+
+.pc-chip[data-state='picked'] {
+  border-color: rgba(var(--dm-gold), 0.95);
+  color: var(--dm-gold-text);
+  background: rgba(var(--dm-gold), 0.1);
+  box-shadow: 0 0 16px rgba(var(--dm-gold), 0.22);
+}
+
+.pc-chip[data-state='explored'] {
+  opacity: 0.7;
+}
+
+.pc-chip[data-state='invite'] {
+  border-color: rgba(var(--dm-gold), 0.7);
+  color: var(--dm-gold-text);
+}
+
+.pc-chip-whole {
+  border-style: dashed;
+}
+
+/* ------------------------------------------------------------ the two details */
+.pc-pair {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 22px 22px 24px;
+  border-radius: 24px;
+  background: var(--dm-plate-strong);
+  border: 1px solid rgba(var(--dm-gold), 0.5);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.45),
+    0 0 40px rgba(var(--dm-gold), 0.12);
+}
+
+.pc-pair-intro {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--dm-gold-text);
+}
+
+.pc-pair-sides {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* A thin gold light between the two, and nothing written on it: the link is hers to make. */
+.pc-pair-sides::before {
+  content: '';
+  position: absolute;
+  inset-block: 18%;
+  inset-inline-start: 50%;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(var(--dm-gold), 0.7), transparent);
+  transform: translateX(50%);
+}
+
+.pc-pair-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(244, 240, 232, 0.16);
+}
+
+.pc-pair-side blockquote {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.pc-pair-side figcaption {
+  font-size: 15px;
+  color: var(--dm-gold-text);
+}
+
+.pc-pair-side[data-from='answer'] {
+  border-color: rgba(var(--dm-gold), 0.4);
+}
+
+.pc-pair-question {
+  font-size: 19px;
+  line-height: 1.5;
+}
+
+.pc-pair-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pc-pair[data-skipped='true'] {
+  opacity: 0.72;
+}
+
+.pc-pair-write {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pc-pair-write textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(244, 240, 232, 0.4);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--dm-text);
+  font: inherit;
+  font-size: 17px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+/* ------------------------------------------------------------ whole view */
+.pc-whole {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.45),
+    0 0 60px rgba(var(--dm-gold), 0.16);
+}
+
+.pc-whole .dm-panel-title {
+  margin-bottom: 0;
+}
+
+.pc-whole-body p {
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.pc-whole-body p + p {
+  margin-top: 10px;
+}
+
+.pc-whole-question p {
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+/* ------------------------------------------------------------ continue */
+.pc-continue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 34px;
+}
+
+/* ------------------------------------------------------------ development notes (only with "sources") */
+.pc-src {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 2px 10px;
+  border-radius: 6px;
+  border: 1px dashed rgba(140, 200, 255, 0.7);
+  font-size: 13px;
+  color: #bfe0ff;
+  background: rgba(10, 20, 40, 0.85);
+}
+
+.pc-src-block {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.pc-why {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px dashed rgba(140, 200, 255, 0.7);
+  background: rgba(10, 20, 40, 0.9);
+  font-size: 14px;
+  line-height: 1.6;
+  color: #d6ebff;
+}
+
+@keyframes pc-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-step {
+    animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .pc-page {
+    padding-top: 24px;
+  }
+
+  .pc-head {
+    padding: 18px;
+  }
+
+  .pc-pair {
+    padding: 18px 16px 20px;
+  }
+
+  .pc-pair-sides {
+    grid-template-columns: 1fr;
+  }
+
+  .pc-pair-sides::before {
+    display: none;
+  }
+
+  .pc-dare,
+  .pc-her {
+    max-width: 100%;
+  }
+
+  .pc-bar {
+    position: relative;
+  }
+
+  /* The whole view on a phone: more air between its parts, so it reads slowly. */
+  .pc-whole {
+    gap: 26px;
+    padding: 28px 20px 30px;
+  }
+
+  .pc-whole-body p {
+    line-height: 1.9;
+  }
+
+  .pc-whole-body p + p {
+    margin-top: 16px;
+  }
+
+  .pc-whole-question {
+    padding-top: 24px;
+  }
+
+  .pc-whole-question p {
+    line-height: 1.75;
+  }
+
+  .pc-whole-next .dm-sub {
+    margin-bottom: 12px;
+  }
+
+  .pc-whole-next .pc-chips {
+    gap: 10px;
+  }
+}

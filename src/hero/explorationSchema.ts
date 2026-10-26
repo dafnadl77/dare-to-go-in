@@ -8,7 +8,9 @@ import { buildHebrewNeutralSingularInstruction } from './dreamReflectionSchema.j
 import { mostlyGrounded, overlapRatio } from './groundedText.js';
 import { eventOrder, type DreamSegment } from './dreamSegments.js';
 import { isUnsureAnswer, FOCI, MAX_QUESTION_WORDS, type ClaimReport, type QuestionFocus, type ReplyRaw, type WholeRaw, type WholeReport } from './claimCheck.js';
-import { exploredInOrder, type Exploration, type MomentId } from './exploration.js';
+import { RELATIONS, type Relation } from './interpretationCheck.js';
+import { exploredInOrder, type Exploration, type InsightKind, type MomentId, type MomentPair } from './exploration.js';
+import { PAIR_RELATIONS, type PairCandidate, type PairRelation } from './pairCheck.js';
 
 /**
  * THE THREE CALLS OF THE MULTI-MOMENT JOURNEY (stage 3b, reworked in the fix round, doc 30): prompts, JSON schemas and parsing. The
@@ -36,7 +38,7 @@ export interface PriorMoment {
   question: string;
   answer: string;
   followUp: { question: string; answer: string | null } | null;
-  insight: { observation: string; reflection: string; possibility: string } | null;
+  insight: { observation: string; reflection: string; possibility: string; kind?: InsightKind; pair?: MomentPair } | null;
   focus: QuestionFocus | null;
   subject: string | null;
   /** The first question and its "I don't know", when a different question followed. */
@@ -91,7 +93,8 @@ ${prior
     if (p.firstTry) lines.push(`   First question: ${q(p.firstTry.question)} — she answered ${q(p.firstTry.answer)} (that is "I don't know": not content)`);
     lines.push(`   Question asked: ${q(p.question)}${p.focus ? ` [asked about: ${p.focus}${p.subject ? `, ${q(p.subject)}` : ''}]` : ''}`);
     lines.push(`   Her answer (exact words): ${q(p.answer)}${isUnsureAnswer(p.answer) ? ' (that is "I don\'t know": not content, never evidence)' : ''}`);
-    if (p.followUp) lines.push(`   Clarification asked: ${q(p.followUp.question)}`, `   Its answer: ${p.followUp.answer ? q(p.followUp.answer) : '(skipped)'}`);
+    if (p.insight?.pair) lines.push(`   Two details shown side by side: ${q(p.insight.pair.a.quote)} · ${q(p.insight.pair.b.quote)}`);
+    if (p.followUp) lines.push(`   ${p.insight?.pair ? 'Question about the two details' : 'Clarification asked'}: ${q(p.followUp.question)}`, `   Its answer: ${p.followUp.answer ? q(p.followUp.answer) : '(skipped)'}`);
     if (p.insight) lines.push(`   Insight already shown: ${q([p.insight.observation, p.insight.reflection, p.insight.possibility].filter(Boolean).join(' '))}`);
     return lines.join('\n');
   })
@@ -106,21 +109,47 @@ function feelingsBlock(feelings: string): string {
 
 // ------------------------------------------------------------------------------------------------ shared style
 
-function styleBlock(language: AppLanguage, address: AddressPreference): string {
+export function styleBlock(language: AppLanguage, address: AddressPreference): string {
   if (language !== 'he') return `Write in plain, warm, everyday English. Short sentences, one idea each. ${buildLanguageIntegrityInstruction(language)}`;
   const addressRule = address === 'neutral' ? buildHebrewNeutralSingularInstruction() : buildHebrewAddressInstruction(address);
   return `HEBREW: write the way a thoughtful Hebrew speaker would say it aloud, never a translation from English: short, plain, active sentences (at most about 16 words), everyday words, no chains of "ש..." clauses, never coin a word, never glue "ש" to a word that cannot take it. When you speak of the dreamer together with someone else, use the plural that fits the people (a woman and her brother: "אתם", "הלכתם"). Hebrew letters only. ${addressRule}
 ${buildLanguageIntegrityInstruction(language)}`;
 }
 
-const FAITHFULNESS = `FAITHFULNESS (the most important rule): the dream, what she said, and what might be made of it are THREE DIFFERENT THINGS and are never mixed. What she said in an answer never becomes something the dream showed. Never invent a feeling, memory, event, person, place, time, order of events or relationship. Who did what to whom stays exactly as the dream says (if "someone" sang, she did not sing). No diagnosis, no therapy language, no advice, no fixed meaning for an image ("symbolizes", "represents", "מסמל", "מייצג"). The dreamer is the authority on meaning.`;
+const FAITHFULNESS = `FAITHFULNESS (the most important rule): the dream, what she said, and what might be made of it are THREE DIFFERENT THINGS and are never mixed. What she said in an answer never becomes something the dream showed. Never invent a feeling, memory, event, person, place, time, order of events or relationship. Who did what to whom stays exactly as the dream says (if "someone" sang, she did not sing). No diagnosis, no therapy language, no advice, no fixed meaning for an image ("symbolizes", "represents", "מסמל", "מייצג", "מבטא"). Never explain WHY with a cause she did not give ("כי", "בגלל", "גרם לך", "because"): a cause appears only in her own words. Never give her a wish or a need she did not say ("רצון", "צורך", "מרמז על רצון", "מבטא רצון"), and no therapy aims ("לעבד", "להשלים עם", "ריפוי"). The people and events of the dream are not her waking life: you may ask what the dream reminds her of, or ask openly ("אם בכלל", "if at all"); never assume that something from the dream happens in her life ("בבית שלך", "בחיים שלך", "בדרך כלל", "מה את עושה כש…"), never how she feels toward a person "in the moments when…" or how she copes with them today. The dreamer is the authority on meaning.`;
 
 const ADDRESS_RULE = `You speak TO the dreamer: never "I", "my" or a first-person verb outside a quotation ("אחיך", not "אחי"; "אבא שלך", not "אבא שלי"; "הלכת", not "הלכתי").`;
+
+/**
+ * What the checker refuses about her inner world, taught with examples (doc 59, step 1), so fewer attempts are refused and paid for.
+ * The example dream is invented for this and is none of the development, sealed or acceptance dreams; every "bad" example is refused by
+ * the checker and every "good" one passes it (tests/promptHardening.test.ts), so the prompt never teaches what the checker refuses.
+ */
+export const EXAMPLE_DREAM = 'הייתי בתחנת רכבת עם אמא שלי. הרכבת הגיעה ואני לא עליתי. אמא עלתה ונופפה לי מהחלון.';
+export const EXAMPLE_ANSWER = 'הרגשתי שקטה, דווקא לא לחוצה.';
+export const ABOUT_HER_EXAMPLES: readonly { where: 'insight' | 'whole'; bad: string; good: string }[] = [
+  // (doc 83: the good examples name the link itself; the echo "…, ואמרת ש…. אולי יש קשר בין השניים" is no longer taught)
+  { where: 'insight', bad: 'אולי התחנה מעוררת בך תחושה של המתנה.', good: 'אולי מה שבולט כאן הוא שהשקט שתיארת בא דווקא כשאמא עלתה ואת לא עלית.' },
+  { where: 'insight', bad: 'אמא עלתה לרכבת, ובאותו רגע הבנת שהכול בסדר.', good: 'אמא עלתה לרכבת ונופפה לך מהחלון, ואת לא עלית.' },
+  { where: 'insight', bad: 'לא עלית לרכבת, ובכל זאת נשארת שקטה.', good: 'אולי יש כאן ניגוד: לא עלית לרכבת, ואמרת שהרגשת שקטה, דווקא לא לחוצה.' },
+  { where: 'whole', bad: 'אולי החלום משלב אצלך שקט ופרידה.', good: 'אולי יש קשר בין הרכבת שהגיעה בלי שעלית לבין השקט שתיארת.' },
+  { where: 'whole', bad: 'ייתכן שהרכבת מעלה אצלך תחושה של פרידה.', good: 'ייתכן שיש קשר בין שני רגעים ליד אותה רכבת: את לא עלית, ואמא עלתה ונופפה לך מהחלון.' },
+  { where: 'whole', bad: 'אפשר לראות את התחנה כמקום של מעבר ושינוי.', good: 'אפשר לראות שבתחנה אמא ואת עושות שני דברים שונים: היא עלתה לרכבת, ואת לא עלית.' },
+];
+
+function aboutHerBlock(language: AppLanguage, where: 'insight' | 'whole'): string {
+  if (language !== 'he')
+    return `HER INNER WORLD (the checker refuses it): speak about the dream's details and about what she said, never about what happens inside her (what she felt, understood or needs, what something "stirs in her") unless those are her own words; give her words back with "you said that…". A hedge ("maybe", "perhaps") does not make such a claim allowed. Words that claim a link ("and yet", "both … and") only when the details themselves show it; otherwise offer the link openly. "One could see X as…" only with another detail of the dream or her own words, never a new concept.`;
+  const examples = ABOUT_HER_EXAMPLES.filter((e) => e.where === where).map((e) => `- not: "${e.bad}"  →  rather: "${e.good}"`).join('\n');
+  return `HER INNER WORLD (the checker refuses it, so never write it): speak about the dream's details and about what she SAID, never about what happens inside her. Never place a feeling, an understanding or a change inside her unless those words are hers: no "אצלך", "בך", "בתוכך", "לעצמך", "מעורר בך", "מבליט אצלך", "נתפס אצלך", "מעלה אצלך תחושה", "שמרגשים אותך", no inner word with "שלך" ("הצורך שלך", "הרצון שלך"). Never "הרגשת", "הבנת", "חשבת", "את מרגישה" unless she used that verb herself; give back what she said with "אמרת ש…" and her own words. A hedge ("אולי", "ייתכן", "אפשר לראות") does not make such a claim allowed. "ובכל זאת", "בכל זאת", "משלב", "גם… וגם" claim a link: use them only when the anchors themselves show it; otherwise offer the link openly ("אולי יש קשר בין … לבין …"). "אפשר לראות את X כ…" only when "…" is another detail of the dream or her own words, never a new concept ("כמפגש עם משהו חדש", "כמקום של מעבר").
+Examples, on another dream (written to a woman: use the address required below; never copy their words). The dream: "${EXAMPLE_DREAM}" Her answer: "${EXAMPLE_ANSWER}"
+${examples}`;
+}
 
 // ------------------------------------------------------------------------------------------------ 1. moment-question
 
 export function buildMomentQuestionSystemPrompt(language: AppLanguage, address: AddressPreference): string {
-  return `You are a thoughtful listener in a dream exploration. The dreamer chose a moment of their dream. Offer TWO different candidate questions about this moment; the first that passes the checks will be asked.
+  return `You are a thoughtful listener in a dream exploration. The dreamer chose a moment of their dream. Offer THREE different candidate questions about this moment; the best one that passes the checks will be asked.
 
 What makes a question worth answering: it opens curiosity and a personal connection, not only more description. Good kinds: what stood out to her in this moment, what surprised her, what drew her to choose this moment, what it reminds her of (if anything), what in it feels strange or important to her. Ask about how it looked or sounded at most once in a row (never two such questions one after the other). Never assume what she felt: ask, don't tell.
 
@@ -130,6 +159,7 @@ Each candidate:
 - says what it asks about: "focus" (one of ${FOCI.join(', ')}) and "subject" (the word of this moment it is about).
 - never asks again what was already asked or answered, not even in other words: the earlier questions are listed with what they asked about; prefer a focus that was not used yet, and do not ask about a feeling she already named.
 - may build on a short phrase she said earlier ("buildsOn", copied exactly, or "").
+- varies the way questions open: "what stood out / the first thing / what caught your attention" at most once in the whole journey; never two questions that open with the same words. A creative "what if" only about something the dream itself leaves open ("maybe it was me", "not sure"), never as decoration.
 ${ADDRESS_RULE}
 
 If the input says she answered "I don't know" to this moment's first question: ask ONE simpler, concrete question from a different focus (for example what she sees or hears there), gently, never pressing, never about what she did not know.
@@ -148,6 +178,8 @@ export function buildMomentQuestionInput(p: {
   moment: { id: MomentId; label: string; segments: number[] };
   otherMoments: string[];
   alternative: { question: string; answer: string } | null;
+  /** The kind of question planned for this moment (doc 50 v2, א6). */
+  plannedFocus?: QuestionFocus | null;
 }): string {
   return `${partsBlock(p.segments, p.sourceText)}
 
@@ -157,8 +189,21 @@ OTHER MOMENTS NOT EXPLORED YET (only so you know they exist): ${p.otherMoments.l
 
 THE MOMENT SHE CHOSE NOW: [${p.moment.id}] ${q(p.moment.label)}, resting on parts ${p.moment.segments.map((s) => `s${s}`).join(', ') || '(unknown: ask about the moment as named)'}${
     p.alternative ? `\n\nSHE WAS ALREADY ASKED ${q(p.alternative.question)} ABOUT THIS MOMENT AND ANSWERED ${q(p.alternative.answer)} ("I don't know"). Ask one simpler, different question.` : ''
-  }`;
+  }${p.plannedFocus ? `\n\nKIND OF QUESTION TO PREFER FOR THIS MOMENT: ${p.plannedFocus} (${FOCUS_HINT[p.plannedFocus] ?? ''}). At least one candidate of this kind.` : ''}`;
 }
+
+/** What each planned kind asks (doc 50 v2, א6). */
+const FOCUS_HINT: Partial<Record<QuestionFocus, string>> = {
+  feeling: 'what she felt in this moment, when the dream says she wanted to do something and could not',
+  figure: 'what someone in the dream said or did to her, in their words',
+  change: 'what turned into something else',
+  whatif: 'a possibility the dream itself leaves open (it says "maybe" or "not sure"); "what changes if…"',
+  detail: 'what is seen, heard or felt in the body here',
+  surprise: 'the detail that does not fit',
+  connection: 'what this moment reminds her of, if anything',
+  sense: 'what is seen or heard here',
+  choice: 'what drew her to this moment',
+};
 
 export const MOMENT_QUESTION_JSON_SCHEMA = {
   type: 'object',
@@ -209,7 +254,29 @@ export function buildMomentReplySystemPrompt(language: AppLanguage, address: Add
 
 "user" (1 or 2 sentences): what SHE said, given back in the second person past ("אמרת ש..."), with "quote": a short piece copied EXACTLY from her answer. Only her words: no feeling, time or detail she did not say; a short answer stays short. If her answer is "I don't know", give nothing.
 
-"possibilities" (exactly TWO different ones): what she might take from it. Every sentence of each starts with a hedge ("אולי", "ייתכן", "אפשר לראות"; "perhaps"). Each rests on the sentences above ("basis": ids like "d0", "u1"). It may give an image a possible sense, as an open possibility she can take or leave; it never gives her a feeling she did not name (in any wording), never says what another person in the dream wanted, meant or felt, never fixes a meaning ("מסמן", "מסמל", "דימוי ל"), never says something "מצביע על" or "מעיד על" anything, never puts events in an order the dream does not state, never states a fact, never repeats an insight already shown. Make it specific to her words and this moment, not a general statement about life.
+"possibilities" (exactly THREE candidates; the code shows only the best one, or none): each offers ONE link she may not have made, between at least two DIFFERENT details ("anchors"), from this moment's parts (two details of the same event are fine) or from her words. For each:
+- "anchors": the details, each copied EXACTLY ("quote"), with "from": "dream" or "answer".
+- "relation": the kind of link: contrast, repeat, similar, want-vs-cannot, change, missing, odd, echo (her word in two moments), side-by-side (two details placed together, no link claimed), open-link (a possible link, offered as a question).
+- "relationBasis": the words in the anchors that show the link (for "similar": the shared quality, also named in your sentence).
+- "aboutHer": every claim the sentence makes about her (what she felt, wanted, did, what is important to her), each with the exact words of hers it rests on ("quote"); usually empty.
+- "openEdge": what it leaves her to think about.
+- "text": one to three short sentences of natural, warm, plain Hebrew.
+WHAT MAKES A POSSIBILITY (the commonest failure is an echo: a detail of the dream, then her own words, then "maybe there is a link" — it says nothing she does not already know):
+- The sentence must name WHAT joins the two details, in the sentence itself: the contrast between them, what is missing in one of them, what repeats, what changes, what she wanted and could not. Pointing at "a link" without saying which link is not a possibility.
+- A link she already made herself in her answer is an echo (if she said a thing made her calm, "the thing, and you said it made you calm" is an echo). Offer a link she did NOT make: between two details of this moment, or between her words and a detail of this moment that her answer did not mention.
+- The three candidates use three different kinds of relation (for example one contrast, one thing missing, one change), not three wordings of one idea.
+${
+    language === 'he'
+      ? `- An example of what adds something, on another dream (not words to copy): the dream "אמא עלתה ונופפה לי מהחלון… ואני לא עליתי", her answer "הרגשתי שקטה" → "אולי מה שבולט כאן הוא שהשקט שתיארת בא דווקא כשאמא עלתה ואת לא עלית." — the calm and the parting, which she did not put together.
+NEVER as the whole possibility, or as its last sentence: "אולי יש קשר בין השניים", "אולי שווה לשים לב לשני הדברים יחד", "אולי יש קשר בין שני הדברים", or any tail that points at a link without saying it.`
+      : `- An example of what adds something, on another dream (not words to copy): the dream "my mother got on and waved to me from the window… and I did not get on", her answer "I felt calm" → "Maybe what stands out is that the calm you described came just when your mother got on and you did not." — the calm and the parting, which she did not put together.
+NEVER as the whole possibility, or as its last sentence: "maybe there is a link between the two", "maybe it is worth noticing both together", or any tail that points at a link without saying it.`
+  }
+An accurate observation is better than a forced insight: never invent a link or a depth to sound meaningful. State as fact only what the anchors show; a possible link is offered openly ("אולי…", "ייתכן ש…", saying which link), never as a conclusion. Never say what an image means, symbolizes, represents or reflects; never "החלום עוסק ב…", never "X הוא החלק ש…", no psychological terms ("לא-מודע", "השלכה"), no message of the dream; never say what she feels, wants, needs, looks for or why, unless it is in her words; never give a cause she did not give. Avoid therapy-like wording: "פותח מרחב", "מקום למפגש עם תחושות", "מקבל נוכחות", "מזמין אותך לשים לב", "מדבר אליך", "להכיל". Do not open the way an earlier insight opened. The kind of sentence wanted (not words to copy): "‹detail›, ובכל זאת ‹other detail›." (only when the anchors show a contrast) · "בחלום יש ‹a›, ויש גם ‹b›." · "‹her words›, דווקא כש‹a detail of this moment she did not mention›." · "אולי מה שבולט כאן הוא לא ‹a›, אלא ‹b›."
+
+${aboutHerBlock(language, 'insight')}
+
+"invitation": ONE question, for the case that no possibility is worth showing: it opens a new direction on a concrete detail of this moment (or of a moment explored before) that her answer did not mention, or on the tension between two details; never "מה עוד עולה", never a creative "what if" about nothing the dream leaves open; at most ${MAX_QUESTION_WORDS} words; or "".
 
 Clarification: most answers need NONE. Ask one exactly when her answer POINTS to something specific without naming it ("something that happened once", "that time", "someone", "משהו שקרה פעם", "מישהו") or could mean two opposite things: "missingInformation" (what is missing, briefly) and "followUpQuestion" (ONE short question asking exactly that, at most ${MAX_QUESTION_WORDS} words). Otherwise both are "". Never after "I don't know".
 If the input says the CLARIFICATION WAS ANSWERED, write the insight again using that answer too, and set both to "".
@@ -251,7 +318,7 @@ Its answer (exact words): ${q(p.followUp.answer)}`
 export const MOMENT_REPLY_JSON_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['dream', 'user', 'possibilities', 'missingInformation', 'followUpQuestion'],
+  required: ['dream', 'user', 'possibilities', 'invitation', 'missingInformation', 'followUpQuestion'],
   properties: {
     dream: {
       type: 'array',
@@ -268,8 +335,25 @@ export const MOMENT_REPLY_JSON_SCHEMA = {
     },
     possibilities: {
       type: 'array',
-      items: { type: 'object', additionalProperties: false, required: ['basis', 'text'], properties: { basis: { type: 'array', items: { type: 'string' } }, text: { type: 'string' } } },
+      // exactly three, so the code can choose by quality (her decision, doc 49); the prompt alone was not followed (doc 62: one in 4 of 4).
+      // minItems/maxItems are supported in strict mode for base models, not for fine-tuned ones (OpenAI Structured Outputs, checked 2026-10-22)
+      minItems: 3,
+      maxItems: 3,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['text', 'anchors', 'relation', 'relationBasis', 'aboutHer', 'openEdge'],
+        properties: {
+          text: { type: 'string' },
+          anchors: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['quote', 'from'], properties: { quote: { type: 'string' }, from: { type: 'string', enum: ['dream', 'answer'] } } } },
+          relation: { type: 'string', enum: [...RELATIONS] },
+          relationBasis: { type: 'array', items: { type: 'string' } },
+          aboutHer: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['claim', 'quote'], properties: { claim: { type: 'string' }, quote: { type: 'string' } } } },
+          openEdge: { type: 'string' },
+        },
+      },
     },
+    invitation: { type: 'string' },
     missingInformation: { type: 'string' },
     followUpQuestion: { type: 'string' },
   },
@@ -285,20 +369,41 @@ export function parseMomentReply(candidate: unknown): MomentReplyRaw | null {
   const c = candidate as Record<string, unknown>;
   const dream = arr(c.dream).map((x) => ({ segment: int(x.segment), action: s(x.action), actor: s(x.actor), target: s(x.target), text: s(x.text) })).filter((x) => x.text).slice(0, 4);
   const user = arr(c.user).map((x) => ({ quote: s(x.quote), text: s(x.text) })).filter((x) => x.text).slice(0, 4);
+  const strings = (v: unknown) => (Array.isArray(v) ? v.filter((b): b is string => typeof b === 'string').map((b) => b.trim()).filter(Boolean) : []);
   const possibilities = arr(c.possibilities)
-    .map((x) => ({ basis: Array.isArray(x.basis) ? x.basis.filter((b): b is string => typeof b === 'string').map((b) => b.trim()) : [], text: s(x.text) }))
+    .map((x) => {
+      const anchors = arr(x.anchors).map((a) => ({ quote: s(a.quote), from: a.from === 'answer' ? ('answer' as const) : ('dream' as const) })).filter((a) => a.quote);
+      const relation = (RELATIONS as readonly string[]).includes(s(x.relation)) ? (s(x.relation) as Relation) : 'open-link';
+      // a reply with source cards (doc 50 v2); an older one rests on sentence ids ("basis")
+      const card = Array.isArray(x.anchors)
+        ? { anchors, relation, basis: strings(x.relationBasis), aboutHer: arr(x.aboutHer).map((h) => ({ claim: s(h.claim), quote: s(h.quote) })), openEdge: s(x.openEdge) }
+        : null;
+      return { basis: strings(x.basis), text: s(x.text), card };
+    })
     .filter((x) => x.text)
     .slice(0, 3);
   if (dream.length === 0 && user.length === 0 && possibilities.length === 0) return null;
-  return { dream, user, possibilities, followUpQuestion: s(c.followUpQuestion) || null, missingInformation: s(c.missingInformation) || null };
+  return { dream, user, possibilities, invitation: s(c.invitation), followUpQuestion: s(c.followUpQuestion) || null, missingInformation: s(c.missingInformation) || null };
 }
 
 /** An answer that points to something specific without naming it: the case where a clarification really changes the insight. */
 const VAGUE_REFERENCE = /(משהו שקרה|דבר שקרה|משהו שהיה|מה שקרה (?:אז|פעם)|מישהו ש|פעם אחת|באותה פעם|something (?:that )?happened|that time|someone (?:who|I)|a certain)/i;
 
+/**
+ * True when the answer points to something it does not name. A phrase like "מישהו ש…" is not vague when the rest of its clause is the
+ * dream's own words (doc 62, item 2: "למישהו שאני לא מכירה" is the dream's "מישהי שאני בכלל לא מכירה"): the dream already names it.
+ */
+function pointsWithoutNaming(answer: string, dreamText?: string): boolean {
+  for (const m of answer.matchAll(new RegExp(VAGUE_REFERENCE.source, 'gi'))) {
+    const rest = answer.slice((m.index ?? 0) + m[0].length).split(/[,.;!?\n]/)[0];
+    if (!dreamText || overlapRatio(rest, dreamText) < 0.5) return true;
+  }
+  return false;
+}
+
 /** A retry note when the answer is vague and no clarification was asked. */
-export function clarificationNote(result: { followUpQuestion: string | null }, answer: string | undefined): string | null {
-  if (!answer || !VAGUE_REFERENCE.test(answer) || isUnsureAnswer(answer) || result.followUpQuestion) return null;
+export function clarificationNote(result: { followUpQuestion: string | null }, answer: string | undefined, dreamText?: string): string | null {
+  if (!answer || !pointsWithoutNaming(answer, dreamText) || isUnsureAnswer(answer) || result.followUpQuestion) return null;
   return '\n\nCORRECTION: her answer points to something specific without naming it ("something that happened", "that time", "someone"): ask ONE clarification question about exactly that, and fill "missingInformation". Write the whole reply again.';
 }
 
@@ -318,6 +423,106 @@ export function keepFollowUp(result: { followUpQuestion: string | null; missingI
   return fq;
 }
 
+// ------------------------------------------------------------------------------------------------ 2b. moment-reply: two details and a question
+
+/**
+ * The reply of the listening journey (doc 90 v3, approved 2026-10-23): what the moment shows, what she said, and up to three candidate
+ * PAIRS — two details side by side, each copied exactly, with the relation the code verifies and one open question. The code shows at
+ * most one, only where the pacing allows it, and never says what joins them (pairCheck.ts). The interpretive "possibility" of the
+ * earlier prompt is not asked for; that prompt stays in the branch, unused by the route.
+ */
+export function buildPairReplySystemPrompt(language: AppLanguage, address: AddressPreference): string {
+  const plain =
+    language !== 'he'
+      ? '"What do you see when the two stand side by side?"'
+      : address === 'masculine'
+        ? '"מה אתה רואה כשהם עומדים יחד?"'
+        : address === 'feminine'
+          ? '"מה את רואה כשהם עומדים יחד?"'
+          : '"מה נראה לך כשהשניים עומדים יחד?"';
+  return `You are a quiet, attentive listener in a dream exploration. The dreamer chose a moment of their dream, was asked about it and answered. You give back what the moment shows and what she said; sometimes the code will also set two details side by side and ask her what she sees. You never interpret.
+
+"dream" (1 or 2 sentences): what THIS moment's parts show, plainly. Each sentence rests on ONE part of this moment ("segment": its number) and uses only that part's own words, told to her in the second person ("הגעת", "אחיך נתן לך"). Copy the part's main verb exactly as the part writes it ("action"); say who did it ("actor": "dreamer" when the part's verb is hers, a first-person verb; otherwise the part's own word for who did it; "unknown" when the part names no one) and to whom ("target": "dreamer", a word of the part, or ""). Add nothing: no time word the part does not have, no detail from her answer, nothing from another part, never a link between two events, never a negation the part does not have (and keep the one it has).
+
+"user" (1 or 2 sentences): what SHE said, given back in the second person past ("אמרת ש..."), with "quote": a short piece copied EXACTLY from her answer. Only her words: no feeling, time or detail she did not say. The first sentence gives back the heart of her answer: the code may show only one. If her answer is "I don't know", give nothing.
+
+"pairs": when the input says "PAIRS: NOT NOW", an empty list. Otherwise up to THREE candidates; the code shows at most one, or none — none is a good result, most moments are only listened to. Each candidate:
+- "a" and "b": two DIFFERENT details, each ONE detail (a few words, one clause), each copied EXACTLY as written ("quote"), with "from": "dream" (a part of THIS moment) or "answer" (her answer about this moment). Copy the dream's words as the dream writes them, in its person and tense.
+- "relation": what the words themselves show, one of three: "negation" (one detail has a negation or something missing — "לא", "בלי", "חוסר" — and the other does not), "change" (the dream says something changed: "כבר לא… אלא…", "הפך ל…"), "wanted-not-managed" (one detail wants or tries, the other could not).
+- Never two pieces of one sentence of the dream (the dream already says them together), never two pieces of one sentence of hers (she already joined them), never a detail of another moment, never a pair whose only link is a repeated word.
+- "question": ONE short open question about the two that asks what she sees and leads nowhere: no "האם", no "difference", "link", "tension" or "contrast", no feeling or surprise she did not say. The kind wanted: ${plain}
+Never say what joins them, in any field: no sentence of yours goes with the pair.
+
+Clarification: most answers need NONE. Ask one exactly when her answer POINTS to something specific without naming it ("something that happened once", "that time", "someone", "משהו שקרה פעם", "מישהו") or could mean two opposite things: "missingInformation" (what is missing, briefly) and "followUpQuestion" (ONE short question asking exactly that, at most ${MAX_QUESTION_WORDS} words). Otherwise both are "". Never after "I don't know".
+
+${ADDRESS_RULE}
+
+${FAITHFULNESS}
+
+${styleBlock(language, address)}
+
+Respond with only the JSON object of the schema.`;
+}
+
+export function buildPairReplyInput(p: Parameters<typeof buildMomentReplyInput>[0] & { pairsNow: boolean }): string {
+  return `${buildMomentReplyInput(p)}
+
+PAIRS: ${p.pairsNow ? 'up to three candidates' : 'NOT NOW (an empty list: this moment is listened to)'}`;
+}
+
+const PAIR_SIDE_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['quote', 'from'],
+  properties: { quote: { type: 'string' }, from: { type: 'string', enum: ['dream', 'answer'] } },
+} as const;
+
+export const PAIR_REPLY_JSON_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['dream', 'user', 'pairs', 'missingInformation', 'followUpQuestion'],
+  properties: {
+    dream: MOMENT_REPLY_JSON_SCHEMA.properties.dream,
+    user: MOMENT_REPLY_JSON_SCHEMA.properties.user,
+    pairs: {
+      type: 'array',
+      minItems: 0,
+      maxItems: 3,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['a', 'b', 'relation', 'question'],
+        properties: { a: PAIR_SIDE_SCHEMA, b: PAIR_SIDE_SCHEMA, relation: { type: 'string', enum: [...PAIR_RELATIONS] }, question: { type: 'string' } },
+      },
+    },
+    missingInformation: { type: 'string' },
+    followUpQuestion: { type: 'string' },
+  },
+} as const;
+
+export interface PairReplyRaw extends MomentReplyRaw {
+  pairs: PairCandidate[];
+}
+
+/** The pair reply, read tolerantly. As a reply it has no possibility and no invitation (the interpretive layer is stopped, doc 87). */
+export function parsePairReply(candidate: unknown): PairReplyRaw | null {
+  if (typeof candidate !== 'object' || candidate === null) return null;
+  const c = candidate as Record<string, unknown>;
+  const base = parseMomentReply({ ...c, possibilities: [], invitation: '' });
+  const side = (v: unknown) => {
+    const x = typeof v === 'object' && v !== null ? (v as Record<string, unknown>) : {};
+    return { quote: s(x.quote), from: x.from === 'answer' ? ('answer' as const) : ('dream' as const) };
+  };
+  const pairs = arr(c.pairs)
+    .map((x) => ({ a: side(x.a), b: side(x.b), relation: s(x.relation) as PairRelation, question: s(x.question) }))
+    .filter((x) => x.a.quote && x.b.quote)
+    .slice(0, 3);
+  if (!base && pairs.length === 0) return null;
+  return { dream: base?.dream ?? [], user: base?.user ?? [], possibilities: [], invitation: '', followUpQuestion: base?.followUpQuestion ?? null, missingInformation: base?.missingInformation ?? null, pairs };
+}
+
+export const pairReplyProse = (r: PairReplyRaw) => [...r.dream.map((d) => d.text), ...r.user.map((u) => u.text), ...r.pairs.flatMap((p) => [p.a.quote, p.b.quote, p.question]), r.followUpQuestion ?? ''].filter(Boolean);
+
 // ------------------------------------------------------------------------------------------------ 3. whole-view
 
 export function buildWholeViewSystemPrompt(language: AppLanguage, address: AddressPreference): string {
@@ -332,11 +537,13 @@ Every piece says its source:
 - "recurring": "element" is the word or feeling that truly comes back (only one she or the dream named), "quotes" show it in EACH moment where it recurs (copied exactly, at least two moments), "text" one sentence in those moments' words. Empty ("" and []) when nothing truly recurs: never force one.
 - "contrast": one real difference between exactly TWO explored moments, "quotes" one from each, "text" in their words. Empty when there is none.
 - "readings": other ways to see it, each on ONE explored part ("segment"), every sentence hedged, never a fixed meaning. At most as READINGS ALLOWED says; none rather than a forced one.
-- "closing": ONE new question for her to keep, about her dream and her life, built from her own words ("moment" and "quote" copied exactly, or "" when it uses none), at most 20 words, not yes/no, never a therapy exercise, never repeating a question already asked.
+- "closing": ONE new question for her to keep, about her dream and her life, built from her own words ("moment" and "quote" copied exactly, or "" when it uses none), at most 20 words, not yes/no, never a therapy exercise, never repeating a question already asked, never treating a person or event of the dream as her waking life (ask what it reminds her of, or ask openly with "אם בכלל").
 
 With ONE explored moment this is a FIRST LOOK: no connections, no recurring, no contrast; never say "the whole picture" or "the whole dream"; give one hedged possibility (an "interpretation" sentence or a reading) that goes beyond the insight already shown.
 It must ADD something the single insights did not say: a link between her own words in different moments, a difference, a word of hers that comes back. When there is not enough basis, a modest and precise view (which of her words appear in more than one moment, what stays open) is better than a forced interpretation. Never say what a person in the dream wanted, meant or felt; never fix a meaning for an image; never put moments in a sequence ("רצף", "מוביל", "מתחיל כבר") unless the ORDER OF EVENTS says so; never give her a feeling she did not name, in any wording.
 Never state an order of events that the text does not state (see ORDER OF EVENTS).
+
+${aboutHerBlock(language, 'whole')}
 
 ${ADDRESS_RULE}
 
@@ -463,6 +670,16 @@ export function momentLabelRules(language: AppLanguage): string {
 
 // ------------------------------------------------------------------------------------------------ retry notes (fixed instruction text, never dream text)
 
+/** What to write instead, for the refusals the model most often repeats (doc 59, step 1). */
+function fixHints(reasons: string[]): string {
+  const hints = [
+    reasons.some((r) => /inner world|feeling she did not/.test(r)) && 'Do not say what happens inside her ("אצלך", "בך", "מעורר בך", "הרגשת" when she did not say it): speak about the details of the dream, and give back her words with "אמרת ש…".',
+    reasons.some((r) => /link the dream and her words do not show/.test(r)) && 'Offer the link openly: "אולי יש קשר בין … לבין …"; "ובכל זאת" or "גם… וגם" only when the anchors show it.',
+    reasons.some((r) => /psychological meaning/.test(r)) && '"אפשר לראות את X כ…" only with another detail of the dream or her own words, never a new concept.',
+  ].filter(Boolean);
+  return hints.length ? `\nWhat to do instead:\n${hints.map((h) => `- ${h}`).join('\n')}` : '';
+}
+
 const bullet = (reasons: string[]) => [...new Set(reasons)].slice(0, 8).map((r) => `- ${r}`).join('\n');
 
 export function questionRetryNote(reasons: string[]): string {
@@ -471,19 +688,25 @@ export function questionRetryNote(reasons: string[]): string {
 
 export function replyRetryNote(report: ClaimReport): string {
   const reasons = report.possibilities.flat();
-  return `\n\nCORRECTION: no possibility could be shown:\n${bullet(reasons.length ? reasons : ['no possibility was given'])}\nAlso, sentences refused elsewhere: ${bullet([...report.dream, ...report.user].flatMap((x) => x.reasons)) || 'none'}\nWrite the whole reply again following every rule.`;
+  return `\n\nCORRECTION: no possibility could be shown:\n${bullet(reasons.length ? reasons : ['no possibility was given'])}\nAlso, sentences refused elsewhere: ${bullet([...report.dream, ...report.user].flatMap((x) => x.reasons)) || 'none'}${fixHints(reasons)}\nWrite the whole reply again following every rule.`;
 }
 
-export function wholeRetryNote(report: WholeReport, kind: string): string {
+/**
+ * A note asking for the whole view again, or null. Only a factual summary (nothing could be shown) is retried: a view whose opening passed
+ * but that found no link between the moments ("no-link") is an honest answer, which the prompt itself calls normal, and a paid retry
+ * would ask the model to force one (doc 70: fewer paid calls, no loss in what is shown).
+ */
+export function wholeRetryNote(report: WholeReport, kind: string): string | null {
+  if (kind === 'no-link') return null;
   const reasons = [...report.overview.flatMap((x) => x.reasons), ...report.connections.flat(), ...report.recurring, ...report.contrast, ...report.readings.flat()];
   const what = kind === 'factual-summary' ? 'nothing of the whole view could be shown' : 'no link, recurrence or difference between the moments could be shown';
-  return `\n\nCORRECTION: ${what}:\n${bullet(reasons.length ? reasons : ['nothing passed'])}\nWrite the whole view again following every rule; give a link only where something real joins two moments.`;
+  return `\n\nCORRECTION: ${what}:\n${bullet(reasons.length ? reasons : ['nothing passed'])}${fixHints(reasons)}\nWrite the whole view again following every rule; give a link only where something real joins two moments.`;
 }
 
 // ------------------------------------------------------------------------------------------------ prose (for the language and address checks)
 
 export const questionProse = (r: MomentQuestionRaw) => r.candidates.map((c) => c.question);
-export const replyProse = (r: MomentReplyRaw) => [...r.dream.map((d) => d.text), ...r.user.map((u) => u.text), ...r.possibilities.map((p) => p.text), r.followUpQuestion ?? ''].filter(Boolean);
+export const replyProse = (r: MomentReplyRaw) => [...r.dream.map((d) => d.text), ...r.user.map((u) => u.text), ...r.possibilities.map((p) => p.text), r.invitation ?? '', r.followUpQuestion ?? ''].filter(Boolean);
 export const wholeViewProse = (w: WholeRaw) =>
   [...w.overview.map((o) => o.text), ...w.connections.flatMap((c) => [c.title, c.link]), w.recurring.text, w.contrast.text, ...w.readings.map((r) => r.text), w.closing.text].filter(Boolean);
 

@@ -1,7 +1,8 @@
 import OpenAI, { toFile } from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
 import { okResult, errorResult, withHeaders, type HandlerResult } from '../httpResult.js';
-import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
+import { type RequestHeaders } from '../callerIdentity.js';
+import { resolveAdultCaller } from '../ageGate.js';
 import { reserveTrialTranscription, refundTrialTranscription, getCreditBalance, isAppOwner } from '../dreamAttempts.js';
 import { freeDreamGrantedNow } from '../freeDream.js';
 import { isDreamAdmin, rateLimitExempt } from '../unlimitedAccess.js';
@@ -96,7 +97,7 @@ function extensionFor(mimeType: string): string {
 }
 
 export async function handleDreamTranscription(rawBody: unknown, requestHeaders: RequestHeaders): Promise<HandlerResult> {
-  const resolved = await resolveCallerIdentity(requestHeaders);
+  const resolved = await resolveAdultCaller(requestHeaders);
   if (!resolved.ok) {
     return errorResult(resolved.status, resolved.reason, resolved.message);
   }

@@ -38,8 +38,67 @@ export const containsVerbatim = (haystack: string, needle: string) => {
   const n = flat(needle);
   if (words(needle).length === 0 || n.length < 2) return false;
   const h = ` ${flat(haystack)} `;
-  return h.includes(` ${n} `) || [...'והבלמשכ'].some((p) => h.includes(` ${p}${n} `));
+  // every place it stands (its first word may carry one more prefix letter there); a place right after a negation does not count: a
+  // quote that cuts the "לא" off before it says the opposite (doc 70: "הבנתי איך הוא הגיע אליה" out of "ולא הבנתי…")
+  for (const p of ['', ...'והבלמשכ']) {
+    for (let at = h.indexOf(` ${p}${n} `); at >= 0; at = h.indexOf(` ${p}${n} `, at + 1)) {
+      const before = h.slice(0, at).trim().split(' ').pop() ?? '';
+      if (!before || !isNegation(before)) return true;
+    }
+  }
+  return false;
 };
+
+/**
+ * The dreamer's first person as the model turns it to her (doc 62, item 3): told to speak to her, it copies «נקרעה לי בידיים» as
+ * «נקרעה לך בידיים». Grammar only: a second-person ending (לך→לי, אותך→אותי, עלייך→עליי, ממך→ממני), a second-person past verb
+ * (ניסית→ניסיתי) and the pronoun (את/אתה→אני). Every other word must stay exactly the same.
+ */
+export function firstPersonForms(word: string): string[] {
+  const w = word.replace(/[^א-ת]/g, '');
+  const out = [w];
+  if (/^(?:ו|ש|וש|כש|וכש)?(?:את|אתה)$/.test(w)) out.push(w.replace(/(?:אתה|את)$/, 'אני'));
+  if (/ממך$/.test(w)) out.push(w.replace(/ממך$/, 'ממני'));
+  else if (/ך$/.test(w)) out.push(w.replace(/יך$/, 'י').replace(/ך$/, 'י'));
+  if (/ת$/.test(w) && w.length >= 3) out.push(`${w}י`);
+  return out;
+}
+
+/**
+ * Where `quote` stands in `text`, in `text`'s own words, or null: one matching for every quote the model copies (a card's anchors, the
+ * whole view's quotes, the closing question's quote; doc 70). Verbatim as containsVerbatim has it (its first word may lack one prefix
+ * letter of the text: "לא" for "ולא"; never right after a negation it cut off), or differing only in the dreamer's person
+ * («לא הבנת…» for «ולא הבנתי…»). A number ("we" → "you") or any other word that differs is not the same quote.
+ */
+export function quotedAs(quote: string, text: string): string | null {
+  const q = quote.trim().split(/\s+/).filter((w) => /[א-תa-zA-Z]/.test(w));
+  if (!q.length) return null;
+  if (containsVerbatim(text, quote)) return q.join(' ').replace(/[^א-תa-zA-Z'\s]/g, '').trim();
+  const t = text.split(/\s+/).map((w) => w.replace(/[^א-ת]/g, ''));
+  const fits = (k: number, tw: string, f: string) => tw === f || (k === 0 && tw.length === f.length + 1 && 'והבלמשכ'.includes(tw[0]) && tw.slice(1) === f);
+  for (let i = 0; i + q.length <= t.length; i += 1) {
+    const chosen: string[] = [];
+    for (let k = 0; k < q.length; k += 1) {
+      const v = firstPersonForms(q[k]).find((f) => f && fits(k, t[i + k], f));
+      if (v === undefined) break;
+      chosen.push(t[i + k]); // the text's own word, with the prefix letter the model dropped
+    }
+    if (chosen.length === q.length && containsVerbatim(text, chosen.join(' '))) return chosen.join(' ');
+  }
+  return null;
+}
+
+/**
+ * "אחרי" and "עד" where they say no time (doc 70): "אחרי" governed by a verb of searching, chasing or following ("חיפוש אחרי מתנה",
+ * "רודפת אחרי", "עוקבת אחרי") is its object; "עד הסוף" and "עד כמה" are degree. Removed before the time words are looked for; every
+ * other "אחרי" / "עד" ("אחרי ש…", "אחרי השוק", "עד ש…") stays a time word.
+ */
+export function nonTemporal(text: string): string {
+  return text
+    .replace(/((?:^|\s)\S*(?:ח[יו]?פ[ו]?ש|ר[ו]?ד[ו]?פ|ע[ו]?ק[ו]?ב)\S*)\s+אחרי(?![א-ת])/g, '$1')
+    .replace(/(?<![א-ת])עד\s+(?:ה)?סוף(?![א-ת])/g, '')
+    .replace(/(?<![א-ת])עד\s+(?=כמה(?![א-ת]))/g, '');
+}
 
 // ------------------------------------------------------------------------------------------------ stems
 
@@ -110,7 +169,21 @@ export function sameWord(a: string, b: string): boolean {
   const B = formsOf(y);
   for (const f of A.long) if (B.long.has(f)) return true;
   for (const f of A.short) if (B.short.has(f)) return true;
-  return false;
+  return sameLamedHe(x, y);
+}
+
+/**
+ * A verb whose root ends in ה, past "you"/"I" against the present ("ראית" / "רואה", "עשית" / "עושה"): the two root letters before
+ * the ending, the present with its ו. Only these two patterns, so "קמה" (got up) and "קומה" (a floor) stay apart.
+ */
+const LH_PAST = /^(..)(יתי|ית|ינו)$/;
+const LH_PRESENT = /^(.)ו(.)(ה|ימ|ות)$/;
+function sameLamedHe(x: string, y: string): boolean {
+  if (!HEBREW.test(x) || !HEBREW.test(y)) return false;
+  const bare = (w: string) => [w, ...(w.length >= 4 && PREFIX.has(w[0]) ? [w.slice(1)] : [])];
+  const past = (w: string) => bare(w).map((b) => b.match(LH_PAST)?.[1]).filter(Boolean) as string[];
+  const present = (w: string) => bare(w).map((b) => { const m = b.match(LH_PRESENT); return m ? m[1] + m[2] : ''; }).filter(Boolean);
+  return past(x).some((r) => present(y).includes(r)) || past(y).some((r) => present(x).includes(r));
 }
 
 export const inWords = (word: string, pool: readonly string[]) => pool.some((p) => sameWord(word, p));
@@ -162,7 +235,7 @@ const NEGATION = new Set(['לא', 'אין', 'בלי', 'אף', 'not', 'never', 'n
 export function isNegation(word: string): boolean {
   const w = norm(word);
   if (NEGATION.has(w) || /n't$/.test(w)) return true;
-  return HEBREW.test(w) && w.length <= 4 && /^[ושכ]{1,2}(לא|אינ|בלי)$/.test(w);
+  return HEBREW.test(w) && w.length <= 4 && /^[ושכ]{1,2}(לא|אינ|בלי|אפ)$/.test(w);
 }
 
 /** Words that place events in time. A claim may use one only where its own source (the dream part or the answer) uses it. */
@@ -189,7 +262,7 @@ const FEELINGS = [
   'זרות', 'זר', 'שייכות', 'שייך', 'תקווה', 'ייאוש', 'יאוש', 'אונים', 'שליטה', 'ביטחון', 'שלווה', 'שקט', 'כאב', 'אהבה', 'אוהב', 'שנאה',
   'קנאה', 'הקלה', 'מבוכה', 'נבוך', 'חולשה', 'חלש', 'מאמץ', 'עייפות', 'עייף', 'בלבול', 'מבולבל', 'ודאות', 'ציפייה', 'אכזבה', 'נחמה', 'אובדן', 'חסר', 'ריקנות',
   'תסכול', 'מתח', 'בהלה', 'נבהל', 'דאגה', 'דואג', 'צער', 'הפתעה', 'מופתע', 'סקרנות', 'פליאה', 'תדהמה', 'עלבון', 'נעלב', 'גאווה', 'נטישה', 'נטוש',
-  'דחייה', 'נדחה', 'שלמות', 'טראומה', 'אשם', 'בדידות', 'מוגן', 'הגנה', 'חרטה', 'ערגה', 'חוסר', 'ציפיות', 'מתגעגע', 'התגעגע', 'געגועים', 'אכזב', 'התאכזב', 'מתאכזב', 'נלחץ', 'נלחצ', 'פחדים', 'מפחידה', 'ניכור', 'בודדה', 'פגיע', 'פגיעה', 'מפתיע', 'מפתיעה', 'ספקנות', 'ספק', 'מצחיק', 'משעשע', 'מבלבל', 'מבלבלת',
+  'דחייה', 'נדחה', 'שלמות', 'טראומה', 'אשם', 'בדידות', 'מוגן', 'הגנה', 'חרטה', 'ערגה', 'חוסר', 'ציפיות', 'מתגעגע', 'התגעגע', 'געגועים', 'אכזב', 'התאכזב', 'מתאכזב', 'נלחץ', 'נלחצ', 'פחדים', 'חשש', 'חושש', 'חוששת', 'מפחידה', 'ניכור', 'בודדה', 'פגיע', 'פגיעה', 'מפתיע', 'מפתיעה', 'ספקנות', 'ספק', 'מצחיק', 'משעשע', 'מבלבל', 'מבלבלת',
   'fear', 'afraid', 'scared', 'anxiety', 'anxious', 'stress', 'sad', 'sadness', 'happy', 'joy', 'anger', 'angry', 'shame', 'guilt', 'longing', 'lonely', 'alone',
   'loneliness', 'belong', 'belonging', 'hope', 'despair', 'helpless', 'control', 'safe', 'safety', 'calm', 'peace', 'pain', 'hurt', 'love', 'hate', 'jealous',
   'relief', 'embarrassed', 'weak', 'weakness', 'effort', 'tired', 'confused', 'confusion', 'certainty', 'uncertain', 'disappointed', 'comfort', 'loss', 'empty',
@@ -257,7 +330,8 @@ export function isFirstPersonVerb(word: string): boolean {
   const w = norm(word);
   if (!HEBREW.test(w) || TI_NOUNS.has(w) || NU_WORDS.has(w) || TI_NOUNS.has(stripConj(w)) || NU_WORDS.has(stripConj(w))) return false;
   for (const form of [w, stripConj(w)]) {
-    if (form.length >= 4 && form.endsWith('תי') && !TI_NOUNS.has(form)) return true;
+    // "…ותי" is an adjective ("משמעותי", "איכותי"), not "I did"
+    if (form.length >= 4 && form.endsWith('תי') && !TI_NOUNS.has(form) && !(form.length >= 5 && form.endsWith('ותי'))) return true;
     if (form.length >= 4 && form.endsWith('נו') && !NU_WORDS.has(form)) return true;
   }
   return false;

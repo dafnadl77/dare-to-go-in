@@ -1,5 +1,5 @@
 /** Every browser-side DARE key that can hold account or dream content. Language and accessibility preferences are device settings, not account data, and are kept. */
-export const ACCOUNT_LOCAL_STORAGE_KEYS = ['dare.savedDreams.v1', 'dare.localDreamMigration.v1', 'dare.pendingDreamSave.v1'] as const;
+export const ACCOUNT_LOCAL_STORAGE_KEYS = ['dare.savedDreams.v1', 'dare.localDreamMigration.v1', 'dare.pendingDreamSave.v1', 'dare.dreamDraft.v1'] as const;
 export const ACCOUNT_SESSION_STORAGE_KEYS = ['dare.archiveTranslations.v2', 'dare.analysisSubmission.v1'] as const;
 
 export interface KeyValueStore {

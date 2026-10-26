@@ -62,7 +62,10 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
         <>
           <div className="dc-fading-reflection" aria-hidden="true">
             <p className="dc-fading-text">{displayCachedReflectionText(reflectionResult.observation, language)}</p>
-            <p className="dc-fading-text dc-fading-text--question">{displayCachedReflectionText(reflectionResult.continuityQuestion, language)}</p>
+            {/* a dream map journey may end with no question to keep: then there is no line for one */}
+            {reflectionResult.continuityQuestion.trim() && (
+              <p className="dc-fading-text dc-fading-text--question">{displayCachedReflectionText(reflectionResult.continuityQuestion, language)}</p>
+            )}
           </div>
 
           <div className="dc-block dc-block--closing" style={accentVars}>

@@ -7,9 +7,14 @@ import {
   validateElementLabels,
 } from '../../src/hero/dreamElementLabelsSchema.js';
 import { buildLabelRepairNote, findLabelProblems, normalizeLabel } from '../../src/hero/dreamElementLabelQuality.js';
-import type { AppLanguage } from '../../src/hero/appLanguage.js';
+import { containsHebrew, type AppLanguage } from '../../src/hero/appLanguage.js';
+import { momentLabelRules } from '../../src/hero/explorationSchema.js';
+import { checkLabel } from '../../src/hero/claimCheck.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
-import { resolveCallerIdentity, type RequestHeaders } from '../callerIdentity.js';
+import { type RequestHeaders } from '../callerIdentity.js';
+import { resolveAdultCaller } from '../ageGate.js';
+import { realModerate } from '../safety/moderation.js';
+import { dareWordsSafe } from '../safety/routeSafety.js';
 import { reserveLabelsAttempt, refundLabelsAttempt, getTrialAttemptState } from '../dreamAttempts.js';
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 import { handleDreamQuestions } from './dreamQuestions.js';
@@ -25,18 +30,20 @@ export async function handleDreamElementLabels(rawBody: unknown, requestHeaders:
   // The multi-moment journey's question for a newly chosen moment (see dreamExploration.ts).
   const explorationMode = explorationModeOf(rawBody, ['moment-question']);
   if (explorationMode) return handleExploration(explorationMode, rawBody, requestHeaders);
-  const resolved = await resolveCallerIdentity(requestHeaders);
+  const resolved = await resolveAdultCaller(requestHeaders);
   if (!resolved.ok) {
     return errorResult(resolved.status, resolved.reason, resolved.message);
   }
   const cookieHeaders = resolved.setCookieHeader ? { 'Set-Cookie': resolved.setCookieHeader } : undefined;
 
-  const body = (rawBody ?? {}) as { sourceText?: unknown; elements?: unknown; language?: unknown; attemptId?: unknown };
+  const body = (rawBody ?? {}) as { sourceText?: unknown; elements?: unknown; language?: unknown; attemptId?: unknown; purpose?: unknown };
   const sourceText = typeof body.sourceText === 'string' ? body.sourceText : '';
   const elements = Array.isArray(body.elements) ? body.elements.filter((e): e is string => typeof e === 'string' && e.trim().length > 0) : [];
   // Defaults to English for any caller that doesn't send it (e.g. an
   // older cached client) — matches the pre-bilingual behavior exactly.
   const language: AppLanguage = body.language === 'he' ? 'he' : 'en';
+  // The dream map's moments (whole events of the dream): the same labels call with the moment rules added, then the code check.
+  const moments = body.purpose === 'moments';
 
   if (elements.length === 0) {
     return withHeaders(errorResult(400, 'empty_input', 'elements must be a non-empty array of strings.'), cookieHeaders);
@@ -81,7 +88,17 @@ export async function handleDreamElementLabels(rawBody: unknown, requestHeaders:
 ELEMENTS TO LABEL, IN ORDER:
 ${elements.map((e, i) => `${i + 1}. ${e}`).join('\n')}`;
 
-  const instructions = buildDreamElementLabelSystemPrompt(language);
+  const instructions = buildDreamElementLabelSystemPrompt(language) + (moments ? momentLabelRules(language) : '');
+  // A moment label is checked against the moment's own words only when both are in the same language (a translated label cannot be).
+  const checkMoments = (labels: string[]) => {
+    if (!moments || containsHebrew(sourceText) !== (language === 'he')) return labels;
+    const used: string[] = [];
+    return labels.map((label, i) => {
+      const checked = checkLabel(label, elements[i], used, sourceText);
+      used.push(checked);
+      return checked;
+    });
+  };
 
   try {
     const outcome = await runWithLanguageIntegrity(
@@ -145,7 +162,13 @@ ${elements.map((e, i) => `${i + 1}. ${e}`).join('\n')}`;
       );
     }
 
-    return withHeaders(okResult({ labels: outcome.value }), cookieHeaders);
+    const labels = checkMoments(outcome.value);
+    // Checked before shown (DARE's own check + moderation); not passing, or moderation down, = not shown.
+    if (!(await dareWordsSafe(labels, realModerate, 'retelling'))) {
+      if (reservedLabels) await refundLabelsAttempt(attemptId);
+      return withHeaders(errorResult(502, 'invalid_response', 'The labels could not be completed.'), cookieHeaders);
+    }
+    return withHeaders(okResult({ labels }), cookieHeaders);
   } catch (err) {
     if (reservedLabels) await refundLabelsAttempt(attemptId);
     if (err instanceof OpenAI.APIError) {

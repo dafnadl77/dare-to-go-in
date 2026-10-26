@@ -88,6 +88,18 @@ export interface Translations {
     stay: string;
     leave: string;
   };
+  ageGate: {
+    title: string;
+    body: string;
+    question: string;
+    adult: string;
+    minor: string;
+    note: string;
+    minorTitle: string;
+    minorBody: string;
+    minorAccount: string;
+    error: string;
+  };
   reconstruction: {
     remembering: string;
     couldntSeeAllOfIt: string;
@@ -627,6 +639,18 @@ export const en: Translations = {
     body: 'This dream hasn’t been saved yet. If you leave now, it will be lost, along with its image and reflection.',
     stay: 'Stay',
     leave: 'Leave without saving',
+  },
+  ageGate: {
+    title: 'Before we begin',
+    body: 'DARE is for adults only, aged 18 or over.',
+    question: 'How old are you?',
+    adult: '18 or over',
+    minor: 'Under 18',
+    note: 'We keep only the time of the confirmation, never a date of birth.',
+    minorTitle: 'Thank you for being honest.',
+    minorBody: 'DARE is for people aged 18 or over, so it cannot be used.',
+    minorAccount: 'If an account was opened and you would like it deleted, write to daretogoin@gmail.com.',
+    error: 'The confirmation could not be saved. Please try again in a moment.',
   },
   reconstruction: {
     remembering: 'REMEMBERING…',
@@ -1191,6 +1215,18 @@ export const he: Translations = {
     body: 'החלום הזה עדיין לא נשמר. אם עוזבים עכשיו, הוא יאבד, יחד עם התמונה וההתבוננות שלו.',
     stay: 'להישאר',
     leave: 'לעזוב בלי לשמור',
+  },
+  ageGate: {
+    title: 'לפני שמתחילים',
+    body: 'DARE מיועדת למבוגרים בלבד, מגיל 18 ומעלה.',
+    question: 'מה הגיל שלך?',
+    adult: '18 ומעלה',
+    minor: 'מתחת ל־18',
+    note: 'אנחנו שומרים רק את מועד האישור, בלי תאריך לידה.',
+    minorTitle: 'תודה על הכנות.',
+    minorBody: 'DARE מיועדת לגיל 18 ומעלה, ולכן אי אפשר להשתמש בה.',
+    minorAccount: 'אם נפתח חשבון ורוצים למחוק אותו, אפשר לכתוב אל daretogoin@gmail.com.',
+    error: 'לא הצלחנו לשמור את האישור. אפשר לנסות שוב בעוד רגע.',
   },
   reconstruction: {
     remembering: 'היזכרות…',

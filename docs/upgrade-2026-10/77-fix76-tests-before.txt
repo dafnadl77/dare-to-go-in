@@ -1,0 +1,260 @@
+✖ א. every bad example of the golden set (R1–R3, R6–R10, R14, R15–R20) is refused as a whole-view line (56.3795ms)
+✖ א. R14 ("…ופותח מקום לתחושות נוספות…") is refused for its therapy wording, not by chance (2.9745ms)
+✖ ב. "מזמין לשים לב לנוכחות של הבדידות" (acc-3, first look) and "מקבלים נוכחות" (acc-3, whole view) are therapy wording (9.0686ms)
+✖ ב. "…הזמינה אותך לשים לב…" (acc-3, step 1, the possibility shown today) is refused (0.627ms)
+✔ ב. no harm: "אולי שווה לשים לב…", G1 ("…נמצאים…") and the prompt's good examples are not therapy wording (5.7733ms)
+✖ ג. "הרגיש לך כמו רגע של מעבר בין עולמות או זמנים שונים בחיים שלך" (acc-1, first look) says what she felt, without her (1.5386ms)
+✔ ג. no harm: a feeling given back in her own words passes ("כמו מרק", which she said) (0.538ms)
+✖ ד. "שתי החוויות מציבות אותך מול…" (p4dev-1, the last whole view, the model's full answer) is a claim about her (1.4323ms)
+✔ ד. no harm: what someone of the dream did to her, as the dream says it, passes ("הזמינה אותך" for "הזמינה אותי") (0.4376ms)
+✖ ה. an opening sentence of about 40 words (p4dev-1) is refused for its length, as one sentence (24.0919ms)
+✖ ה. an opening that links a moment to a part of the dream that was not explored is refused (13.7444ms)
+✔ ה. no harm: the good openings keep passing (acc-3 after 3 in its corrected form G1; a short open link between the two moments) (18.45ms)
+✖ ו. "מצד אחד מצאת… ומצד שני לא הבנת…" (p4dev-1, step 2, first answer) states a contrast the anchors do not show (8.0519ms)
+✖ ו. "…ובכל זאת היית מוקפת באנשים קרובים…" (p4dev-1, step 1): "לא מכירה" on one side is not a contrast with "חברה שלי" (4.6359ms)
+✔ ו. no harm: a negation of the same thing on the other side is a contrast ("פתחתי את הדלת" / "לא פתחתי את החלון") (0.185ms)
+✖ ז. a closing question about a detail of an explored moment is allowed ("מה במבט של יוסי הצוחק בלי קול הזכיר לך…", acc-2) (5.1796ms)
+✖ ז. "חוסר ההבנה" is her own "לא הבנתי": not a feeling she did not name (p4dev-1, step 2, first answer) (6.5325ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 5
+ℹ fail 12
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1392.2901
+
+✖ failing tests:
+
+test at tests\fix76.test.ts:37:1
+✖ א. every bad example of the golden set (R1–R3, R6–R10, R14, R15–R20) is refused as a whole-view line (56.3795ms)
+  AssertionError [ERR_ASSERTION]: R14: אפשר לראות את טפטוף המים החמים מהתקרה כרגע שמפגיש בין תחושות חום ורוך למה שמתקיים בזיכרון שלך על סבתא, ופותח מקום לתחושות נוספות שאולי עוד לא נחקרו.
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix76.test.ts:38:82)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix76.test.ts:41:1
+✖ א. R14 ("…ופותח מקום לתחושות נוספות…") is refused for its therapy wording, not by chance (2.9745ms)
+  AssertionError [ERR_ASSERTION]
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix76.test.ts:42:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix76.test.ts:47:1
+✖ ב. "מזמין לשים לב לנוכחות של הבדידות" (acc-3, first look) and "מקבלים נוכחות" (acc-3, whole view) are therapy wording (9.0686ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(therapy(line(wholeLine('acc-3', 1, 'overview'), runSources(J, 1))))
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix76.test.ts:49:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix76.test.ts:53:1
+✖ ב. "…הזמינה אותך לשים לב…" (acc-3, step 1, the possibility shown today) is refused (0.627ms)
+  AssertionError [ERR_ASSERTION]: ייתכן שהעובדה שאף אוטובוס לא עצר הזמינה אותך לשים לב להרגשה של להמתין למשהו שלא מגיע.
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix76.test.ts:57:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix76.test.ts:67:1
+✖ ג. "הרגיש לך כמו רגע של מעבר בין עולמות או זמנים שונים בחיים שלך" (acc-1, first look) says what she felt, without her (1.5386ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(inner(line(wholeLine('acc-1', 1, 'readings'), runSources(accJ('acc-1'), 1))))
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix76.test.ts:68:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix76.test.ts:78:1
+✖ ד. "שתי החוויות מציבות אותך מול…" (p4dev-1, the last whole view, the model's full answer) is a claim about her (1.4323ms)
+  AssertionError [ERR_ASSERTION]: ייתכן שיש קשר בין ההמולה והחיפוש אחרי מתנה לא ברורה בשוק לבין ההפתעה והבלבול כשראית את החברה שלך מחזיקה את הכד – אולי שתי החוויות מציבות אותך מול דברים שאינך יודעת עליהם מראש, ושלא מובנים עד הסוף.
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix76.test.ts:81:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix76.test.ts:99:1
+✖ ה. an opening sentence of about 40 words (p4dev-1) is refused for its length, as one sentence (24.0919ms)
+  AssertionError [ERR_ASSERTION]: [{"source":"interpretation","ok":true,"reasons":[]}]
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix76.test.ts:101:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix76.test.ts:104:1
+✖ ה. an opening that links a moment to a part of the dream that was not explored is refused (13.7444ms)
+  AssertionError [ERR_ASSERTION]: {"source":"interpretation","ok":true,"reasons":[]}
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix76.test.ts:108:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix76.test.ts:129:1
+✖ ו. "מצד אחד מצאת… ומצד שני לא הבנת…" (p4dev-1, step 2, first answer) states a contrast the anchors do not show (8.0519ms)
+  AssertionError [ERR_ASSERTION]: the basis named in the card is not in its anchors; an open edge, but on nothing she said or charged
+  
+  true !== false
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix76.test.ts:131:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\fix76.test.ts:134:1
+✖ ו. "…ובכל זאת היית מוקפת באנשים קרובים…" (p4dev-1, step 1): "לא מכירה" on one side is not a contrast with "חברה שלי" (4.6359ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix76.test.ts:135:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\fix76.test.ts:148:1
+✖ ז. a closing question about a detail of an explored moment is allowed ("מה במבט של יוסי הצוחק בלי קול הזכיר לך…", acc-2) (5.1796ms)
+  AssertionError [ERR_ASSERTION]: not built from her own words
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix76.test.ts:154:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix76.test.ts:157:1
+✖ ז. "חוסר ההבנה" is her own "לא הבנתי": not a feeling she did not name (p4dev-1, step 2, first answer) (6.5325ms)
+  AssertionError [ERR_ASSERTION]: gives her a feeling she did not name ("חוסר")
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix76.test.ts:158:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+✔ ז. a closing question about a detail of an explored moment is allowed ("מה במבט של יוסי הצוחק בלי קול הזכיר לך…", acc-2) (4.5065ms)
+✔ ז. "חוסר ההבנה" is her own "לא הבנתי": not a feeling she did not name (p4dev-1, step 2, first answer) (6.7854ms)
+✖ ז. a closing whose quote is a detail of the explored moment's dream text is allowed (p4dev-1, first look, the model's full answer) (6.4298ms)
+✔ ז. no harm: a closing quote that is neither her words nor the moment's dream text is still refused (5.2158ms)
+ℹ pass 18
+ℹ fail 1
+✖ ז. a closing whose quote is a detail of the explored moment's dream text is allowed (p4dev-1, first look, the model's full answer) (6.4298ms)

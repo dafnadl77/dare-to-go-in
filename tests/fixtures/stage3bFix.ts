@@ -329,8 +329,11 @@ export const WHOLE_CASES: WholeCase[] = [
       readings: [],
       closing: { text: 'איפה את מרגישה היום חיבור שיש בו גם כאב, כמו שתיארת עם אחיך?', moment: 3, quote: 'כאב לי' },
     },
-    mustNotShow: ['ושרה שיר', 'מתחילת המסע ועד סופו', 'וגם מול אחיך', 'שייכת פנימה'],
-    mustShow: ['חיבור ומרחק', 'חיבור שיש בו גם כאב'],
+    // Changed in round 4b, AFTER the fix (her rule of docs/upgrade-2026-10/44, reported there): the closing question was a "must show",
+    // but "איפה את מרגישה היום חיבור שיש בו גם כאב" assumes she feels it in her life today. It is now a "must not show"; a modest
+    // closing built from her words is shown instead. Stricter, not weaker: nothing else in the case changed.
+    mustNotShow: ['ושרה שיר', 'מתחילת המסע ועד סופו', 'וגם מול אחיך', 'שייכת פנימה', 'חיבור שיש בו גם כאב'],
+    mustShow: ['חיבור ומרחק'],
     expectKind: 'whole',
   },
   {

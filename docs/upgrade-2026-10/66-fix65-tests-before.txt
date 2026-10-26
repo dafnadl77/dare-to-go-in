@@ -1,0 +1,260 @@
+✖ 1. a "what if" question keeps its kind in the journey, and after saving and resuming it (6.1029ms)
+✖ 1. one list of question kinds for the checker and the journey (so they cannot drift apart again) (1.8251ms)
+✖ 2. "אם היית…" is recognised as a "what if" (it was not, so every hypothetical scored like a plain question) (0.9296ms)
+✔ 2. a "what if" about what the moment itself wanted and did not do ("ניסיתי לסגור… אבל… נקרעה") stays askable (0.2436ms)
+✖ 2. a "what if" about something the dream does not have (saying something to yourself) is an exercise: below the floor (0.4482ms)
+✖ 2. a question that presupposes what she feels ("כשאת מרגישה את הקריעה") ranks below the floor, unless she said it (1.0088ms)
+✔ 2. the natural, concrete questions keep the top: the one asked first is one of them (0.2236ms)
+✖ 2. no regression: every question shown in the stored runs still ranks at or above the floor (1.4908ms)
+✖ 3. her answer was about the market, not the umbrella: a link to it is not rated 3 (the run's first possibility) (19.877ms)
+✖ 3. the same link, when her words were about this moment, keeps level 3 (5.5594ms)
+✔ 3. no regression: the golden examples keep their levels (133.0736ms)
+✖ 4. "קשור עבורך ל…" claims something about her inner world (acc-1, step 3, possibility 2) (8.1506ms)
+✖ 4. "ראית ב-X ביטוי ל-Y" with a new meaning is seeing the image as something she did not say (3.3008ms)
+✖ 4. "שחשובה לך": an evaluation of hers must be her word (acc-1, step 1, possibility 2: she said "אהבתי", not "חשוב") (0.6694ms)
+✔ 4. her own words given back with these forms still pass (no harm to good insights) (1.0817ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 4
+ℹ fail 11
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1344.054
+
+✖ failing tests:
+
+test at tests\fix65.test.ts:29:1
+✖ 1. a "what if" question keeps its kind in the journey, and after saving and resuming it (6.1029ms)
+  AssertionError [ERR_ASSERTION]: kept when set
+  
+  null !== 'whatif'
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix65.test.ts:34:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'whatif',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\fix65.test.ts:38:1
+✖ 1. one list of question kinds for the checker and the journey (so they cannot drift apart again) (1.8251ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'action',
+  +   'change',
+  +   'choice',
+  +   'connection',
+  +   'detail',
+  +   'feeling',
+  +   'figure',
+  +   'memory',
+  +   'salience',
+  +   'sense',
+  +   'surprise',
+  +   'whatif'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix65.test.ts:39:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [
+      'action',   'change',
+      'choice',   'connection',
+      'detail',   'feeling',
+      'figure',   'memory',
+      'salience', 'sense',
+      'surprise', 'whatif'
+    ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\fix65.test.ts:54:1
+✖ 2. "אם היית…" is recognised as a "what if" (it was not, so every hypothetical scored like a plain question) (0.9296ms)
+  AssertionError [ERR_ASSERTION]: 10 vs 10
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix65.test.ts:55:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix65.test.ts:62:1
+✖ 2. a "what if" about something the dream does not have (saying something to yourself) is an exercise: below the floor (0.4482ms)
+  AssertionError [ERR_ASSERTION]: 10
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix65.test.ts:63:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix65.test.ts:66:1
+✖ 2. a question that presupposes what she feels ("כשאת מרגישה את הקריעה") ranks below the floor, unless she said it (1.0088ms)
+  AssertionError [ERR_ASSERTION]: 10
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix65.test.ts:67:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix65.test.ts:77:1
+✖ 2. no regression: every question shown in the stored runs still ranks at or above the floor (1.4908ms)
+  AssertionError [ERR_ASSERTION]: 33-stage3b-fix-eval-acc-1.json: "מה בלט לך בזה שיוסי צחק שם בלי קול?" -10
+      at <anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix65.test.ts:85:16)
+      at Array.forEach (<anonymous>)
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix65.test.ts:80:105)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix65.test.ts:95:1
+✖ 3. her answer was about the market, not the umbrella: a link to it is not rated 3 (the run's first possibility) (19.877ms)
+  AssertionError [ERR_ASSERTION]: 3: links details, touches her words or a charged detail, and leaves something open
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix65.test.ts:99:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix65.test.ts:103:1
+✖ 3. the same link, when her words were about this moment, keeps level 3 (5.5594ms)
+  AssertionError [ERR_ASSERTION]: an echo of her answer
+  
+  0 !== 3
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix65.test.ts:107:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 3,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\fix65.test.ts:116:1
+✖ 4. "קשור עבורך ל…" claims something about her inner world (acc-1, step 3, possibility 2) (8.1506ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(inner(line(ACC.steps[2].insightReport.texts.possibilities[1], accSources(2))))
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix65.test.ts:117:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix65.test.ts:120:1
+✖ 4. "ראית ב-X ביטוי ל-Y" with a new meaning is seeing the image as something she did not say (3.3008ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(line('ייתכן שראית במטבח ביטוי למקום של ביטחון ושייכות.', accSources(2)).some((x) => /psychological meaning/.test(x)))
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix65.test.ts:121:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix65.test.ts:124:1
+✖ 4. "שחשובה לך": an evaluation of hers must be her word (acc-1, step 1, possibility 2: she said "אהבתי", not "חשוב") (0.6694ms)
+  AssertionError [ERR_ASSERTION]
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix65.test.ts:126:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

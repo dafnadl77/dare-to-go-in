@@ -43,6 +43,7 @@ export function mapFromExploration(
         readings: w.readings,
         closingQuestion: w.closingQuestion,
         connections: w.connections.map((c, i) => ({ id: `c${i + 1}`, from: c.from, to: c.to, title: c.title, basis: c.basis })),
+        ...(w.takeaways ? { takeaways: w.takeaways } : {}),
       }
     : null;
   return {

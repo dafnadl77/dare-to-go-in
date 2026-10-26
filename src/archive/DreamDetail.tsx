@@ -11,6 +11,9 @@ import AppFooter from '../legal/AppFooter';
 import type { LegalKey } from '../legal/legalContent';
 import Breadcrumb from '../ui/Breadcrumb';
 import EditorialTitle from '../ui/EditorialTitle';
+import { parseExploration } from '../hero/exploration';
+import { herWordsByMoment } from '../map/journeyRecord';
+import { mapStrings } from '../map/mapStrings';
 import './DreamDetail.css';
 
 interface DreamDetailProps {
@@ -102,6 +105,12 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
   const linkAnswerRaw = savedDream?.linkQuestion && savedDream.linkResponse ? savedDream.linkResponse : null;
   const readingsRaw = (reflection?.alternativeReadings ?? []).map((r) => r.reading).filter((r) => r.trim()).slice(0, 2);
   const existentialRaw = reflection?.existentialLens?.text && reflection.existentialLens.text.trim() ? reflection.existentialLens.text : null;
+  // A dream saved from the dream map journey: its moments, her words in them, the whole view and what she took from it, in the same
+  // blocks as every other saved dream. Shown as saved (in the journey's language); every other dream reads exactly as before.
+  const journey = savedDream?.exploration ? parseExploration(savedDream.exploration) : null;
+  const journeyView = journey?.wholeView ?? null;
+  const journeyMoments = journey ? herWordsByMoment(journey) : [];
+  const ms = mapStrings(language === 'he' ? 'he' : 'en');
 
   const [translationState, setTranslationState] = useState<TranslationState>('idle');
   const [translated, setTranslated] = useState<Partial<Record<FieldKey, string>>>({});
@@ -137,6 +146,8 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
       if (needsTranslation(reading, language)) items.push({ key: i === 0 ? 'reading0' : 'reading1', text: reading });
     });
     if (existentialRaw && needsTranslation(existentialRaw, language)) items.push({ key: 'existential', text: existentialRaw });
+    // a dream map journey shows only the dream's own words through translation; the rest of it is shown as saved
+    if (journeyView) items.splice(0, items.length, ...items.filter((i) => i.key === 'dream'));
     if (items.length === 0) return;
 
     let cancelled = false;
@@ -272,7 +283,99 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
             </h1>
           </div>
 
-          {reflection ? (
+          {reflection && journeyView ? (
+            <div className="dd-narrative">
+              <section className="dd-block">
+                <p className="dd-eyebrow">
+                  <EditorialTitle text={t('dreamDetail.theDream')} />
+                </p>
+                {dreamText ? <p className="dd-body">{dreamText}</p> : <p className="dd-body dd-body--loading">{t('dreamDetail.translating')}</p>}
+              </section>
+
+              {journeyMoments.length > 0 && (
+                <section className="dd-block">
+                  <p className="dd-eyebrow">
+                    <EditorialTitle text={ms.momentsHeading} />
+                  </p>
+                  {journeyMoments.map((m) => (
+                    <div key={m.label}>
+                      <p className="dd-body dd-body--stood-out">{m.label}</p>
+                      {m.words.map((words, i) => (
+                        <p className="dd-body" key={i}>
+                          {words}
+                        </p>
+                      ))}
+                    </div>
+                  ))}
+                </section>
+              )}
+
+              {namedFeelings.length > 0 && (
+                <section className="dd-block">
+                  <p className="dd-eyebrow">
+                    <EditorialTitle text={t('dreamDetail.yourFeelings')} />
+                  </p>
+                  <p className="dd-body dd-body--feelings">{namedFeelings.map((id) => t(`reflection.emotions.${id}`)).join(' · ')}</p>
+                </section>
+              )}
+
+              <section className="dd-block">
+                <p className="dd-eyebrow">
+                  <EditorialTitle text={ms.wholeViewTitle} />
+                </p>
+                <p className="dd-body">{journeyView.overview}</p>
+              </section>
+
+              {journeyView.takeaways && (
+                <section className="dd-block">
+                  <p className="dd-eyebrow">
+                    <EditorialTitle text={ms.takeaways} />
+                  </p>
+                  {journeyView.takeaways.mine.length > 0 && (
+                    <>
+                      <p className="dd-body dd-body--stood-out">{ms.takeawaysMine}</p>
+                      {journeyView.takeaways.mine.map((x) => (
+                        <p className="dd-body" key={x}>
+                          «{x}»
+                        </p>
+                      ))}
+                    </>
+                  )}
+                  {journeyView.takeaways.ideas.length > 0 && (
+                    <>
+                      <p className="dd-body dd-body--stood-out">{ms.takeawaysIdeas}</p>
+                      {journeyView.takeaways.ideas.map((x) => (
+                        <p className="dd-body" key={x}>
+                          {x}
+                        </p>
+                      ))}
+                    </>
+                  )}
+                  {(journeyView.takeaways.open?.length ?? 0) > 0 && (
+                    <>
+                      <p className="dd-body dd-body--stood-out">{ms.takeawaysOpen}</p>
+                      {journeyView.takeaways.open!.map((x) => (
+                        <p className="dd-body" key={x}>
+                          {x}
+                        </p>
+                      ))}
+                    </>
+                  )}
+                </section>
+              )}
+
+              {journeyView.closingQuestion && (
+                <section className="dd-block">
+                  <p className="dd-eyebrow">
+                    <EditorialTitle text={t('dreamDetail.aQuestionWorthSittingWith')} />
+                  </p>
+                  <p className="dd-body dd-body--question">{journeyView.closingQuestion}</p>
+                </section>
+              )}
+
+              <p className="dd-disclaimer">{t('dreamDetail.disclaimer')}</p>
+            </div>
+          ) : reflection ? (
             <div className="dd-narrative">
               <section className="dd-block">
                 <p className="dd-eyebrow">

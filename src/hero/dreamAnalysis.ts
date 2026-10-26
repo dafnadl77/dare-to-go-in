@@ -3,6 +3,7 @@ import { dreamInputSourceText, type DreamInput } from './dreamInput';
 import { validateDreamAnalysis, type AnalysisResult } from './dreamAnalysisSchema';
 import { getAuthHeader } from '../auth/getAccessToken';
 import { ANALYSIS_TIMEOUT_MS } from './requestTimeouts';
+import { safetyLevelOf } from './safety/safetyResponse';
 
 export type {
   DreamPerson,
@@ -27,7 +28,8 @@ export { DREAM_EXTRACTION_SYSTEM_PROMPT, validateDreamAnalysis } from './dreamAn
  * bundle. Never fabricates a DreamAnalysis: any failure becomes a
  * controlled error result instead.
  */
-export async function analyzeDream(dreamInput: DreamInput, idempotencyKey?: string): Promise<AnalysisResult> {
+/** `safetyAck`: her answer on the distress path ("it was in the dream" / "not in immediate danger"), sent with this request only. */
+export async function analyzeDream(dreamInput: DreamInput, idempotencyKey?: string, safetyAck?: 'dream' | 'not-immediate'): Promise<AnalysisResult> {
   const sourceText = dreamInputSourceText(dreamInput).trim();
   if (!sourceText) {
     return {
@@ -48,12 +50,14 @@ export async function analyzeDream(dreamInput: DreamInput, idempotencyKey?: stri
         headers: { 'Content-Type': 'application/json', ...authHeader },
         // The idempotency key identifies THIS submitted dream: re-sending it (after a timeout or a dropped
         // connection) is recognised by the server as the same paid request, never a second one.
-        body: JSON.stringify({ sourceText, inputMode: dreamInput.inputMode, idempotencyKey }),
+        body: JSON.stringify({ sourceText, inputMode: dreamInput.inputMode, idempotencyKey, ...(safetyAck ? { safetyAck } : {}) }),
       },
       { timeoutMs: ANALYSIS_TIMEOUT_MS },
     );
 
     const data: unknown = await res.json().catch(() => null);
+    const safety = res.ok ? safetyLevelOf(data) : null;
+    if (safety) return { status: 'safety', level: safety };
 
     if (!res.ok) {
       if (data && typeof data === 'object' && 'reason' in data && 'message' in data) {

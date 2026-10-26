@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import DreamStageBackground from '../hero/DreamStageBackground';
 import { extractDreamPalette } from '../hero/dreamAccentColor';
 import MapLinks from './MapLinks';
@@ -21,6 +21,8 @@ export interface DreamMapProps {
   wholeViewPhase: WholeViewPhase;
   /** Moments were explored after the shown whole view was written. */
   wholeViewStale: boolean;
+  /** A plain line in the whole-view panel's own status line (the summary failed or was held back); the loading words are kept. */
+  wholeViewNote?: string | null;
   updatesLeft: number;
   /** Prototype only: the update was asked for a set of moments that has no sample text. */
   noSampleForSet: boolean;
@@ -32,6 +34,11 @@ export interface DreamMapProps {
   onUpdateWhole: () => void;
   onToggleFavorite: () => void;
   onBack: () => void;
+  /** The conversation of a moment (doc 102) in the moment's window, in place of its details. Absent: the window is as it was. */
+  renderMoment?: (moment: MapMoment, close: () => void) => ReactNode;
+  /** The map inside the real dream journey (not yet saved): no way back to the archive and no favourite yet, and once the whole view is
+      shown, the way on to keeping or letting go of the dream. Absent: the map is as it was. */
+  journey?: { continueLabel: string; onContinue: () => void };
 }
 
 /** Orbit or path. Follows the media query and, as a backstop, the page's own size (some emulated or embedded views change the width
@@ -199,17 +206,19 @@ export default function DreamMap(props: DreamMapProps) {
               </button>
             )}
           </div>
-          <button
-            type="button"
-            className="dm-back"
-            onClick={() => {
-              props.onBack();
-              setNotice(s.protoNoop);
-            }}
-          >
-            <BackIcon />
-            {s.backToArchive}
-          </button>
+          {!props.journey && (
+            <button
+              type="button"
+              className="dm-back"
+              onClick={() => {
+                props.onBack();
+                setNotice(s.protoNoop);
+              }}
+            >
+              <BackIcon />
+              {s.backToArchive}
+            </button>
+          )}
         </header>
 
         {/* ------------------------------------------------------------ the map */}
@@ -264,7 +273,7 @@ export default function DreamMap(props: DreamMapProps) {
         {/* ------------------------------------------------------------ whole view, links, more */}
         <div className="dm-lower">
           <section className="dm-panel dm-whole" aria-labelledby={`${ids}-whole`} data-phase={wholeViewPhase}>
-            <h2 id={`${ids}-whole`} className="dm-panel-title">
+            <h2 id={`${ids}-whole`} className="dm-panel-title" tabIndex={-1}>
               <span className="dm-panel-icon dm-panel-icon-glow">
                 <SparkIcon />
               </span>
@@ -277,7 +286,7 @@ export default function DreamMap(props: DreamMapProps) {
                   {wholeViewPhase === 'revealing' ? s.revealing : s.revealWhole}
                 </button>
                 <p id={`${ids}-whole-status`} className="dm-muted" role="status">
-                  {wholeViewPhase === 'revealing' ? s.revealing : s.wholeViewIntro(explored.length)}
+                  {wholeViewPhase === 'revealing' ? s.revealing : props.wholeViewNote ?? s.wholeViewIntro(explored.length)}
                 </p>
               </div>
             ) : (
@@ -317,13 +326,59 @@ export default function DreamMap(props: DreamMapProps) {
                     </ul>
                   </div>
                 )}
-                <div className="dm-closing dm-reveal" style={{ ['--r' as string]: 4 }}>
-                  <h3 className="dm-sub">{s.closingQuestion}</h3>
-                  <p>{wholeView.closingQuestion}</p>
-                </div>
+                {/* "מה לקחתי מהחלום" (doc 117): hers and DARE's kept apart; shown only when there is something, never invented */}
+                {wholeView.takeaways && (wholeView.takeaways.mine.length > 0 || wholeView.takeaways.ideas.length > 0 || (wholeView.takeaways.open?.length ?? 0) > 0) && (
+                  <div className="dm-takeaways dm-reveal" style={{ ['--r' as string]: 3 }}>
+                    <h3 className="dm-sub">{s.takeaways}</h3>
+                    {wholeView.takeaways.mine.length > 0 && (
+                      <>
+                        <p className="dm-muted">{s.takeawaysMine}</p>
+                        <ul className="dm-readings">
+                          {wholeView.takeaways.mine.map((t) => (
+                            <li key={t}>«{t}»</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                    {wholeView.takeaways.ideas.length > 0 && (
+                      <>
+                        <p className="dm-muted">{s.takeawaysIdeas}</p>
+                        <ul className="dm-readings">
+                          {wholeView.takeaways.ideas.map((t) => (
+                            <li key={t}>{t}</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                    {(wholeView.takeaways.open?.length ?? 0) > 0 && (
+                      <>
+                        <p className="dm-muted">{s.takeawaysOpen}</p>
+                        <ul className="dm-readings">
+                          {wholeView.takeaways.open!.map((t) => (
+                            <li key={t}>{t}</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                  </div>
+                )}
+                {/* "what came up" of a conversation (doc 102) may end with no question: no empty heading then */}
+                {wholeView.closingQuestion && (
+                  <div className="dm-closing dm-reveal" style={{ ['--r' as string]: 4 }}>
+                    <h3 className="dm-sub">{s.closingQuestion}</h3>
+                    <p>{wholeView.closingQuestion}</p>
+                  </div>
+                )}
                 <p className="dm-grounding dm-reveal" style={{ ['--r' as string]: 5 }}>
                   {s.grounding}
                 </p>
+                {props.journey && (
+                  <div className="dm-whole-cta dm-reveal" style={{ ['--r' as string]: 6 }}>
+                    <button type="button" className="dm-btn dm-btn-primary" onClick={props.journey.onContinue}>
+                      {props.journey.continueLabel}
+                    </button>
+                  </div>
+                )}
                 {(wholeViewStale || noSampleForSet) && (
                   <div className="dm-stale" role="status">
                     <p>{noSampleForSet ? s.noSampleForSet : s.stale}</p>
@@ -399,12 +454,14 @@ export default function DreamMap(props: DreamMapProps) {
                   {s.rereadDream}
                 </button>
               </li>
-              <li>
-                <button type="button" className="dm-more-item" aria-pressed={favorite} onClick={props.onToggleFavorite}>
-                  <HeartIcon filled={favorite} />
-                  {favorite ? s.favorited : s.favorite}
-                </button>
-              </li>
+              {!props.journey && (
+                <li>
+                  <button type="button" className="dm-more-item" aria-pressed={favorite} onClick={props.onToggleFavorite}>
+                    <HeartIcon filled={favorite} />
+                    {favorite ? s.favorited : s.favorite}
+                  </button>
+                </li>
+              )}
               <li>
                 <button type="button" className="dm-more-item" onClick={() => firstUnexplored && setOpenMoment(firstUnexplored.id)} disabled={!firstUnexplored}>
                   <CompassIcon />
@@ -422,7 +479,8 @@ export default function DreamMap(props: DreamMapProps) {
 
       {/* ------------------------------------------------------------ dialogs */}
       <MapDialog open={openMomentData !== null} onClose={() => setOpenMoment(null)} labelledBy={`${ids}-moment-title`} closeLabel={s.close}>
-        {openMomentData && (
+        {openMomentData && props.renderMoment && props.renderMoment(openMomentData, () => setOpenMoment(null))}
+        {openMomentData && !props.renderMoment && (
           <MomentDetails
             moment={openMomentData}
             number={numberOf(openMomentData.id)}

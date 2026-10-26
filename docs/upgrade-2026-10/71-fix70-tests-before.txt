@@ -1,0 +1,263 @@
+✖ א. "החיפוש אחרי משהו לא מוכר" is not a time word: the run's best candidate of step 1 passes (level 3) (19.7047ms)
+✖ א. the whole view: no time word is found in "החיפוש אחרי מתנה" or "לא מובנים עד הסוף", nor in the closing question (20.942ms)
+✔ א. a real time word is still refused: "אחרי ש…", "אחרי" an event, "עד ש…" (2.1222ms)
+✖ ב. «לא הבנת איך הוא הגיע אליה.» is the dream's «ולא הבנתי איך הוא הגיע אליה»: the run's first candidate of step 2 passes (5.3652ms)
+✖ ב. only a conjunction letter or the person may differ: a dropped word, a dropped preposition, or "we" turned into "you" is still refused (3.0652ms)
+✖ ב. the whole view's quotes use the same matching: a closing quote told to her, with a conjunction dropped, is hers (11.9825ms)
+✖ the whole view of the run is not a factual summary any more: its opening and its closing question are shown (11.006ms)
+✔ unfounded claims of the run are still refused: "ריחות חזקים וקולות רועשים", "בגלל הרעש", "מסמנת", the unexplored "קודם" (18.5001ms)
+✖ ג. the kind of a question comes from its main clause, not from a "כש…" clause ("מה הפתיע אותך כשראית…" is not about how it looked) (0.4638ms)
+✖ ג. the run's step-2 candidate "מה היה הרגע הראשון שתפס אותך…" is no longer refused as "a second question about how it looked" (3.9767ms)
+✖ ד. "מקומך בין אנשים" (the run's first look) is a claim about her: a noun of hers that is neither her word nor the dream's (0.6859ms)
+✔ ד. her people and things of the dream with "ך" or "שלך" still pass: "אחותך", "החברה שלך", "הידיים שלך", "החלום שלך" (0.7181ms)
+✖ ה. the reply prompt no longer offers "לאותו ‹object› נכנסים… שני דברים שונים" (copied as "לאותו כד נכנסות שתי דמויות") (5.9553ms)
+✖ ו. the closing question written by code is an open question, not "מה עוד עולה…" (0.9656ms)
+✖ cost: a whole view with no link between the moments (an honest "no-link") is not sent back for a paid retry (9.9936ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 3
+ℹ fail 12
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1401.803
+
+✖ failing tests:
+
+test at tests\fix70.test.ts:35:1
+✖ א. "החיפוש אחרי משהו לא מוכר" is not a time word: the run's best candidate of step 1 passes (level 3) (19.7047ms)
+  AssertionError [ERR_ASSERTION]: a time word neither the dream nor she used ("אחרי")
+  
+  false !== true
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix70.test.ts:37:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\fix70.test.ts:41:1
+✖ א. the whole view: no time word is found in "החיפוש אחרי מתנה" or "לא מובנים עד הסוף", nor in the closing question (20.942ms)
+  AssertionError [ERR_ASSERTION]: a time word neither the dream nor she used ("אחרי"); a time word neither the dream nor she used ("עד")
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix70.test.ts:43:109)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix70.test.ts:54:1
+✖ ב. «לא הבנת איך הוא הגיע אליה.» is the dream's «ולא הבנתי איך הוא הגיע אליה»: the run's first candidate of step 2 passes (5.3652ms)
+  AssertionError [ERR_ASSERTION]: an anchor that is not in the dream ("לא הבנת איך הוא הגיע אליה.")
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix70.test.ts:56:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix70.test.ts:62:1
+✖ ב. only a conjunction letter or the person may differ: a dropped word, a dropped preposition, or "we" turned into "you" is still refused (3.0652ms)
+  AssertionError [ERR_ASSERTION]: "לא" dropped: the meaning flips
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix70.test.ts:65:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix70.test.ts:71:1
+✖ ב. the whole view's quotes use the same matching: a closing quote told to her, with a conjunction dropped, is hers (11.9825ms)
+  AssertionError [ERR_ASSERTION]: her "הרגשתי מבולבלת", told to her
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix70.test.ts:75:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix70.test.ts:80:1
+✖ the whole view of the run is not a factual summary any more: its opening and its closing question are shown (11.006ms)
+  AssertionError [ERR_ASSERTION]: [{"source":"interpretation","ok":false,"reasons":["a time word neither the dream nor she used (\"אחרי\")","a time word neither the dream nor she used (\"עד\")"]}]
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix70.test.ts:82:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'factual-summary',
+    expected: 'factual-summary',
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\fix70.test.ts:95:1
+✖ ג. the kind of a question comes from its main clause, not from a "כש…" clause ("מה הפתיע אותך כשראית…" is not about how it looked) (0.4638ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to:
+  
+  'sense'
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix70.test.ts:96:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'sense',
+    expected: 'sense',
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\fix70.test.ts:102:1
+✖ ג. the run's step-2 candidate "מה היה הרגע הראשון שתפס אותך…" is no longer refused as "a second question about how it looked" (3.9767ms)
+  AssertionError [ERR_ASSERTION]: a second question in a row about how it looked or sounded: ask what stood out, surprised her, or drew her to it
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix70.test.ts:106:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix70.test.ts:111:1
+✖ ד. "מקומך בין אנשים" (the run's first look) is a claim about her: a noun of hers that is neither her word nor the dream's (0.6859ms)
+  AssertionError [ERR_ASSERTION]
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix70.test.ts:114:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix70.test.ts:126:1
+✖ ה. the reply prompt no longer offers "לאותו ‹object› נכנסים… שני דברים שונים" (copied as "לאותו כד נכנסות שתי דמויות") (5.9553ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(!/לאותו ‹object› נכנסים/.test(p))
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix70.test.ts:128:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix70.test.ts:134:1
+✖ ו. the closing question written by code is an open question, not "מה עוד עולה…" (0.9656ms)
+  AssertionError [ERR_ASSERTION]: מה עוד עולה כשחוזרים למילה «מבולבלת»?
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix70.test.ts:136:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\fix70.test.ts:143:1
+✖ cost: a whole view with no link between the moments (an honest "no-link") is not sent back for a paid retry (9.9936ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '\n' +
+  +   '\n' +
+  +   'CORRECTION: no link, recurrence or difference between the moments could be shown:\n' +
+  +   '- a time word neither the dream nor she used ("אחרי")\n' +
+  +   '- a time word neither the dream nor she used ("עד")\n' +
+  +   `- the first end does not rest on its own moment (or rests on "I don't know")\n` +
+  +   '- explains with a cause she did not give ("בגלל")\n' +
+  +   '- gives a psychological meaning she did not give (sees the image as "מקום הופך ברור")\n' +
+  +   '- gives an image a fixed meaning\n' +
+  +   'What to do instead:\n' +
+  +   '- "אפשר לראות את X כ…" only with another detail of the dream or her own words, never a new concept.\n' +
+  +   'Write the whole view again following every rule; give a link only where something real joins two moments.'
+  - null
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\fix70.test.ts:145:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: `\n\nCORRECTION: no link, recurrence or difference between the moments could be shown:\n- a time word neither the dream nor she used ("אחרי")\n- a time word neither the dream nor she used ("עד")\n- the first end does not rest on its own moment (or rests on "I don't know")\n- explains with a cause she did not give ("בגלל")\n- gives a psychological meaning she did not give (sees the image as "מקום הופך ברור")\n- gives an image a fixed meaning\nWhat to do instead:\n- "אפשר לראות את X כ…" only with another detail of the dream or her own words, never a new concept.\nWrite the whole view again following every rule; give a link only where something real joins two moments.`,
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

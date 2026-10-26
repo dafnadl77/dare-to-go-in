@@ -117,7 +117,7 @@ test('every AI route requires an identity from resolveCallerIdentity, and none o
   const routes = ['dreamAnalysis', 'dreamTranscription', 'dreamElementLabels', 'dreamTranslation', 'dreamImage', 'dreamReflection'];
   for (const r of routes) {
     const src = read(`server/routes/${r}.ts`);
-    assert.ok(src.includes('resolveCallerIdentity(') || src.includes('deps.resolveIdentity('), `${r} resolves the caller`);
+    assert.ok(src.includes('resolveCallerIdentity(') || src.includes('resolveAdultCaller') || src.includes('deps.resolveIdentity('), `${r} resolves the caller`);
     assert.ok(!src.includes('mintTrialIdentity'), `${r} never mints`);
     assert.ok(!src.includes('createNewTrialIdentity'), `${r} never creates a trial row`);
   }
@@ -133,7 +133,8 @@ test('the analysis route decides the anonymous allowance before any model call; 
   assert.ok(analysis.indexOf('await startAnalysisAttempt(') > 0);
   assert.ok(analysis.indexOf('await startAnalysisAttempt(') < analysis.indexOf('await deps.runModel('), 'allowance before the model');
   assert.ok(analysis.includes('deps.abandon(resolved.identity, attemptId)'), 'a failed analysis still releases its attempt');
-  assert.ok(read('server/routes/dreamTranslation.ts').includes('resolveCallerIdentity('));
+  // the identity check with the age check (ageGate.ts, which calls resolveCallerIdentity)
+  assert.ok(read('server/routes/dreamTranslation.ts').includes('resolveAdultCaller('));
   assert.ok(!read('server/routes/dreamTranslation.ts').includes("kind === 'trial'"));
 });
 

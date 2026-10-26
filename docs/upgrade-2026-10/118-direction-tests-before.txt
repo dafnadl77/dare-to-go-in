@@ -1,0 +1,12 @@
+# 118 · direction tests BEFORE the code (2026-10-25)
+✖ א. the guiding principle and "do not dig" are in the instructions, as a target and not a limit (3.0021ms)
+✖ ב. "it connects with me" is heard, for the next turn only; ordinary answers are not (3.0082ms)
+✖ ב. the direction buttons are signals; after several exchanges the model is told, and nothing is blocked (0.7811ms)
+✖ ג. a direction button adds her bubble once, only after DARE spoke, and never touches the 3 rejection replies (2.4087ms)
+✖ ד–ה. a button press is one regular turn (out of the 16, never the 3 extra); "change direction" does not bring the last angle back (0.3154ms)
+✖ ד. the window shows the two buttons above the writing box, which stays; "זה לא מתאים לי" is unchanged (26.1498ms)
+✖ ו–ז. "what I took from the dream": only her own words as hers; only offers she did not reject as ideas; nothing invented (1.8113ms)
+✖ ז. the summary carries it to the panel, kept with the journey; the panel shows it apart, only when there is something (22.7691ms)
+ℹ tests 8
+ℹ pass 0
+ℹ fail 8

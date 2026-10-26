@@ -43,6 +43,8 @@ export type InsideStep =
   | 'emotions'
   | 'interpreting'
   | 'reflection'
+  /** The dream map journey (journeyMode.ts): the map of the dream's moments, shown by HeroDream over the dream stage. */
+  | 'map'
   | 'closing'
   | 'saving'
   | 'saved'
