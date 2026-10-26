@@ -1,5 +1,5 @@
 import { createExploration, exploredInOrder, MAX_MOMENTS, type Exploration } from '../hero/exploration';
-import { momentGroups } from '../hero/dreamSegments';
+import { momentGroups, segmentDream, textOfSegments } from '../hero/dreamSegments';
 import { checkLabel } from '../hero/claimCheck';
 import { getGroundingStatement, type DreamReflectionResult } from '../hero/dreamReflectionSchema';
 import type { DreamAnalysis } from '../hero/dreamAnalysisSchema';
@@ -11,11 +11,33 @@ import type { AppLanguage } from '../hero/appLanguage';
  * the titles and the patterns read it without change; the journey itself rides along in `exploration`.
  */
 
-/** The moments the map offers: the dream's own events, most telling first, at most MAX_MOMENTS. A dream with no event is one moment. */
+/** At most this many moments when the dream does not split into steps and its own clauses are used instead. */
+const FALLBACK_MOMENTS = 4;
+
+/**
+ * The moments the map offers: the dream's own events, most telling first, at most MAX_MOMENTS. When the dream does not split into
+ * steps (one long sentence of scenes joined by commas), its own clauses are used, in order, 2 to 4 of them (neighbours joined), never
+ * the same words twice. Only a dream of one clause is one moment.
+ */
 export function mapMomentTexts(analysis: DreamAnalysis): { text: string; segmentIds: number[] }[] {
-  const groups = momentGroups(analysis.sourceText, analysis.unusualElements ?? []).slice(0, MAX_MOMENTS);
-  if (groups.length > 0) return groups.map((g) => ({ text: g.text, segmentIds: g.segmentIds }));
-  const whole = analysis.sourceText.trim();
+  const src = analysis.sourceText;
+  const groups = momentGroups(src, analysis.unusualElements ?? []).slice(0, MAX_MOMENTS);
+  if (groups.length >= 2) return groups.map((g) => ({ text: g.text, segmentIds: g.segmentIds }));
+  const segments = segmentDream(src);
+  const seen = new Set<string>();
+  const distinct = segments.filter((s) => {
+    const key = s.text.replace(/[\s,.;:!?…]+/g, ' ').trim().toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  if (distinct.length >= 2) {
+    const n = Math.min(FALLBACK_MOMENTS, distinct.length);
+    const chunks = Array.from({ length: n }, (_, k) => distinct.slice(Math.floor((k * distinct.length) / n), Math.floor(((k + 1) * distinct.length) / n)).map((s) => s.id));
+    return chunks.map((ids) => ({ text: textOfSegments(src, segments, ids).replace(/[\s,;]+$/, ''), segmentIds: ids }));
+  }
+  if (groups.length === 1) return [{ text: groups[0].text, segmentIds: groups[0].segmentIds }];
+  const whole = src.trim();
   return whole ? [{ text: whole, segmentIds: [] }] : [];
 }
 

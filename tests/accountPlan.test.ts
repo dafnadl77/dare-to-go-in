@@ -134,9 +134,14 @@ test('GET /api/credits returns the package for the verified caller only, read-on
 });
 
 test('the new UI reads the package from the server summary and the name from the user: no balance-based package logic', () => {
-  for (const file of ['src/credits/useAccountPlan.ts', 'src/pricing/planName.ts', 'src/pricing/PricingPage.tsx']) {
+  for (const file of ['src/credits/useAccountPlan.ts', 'src/pricing/planName.ts']) {
     assert.ok(!/balance/.test(read(file).replace(/\/\*[\s\S]*?\*\//g, '')), file);
   }
+  // since 2026-10-26 (her decision) the page reads the balance only to say whether the held package still has dreams left; WHICH package
+  // is held still comes from the server's completed purchases
+  const page = read('src/pricing/PricingPage.tsx').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  assert.deepEqual(page.match(/balance/g), ['balance'], 'the balance appears once, in the "dreams left" condition');
+  assert.match(page, /dreamsLeft\.state\.summary\.balance > 0 \? accountPlan\.plan : null/);
   const archive = read('src/archive/DreamArchive.tsx');
   assert.match(archive, /fullNameOfUser\(user\)/);
   assert.match(archive, /useAccountPlan\(activeSection === 'settings' \? user\?\.id : undefined\)/);
@@ -144,7 +149,7 @@ test('the new UI reads the package from the server summary and the name from the
 
 test('the Pricing card marks only the held package, and the free fallback never renders undefined/null', () => {
   const pricing = read('src/pricing/PricingPage.tsx');
-  assert.match(pricing, /isCurrent=\{accountPlan\.status === 'ready' && accountPlan\.plan === pkg\.id\}/);
+  assert.match(pricing, /isCurrent=\{heldPackage === pkg\.id\}/);
   assert.match(pricing, /t\(isLatestOfSeveral \? 'pricing\.yourLatestPackage' : 'pricing\.yourPackage'\)/);
   assert.equal(en.pricing.yourPackage, 'This is your package');
   assert.equal(he.pricing.yourPackage, 'זו החבילה שלך');

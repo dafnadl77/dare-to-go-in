@@ -128,6 +128,7 @@ function deps(over: Partial<CheckoutDeps> = {}) {
     verifyBearer: async (h) => (h === 'Bearer good' ? { ok: true, userId: OWNER } : { ok: false, status: 401, reason: 'not_authenticated', message: 'bad' }),
     siteUrl: () => 'https://daretogoin.com',
     makeConfigured: () => true,
+    packageStillHeld: async () => false,
     createOrder: async (owner, pkg) => (calls.order.push('createOrder'), calls.created.push({ owner, pkg }), { status: 'created', orderId: ORDER }),
     markLink: async (orderId, owner, status) => (calls.order.push(`mark:${status}`), calls.marked.push({ orderId, owner, status }), true),
     requestLink: async (payload) => (calls.order.push('make'), calls.sent.push(payload), { ok: true, paymentUrl: PAY_URL }),

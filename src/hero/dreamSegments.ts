@@ -33,7 +33,7 @@ export interface DreamMomentGroup {
 
 const SENTENCE_END = /[.!?…]+|\n+/g;
 /** Where a long unpunctuated sentence may be cut: discourse words that open a new step. */
-const CUT_BEFORE = /^(ואז|אז|ופתאום|פתאום|ואחר|אחר|ואחרי|אחרי|ובסוף|בסוף|ולפני|לפני|וכש\S*|כש\S*|קודם|וקודם|מקודם|ויש|ואין|then|suddenly|after|before|when|finally|earlier)$/i;
+const CUT_BEFORE = /^(ואז|אז|ופתאום|פתאום|ואחר|אחר|ואחרי|אחרי|ובסוף|בסוף|ולפני|לפני|וכש\S*|כש\S*|קודם|וקודם|מקודם|ויש|ואין|then|suddenly|after|before|when|finally|earlier|later|afterwards|meanwhile)$/i;
 /** "and" + a person who then acts: a new event in a dictated sentence ("ואמא שלי חיבקה", "ואני הרגשתי", "והשכנה עלתה"). */
 const NEW_ACTOR = /^ו(אני|אנחנו|אמא|אבא|אחי|אחותי|אחיו|סבתא|סבא|השכנה|השכן|החבר|החברה|מישהו|מישהי|הוא|היא|הם|הן|הילד|הילדה|הכלב|החתול|and I|and she|and he)$/;
 const CONTRAST_START =/^(אבל|אך|אלא|למרות|ולמרות|but|although|yet|though)$/i;
@@ -88,10 +88,14 @@ function cutRunOn(src: string, s: Span): Span[] {
     const bareFirstPerson = !/^[ושכ]/.test(w) && isFirstPersonVerb(w) && contentWords(at(i - 1)).length > 0 && !CUT_BEFORE.test(at(i - 1)) && !/^(לא|אני|גם|רק|כבר|עוד)$/.test(at(i - 1));
     // "ולחזור לפני שהיא גומרת שורה": a bare "לפני ש…" / "אחרי ש…" belongs to the clause before it
     if (/^(לפני|אחרי)$/.test(w) && /^ש/.test(at(i + 1))) continue;
-    const startsStep = CUT_BEFORE.test(w) || NEW_ACTOR.test(w) || dreamerNext || bareFirstPerson || (/^ו/.test(w) && isFirstPersonVerb(w) && w.length >= 5);
+    // English: "and I / and she …" opens a new step, cut before the "and"
+    const andActor = /^and$/i.test(w) && /^(i|we|she|he|they|my)$/i.test(at(i + 1));
+    const startsStep = CUT_BEFORE.test(w) || NEW_ACTOR.test(w) || dreamerNext || bareFirstPerson || andActor || (/^ו/.test(w) && isFirstPersonVerb(w) && w.length >= 5);
     if (!startsStep) continue;
     // a look back ("ומה שהיה לפני זה ...") opens with its own words: the cut goes before "ומה שהיה", not between them
     let cut = i;
+    // English "and then / and later": the "and" goes with the new step, so the step before does not end on it
+    if (CUT_BEFORE.test(w) && /^and$/i.test(at(i - 1))) cut = i - 1;
     if (/^ו?לפני$|^ו?קודם$/.test(w)) {
       if (/^ש?(היה|קרה)$/.test(at(i - 1))) cut = i - 1;
       if (cut === i - 1 && /^ו?מה$/.test(at(i - 2))) cut = i - 2;
@@ -233,11 +237,11 @@ export function momentGroups(sourceText: string, unusualElements: readonly strin
   const bySentence = new Map<number, number[]>();
   for (const s of segments) bySentence.set(s.sentence, [...(bySentence.get(s.sentence) ?? []), s.id]);
   const groups: number[][] = [...bySentence.values()];
-  // the same event told twice is one moment
+  // the same event told twice is one moment, in its first telling: the repeat is not pasted into it (a dream that says the same
+  // sentence again and again made one giant moment of every copy, joined with " … ")
   for (let i = 0; i < groups.length; i++)
     for (let j = i + 1; j < groups.length; j++)
       if (sameEvent(textOfSegments(sourceText, segments, groups[i]), textOfSegments(sourceText, segments, groups[j]))) {
-        groups[i] = [...groups[i], ...groups[j]];
         groups.splice(j, 1);
         j--;
       }

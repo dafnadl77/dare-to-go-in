@@ -13,7 +13,7 @@ import { isSafePaymentUrl } from './paymentLink';
 
 export type PaidPackageId = Exclude<PackageId, 'first_dream'>;
 
-export type CheckoutError = 'invalid_name' | 'invalid_phone' | 'not_authenticated' | 'rate_limited' | 'unavailable';
+export type CheckoutError = 'invalid_name' | 'invalid_phone' | 'not_authenticated' | 'rate_limited' | 'package_still_active' | 'unavailable';
 export type CheckoutResult = { ok: true; paymentUrl: string } | { ok: false; reason: CheckoutError };
 
 /** The server waits up to 25 s for Make; the browser waits a little longer so the customer is never left spinning. */
@@ -37,6 +37,8 @@ export async function startCheckout(packageId: PaidPackageId, fullName: string, 
     if (res.status === 400 && body.reason === 'invalid_payer_details') return { ok: false, reason: body.field === 'phone' ? 'invalid_phone' : 'invalid_name' };
     if (res.status === 401) return { ok: false, reason: 'not_authenticated' };
     if (res.status === 429) return { ok: false, reason: 'rate_limited' };
+    // the account's own package while dreams are left: the server refuses it (approved 2026-10-26)
+    if (res.status === 409 && body.reason === 'package_still_active') return { ok: false, reason: 'package_still_active' };
     return { ok: false, reason: 'unavailable' };
   } catch {
     // Offline, timed out, or the server is down. No payment page was opened, so nothing was charged.

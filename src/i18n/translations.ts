@@ -509,6 +509,9 @@ export interface Translations {
     /** Marks the package card the signed-in account holds. */
     yourPackage: string;
     yourLatestPackage: string;
+    /** The popup on the account's own package while dreams are left (approved 2026-10-26). */
+    yourPackageHeld: string;
+    yourPackageHeldClose: string;
     checkout: {
       title: string;
       intro: string;
@@ -1063,6 +1066,8 @@ export const en: Translations = {
     planFree: 'Free',
     yourPackage: 'This is your package',
     yourLatestPackage: 'This is your latest package',
+    yourPackageHeld: 'This is your package. You can buy it again once you have used all the dreams you have left.',
+    yourPackageHeldClose: 'Close',
     checkout: {
       title: 'Complete your purchase',
       intro: 'Two details are needed to create your secure payment page.',
@@ -1637,6 +1642,8 @@ export const he: Translations = {
     planFree: 'חינמי',
     yourPackage: 'זו החבילה שלך',
     yourLatestPackage: 'זו החבילה האחרונה שלך',
+    yourPackageHeld: 'זו החבילה שלך. תוכלי לרכוש אותה שוב לאחר ניצול כל החלומות שנותרו לך.',
+    yourPackageHeldClose: 'סגירה',
     checkout: {
       title: 'השלמת הרכישה',
       intro: 'נדרשים שני פרטים כדי ליצור את דף התשלום המאובטח שלך.',

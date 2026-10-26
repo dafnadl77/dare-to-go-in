@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLanguage } from '../i18n/LanguageContext';
 import EditorialTitle from '../ui/EditorialTitle';
 import AppFooter from '../legal/AppFooter';
@@ -11,7 +12,37 @@ import { useAccountPlan } from '../credits/useAccountPlan';
 import DreamBalanceNote from '../credits/DreamBalanceNote';
 import { useDreamBalance } from '../credits/useDreamBalance';
 import type { PaidPackageId } from '../payments/checkout';
+import '../archive/DeleteDreamDialog.css';
 import './PricingPage.css';
+
+/** The account's own package while dreams are left (approved 2026-10-26): one plain line and a way back, in DARE's dialog style. */
+function HeldPackageDialog({ onClose }: { onClose: () => void }) {
+  const { t } = useLanguage();
+  const titleId = useId();
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => closeRef.current?.focus(), []);
+  return createPortal(
+    <div
+      className="dd-dialog-backdrop"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="dd-dialog" role="dialog" aria-modal="true" aria-labelledby={titleId}>
+        <h2 id={titleId} className="dd-dialog-title">
+          {t('pricing.yourPackage')}
+        </h2>
+        <p className="dd-dialog-body">{t('pricing.yourPackageHeld')}</p>
+        <div className="dd-dialog-actions">
+          <button ref={closeRef} type="button" className="btn btn-secondary dd-dialog-btn" onClick={onClose}>
+            {t('pricing.yourPackageHeldClose')}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
 
 interface PricingPageProps {
   onBack: () => void;
@@ -64,7 +95,8 @@ function CheckIcon() {
 interface PackageCardProps {
   pkg: DreamPackageDef;
   onSelectPaid: (id: PackageId) => void;
-  /** The signed-in account holds this package (server-read from its completed purchases, never from the balance). */
+  /** The signed-in account's own package (its latest completed purchase, server-read) while it still has dreams left. Clicking the
+      card then opens the "this is your package" popup instead of a purchase. */
   isCurrent?: boolean;
   /** The account has bought more than one package, so this one is only the LATEST (its ribbon says so). */
   isLatestOfSeveral?: boolean;
@@ -82,7 +114,12 @@ function PackageCard({ pkg, onSelectPaid, isCurrent = false, isLatestOfSeveral =
 
   return (
     <div className="pr-card-slot">
-      <article className={`pr-card${pkg.featured ? ' pr-card--hero' : ''}${isCurrent ? ' pr-card--current' : ''}`} aria-current={isCurrent ? 'true' : undefined}>
+      <article
+        className={`pr-card${pkg.featured ? ' pr-card--hero' : ''}${isCurrent ? ' pr-card--current' : ''}`}
+        aria-current={isCurrent ? 'true' : undefined}
+        // the whole card of the account's own package opens its popup (the button inside does the same for the keyboard)
+        onClick={isCurrent ? (e) => !(e.target as HTMLElement).closest('button') && onSelectPaid(pkg.id) : undefined}
+      >
         {/* The held package's ribbon takes priority over "Most Popular": the two are never shown together. */}
         {isCurrent ? (
           <div className="pr-card-ribbon">
@@ -161,6 +198,11 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
   const isOwner = accountPlan.status === 'owner';
   // The package whose checkout dialog is open. Nothing is asked of the customer before they choose to buy.
   const [checkoutFor, setCheckoutFor] = useState<Exclude<PackageId, 'first_dream'> | null>(null);
+  // The account's own package is marked, and not bought again, only while the account still has dreams left (approved 2026-10-26: the
+  // total balance). Only that one package; every other package is bought as before. The server refuses it too (checkoutStart.ts).
+  const heldPackage =
+    accountPlan.status === 'ready' && dreamsLeft.state.status === 'ready' && dreamsLeft.state.summary.balance > 0 ? accountPlan.plan : null;
+  const [heldOpen, setHeldOpen] = useState(false);
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -180,11 +222,14 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onBack();
+      if (e.key !== 'Escape') return;
+      // Escape closes the popup first, and only then leaves the page
+      if (heldOpen) setHeldOpen(false);
+      else onBack();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onBack]);
+  }, [onBack, heldOpen]);
 
   // A purchase starts here. Signed in: the checkout dialog opens (it collects only the full name and the Israeli mobile that
   // Grow requires). Signed out: the visitor is sent to sign in first. The package id is the ONLY thing about the purchase the
@@ -193,6 +238,10 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
     if (id === 'first_dream') return;
     if (!signedIn) {
       onRequireSignIn?.();
+      return;
+    }
+    if (id === heldPackage) {
+      setHeldOpen(true);
       return;
     }
     setCheckoutFor(id);
@@ -256,7 +305,7 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
           {!isOwner && (
           <div className="pr-grid">
             {PAID_PACKAGES.map((pkg) => (
-              <PackageCard key={pkg.id} pkg={pkg} onSelectPaid={handleSelectPaidPackage} isCurrent={accountPlan.status === 'ready' && accountPlan.plan === pkg.id} isLatestOfSeveral={accountPlan.status === 'ready' && accountPlan.several} />
+              <PackageCard key={pkg.id} pkg={pkg} onSelectPaid={handleSelectPaidPackage} isCurrent={heldPackage === pkg.id} isLatestOfSeveral={accountPlan.status === 'ready' && accountPlan.several} />
             ))}
           </div>
           )}
@@ -300,6 +349,7 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
         </div>
       </div>
 
+      {heldOpen && <HeldPackageDialog onClose={() => setHeldOpen(false)} />}
       {checkoutPackage && checkoutFor && (
         <CheckoutDialog
           packageId={checkoutFor as PaidPackageId}

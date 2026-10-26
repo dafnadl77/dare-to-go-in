@@ -4,6 +4,8 @@ import { validatePayerDetails, type PayerDetails, type PayerField } from '../../
 import { paidPackage, type PaidPackage } from './checkoutPackages.js';
 import { buildMakeCheckoutPayload, parseMakeWebhookUrl, requestPaymentLink, siteUrlFromEnv, type MakeCheckoutPayload, type MakeCheckoutResult } from './makeCheckoutClient.js';
 import { createPaymentOrder, markPaymentOrderLink, type CreateOrderOutcome } from './orderStore.js';
+import { getPurchasedPackage, type PurchasedPackage } from './purchasedPackage.js';
+import { getCreditBalance } from '../dreamAttempts.js';
 
 /**
  * POST /api/credits: start a purchase (the checkout-initiation half of the Grow-through-Make flow).
@@ -24,15 +26,31 @@ export interface CheckoutDeps {
   /** Whether the server environment is ready (Make webhook URL and public site URL), checked before any order exists. */
   siteUrl: () => string | null;
   makeConfigured: () => boolean;
+  /** True only when this package is the account's own (its latest completed purchase) AND the account still has dreams left (the
+      account's total balance, as approved 2026-10-26). False whenever either cannot be read: a purchase is never refused on a guess. */
+  packageStillHeld: (ownerId: string, pkg: PaidPackage) => Promise<boolean>;
   createOrder: (ownerId: string, pkg: PaidPackage) => Promise<CreateOrderOutcome | null>;
   markLink: (orderId: string, ownerId: string, status: 'link_created' | 'link_failed') => Promise<boolean>;
   requestLink: (payload: MakeCheckoutPayload) => Promise<MakeCheckoutResult>;
+}
+
+/**
+ * The rule itself: the package asked for is the account's latest completed purchase AND the account's total balance is above zero.
+ * A purchase that cannot be read (undefined) or a balance that cannot be read (null) never refuses: no purchase is refused on a guess.
+ */
+export function packageHeld(purchased: PurchasedPackage, balance: number | null, packageId: string): boolean {
+  return typeof purchased === 'string' && purchased === packageId && typeof balance === 'number' && balance > 0;
 }
 
 const realDeps: CheckoutDeps = {
   verifyBearer: verifyBearerToken,
   siteUrl: () => siteUrlFromEnv(),
   makeConfigured: () => parseMakeWebhookUrl(process.env.MAKE_CHECKOUT_WEBHOOK_URL) !== null,
+  packageStillHeld: async (ownerId, pkg) => {
+    const purchased = await getPurchasedPackage(ownerId);
+    if (purchased !== pkg.id) return false;
+    return packageHeld(purchased, await getCreditBalance(ownerId), pkg.id);
+  },
   createOrder: createPaymentOrder,
   markLink: markPaymentOrderLink,
   requestLink: (payload) => requestPaymentLink(payload),
@@ -69,6 +87,12 @@ export async function handleStartCheckout(rawBody: unknown, requestHeaders: Requ
   // Not configured is a controlled 503 BEFORE anything is created: no orphan order, no half-started purchase.
   const siteUrl = deps.siteUrl();
   if (!siteUrl || !deps.makeConfigured()) return errorResult(503, 'not_configured', 'Checkout is not available right now.');
+
+  // The account's own package is bought again only once its dreams are used (approved 2026-10-26): refused here, before any order or
+  // payment link exists, whatever the page shows. Any other package is unaffected.
+  if (await deps.packageStillHeld(verified.userId, parsed.pkg)) {
+    return errorResult(409, 'package_still_active', 'This is your package. You can buy it again once you have used all the dreams you have left.');
+  }
 
   const order = await deps.createOrder(verified.userId, parsed.pkg);
   if (!order) return errorResult(503, 'not_configured', 'Checkout is not available right now.');

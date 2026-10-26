@@ -21,6 +21,7 @@ interface CheckoutDialogProps {
 const ERROR_KEY: Record<Exclude<CheckoutError, 'invalid_name' | 'invalid_phone'>, string> = {
   not_authenticated: 'pricing.checkout.errSession',
   rate_limited: 'pricing.checkout.errRate',
+  package_still_active: 'pricing.yourPackageHeld',
   unavailable: 'pricing.checkout.errUnavailable',
 };
 

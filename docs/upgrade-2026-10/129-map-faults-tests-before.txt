@@ -1,0 +1,111 @@
+✖ 1a. a sentence told again never makes one giant moment with the text pasted again and again (16.8684ms)
+✖ 1b. a dream with several scenes gives several separate moments — also with no full stops, and in English (3.8266ms)
+✖ 1c. when the dream will not split by sentences, the fallback still gives 2–4 moments by its scenes and actions (0.4262ms)
+✖ 1d. a moment card shows a short summary; the full moment stays in its window (0.8068ms)
+✖ 2. the map screen starts below the fixed header, so nothing on it (or scrolled to on it) goes under the header (0.3393ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 275.6515
+
+✖ failing tests:
+
+test at tests\mapMomentsAndHeader.test.ts:18:1
+✖ 1a. a sentence told again never makes one giant moment with the text pasted again and again (16.8684ms)
+  AssertionError [ERR_ASSERTION]: no copies joined into one moment
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\mapMomentsAndHeader.test.ts:21:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'חלמתי שאני עפה מעל ים כחול ועצום, ואור זהוב נשפך מהאופק … חלמתי שאני עפה מעל ים כחול ועצום, ואור זהוב נשפך מהאופק … חלמתי שאני עפה מעל ים כחול ועצום, ואור זהוב נשפך מהאופק … חלמתי שאני עפה מעל ים כחול ועצום, ואור זהוב נשפך מהאופק … חלמתי שאני עפה מעל ים כחול ועצום, ואור זהוב נשפך מהאופק … חלמתי שאני עפה מעל ים כחול ועצום, ואור זהוב נשפך מהאופק … חלמתי שאני עפה מעל ים כחול ועצום, ואור זהוב נשפך מהאופק … חלמתי שאני עפה מעל ים כחול ועצום, ואור זהוב נשפך מהאופק',
+    expected: / … /,
+    operator: 'doesNotMatch',
+    diff: 'simple'
+  }
+
+test at tests\mapMomentsAndHeader.test.ts:30:1
+✖ 1b. a dream with several scenes gives several separate moments — also with no full stops, and in English (3.8266ms)
+  AssertionError [ERR_ASSERTION]: several moments, got 2: then a door opened and I walked into a garden full of blue flowers and later I reached the sea and saw my mother on the beach and she did not recognise me | I was in my grandmother's house and it was dark and
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\mapMomentsAndHeader.test.ts:38:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\mapMomentsAndHeader.test.ts:46:1
+✖ 1c. when the dream will not split by sentences, the fallback still gives 2–4 moments by its scenes and actions (0.4262ms)
+  AssertionError [ERR_ASSERTION]: got 1
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\mapMomentsAndHeader.test.ts:49:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\mapMomentsAndHeader.test.ts:54:1
+✖ 1d. a moment card shows a short summary; the full moment stays in its window (0.8068ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /-webkit-line-clamp:\s*3/. Input:
+  
+  '.dm-card-excerpt {\n' +
+    '  font-size: 16px;\n' +
+    '  line-height: 1.55;\n' +
+    '  color: var(--dm-text-dim);\n' +
+    '  padding-inline-start: 12px;\n' +
+    '  border-inline-start: 2px solid rgba(var(--dm-gold), 0.35);\n'
+  
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\mapMomentsAndHeader.test.ts:57:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '.dm-card-excerpt {\n  font-size: 16px;\n  line-height: 1.55;\n  color: var(--dm-text-dim);\n  padding-inline-start: 12px;\n  border-inline-start: 2px solid rgba(var(--dm-gold), 0.35);\n',
+    expected: /-webkit-line-clamp:\s*3/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\mapMomentsAndHeader.test.ts:62:1
+✖ 2. the map screen starts below the fixed header, so nothing on it (or scrolled to on it) goes under the header (0.3393ms)
+  AssertionError [ERR_ASSERTION]: the scrolling box itself begins under the header
+      at TestContext.<anonymous> (E:\DAFNA PROFILE\DESKTOP\קלוד\פרוייקטים\DARE TO GO IN\tests\mapMomentsAndHeader.test.ts:65:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '.dj-map {\n  position: fixed;\n  inset: 0;\n  z-index: 45;\n  overflow-x: hidden;\n  overflow-y: auto;\n  pointer-events: auto;\n  -webkit-overflow-scrolling: touch;\n',
+    expected: /top:\s*var\(--gh-h\)/,
+    operator: 'match',
+    diff: 'simple'
+  }

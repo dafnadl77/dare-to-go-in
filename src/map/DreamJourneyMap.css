@@ -1,9 +1,15 @@
 /* The dream map inside the real journey: its own scrolling screen over the dream stage, below the site's fixed header, the way the
    saved dream's page is (DreamDetail.css). The map itself keeps its approved look (DreamMap.css). */
 
+/* The scrolling box itself begins under the fixed header (not just its first line): nothing on the map, nothing scrolled to on it
+   ("what came up", a moment), ever goes under the header. The map's own background is fixed to the whole screen, so it still fills
+   the space behind the header. */
 .dj-map {
   position: fixed;
-  inset: 0;
+  top: var(--gh-h);
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 45;
   overflow-x: hidden;
   overflow-y: auto;
@@ -11,9 +17,8 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* the page starts below the fixed header */
 .dj-map .dm-page {
-  padding-top: calc(var(--gh-h) + 12px);
+  padding-top: 12px;
 }
 
 .dj-preparing {
