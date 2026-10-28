@@ -28,9 +28,21 @@ function isPlausibleBrief(candidate: unknown): candidate is ReconstructionBrief 
   );
 }
 
+/**
+ * One line in the server log for every image that was not made (2026-10-28: production images failed and the log said nothing).
+ * Codes only: never the dream, the prompt, the provider's message or any key.
+ */
+export function imageFailureLine(stage: string, err?: unknown): string {
+  const e = err instanceof OpenAI.APIError ? err : null;
+  const safe = (v: unknown) => (typeof v === 'string' || typeof v === 'number' ? String(v).replace(/[^\w.-]/g, '').slice(0, 60) : 'none');
+  const name = err instanceof Error ? safe(err.name) : 'none';
+  return `dream_image_failed stage=${safe(stage)} status=${safe(e?.status)} code=${safe(e?.code)} type=${safe(e?.type)} error=${name}`;
+}
+
 export async function handleDreamImage(rawBody: unknown, requestHeaders: RequestHeaders): Promise<HandlerResult> {
   const resolved = await resolveAdultCaller(requestHeaders);
   if (!resolved.ok) {
+    console.error(imageFailureLine(`identity_${resolved.reason}`));
     return errorResult(resolved.status, resolved.reason, resolved.message);
   }
   const cookieHeaders = resolved.setCookieHeader ? { 'Set-Cookie': resolved.setCookieHeader } : undefined;
@@ -38,6 +50,7 @@ export async function handleDreamImage(rawBody: unknown, requestHeaders: Request
   const body = (rawBody ?? {}) as { reconstructionBrief?: unknown; attemptId?: unknown };
 
   if (!isPlausibleBrief(body.reconstructionBrief)) {
+    console.error(imageFailureLine('brief_shape'));
     return withHeaders(
       errorResult(400, 'invalid_response', 'reconstructionBrief is missing or does not match the expected shape.'),
       cookieHeaders,
@@ -47,11 +60,13 @@ export async function handleDreamImage(rawBody: unknown, requestHeaders: Request
 
   const attemptId = typeof body.attemptId === 'string' ? body.attemptId : '';
   if (!attemptId) {
+    console.error(imageFailureLine('no_attempt'));
     return withHeaders(errorResult(400, 'invalid_response', 'attemptId is required.'), cookieHeaders);
   }
 
   const client = getOpenAIClient();
   if (!client) {
+    console.error(imageFailureLine('no_api_key'));
     return withHeaders(errorResult(503, 'not_configured', 'The Dream Image backend is missing OPENAI_API_KEY.'), cookieHeaders);
   }
 
@@ -74,9 +89,11 @@ export async function handleDreamImage(rawBody: unknown, requestHeaders: Request
   // OpenAI at all.
   const reservation = await reserveImageAttempt(attemptId, resolved.identity);
   if (reservation === null) {
+    console.error(imageFailureLine('reserve_unavailable'));
     return withHeaders(errorResult(503, 'not_configured', 'Image usage tracking is not configured.'), cookieHeaders);
   }
   if (reservation === 'rejected') {
+    console.error(imageFailureLine('reserve_rejected'));
     return withHeaders(
       errorResult(403, 'limit_reached', 'This dream has already used its image generation attempts, or the attempt is invalid.'),
       cookieHeaders,
@@ -85,6 +102,7 @@ export async function handleDreamImage(rawBody: unknown, requestHeaders: Request
 
   const prompt = `${brief.imagePrompt}\n\nAdditional constraints (must follow): ${brief.negativePrompt}`;
 
+  const startedAt = Date.now();
   try {
     const response = await client.images.generate({
       model: IMAGE_MODEL,
@@ -97,12 +115,17 @@ export async function handleDreamImage(rawBody: unknown, requestHeaders: Request
 
     const image = response.data?.[0];
     if (!image?.b64_json) {
+      console.error(imageFailureLine('no_image_data'));
       await refundImageAttempt(attemptId);
       return withHeaders(errorResult(502, 'invalid_response', 'The image provider returned no image data.'), cookieHeaders);
     }
 
+    // the browser stops waiting at 90 s (IMAGE_TIMEOUT_MS): a picture that took longer reached no one, so it is said here
+    const ms = Date.now() - startedAt;
+    if (ms > 60_000) console.warn(`dream_image_slow ms=${ms} kb=${Math.round(image.b64_json.length / 1024)}`);
     return withHeaders(okResult({ imageDataUrl: `data:image/jpeg;base64,${image.b64_json}` }), cookieHeaders);
   } catch (err) {
+    console.error(`${imageFailureLine('provider', err)} ms=${Date.now() - startedAt}`);
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {
         await refundImageAttempt(attemptId);

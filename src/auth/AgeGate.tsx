@@ -5,6 +5,7 @@ import { useAuth } from './AuthContext';
 import { getAuthHeader } from './getAccessToken';
 import { AGE_REQUIRED_EVENT } from '../hero/safety/sessionStop';
 import '../archive/DeleteDreamDialog.css';
+import './AgeGate.css';
 
 /**
  * THE AGE QUESTION (doc 109, approved 2026-10-24): its own step, apart from the terms. Asked once, before first use: right after
@@ -104,7 +105,7 @@ export default function AgeGate() {
                 {t('ageGate.error')}
               </p>
             )}
-            <p className="dd-dialog-body">
+            <p className="dd-dialog-body ag-note">
               <small>{t('ageGate.note')}</small>
             </p>
           </>

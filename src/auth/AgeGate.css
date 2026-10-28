@@ -1,0 +1,5 @@
+/* The age question uses the shared dialog style (DeleteDreamDialog.css). Only the quiet note under the two answers gets a little room
+   of its own, so it does not sit right against the buttons (2026-10-28). */
+.dd-dialog .ag-note {
+  margin-top: 1.1rem;
+}
