@@ -90,9 +90,12 @@ export function reflectionFromJourney(e: Exploration, language: AppLanguage): Dr
 
 /** What the saved record's older fields hold for a map dream: the moments she explored, and her own words in them. */
 export function savedFieldsFromJourney(e: Exploration): { selectedElement: string; reflectionResponse: string } {
-  const words = herWordsByMoment(e);
+  const words = herWordsByMoment(e).flatMap((x) => x.words);
+  // she may have answered only with the buttons: then what the buttons said, so the reflection is never asked without her answers
+  const anyTurn = exploredInOrder(e).flatMap(({ entry }) => (entry.turns ?? []).filter((t) => t.role === 'dreamer').map((t) => t.text));
+  const labels = exploredInOrder(e).map((x) => x.moment.label);
   return {
-    selectedElement: exploredInOrder(e).map((x) => x.moment.label).join(' · '),
-    reflectionResponse: words.flatMap((x) => x.words).join('\n'),
+    selectedElement: labels.join(' · '),
+    reflectionResponse: (words.length ? words : anyTurn.length ? anyTurn : labels).join('\n'),
   };
 }

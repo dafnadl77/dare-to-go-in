@@ -722,7 +722,30 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     if (reflectionEngineResult.status === 'ok') {
       setInsideStep('reflection');
     }
+    // the dream map journey: the reflection shares the dream's three-call allowance with the whole view; when the whole view used it
+    // all, the dream goes on to keeping or letting go (its summary is the whole view) instead of a retry that can never succeed
+    else if (DREAM_MAP_JOURNEY && reflectionEngineResult.status === 'error' && reflectionEngineResult.reason === 'limit_reached') {
+      setInsideStep('closing');
+    }
   }, [insideStep, reflectionPending, reflectionEngineResult]);
+
+  // The dream map journey, after the whole view: the existing reflection screen ("summary and reflection"), from the moments she
+  // explored and her own words in them, through the same single reflection request the journey always made.
+  const handleContinueFromMap = () => {
+    if (analysisResult?.status !== 'ok' || !exploration) return;
+    const fields = savedFieldsFromJourney(exploration);
+    setSelectedElement(fields.selectedElement);
+    setReflectionResponse(fields.reflectionResponse);
+    setInsideStep('interpreting');
+    startReflectionEngine('initial', {
+      dreamAnalysis: analysisResult.analysis,
+      selectedElement: fields.selectedElement,
+      reflectionResponse: fields.reflectionResponse,
+      reconstructionCorrections: corrections,
+      emotions: selectedEmotions,
+      attemptId: analysisResult.attemptId,
+    });
+  };
 
   const handleRetryReflection = () => {
     if (analysisResult?.status !== 'ok' || !selectedElement || !reflectionResponse) return;
@@ -769,7 +792,9 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     };
     if (DREAM_MAP_JOURNEY) {
       if (!exploration || !journeyReflection) return null;
-      return buildSavedDream({ ...common, ...savedFieldsFromJourney(exploration), dreamReflection: journeyReflection, exploration });
+      // the reflection screen's own reflection when it was made; otherwise the whole view in the same shape
+      const dreamReflection = reflectionEngineResult?.status === 'ok' ? reflectionEngineResult.reflection : journeyReflection;
+      return buildSavedDream({ ...common, ...savedFieldsFromJourney(exploration), dreamReflection, exploration });
     }
     if (!selectedElement || !reflectionResponse || reflectionEngineResult?.status !== 'ok') return null;
     return buildSavedDream({
@@ -1125,7 +1150,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
           language={journeyLanguageRef.current ?? getAppLanguage()}
           address={addressPreferenceOfUser(user)}
           emotions={selectedEmotions}
-          onContinue={() => setInsideStep('closing')}
+          onContinue={handleContinueFromMap}
         />
       )}
 

@@ -12,7 +12,9 @@ import type { LegalKey } from '../legal/legalContent';
 import Breadcrumb from '../ui/Breadcrumb';
 import EditorialTitle from '../ui/EditorialTitle';
 import { parseExploration } from '../hero/exploration';
-import { herWordsByMoment } from '../map/journeyRecord';
+import SavedDreamMap from '../map/SavedDreamMap';
+import { useAuth } from '../auth/AuthContext';
+import { addressPreferenceOfUser } from '../hero/addressPreference';
 import { mapStrings } from '../map/mapStrings';
 import './DreamDetail.css';
 
@@ -70,18 +72,22 @@ type TranslationState = 'idle' | 'loading' | 'ready' | 'error';
 export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: DreamDetailProps) {
   const { t, language } = useLanguage();
   const imageSrc = useDreamImageSrc(entry);
+  const { user } = useAuth();
+  // A dream saved from the dream map journey has two pages (2026-10-28): this one ("summary and reflection") and its map.
+  const [screen, setScreen] = useState<'summary' | 'map'>('summary');
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     bgVideoRef.current?.play().catch(() => {});
-  }, []);
+  }, [screen]);
 
   useEffect(() => {
+    // on the map page Escape belongs to the map's own windows
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onBack();
+      if (e.key === 'Escape' && screen === 'summary') onBack();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onBack]);
+  }, [onBack, screen]);
 
   const reflection = entry.kind === 'real' ? entry.savedDream.dreamReflection : null;
   const sourceTextRaw = entry.kind === 'real' ? entry.savedDream.sourceText : null;
@@ -105,11 +111,8 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
   const linkAnswerRaw = savedDream?.linkQuestion && savedDream.linkResponse ? savedDream.linkResponse : null;
   const readingsRaw = (reflection?.alternativeReadings ?? []).map((r) => r.reading).filter((r) => r.trim()).slice(0, 2);
   const existentialRaw = reflection?.existentialLens?.text && reflection.existentialLens.text.trim() ? reflection.existentialLens.text : null;
-  // A dream saved from the dream map journey: its moments, her words in them, the whole view and what she took from it, in the same
-  // blocks as every other saved dream. Shown as saved (in the journey's language); every other dream reads exactly as before.
+  // The journey saved with a dream map dream: its map is drawn from it, read-only. Every other dream has no map and reads as before.
   const journey = savedDream?.exploration ? parseExploration(savedDream.exploration) : null;
-  const journeyView = journey?.wholeView ?? null;
-  const journeyMoments = journey ? herWordsByMoment(journey) : [];
   const ms = mapStrings(language === 'he' ? 'he' : 'en');
 
   const [translationState, setTranslationState] = useState<TranslationState>('idle');
@@ -146,8 +149,6 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
       if (needsTranslation(reading, language)) items.push({ key: i === 0 ? 'reading0' : 'reading1', text: reading });
     });
     if (existentialRaw && needsTranslation(existentialRaw, language)) items.push({ key: 'existential', text: existentialRaw });
-    // a dream map journey shows only the dream's own words through translation; the rest of it is shown as saved
-    if (journeyView) items.splice(0, items.length, ...items.filter((i) => i.key === 'dream'));
     if (items.length === 0) return;
 
     let cancelled = false;
@@ -240,6 +241,22 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
   // Same cache as the archive list, so the two always show the same title.
   const displayTitle = needsTranslation(ownTitle, language) ? (getCachedTitle(ownTitle, language) ?? currentLanguageTitle) : ownTitle;
 
+  // the dream's map page: drawn from what was saved, nothing asked of DARE and nothing spent
+  if (journey && savedDream && screen === 'map') {
+    return (
+      <SavedDreamMap
+        exploration={journey}
+        sourceText={savedDream.sourceText}
+        imageSrc={imageSrc}
+        date={savedDream.createdAt.slice(0, 10)}
+        language={language === 'he' ? 'he' : 'en'}
+        address={addressPreferenceOfUser(user)}
+        onBack={onBack}
+        onShowSummary={() => setScreen('summary')}
+      />
+    );
+  }
+
   return (
     <div className="dream-detail">
       <DreamStageBackground ref={bgVideoRef} active />
@@ -281,101 +298,15 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
             <h1 className="dd-title">
               <EditorialTitle text={displayTitle} />
             </h1>
+            {/* a dream map dream: its other page */}
+            {journey && (
+              <button type="button" className="dd-end-link" onClick={() => setScreen('map')}>
+                {ms.dreamMapLink}
+              </button>
+            )}
           </div>
 
-          {reflection && journeyView ? (
-            <div className="dd-narrative">
-              <section className="dd-block">
-                <p className="dd-eyebrow">
-                  <EditorialTitle text={t('dreamDetail.theDream')} />
-                </p>
-                {dreamText ? <p className="dd-body">{dreamText}</p> : <p className="dd-body dd-body--loading">{t('dreamDetail.translating')}</p>}
-              </section>
-
-              {journeyMoments.length > 0 && (
-                <section className="dd-block">
-                  <p className="dd-eyebrow">
-                    <EditorialTitle text={ms.momentsHeading} />
-                  </p>
-                  {journeyMoments.map((m) => (
-                    <div key={m.label}>
-                      <p className="dd-body dd-body--stood-out">{m.label}</p>
-                      {m.words.map((words, i) => (
-                        <p className="dd-body" key={i}>
-                          {words}
-                        </p>
-                      ))}
-                    </div>
-                  ))}
-                </section>
-              )}
-
-              {namedFeelings.length > 0 && (
-                <section className="dd-block">
-                  <p className="dd-eyebrow">
-                    <EditorialTitle text={t('dreamDetail.yourFeelings')} />
-                  </p>
-                  <p className="dd-body dd-body--feelings">{namedFeelings.map((id) => t(`reflection.emotions.${id}`)).join(' · ')}</p>
-                </section>
-              )}
-
-              <section className="dd-block">
-                <p className="dd-eyebrow">
-                  <EditorialTitle text={ms.wholeViewTitle} />
-                </p>
-                <p className="dd-body">{journeyView.overview}</p>
-              </section>
-
-              {journeyView.takeaways && (
-                <section className="dd-block">
-                  <p className="dd-eyebrow">
-                    <EditorialTitle text={ms.takeaways} />
-                  </p>
-                  {journeyView.takeaways.mine.length > 0 && (
-                    <>
-                      <p className="dd-body dd-body--stood-out">{ms.takeawaysMine}</p>
-                      {journeyView.takeaways.mine.map((x) => (
-                        <p className="dd-body" key={x}>
-                          «{x}»
-                        </p>
-                      ))}
-                    </>
-                  )}
-                  {journeyView.takeaways.ideas.length > 0 && (
-                    <>
-                      <p className="dd-body dd-body--stood-out">{ms.takeawaysIdeas}</p>
-                      {journeyView.takeaways.ideas.map((x) => (
-                        <p className="dd-body" key={x}>
-                          {x}
-                        </p>
-                      ))}
-                    </>
-                  )}
-                  {(journeyView.takeaways.open?.length ?? 0) > 0 && (
-                    <>
-                      <p className="dd-body dd-body--stood-out">{ms.takeawaysOpen}</p>
-                      {journeyView.takeaways.open!.map((x) => (
-                        <p className="dd-body" key={x}>
-                          {x}
-                        </p>
-                      ))}
-                    </>
-                  )}
-                </section>
-              )}
-
-              {journeyView.closingQuestion && (
-                <section className="dd-block">
-                  <p className="dd-eyebrow">
-                    <EditorialTitle text={t('dreamDetail.aQuestionWorthSittingWith')} />
-                  </p>
-                  <p className="dd-body dd-body--question">{journeyView.closingQuestion}</p>
-                </section>
-              )}
-
-              <p className="dd-disclaimer">{t('dreamDetail.disclaimer')}</p>
-            </div>
-          ) : reflection ? (
+          {reflection ? (
             <div className="dd-narrative">
               <section className="dd-block">
                 <p className="dd-eyebrow">
@@ -512,6 +443,14 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
               {t('dreamDetail.backToArchive')}
             </button>
             <span className="dd-end-divider" aria-hidden="true" />
+            {journey && (
+              <>
+                <button type="button" className="dd-end-link" onClick={() => setScreen('map')}>
+                  {ms.dreamMapLink}
+                </button>
+                <span className="dd-end-divider" aria-hidden="true" />
+              </>
+            )}
             <button type="button" className="dd-end-link" onClick={onGoHome}>
               {t('dreamDetail.returnToTheRoom')}
             </button>

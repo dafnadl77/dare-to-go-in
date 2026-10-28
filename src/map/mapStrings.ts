@@ -67,6 +67,9 @@ const HE = {
   summarySafety: 'לא ניתן להכין סיכום לשיחה הזו. אם קשה לך עכשיו, אפשר לדבר עם ער"ן בטלפון 1201.',
   summaryNeedsMoment: 'כדי לראות מה עלה, צריך קודם לשוחח על רגע אחד לפחות.',
   summaryFailed: 'לא הצלחנו להכין את הסיכום כרגע. אפשר לנסות שוב בעוד רגע.',
+  // a saved dream: its two pages
+  dreamMapLink: 'מפת החלום',
+  summaryLink: 'סיכום והתבוננות',
 };
 
 type MapStrings = typeof HE;
@@ -136,6 +139,8 @@ const EN: MapStrings = {
   summarySafety: "A summary can't be made for this conversation. If things feel hard right now, you can talk with ERAN at 1201.",
   summaryNeedsMoment: 'To see what came up, talk about at least one moment first.',
   summaryFailed: "We couldn't prepare the summary just now. You can try again in a moment.",
+  dreamMapLink: 'THE DREAM MAP',
+  summaryLink: 'Summary and reflection',
 };
 
 export function mapStrings(language: MapLanguage): MapStrings {

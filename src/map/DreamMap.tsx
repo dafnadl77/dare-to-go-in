@@ -39,6 +39,9 @@ export interface DreamMapProps {
   /** The map inside the real dream journey (not yet saved): no way back to the archive and no favourite yet, and once the whole view is
       shown, the way on to keeping or letting go of the dream. Absent: the map is as it was. */
   journey?: { continueLabel: string; onContinue: () => void };
+  /** The map of a saved dream in the archive (2026-10-28): read-only, back to the archive, and the way to the dream's summary and
+      reflection page. Absent: the map is as it was. */
+  archive?: { summaryLabel: string; onShowSummary: () => void };
 }
 
 /** Orbit or path. Follows the media query and, as a backstop, the page's own size (some emulated or embedded views change the width
@@ -212,7 +215,7 @@ export default function DreamMap(props: DreamMapProps) {
               className="dm-back"
               onClick={() => {
                 props.onBack();
-                setNotice(s.protoNoop);
+                if (!props.archive) setNotice(s.protoNoop);
               }}
             >
               <BackIcon />
@@ -454,7 +457,15 @@ export default function DreamMap(props: DreamMapProps) {
                   {s.rereadDream}
                 </button>
               </li>
-              {!props.journey && (
+              {props.archive && (
+                <li>
+                  <button type="button" className="dm-more-item" onClick={props.archive.onShowSummary}>
+                    <SparkIcon />
+                    {props.archive.summaryLabel}
+                  </button>
+                </li>
+              )}
+              {!props.journey && !props.archive && (
                 <li>
                   <button type="button" className="dm-more-item" aria-pressed={favorite} onClick={props.onToggleFavorite}>
                     <HeartIcon filled={favorite} />
@@ -462,12 +473,14 @@ export default function DreamMap(props: DreamMapProps) {
                   </button>
                 </li>
               )}
-              <li>
-                <button type="button" className="dm-more-item" onClick={() => firstUnexplored && setOpenMoment(firstUnexplored.id)} disabled={!firstUnexplored}>
-                  <CompassIcon />
-                  {firstUnexplored ? s.exploreAnother : s.allExplored}
-                </button>
-              </li>
+              {!props.archive && (
+                <li>
+                  <button type="button" className="dm-more-item" onClick={() => firstUnexplored && setOpenMoment(firstUnexplored.id)} disabled={!firstUnexplored}>
+                    <CompassIcon />
+                    {firstUnexplored ? s.exploreAnother : s.allExplored}
+                  </button>
+                </li>
+              )}
             </ul>
           </section>
         </div>

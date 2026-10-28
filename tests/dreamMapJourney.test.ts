@@ -93,7 +93,7 @@ test('a finished map journey is saved in the same shape as every dream; nothing 
 test('the map inside the journey: no way back to the archive or favourite yet, and the way on once the whole view is shown', () => {
   const map = read('src/map/DreamMap.tsx');
   assert.match(map, /\{!props\.journey && \(\s*<button\s+type="button"\s+className="dm-back"/);
-  assert.match(map, /\{!props\.journey && \(\s*<li>\s*<button type="button" className="dm-more-item" aria-pressed=\{favorite\}/);
+  assert.match(map, /\{!props\.journey && !props\.archive && \(\s*<li>\s*<button type="button" className="dm-more-item" aria-pressed=\{favorite\}/);
   assert.match(map, /props\.journey\.onContinue/);
   const jm = read('src/map/DreamJourneyMap.tsx');
   assert.match(jm, /explorationEngine/, 'the real engine (paidFetch, the account token)');
@@ -116,10 +116,10 @@ test('the window speaks the journey\'s language; the buttons\' words are what he
   assert.equal(turns[turns.length - 1].text, "This doesn't fit me");
 });
 
-test('the saved dream page shows a map dream in its own blocks, and every other dream as before', () => {
+test('the saved dream page keeps its own blocks for every dream; a map dream has its map as a second page (2026-10-28)', () => {
   const detail = read('src/archive/DreamDetail.tsx');
-  assert.match(detail, /reflection && journeyView \?/);
-  assert.match(detail, /\) : reflection \? \(/, 'the earlier blocks are unchanged for every other dream');
+  assert.doesNotMatch(detail, /journeyView/, 'no separate map-dream blocks on the summary page any more');
+  assert.match(detail, /\{reflection \? \(\s*<div className="dd-narrative">/);
   assert.match(read('src/hero/DreamClosing.tsx'), /reflectionResult\.continuityQuestion\.trim\(\) &&/);
 });
 
