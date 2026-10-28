@@ -7,7 +7,17 @@ import { resolveAdultCaller } from '../ageGate.js';
 import { reserveImageAttempt, refundImageAttempt, getTrialAttemptState } from '../dreamAttempts.js';
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 
-const IMAGE_MODEL = 'gpt-image-1';
+/**
+ * The image model: the server setting OPENAI_IMAGE_MODEL (Vercel), so a model OpenAI retires is replaced without a code change.
+ * Without the setting: gpt-image-2.5-flare, OpenAI's recommended replacement (gpt-image-1 was shut down on 2026-10-23 and answers
+ * "The model does not exist"; gpt-image-1.5 and gpt-image-1-mini shut down on 2026-12-01). The size, quality, format and the
+ * response (data[0].b64_json) are the same for it.
+ */
+export const DEFAULT_IMAGE_MODEL = 'gpt-image-2.5-flare';
+export function imageModel(env: Record<string, string | undefined> = process.env): string {
+  const set = env.OPENAI_IMAGE_MODEL?.trim();
+  return set && /^[\w.-]{1,60}$/.test(set) ? set : DEFAULT_IMAGE_MODEL;
+}
 
 /**
  * Shallow structural check of an untrusted ReconstructionBrief body —
@@ -36,7 +46,7 @@ export function imageFailureLine(stage: string, err?: unknown): string {
   const e = err instanceof OpenAI.APIError ? err : null;
   const safe = (v: unknown) => (typeof v === 'string' || typeof v === 'number' ? String(v).replace(/[^\w.-]/g, '').slice(0, 60) : 'none');
   const name = err instanceof Error ? safe(err.name) : 'none';
-  return `dream_image_failed stage=${safe(stage)} status=${safe(e?.status)} code=${safe(e?.code)} type=${safe(e?.type)} error=${name}`;
+  return `dream_image_failed stage=${safe(stage)} status=${safe(e?.status)} code=${safe(e?.code)} type=${safe(e?.type)} param=${safe(e?.param)} model=${safe(imageModel())} error=${name}`;
 }
 
 export async function handleDreamImage(rawBody: unknown, requestHeaders: RequestHeaders): Promise<HandlerResult> {
@@ -105,7 +115,7 @@ export async function handleDreamImage(rawBody: unknown, requestHeaders: Request
   const startedAt = Date.now();
   try {
     const response = await client.images.generate({
-      model: IMAGE_MODEL,
+      model: imageModel(),
       prompt,
       size: '1536x1024',
       quality: 'medium',
