@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { ConversationTurn } from '../hero/exploration';
 import { threadWords } from './threadWords';
 import { threadState } from './threadState';
@@ -7,6 +7,8 @@ import './conversation.css';
 /**
  * A moment's conversation in its window on the map (doc 102): DARE and the dreamer, an angle offered apart with "זה לא מתאים לי",
  * her answer box, and the way on (another moment). Presentational only: the page that holds it decides what is sent and when.
+ * After DARE's turn (2026-10-28): "להמשיך בכיוון" opens the writing box (nothing is asked of DARE), "לשנות כיוון" asks DARE for
+ * another direction; the box is closed until then, and Enter sends (Shift+Enter is a new line), with no separate send button.
  */
 
 export interface ConversationThreadProps {
@@ -22,9 +24,11 @@ export interface ConversationThreadProps {
   onDraft: (value: string) => void;
   onSend: () => void;
   onReject: () => void;
-  /** The direction buttons (doc 117): shown after DARE's turn, above the writing box, which always stays. */
-  onSteer?: (kind: 'deepen' | 'shift') => void;
+  /** "לשנות כיוון" (doc 117): DARE offers another direction. "להמשיך בכיוון" only opens the writing box, here. */
+  onSteer?: (kind: 'shift') => void;
   onMoveOn: () => void;
+  /** Another moment can still be explored: only then "לרגע אחר" (absent: shown, as on the development page). */
+  canMoveOn?: boolean;
   /** Close the conversation and see what came up (shown once she has said something somewhere). */
   onFinish?: () => void;
   canFinish?: boolean;
@@ -49,6 +53,15 @@ export default function ConversationThread(p: ConversationThreadProps) {
   const state = threadState(p.turns, p.pending, Boolean(p.explored));
   // she may always write while the moment is open and DARE is not writing (also after her own words: DARE answers each one)
   const herTurn = !p.explored && !p.pending && p.turns.length > 0 && !p.safetyBlocks && !p.closed;
+  const canMoveOn = p.canMoveOn !== false;
+  const canFinish = Boolean(p.onFinish && p.canFinish);
+  // the writing box opens with "להמשיך בכיוון"; a new turn closes it again. Without direction buttons, or when DARE has not answered
+  // her last words yet (its answer failed), it stays open so she is never left without a way to write.
+  const [writing, setWriting] = useState(false);
+  useEffect(() => setWriting(false), [p.turns.length]);
+  const steerRow = Boolean(p.onSteer) && lastTurn?.role === 'dare';
+  const boxOpen = writing || !steerRow;
+  const answerId = `${p.titleId}-answer`;
 
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -104,10 +117,10 @@ export default function ConversationThread(p: ConversationThreadProps) {
             if (p.draft.trim()) p.onSend();
           }}
         >
-          {/* the three ways on, together and equal; "זה לא מתאים לי" only when the response holds a suggestion not yet rejected */}
-          {p.onSteer && lastTurn?.role === 'dare' && (
+          {/* the ways on after DARE's turn, together and equal; "זה לא מתאים לי" only when the response holds a suggestion not yet rejected */}
+          {steerRow && (
             <div className="cv-steer" role="group" aria-label={w.steerLabel}>
-              <button type="button" className="cv-offer-no" onClick={() => p.onSteer?.('deepen')}>
+              <button type="button" className="cv-offer-no" aria-expanded={boxOpen} aria-controls={boxOpen ? answerId : undefined} onClick={() => setWriting(true)}>
                 {w.deepen}
               </button>
               <button type="button" className="cv-offer-no" onClick={() => p.onSteer?.('shift')}>
@@ -120,30 +133,57 @@ export default function ConversationThread(p: ConversationThreadProps) {
               )}
             </div>
           )}
-          <label className="dm-visually-hidden" htmlFor={`${p.titleId}-answer`}>
-            {w.write}
-          </label>
-          <textarea id={`${p.titleId}-answer`} rows={3} placeholder={w.write} value={p.draft} onChange={(e) => p.onDraft(e.target.value)} />
-          <div className="cv-actions">
-            <button type="submit" className="dm-btn dm-btn-primary" disabled={!p.draft.trim()}>
-              {w.send}
-            </button>
+          {boxOpen && (
+            <>
+              <label className="dm-visually-hidden" htmlFor={answerId}>
+                {w.write}
+              </label>
+              <textarea
+                id={answerId}
+                rows={3}
+                placeholder={w.write}
+                value={p.draft}
+                enterKeyHint="send"
+                aria-describedby={`${answerId}-keys`}
+                autoFocus={writing}
+                onChange={(e) => p.onDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  // Enter sends; Shift+Enter is a new line; a word still being composed (IME) is never sent half-way
+                  if (e.key !== 'Enter' || e.shiftKey || e.nativeEvent.isComposing) return;
+                  e.preventDefault();
+                  if (p.draft.trim()) p.onSend();
+                }}
+              />
+              <span id={`${answerId}-keys`} className="dm-visually-hidden">
+                {w.keys}
+              </span>
+            </>
+          )}
+          {(canMoveOn || canFinish) && (
+            <div className="cv-actions">
+              {canMoveOn && (
+                <button type="button" className="dm-btn" onClick={p.onMoveOn}>
+                  {w.moveOn}
+                </button>
+              )}
+              {canFinish && (
+                <button type="button" className="dm-btn" onClick={p.onFinish}>
+                  {w.finish}
+                </button>
+              )}
+            </div>
+          )}
+        </form>
+      )}
+      {/* the moment's three questions are spent: DARE's closing line stands alone, then only the ways out — another moment when
+          one is left, and always "what came up" */}
+      {p.closed && !p.pending && !p.explored && (
+        <div className="cv-actions">
+          {canMoveOn && (
             <button type="button" className="dm-btn" onClick={p.onMoveOn}>
               {w.moveOn}
             </button>
-            {p.onFinish && p.canFinish && (
-              <button type="button" className="dm-btn" onClick={p.onFinish}>
-                {w.finish}
-              </button>
-            )}
-          </div>
-        </form>
-      )}
-      {p.closed && !p.pending && !p.explored && (
-        <div className="cv-actions">
-          <button type="button" className="dm-btn" onClick={p.onMoveOn}>
-            {w.toMap}
-          </button>
+          )}
           {p.onFinish && (
             <button type="button" className="dm-btn dm-btn-primary" onClick={p.onFinish}>
               {w.finish}
@@ -153,7 +193,7 @@ export default function ConversationThread(p: ConversationThreadProps) {
       )}
       {!p.safetyBlocks && (
       <p className="cv-state" data-state={state} role="status">
-        {p.closed && !p.pending && !p.explored ? w.closedNote : state === 'writing' ? w.writing : state === 'waiting' ? w.waiting(Boolean(p.onFinish && p.canFinish)) : state === 'done' ? w.done : p.turns.length ? w.open(Boolean(p.onFinish && p.canFinish)) : ''}
+        {p.closed && !p.pending && !p.explored ? w.closedNote(canMoveOn) : state === 'writing' ? w.writing : state === 'waiting' ? w.waiting(canFinish, canMoveOn) : state === 'done' ? w.done : p.turns.length ? w.open(canFinish, canMoveOn) : ''}
       </p>
       )}
       {p.note && <p className="cv-note">{p.note}</p>}

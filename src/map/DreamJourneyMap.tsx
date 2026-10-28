@@ -210,10 +210,11 @@ export default function DreamJourneyMap({ analysis, exploration, onChange, image
           draft={draft}
           onDraft={setDraft}
           onSend={() => void send(moment.id)}
-          onSteer={(kind) => {
-            // her bubble and DARE's answer at once: a regular turn (out of the 16), once per DARE turn (doc 117)
+          onSteer={() => {
+            // "לשנות כיוון": her bubble and DARE's other direction at once: a regular turn (out of the 16), once per DARE turn (doc 117).
+            // "להמשיך בכיוון" asks nothing of DARE: it only opens her writing box (2026-10-28).
             if (stoppedFor(moment.id)) return;
-            const next = X.steerWithReply(eRef.current!, moment.id, kind, kind === 'deepen' ? w.deepen : w.shift);
+            const next = X.steerWithReply(eRef.current!, moment.id, 'shift', w.shift);
             if (!next) return;
             set(next);
             void answer(next, moment.id);
@@ -237,6 +238,7 @@ export default function DreamJourneyMap({ analysis, exploration, onChange, image
             void revealWhole();
           }}
           canFinish={Object.values(e.explored).some((x) => x.turns?.some((t) => t.role === 'dreamer'))}
+          canMoveOn={X.anotherMomentLeft(e, moment.id)}
           explored={entry?.status === 'explored'}
           questionNumber={Math.min(X.MAX_QUESTIONS_PER_MOMENT, X.questionsAsked(e, moment.id))}
           // the moment's three questions are spent: its closing line came (or her last answer stands): only the ways out

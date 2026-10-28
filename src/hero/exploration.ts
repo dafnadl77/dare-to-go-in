@@ -366,6 +366,9 @@ export const isQuestionTurn = (t: ConversationTurn): boolean => t.role === 'dare
 export function questionsAsked(e: Exploration, id: MomentId): number {
   return (e.asked?.[id] ?? 0) + (e.explored[id]?.turns ?? []).filter(isQuestionTurn).length;
 }
+/** Another moment she can still go to: not talked about yet, and with questions left (one moment only: there is none). */
+export const anotherMomentLeft = (e: Exploration, id: MomentId): boolean =>
+  e.moments.some((m) => m.id !== id && !e.explored[m.id] && questionsAsked(e, m.id) < MAX_QUESTIONS_PER_MOMENT);
 /** The moment had its closing line: nothing more is asked in it. */
 export const momentClosed = (e: Exploration, id: MomentId): boolean => Boolean(e.explored[id]?.turns?.some((t) => t.role === 'dare' && t.closing));
 const withTurns = (e: Exploration, id: MomentId, entry: ExploredMoment, turns: ConversationTurn[], patch: Partial<ExploredMoment> = {}) =>

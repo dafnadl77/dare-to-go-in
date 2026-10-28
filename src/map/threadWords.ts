@@ -14,13 +14,16 @@ const wordsEn = {
   rejected: "You marked that this doesn't fit you",
   moveOn: 'Another moment',
   toMap: 'Back to the dream map',
-  closedNote: 'This moment is done. You can go back to the dream map or see what came up.',
+  closedNote: (moveOn: boolean) => (moveOn ? 'This moment is done. You can go to another moment or see what came up.' : 'This moment is done. You can see what came up.'),
   progress: (n: number) => `Question ${n} of ${MAX_QUESTIONS_PER_MOMENT}`,
   finish: 'Finish and see what came up',
   writing: 'DARE is writing…',
   fromTheDream: 'From the dream',
-  waiting: (finish: boolean) => `DARE is waiting for your answer. You can also go to another moment${finish ? ', or finish' : ''}.`,
-  open: (finish: boolean) => (finish ? 'You can keep writing, go to another moment or finish.' : 'You can keep writing or go to another moment.'),
+  waiting: (finish: boolean, moveOn = true) =>
+    `DARE is waiting for your answer.${moveOn ? ` You can also go to another moment${finish ? ', or finish' : ''}.` : finish ? ' You can also finish.' : ''}`,
+  open: (finish: boolean, moveOn = true) =>
+    moveOn ? (finish ? 'You can keep writing, go to another moment or finish.' : 'You can keep writing or go to another moment.') : finish ? 'You can keep writing or finish.' : 'You can keep writing.',
+  keys: 'Enter sends. Shift+Enter starts a new line.',
   done: 'We already talked about this moment.',
 };
 
@@ -34,14 +37,17 @@ const words = (address: Address) => ({
   rejected: address === 'masculine' ? 'סימנת שזה לא מתאים לך' : address === 'feminine' ? 'סימנת שזה לא מתאים לך' : 'סומן שזה לא מתאים',
   moveOn: 'לרגע אחר',
   toMap: 'מעבר למפת החלום',
-  closedNote: 'החקירה של הרגע הזה הסתיימה. אפשר לעבור למפת החלום או לראות מה עלה.',
+  closedNote: (moveOn: boolean) => (moveOn ? 'החקירה של הרגע הזה הסתיימה. אפשר לעבור לרגע אחר או לראות מה עלה.' : 'החקירה של הרגע הזה הסתיימה. אפשר לראות מה עלה.'),
   progress: (n: number) => `שאלה ${n} מתוך ${MAX_QUESTIONS_PER_MOMENT}`,
   finish: 'לסיים ולראות מה עלה',
   writing: 'DARE כותבת…',
   fromTheDream: 'מהחלום',
   // what the window says matches what it offers: "or finish" only when finishing is there
-  waiting: (finish: boolean) => `DARE מחכה לתשובה שלך. אפשר גם לעבור לרגע אחר${finish ? ', או לסיים' : ''}.`,
-  open: (finish: boolean) => (finish ? 'אפשר להמשיך לכתוב, לעבור לרגע אחר או לסיים.' : 'אפשר להמשיך לכתוב או לעבור לרגע אחר.'),
+  waiting: (finish: boolean, moveOn = true) =>
+    `DARE מחכה לתשובה שלך.${moveOn ? ` אפשר גם לעבור לרגע אחר${finish ? ', או לסיים' : ''}.` : finish ? ' אפשר גם לסיים.' : ''}`,
+  open: (finish: boolean, moveOn = true) =>
+    moveOn ? (finish ? 'אפשר להמשיך לכתוב, לעבור לרגע אחר או לסיים.' : 'אפשר להמשיך לכתוב או לעבור לרגע אחר.') : finish ? 'אפשר להמשיך לכתוב או לסיים.' : 'אפשר להמשיך לכתוב.',
+  keys: 'Enter לשליחה, Shift+Enter לשורה חדשה.',
   done: 'כבר דיברנו על הרגע הזה.',
 });
 

@@ -36,9 +36,91 @@ export function mapMomentTexts(analysis: DreamAnalysis): { text: string; segment
     const chunks = Array.from({ length: n }, (_, k) => distinct.slice(Math.floor((k * distinct.length) / n), Math.floor(((k + 1) * distinct.length) / n)).map((s) => s.id));
     return chunks.map((ids) => ({ text: textOfSegments(src, segments, ids).replace(/[\s,;]+$/, ''), segmentIds: ids }));
   }
-  if (groups.length === 1) return [{ text: groups[0].text, segmentIds: groups[0].segmentIds }];
-  const whole = src.trim();
-  return whole ? [{ text: whole, segmentIds: [] }] : [];
+  const single = groups.length === 1 ? { text: groups[0].text, segmentIds: groups[0].segmentIds } : src.trim() ? { text: src.trim(), segmentIds: [] } : null;
+  if (!single) return [];
+  // one scene can still hold several things to explore ("a missile war, hiding in the bunker, the people I love most"): the analysis's
+  // own explicit elements, each only where the dream says it in its own words, become the moments (2026-10-28)
+  const foci = momentFoci(analysis, single.text);
+  if (foci.length >= 2) return foci.map((text) => ({ text, segmentIds: single.segmentIds }));
+  return [single];
+}
+
+/** At most this many foci within one scene. */
+const MAX_FOCI = 4;
+/** Words that never make a focus on their own (the dreamer, small function words). */
+const NOT_A_FOCUS = new Set(['אני', 'אנחנו', 'הוא', 'היא', 'הם', 'הן', 'את', 'של', 'עם', 'על', 'כל', 'גם', 'רק', 'i', 'me', 'my', 'we', 'us', 'our', 'the', 'a', 'an', 'of', 'with', 'and', 'to', 'in', 'on', 'at', 'all']);
+/** Hebrew letters that may be joined to the front of a word: "בבונקר" is "בונקר". */
+const HE_PREFIX = /^[ובכלמשה]{0,3}$/;
+
+interface SourceWord {
+  key: string;
+  start: number;
+  end: number;
+}
+
+const wordsIn = (text: string): SourceWord[] =>
+  [...text.matchAll(/[\p{L}\p{N}][\p{L}\p{N}'׳״-]*/gu)].map((m) => ({ key: m[0].toLowerCase(), start: m.index!, end: m.index! + m[0].length }));
+
+/** A word of an element is the dream's word: the same, or with joined Hebrew letters in front ("הבונקר" / "בבונקר"). */
+function sameWord(dreamWord: string, elementWord: string): boolean {
+  if (dreamWord === elementWord) return true;
+  const cores = [elementWord, /^ה[א-ת]{2,}/.test(elementWord) ? elementWord.slice(1) : null].filter((c): c is string => Boolean(c && /^[א-ת]{2,}$/.test(c)));
+  return cores.some((core) => dreamWord.endsWith(core) && HE_PREFIX.test(dreamWord.slice(0, dreamWord.length - core.length)));
+}
+
+/** Where the dream says this element, as its own words (start, end), or null when it does not say it close together. */
+function spanOf(dream: SourceWord[], element: string): [number, number] | null {
+  const words = wordsIn(element).map((w) => w.key);
+  const content = words.filter((w) => !NOT_A_FOCUS.has(w) && w.length >= 2);
+  if (content.length === 0) return null;
+  const at = content.map((w) => dream.flatMap((d, i) => (sameWord(d.key, w) ? [i] : [])));
+  if (at.some((list) => list.length === 0)) return null;
+  let best: [number, number] | null = null;
+  for (const first of at[0]) {
+    let lo = first;
+    let hi = first;
+    for (const list of at.slice(1)) {
+      const near = list.reduce((a, b) => (Math.abs(b - first) < Math.abs(a - first) ? b : a));
+      lo = Math.min(lo, near);
+      hi = Math.max(hi, near);
+    }
+    // the element's words together, in one place in the dream: at most a few of the dream's words between them
+    if (hi - lo + 1 > words.length + 3) continue;
+    if (!best || hi - lo < best[1] - best[0]) best = [lo, hi];
+  }
+  return best;
+}
+
+/**
+ * The foci within one scene: the analysis's explicit elements (unusual elements, people, objects, places, actions — in that order), each
+ * as the dream's own words where it says it. Nothing the dream does not say, never the same words twice, never the whole scene again.
+ * A focus that holds two others gives way to them (each is a focus of its own); one that holds a single other one replaces it with
+ * more of the dream's words ("בבונקר" → "אני מתחבאת בבונקר"). In the dream's order, at most MAX_FOCI.
+ */
+export function momentFoci(analysis: DreamAnalysis, scene: string): string[] {
+  const dream = wordsIn(scene);
+  if (dream.length < 4) return [];
+  const a = analysis as Partial<DreamAnalysis>;
+  const candidates = [
+    ...(a.unusualElements ?? []),
+    ...(a.people ?? []).filter((p) => p.explicit).map((p) => p.nameOrRole),
+    ...(a.objects ?? []).filter((o) => o.explicit).map((o) => o.name),
+    ...(a.places ?? []).filter((p) => p.explicit).map((p) => p.name),
+    ...(a.actions ?? []).filter((x) => x.explicit).map((x) => [x.subject, x.action, x.target].filter(Boolean).join(' ')),
+  ].filter((c): c is string => typeof c === 'string' && c.trim().length > 0);
+  let kept: [number, number][] = [];
+  for (const c of candidates) {
+    const span = spanOf(dream, c);
+    // a focus is part of the scene, not all of it
+    if (!span || span[1] - span[0] + 1 >= dream.length - 1) continue;
+    const overlapping = kept.filter(([lo, hi]) => !(hi < span[0] || lo > span[1]));
+    if (overlapping.length === 0) kept.push(span);
+    else if (overlapping.length === 1 && overlapping[0][0] >= span[0] && overlapping[0][1] <= span[1]) kept = kept.map((k) => (k === overlapping[0] ? span : k));
+  }
+  return kept
+    .sort((x, y) => x[0] - y[0])
+    .slice(0, MAX_FOCI)
+    .map(([lo, hi]) => scene.slice(dream[lo].start, dream[hi].end));
 }
 
 /**

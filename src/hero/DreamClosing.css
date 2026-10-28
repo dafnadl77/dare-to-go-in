@@ -703,8 +703,7 @@
   text-shadow: 0 0.05em 0.6em rgba(0, 0, 0, 0.5);
   cursor: pointer;
   outline: none;
-  opacity: 0;
-  animation: dc-fade-in 1.8s var(--ease-memory) 2.4s forwards;
+  /* no entry of its own (it came 2.4s later than "return to the room"): it appears with the saved block, both buttons at once */
   transition:
     background 0.3s var(--ease-soft),
     border-color 0.3s var(--ease-soft),
@@ -733,8 +732,7 @@
   .dc-block--enter,
   .dc-choices,
   .dc-flash,
-  .dc-title--materialize,
-  .dc-archive-invite {
+  .dc-title--materialize {
     animation-duration: 0.01s !important;
   }
   .dc-portal-particle,

@@ -155,6 +155,24 @@ export default function DreamReflection({
     if (step === 'link') setLinkText('');
   }, [step]);
   const [lensesVisible, setLensesVisible] = useState(false);
+  const lensesRef = useRef<HTMLDivElement>(null);
+  // the other angles, opened: their box is in the page flow (the screen flows and scrolls, as when the thoughts do not fit), so it is
+  // brought into view under its button instead of being drawn over the reflection (2026-10-28)
+  useEffect(() => {
+    if (!lensesVisible) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const frame = window.requestAnimationFrame(() => {
+      const box = lensesRef.current;
+      const screen = box?.closest<HTMLElement>('.dream-reflection');
+      if (!box || !screen) return;
+      // the screen scrolls itself (desktop, tablet): only it moves, never the page around it; on a phone the page is what scrolls
+      if (getComputedStyle(screen).overflowY === 'auto') {
+        const below = box.getBoundingClientRect().bottom - screen.getBoundingClientRect().bottom + 24;
+        if (below > 0) screen.scrollTo({ top: screen.scrollTop + below, behavior: reduce ? 'auto' : 'smooth' });
+      } else box.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [lensesVisible]);
   // The short explanation of the symbols-and-meanings lens opens only when the dreamer asks for it.
   const [lensInfoOpen, setLensInfoOpen] = useState(false);
   // The optional feelings step: which of the twelve are chosen (at most three).
@@ -265,7 +283,7 @@ export default function DreamReflection({
   const hasOtherPerspectives = activeLenses.length > 0 || alternativeReadings.length > 0 || !!existential;
 
   return (
-    <div className="dream-reflection" data-step={step} data-flow={step === 'reflection' && flowLayout ? 'true' : undefined} style={{ '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties}>
+    <div className="dream-reflection" data-step={step} data-flow={step === 'reflection' && (flowLayout || lensesVisible) ? 'true' : undefined} style={{ '--accent-rgb': `${accent.r}, ${accent.g}, ${accent.b}` } as CSSProperties}>
       {ARRIVAL_STEPS.has(step) && (
       <div className="dream-arrival" data-step={arrivalStyleStep}>
           <div className="da-content">
@@ -499,12 +517,12 @@ export default function DreamReflection({
           </div>
 
           {stage >= lastStage && hasOtherPerspectives && (
-            <div className="dr-lenses-wrap">
-              <button type="button" className="dr-lenses-toggle" data-cursor-hover onClick={() => setLensesVisible((v) => !v)}>
+            <div className="dr-lenses-wrap" data-open={lensesVisible ? 'true' : undefined}>
+              <button type="button" className="dr-lenses-toggle" data-cursor-hover aria-expanded={lensesVisible} onClick={() => setLensesVisible((v) => !v)}>
                 {lensesVisible ? t('reflection.hideOtherLenses') : t('reflection.seeOtherLenses')}
               </button>
               {lensesVisible && (
-                <div className="dr-lenses">
+                <div className="dr-lenses" ref={lensesRef}>
                   {alternativeReadings.map((r) => (
                     <p className="dr-lens" key={`alt-${r.basis}`}>
                       <span className="dr-lens-label">{showAiText(r.basis)}</span> {showAiText(r.reading)}

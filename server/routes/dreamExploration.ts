@@ -620,8 +620,15 @@ export function momentCapExtra(e: Exploration): number {
 /** A turn is two to five lines: its answer is bounded, so its worst cost is known before it is asked for. */
 export const TURN_MAX_OUTPUT_TOKENS = 700;
 
-/** The closing line of a moment when none came back usable (no question, nothing invented). */
-const closingLine = (language: AppLanguage) => (language === 'he' ? 'תודה על מה ששיתפת ברגע הזה. אפשר לעבור לרגע אחר, או לראות מה עלה.' : 'Thank you for what you shared in this moment. You can go to another moment, or see what came up.');
+/** The closing line of a moment when none came back usable (no question, nothing invented); "another moment" only when one is left. */
+export const closingLine = (language: AppLanguage, anotherLeft = true) =>
+  anotherLeft
+    ? language === 'he'
+      ? 'תודה על מה ששיתפת ברגע הזה. אפשר לעבור לרגע אחר, או לראות מה עלה.'
+      : 'Thank you for what you shared in this moment. You can go to another moment, or see what came up.'
+    : language === 'he'
+      ? 'תודה על מה ששיתפת ברגע הזה. אפשר לראות מה עלה.'
+      : 'Thank you for what you shared in this moment. You can see what came up.';
 
 const conversationContext = (ctx: DreamContext, e: Exploration) => ({ sourceText: ctx.sourceText, labels: e.moments.map((m) => m.label), herWords: herWordsIn(e), language: ctx.language,
   // the only ideas a summary may list as offered: DARE's offers she did not reject
@@ -670,7 +677,8 @@ export async function generateConversationTurn(client: OpenAI, ctx: DreamContext
   if (p.kind === 'turn' && p.request === 'close') {
     // the closing line: no question of any kind and no offer, whatever came back; nothing usable = the plain closing line
     const said = odd || unsafe ? '' : checked.reply.split(/(?<=[.!?…])\s+/u).filter((x) => x.trim() && !isQuestionTurn({ role: 'dare', text: x })).join(' ');
-    const closing: ConversationTurn = { role: 'dare', text: said || closingLine(ctx.language), move: 'summarize', closing: true };
+    const anotherLeft = p.moments.some((x) => !x.explored && x.label !== p.moment.label);
+    const closing: ConversationTurn = { role: 'dare', text: said || closingLine(ctx.language, anotherLeft), move: 'summarize', closing: true };
     return { status: 'ok' as const, value: { turn: closing, dropped: checked.dropped, fixed: checked.fixed, takeaways: { mine: [], ideas: [], open: [] } } };
   }
   const turn: ConversationTurn = odd || unsafe

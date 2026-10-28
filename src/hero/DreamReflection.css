@@ -1038,6 +1038,26 @@
   text-align: right;
 }
 
+/* The other angles, open: a soft box in the dream map's card language (its night plate, gold hairline, rounded corners), always in the
+   page flow, so it pushes what follows down and never covers the reflection (2026-10-28). */
+.dr-lenses {
+  pointer-events: auto;
+  align-items: flex-start;
+  text-align: start;
+  padding: 18px 22px;
+  border-radius: 22px;
+  background: rgba(11, 12, 27, 0.9);
+  border: 1px solid rgba(233, 199, 135, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 14px 40px rgba(0, 0, 0, 0.45),
+    0 0 26px rgba(233, 199, 135, 0.1);
+}
+
+.dr-lens {
+  text-align: start;
+}
+
 .dr-lens {
   margin: 0;
   max-width: 30em;
@@ -1332,7 +1352,15 @@
 
   .dr-lenses {
     align-items: flex-start;
-    text-align: left;
+    text-align: start;
+  }
+
+  /* open: the box itself is the plate, so the wrap's own plate steps aside (no box in a box) */
+  :root .dr-lenses-wrap[data-open='true'] {
+    background: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 0;
   }
 
   .dr-grounding {

@@ -1,5 +1,5 @@
 import { emotionNamesForModel, normalizeEmotions } from '../hero/dreamEmotions';
-import { basedOnKey, exploredInOrder, MAX_QUESTIONS_PER_MOMENT, parseExploration, questionsAsked } from '../hero/exploration';
+import { anotherMomentLeft, basedOnKey, exploredInOrder, MAX_QUESTIONS_PER_MOMENT, parseExploration, questionsAsked } from '../hero/exploration';
 import { checkLabel } from '../hero/claimCheck';
 import { saysItConnects } from '../hero/conversationTurn';
 
@@ -306,7 +306,15 @@ export function demoConversation(he: boolean, body: Json): Json | null {
   if (questionsAsked(e, momentId) >= MAX_QUESTIONS_PER_MOMENT) {
     return {
       momentId,
-      turn: { role: 'dare', move: 'summarize', closing: true, text: he ? 'תודה על מה ששיתפת ברגע הזה. אפשר לעבור לרגע אחר, או לראות מה עלה.' : 'Thank you for what you shared in this moment. You can go to another moment, or see what came up.' },
+      // like the real closing line: "another moment" only when one is left
+      turn: {
+        role: 'dare',
+        move: 'summarize',
+        closing: true,
+        text: anotherMomentLeft(e, momentId)
+          ? he ? 'תודה על מה ששיתפת ברגע הזה. אפשר לעבור לרגע אחר, או לראות מה עלה.' : 'Thank you for what you shared in this moment. You can go to another moment, or see what came up.'
+          : he ? 'תודה על מה ששיתפת ברגע הזה. אפשר לראות מה עלה.' : 'Thank you for what you shared in this moment. You can see what came up.',
+      },
     };
   }
   const last = e.explored[momentId]?.turns?.slice(-1)[0];
