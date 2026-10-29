@@ -273,7 +273,8 @@ test('the snapshot type itself has no field for tokens, sessions, e-mail or paym
 test('sign-out (any kind) and account deletion delete every unfinished journey in the browser', () => {
   const auth = read('src/auth/AuthContext.tsx');
   assert.match(auth, /event === 'SIGNED_OUT'\)\s*\{\s*void clearAllOpenJourneys\(\);/);
-  assert.match(auth, /await clearAllOpenJourneys\(\);\s*await supabase\.auth\.signOut\(\{ scope: 'local' \}\);/);
+  // awaited before the session ends; the account's other temporary dream data is cleared in between (2026-10-29, signOutCleanup.test.ts)
+  assert.match(auth, /await clearAllOpenJourneys\(\);(?:\s*\/\/[^\n]*)*\s*clearSignOutState\(\);\s*clearTranslationMemory\(\);\s*await supabase\.auth\.signOut\(\{ scope: 'local' \}\);/);
   const del = read('src/auth/deleteAccount.ts');
   assert.match(del, /clearLocalAccountState\(\);\s*\/\/[^\n]*\n\s*await clearAllOpenJourneys\(\);/);
 });

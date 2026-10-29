@@ -62,6 +62,13 @@ function loadCache(): Map<string, string> {
 }
 const cache = loadCache();
 const inFlight = new Set<string>();
+
+/** Forgets every translation held in memory (sign-out, account deletion): otherwise the next store() would write the previous account's
+    dream texts back into this tab's storage under whoever signs in next. The stored copy is removed by the caller. */
+export function clearTranslationMemory(): void {
+  cache.clear();
+  inFlight.clear();
+}
 const MAX_PER_REQUEST = 40;
 
 const keyOf = (kind: Kind, text: string, language: AppLanguage) => `${kind}|${language}|${text}`;

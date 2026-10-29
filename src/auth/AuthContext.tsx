@@ -5,6 +5,8 @@ import { claimTrial } from './claimTrial';
 import { ADDRESS_PREFERENCE_METADATA_KEY, type AddressPreference } from '../hero/addressPreference';
 import { DISPLAY_NAME_METADATA_KEY, normalizeDisplayName } from './displayName';
 import { clearAllOpenJourneys } from '../hero/openJourneyStore';
+import { clearSignOutState } from './localAccountState';
+import { clearTranslationMemory } from '../archive/dreamTitleTranslation';
 
 export type AuthActionResult =
   | { ok: true; sessionCreated: boolean }
@@ -256,6 +258,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // other devices (their tokens kept looking valid but every paid call was refused).
         // The unfinished journeys in this browser go first, and are awaited, so they are gone even if the page navigates right after.
         await clearAllOpenJourneys();
+        // Then this account's temporary dream data on the device and in memory (the draft, a dream waiting to be saved, the last
+        // submission, the translations), so nothing of it reaches whoever signs in next here (2026-10-29). Only on a sign-out she
+        // chose: a session that merely ended keeps the draft that was saved for her to continue after signing in again.
+        clearSignOutState();
+        clearTranslationMemory();
         await supabase.auth.signOut({ scope: 'local' });
       },
     }),
