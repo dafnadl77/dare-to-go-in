@@ -2,7 +2,7 @@ import type { LegalDocument } from './legalContent';
 import { MIN_AGE } from './retention';
 
 /**
- * The Terms of Use, both languages. Still a DRAFT (the draft notice stays). The limitation of liability is her approved wording (2026-10-24),
+ * The Terms of Use, both languages. No draft notice (removed at the owner's decision, 2026-10-29). The limitation of liability is her approved wording (2026-10-24),
  * limited "to the extent the law permits"; at her explicit request the general clause about liability that cannot be limited was removed
  * (a question for the lawyer's review, not a promise of immunity). The purchase, tax-document, credit and
  * cancellation sections are unchanged from the version approved before this round; they must keep matching the Packages page and checkout.
@@ -12,7 +12,7 @@ export const termsEn: LegalDocument = {
   title: 'Terms of Use',
   updated: 'Last updated: October 2026',
   intro:
-    'These terms apply to using DARE TO GO IN and to buying dream packages. Using the site, creating an account or making a purchase means you agree to them. Please read them before you buy. They are written in plain language — a fuller, formally reviewed version will replace them before any commercial launch.',
+    'These terms apply to using DARE TO GO IN and to buying dream packages. Using the site, creating an account or making a purchase means you agree to them. Please read them before you buy. They are written in plain language.',
   sections: [
     {
       heading: 'Introduction',
@@ -57,7 +57,7 @@ export const termsEn: LegalDocument = {
     },
     {
       heading: 'Packages, credits and prices',
-      body: 'A dream credit lets you create one full dream: the dream journey, an image and a reflection, saved to your archive. Every account\'s first dream is free (once per account), as described on the Packages page.\n\nPaid packages, at the prices on the Packages page on the day of purchase: 3 dreams for ₪59, 10 dreams for ₪149, 25 dreams for ₪279. All prices include VAT. Prices and packages may change; a purchase already made and the credits you bought are not affected by a later change.\n\nPayment is one-time. There is no subscription and no recurring or automatic charge. Each purchase is a separate transaction.\n\nCredits are personal, belong to the account that bought them, and cannot be transferred to another account.',
+      body: 'A dream credit lets you create one full dream: the dream journey, an image and a reflection, saved to your archive. The first dream is free, once: either before you create an account, or as the first dream of an account with a confirmed email address. A free dream completed before signing up counts as that account\'s free dream. See the Packages page.\n\nPaid packages, at the prices on the Packages page on the day of purchase: 3 dreams for ₪59, 10 dreams for ₪149, 25 dreams for ₪279. All prices include VAT. Prices and packages may change; a purchase already made and the credits you bought are not affected by a later change.\n\nPayment is one-time. There is no subscription and no recurring or automatic charge. Each purchase is a separate transaction.\n\nCredits are personal, belong to the account that bought them, and cannot be transferred to another account.',
     },
     {
       heading: 'Payment',
@@ -65,11 +65,11 @@ export const termsEn: LegalDocument = {
     },
     {
       heading: 'Tax documents and the transaction details document',
-      body: 'For each payment a tax invoice / receipt is issued as required by law, by Dafna Dalmada (licensed dealer 033868969), using the Morning system, and sent to the email address of the account that made the purchase, within the times the law sets. At this stage the documents are issued and sent manually by the dealer, so they are not sent automatically or instantly. If you do not receive the document, contact us at daretogoin@gmail.com.\n\nTogether with it you will receive a transaction details document: a summary of the dealer\'s details, what was bought, the price and payment terms, how the credits are delivered, and how to exercise the right to cancel under the law, as required for a remote sale.',
+      body: 'For each payment a tax invoice / receipt is issued as required by law, by Dafna Dalmada (licensed dealer 033868969), using the Morning system, and sent to the email address of the account that made the purchase, within the times the law sets. At this stage the documents are issued and sent manually by the dealer, so they are not sent automatically or instantly. If you do not receive the document, contact us at daretogoin@gmail.com.\n\nIn addition you will receive a transaction details document: a summary of the dealer\'s details, what was bought, the price and payment terms, how the credits are delivered, and how to exercise the right to cancel under the law, as required for a remote sale.',
     },
     {
       heading: 'Credit validity and use',
-      body: 'Credits do not expire. They stay in your account until you use them or the account is deleted. One credit is used when a new dream begins. If creating a dream fails because of a fault on our side or at a provider, the credit is returned to your account automatically. Credits cannot be exchanged for money, subject to your rights under law.',
+      body: 'Credits do not expire. They stay in your account until you use them or the account is deleted. One credit is used when a new dream begins. If the first stage of a new dream (reading and reconstructing it) fails because of a fault on our side or at a provider, the credit is returned to your account automatically. If a later step, such as the image or the reflection, fails for such a reason, it can be tried again within the same dream without using another credit. If it still cannot be completed, write to us and we will check. Credits cannot be exchanged for money, subject to your rights under law.',
     },
     {
       heading: 'Cancellation and refunds',
@@ -96,15 +96,13 @@ export const termsEn: LegalDocument = {
       body: 'These terms are governed by Israeli law. Nothing here limits your right to turn to the competent court under the law.',
     },
   ],
-  draftNotice:
-    'This is a draft, written for a small, early-stage app. It has not yet been reviewed by a lawyer and should not be relied on as a complete or final legal document — a properly reviewed version will replace this before any commercial launch.',
 };
 
 export const termsHe: LegalDocument = {
   title: 'תנאי שימוש',
   updated: 'עודכן לאחרונה: אוקטובר 2026',
   intro:
-    'תנאים אלו חלים על השימוש ב-DARE TO GO IN וגם על רכישת חבילות חלומות. שימוש באתר, פתיחת חשבון או רכישה מהווים הסכמה להם. נא לקרוא אותם לפני רכישה. הם נכתבו בשפה פשוטה — גרסה מלאה ומאושרת משפטית תחליף אותם לפני השקה מסחרית.',
+    'תנאים אלו חלים על השימוש ב-DARE TO GO IN וגם על רכישת חבילות חלומות. שימוש באתר, פתיחת חשבון או רכישה מהווים הסכמה להם. נא לקרוא אותם לפני רכישה. הם נכתבו בשפה פשוטה.',
   sections: [
     {
       heading: 'פתיח',
@@ -149,7 +147,7 @@ export const termsHe: LegalDocument = {
     },
     {
       heading: 'חבילות, קרדיטים ומחירים',
-      body: 'קרדיט חלום מאפשר ליצור חלום אחד מלא: מסע חלום, תמונה והתבוננות, ושמירה בארכיון. בכל חשבון, החלום הראשון ללא תשלום (פעם אחת לחשבון), כמפורט בדף החבילות.\n\nחבילות בתשלום, לפי המחירים בדף החבילות ביום הרכישה: 3 חלומות ב-59 ₪, 10 חלומות ב-149 ₪, 25 חלומות ב-279 ₪. כל המחירים כוללים מע"מ. אפשר לעדכן מחירים וחבילות; רכישה שבוצעה והקרדיטים שנרכשו לא יושפעו משינוי כזה.\n\nהתשלום חד־פעמי. אין מנוי, אין חיוב חוזר ואין חיוב אוטומטי. כל רכישה היא עסקה נפרדת.\n\nהקרדיטים אישיים, משויכים לחשבון שרכש אותם ואינם ניתנים להעברה לחשבון אחר.',
+      body: 'קרדיט חלום מאפשר ליצור חלום אחד מלא: מסע חלום, תמונה והתבוננות, ושמירה בארכיון. החלום הראשון ללא תשלום, פעם אחת: לפני פתיחת חשבון, או כחלום הראשון של חשבון עם כתובת אימייל מאומתת. חלום חינמי שהושלם לפני ההרשמה נחשב לחלום החינמי של אותו חשבון. ראו דף החבילות.\n\nחבילות בתשלום, לפי המחירים בדף החבילות ביום הרכישה: 3 חלומות ב-59 ₪, 10 חלומות ב-149 ₪, 25 חלומות ב-279 ₪. כל המחירים כוללים מע"מ. אפשר לעדכן מחירים וחבילות; רכישה שבוצעה והקרדיטים שנרכשו לא יושפעו משינוי כזה.\n\nהתשלום חד־פעמי. אין מנוי, אין חיוב חוזר ואין חיוב אוטומטי. כל רכישה היא עסקה נפרדת.\n\nהקרדיטים אישיים, משויכים לחשבון שרכש אותם ואינם ניתנים להעברה לחשבון אחר.',
     },
     {
       heading: 'תשלום',
@@ -157,11 +155,11 @@ export const termsHe: LegalDocument = {
     },
     {
       heading: 'מסמכי מס ומסמך פרטי העסקה',
-      body: 'על כל תשלום מופקת חשבונית מס / קבלה בהתאם לדין, על ידי דפנה דלמדה (עוסק מורשה 033868969), באמצעות מערכת Morning, ונשלחת אל כתובת הדוא"ל של החשבון שבו בוצעה הרכישה, בהתאם למועדים הקבועים בדין. בשלב זה המסמכים מופקים ונשלחים באופן ידני על ידי העוסקת, ולכן אינם נשלחים אוטומטית או מיידית. אם לא קיבלתם את המסמך, פנו אלינו ל-daretogoin@gmail.com.\n\nיחד עם המסמך תקבלו מסמך פרטי העסקה: סיכום של פרטי העוסק, מה נרכש, המחיר ותנאי התשלום, אופן אספקת הקרדיטים, ואופן מימוש זכות הביטול לפי הדין, כנדרש בעסקה מרחוק.',
+      body: 'על כל תשלום מופקת חשבונית מס / קבלה בהתאם לדין, על ידי דפנה דלמדה (עוסק מורשה 033868969), באמצעות מערכת Morning, ונשלחת אל כתובת הדוא"ל של החשבון שבו בוצעה הרכישה, בהתאם למועדים הקבועים בדין. בשלב זה המסמכים מופקים ונשלחים באופן ידני על ידי העוסקת, ולכן אינם נשלחים אוטומטית או מיידית. אם לא קיבלתם את המסמך, פנו אלינו ל-daretogoin@gmail.com.\n\nבנוסף תקבלו מסמך פרטי העסקה: סיכום של פרטי העוסק, מה נרכש, המחיר ותנאי התשלום, אופן אספקת הקרדיטים, ואופן מימוש זכות הביטול לפי הדין, כנדרש בעסקה מרחוק.',
     },
     {
       heading: 'תוקף הקרדיטים ושימוש בהם',
-      body: 'הקרדיטים אינם פגי תוקף. הם נשמרים בחשבון עד שמנצלים אותם או עד שהחשבון נמחק. קרדיט אחד מנוצל בתחילת חלום חדש. אם יצירת החלום נכשלת בשל תקלה אצלנו או אצל ספק, הקרדיט מוחזר לחשבון אוטומטית. אין המרה של קרדיטים לכסף, בכפוף לזכויותיכם על פי דין.',
+      body: 'הקרדיטים אינם פגי תוקף. הם נשמרים בחשבון עד שמנצלים אותם או עד שהחשבון נמחק. קרדיט אחד מנוצל בתחילת חלום חדש. אם השלב הראשון של חלום חדש (קריאת החלום ושחזורו) נכשל בשל תקלה אצלנו או אצל ספק, הקרדיט מוחזר לחשבון אוטומטית. אם שלב מאוחר יותר, כמו התמונה או ההתבוננות, נכשל מסיבה כזו, אפשר לנסות אותו שוב בתוך אותו חלום בלי לנצל קרדיט נוסף. אם עדיין לא ניתן להשלים אותו, פנו אלינו ונבדוק. אין המרה של קרדיטים לכסף, בכפוף לזכויותיכם על פי דין.',
     },
     {
       heading: 'ביטול עסקה והחזרים',
@@ -188,6 +186,4 @@ export const termsHe: LegalDocument = {
       body: 'על תנאים אלו יחול הדין הישראלי. אין בכך כדי לפגוע בזכותכם לפנות לערכאה המוסמכת לפי הדין.',
     },
   ],
-  draftNotice:
-    'זוהי טיוטה, שנכתבה עבור אפליקציה קטנה בשלב מוקדם. היא טרם נבדקה על ידי עורך דין ואין להסתמך עליה כמסמך משפטי סופי ומלא — גרסה שעברה בדיקה משפטית מסודרת תחליף אותה לפני השקה מסחרית.',
 };

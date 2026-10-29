@@ -51,16 +51,19 @@ test('the business ADDRESS is an open item: only the city is published, no stree
   assert.ok(operatorLine('he').includes(BUSINESS.locationHe) && operatorLine('en').includes(BUSINESS.locationEn));
 });
 
-test('the draft notices stay: no document claims a lawyer reviewed or approved it, and each still says it has not been reviewed', () => {
+test('no draft notice and no "will be replaced before launch" (removed by decision of the owner, 2026-10-29); nothing says who wrote or reviewed the documents', () => {
   for (const lang of ['he', 'en'] as const) {
     for (const key of KEYS) {
       const d = getLegalDocument(lang, key);
-      assert.match(d.draftNotice, lang === 'he' ? /טיוטה|טיוטת/ : /draft/i, `${lang}/${key} notice`);
-      assert.match(d.draftNotice, lang === 'he' ? /טרם נבדק/ : /not yet been reviewed/, `${lang}/${key} not reviewed`);
-      assert.ok(!/(has been|was|is) (reviewed|approved) by a lawyer|אושר(ה|ו)? (על ידי|בידי) עורך דין|נבדק(ה)? ואושר/.test(text(lang, key)), `${lang}/${key}: no approval claim`);
+      assert.equal(d.draftNotice, undefined, `${lang}/${key}: no closing draft notice`);
+      const all = text(lang, key);
+      assert.ok(!/is a draft|draft (privacy|cancellation)|טיוטה,|טיוטת (מדיניות|תנאי)|זוהי טיוטה/i.test(all), `${lang}/${key}: not presented as a draft`);
+      assert.ok(!/will replace (it|them)|before any commercial launch|תחליף אות(ו|ם)|לפני השקה מסחרית|formally reviewed|מאושרת משפטית/i.test(all), `${lang}/${key}: no promise of a replacement`);
+      assert.ok(!/lawyer|עורך דין|עורכי דין|reviewed by|approved by|נבדק(ה)? (על ידי|בידי)|אושר(ה|ו)? (על ידי|בידי)/i.test(all), `${lang}/${key}: says nothing about who reviewed it`);
     }
+    // the accessibility statement keeps its own, accurate note about the ongoing accessibility review
+    assert.ok(getLegalDocument(lang, 'accessibility').draftNotice?.trim());
   }
-  for (const lang of ['he', 'en'] as const) for (const key of ['terms', 'privacy', 'cancellation'] as LegalKey[]) assert.match(getLegalDocument(lang, key).intro, lang === 'he' ? /תחליף אותם? לפני השקה מסחרית|תחליף אותו לפני השקה מסחרית/ : /will replace (it|them) before any commercial launch/);
 });
 
 test('the policies say the approved things: one-time, no subscription, no expiry, no voluntary refunds beyond the law, unused balance deleted with the account, prices incl. VAT', () => {

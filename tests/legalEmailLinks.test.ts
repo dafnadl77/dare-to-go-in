@@ -17,7 +17,7 @@ test('every email in every legal document (both languages) is a clean address th
   for (const lang of ['en', 'he'] as const) {
     for (const key of ['privacy', 'accessibility', 'terms'] as const) {
       const doc = getLegalDocument(lang, key);
-      const texts = [doc.title, doc.intro, doc.draftNotice, ...doc.sections.flatMap((s) => [s.heading, ...s.body.split('\n\n')])];
+      const texts = [doc.title, doc.intro, doc.draftNotice ?? '', ...doc.sections.flatMap((s) => [s.heading, ...s.body.split('\n\n')])];
       for (const text of texts) {
         for (const email of emailsIn(text)) {
           found += 1;

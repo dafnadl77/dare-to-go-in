@@ -11,8 +11,8 @@ import { termsEn, termsHe } from './termsContent';
     `language` value `useLanguage()` already exposes — it's just a
     dedicated shape for long-form content instead of one-off flat keys.
 
-    Every document ends with its own draftNotice — plain, visible, never
-    buried — since none of this has had a real legal review yet. The business
+    No document carries a draft notice any more (removed at the owner's decision, 2026-10-29); only the accessibility statement keeps its
+    own note, which says honestly that the accessibility review is ongoing. The business
     details quoted in the Terms, the Privacy Policy and the Cancellation Policy
     are the ones in businessDetails.ts (a test keeps them identical). */
 
@@ -31,7 +31,8 @@ export interface LegalDocument {
   updated: string;
   intro: string;
   sections: LegalSection[];
-  draftNotice: string;
+  /** A closing note shown under the document, when there is one (only the accessibility statement has one). */
+  draftNotice?: string;
 }
 
 export interface LegalContent {
@@ -86,7 +87,7 @@ const en: LegalContent = {
     title: 'Cancellation and Refund Policy',
     updated: 'Last updated: October 2026',
     intro:
-      'This document explains what happens if you want to cancel a purchase on DARE, and the rights the law gives you as a consumer. It is written in plain language — a fuller, formally reviewed version will replace it before any commercial launch.',
+      'This document explains what happens if you want to cancel a purchase on DARE, and the rights the law gives you as a consumer. It is written in plain language.',
     sections: [
       {
         heading: 'In short',
@@ -102,15 +103,13 @@ const en: LegalContent = {
       },
       {
         heading: 'Credits used and unused',
-        body: 'A credit used to create a dream has already been provided, and we will handle it as the law requires. A credit deducted because of a technical failure on our side or at a provider is returned to the account automatically. If you paid and the credits were not added, we will add them or refund the payment.',
+        body: 'A credit used to create a dream has already been provided, and we will handle it as the law requires. A credit is returned to the account automatically if the first stage of a dream fails because of a technical failure on our side or at a provider; a later step that fails can be tried again within the same dream. If you paid and the credits were not added, we will add them or refund the payment.',
       },
       {
         heading: 'Deleting an account and not using credits',
         body: 'Deleting an account or not using credits is not a cancellation request. An unused credit balance is deleted with the account and is not refundable voluntarily; your rights under the law are not affected. If you are considering cancelling a purchase, please contact us before deleting the account.',
       },
     ],
-    draftNotice:
-      'This is a draft cancellation policy, written for a small, early-stage app. It has not yet been reviewed by a lawyer and should not be relied on as a complete or final legal document — a properly reviewed policy will replace this before any commercial launch.',
   },
 };
 
@@ -159,7 +158,7 @@ const he: LegalContent = {
     title: 'מדיניות ביטולים והחזרים',
     updated: 'עודכן לאחרונה: אוקטובר 2026',
     intro:
-      'המסמך הזה מסביר מה קורה אם רוצים לבטל רכישה ב-DARE, ומה הזכויות שהדין נותן לכם כצרכנים. הוא נכתב בשפה פשוטה — גרסה מלאה ומאושרת משפטית תחליף אותו לפני השקה מסחרית.',
+      'המסמך הזה מסביר מה קורה אם רוצים לבטל רכישה ב-DARE, ומה הזכויות שהדין נותן לכם כצרכנים. הוא נכתב בשפה פשוטה.',
     sections: [
       {
         heading: 'בקצרה',
@@ -175,15 +174,13 @@ const he: LegalContent = {
       },
       {
         heading: 'קרדיטים שנוצלו ושלא נוצלו',
-        body: 'קרדיט שנוצל ליצירת חלום כבר סופק, ואת הטיפול בו נבצע לפי הדין. קרדיט שהופחת בשל כשל טכני אצלנו או אצל ספק מוחזר אוטומטית לחשבון. אם שילמתם והקרדיטים לא נוספו, נוסיף אותם או נחזיר את התשלום.',
+        body: 'קרדיט שנוצל ליצירת חלום כבר סופק, ואת הטיפול בו נבצע לפי הדין. קרדיט מוחזר לחשבון אוטומטית אם השלב הראשון של החלום נכשל בשל כשל טכני אצלנו או אצל ספק; שלב מאוחר יותר שנכשל אפשר לנסות שוב בתוך אותו חלום. אם שילמתם והקרדיטים לא נוספו, נוסיף אותם או נחזיר את התשלום.',
       },
       {
         heading: 'מחיקת חשבון ואי־שימוש',
         body: 'מחיקת חשבון או אי־שימוש בקרדיטים אינם בקשת ביטול. יתרת קרדיטים שלא נוצלה נמחקת עם מחיקת החשבון, ואינה ניתנת להחזר מרצון; זכויותיכם לפי הדין לא נפגעות. אם אתם שוקלים לבטל רכישה, מומלץ לפנות אלינו לפני מחיקת החשבון.',
       },
     ],
-    draftNotice:
-      'זוהי טיוטת מדיניות ביטולים שנכתבה עבור אפליקציה קטנה בשלב מוקדם. היא טרם נבדקה על ידי עורך דין ואין להסתמך עליה כמסמך משפטי סופי ומלא — מדיניות שעברה בדיקה משפטית מסודרת תחליף אותה לפני השקה מסחרית.',
   },
 };
 

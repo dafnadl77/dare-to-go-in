@@ -121,14 +121,12 @@ test('the sign-out she chooses clears all of it before the session ends; a sessi
 
 test('the privacy policy says exactly what signing out removes and keeps (HE and EN, approved 2026-10-29)', () => {
   const privacy = read('src/legal/privacyContent.ts');
-  assert.match(privacy, /When you sign out, the dream draft, a dream waiting to be saved, an unfinished dream journey and the tab's temporary storage are removed from the device\. The dreams, conversations, credits and purchases in your account stay in your account and are not deleted when you sign out\. Dreams you saved on this device before an account existed stay on it until you delete your account or clear the browser's data\./);
-  assert.match(privacy, /ביציאה מהחשבון נמחקים מהמכשיר טיוטת החלום, חלום שממתין לשמירה, מסע חלום שלא הסתיים והאחסון הזמני של הלשונית\. החלומות, השיחות, הקרדיטים והרכישות שבחשבון נשארים בחשבון ואינם נמחקים ביציאה\. חלומות ששמרתם במכשיר לפני שהיה חשבון נשארים בו עד מחיקת החשבון או מחיקת נתוני הדפדפן\./);
-  assert.match(privacy, /An unfinished dream journey \(IndexedDB\): [^\\]*for up to 7 days\./);
-  assert.match(privacy, /מסע חלום שלא הסתיים \(IndexedDB\): [^\\]*עד 7 ימים\./);
+  assert.match(privacy, /When you sign out, the dream draft, a dream waiting to be saved and the tab's temporary storage are removed from the device\. The dreams, conversations, credits and purchases in your account stay in your account and are not deleted when you sign out\. Dreams you saved on this device before an account existed stay on it until you delete your account or clear the browser's data\./);
+  assert.match(privacy, /ביציאה מהחשבון נמחקים מהמכשיר טיוטת החלום, חלום שממתין לשמירה והאחסון הזמני של הלשונית\. החלומות, השיחות, הקרדיטים והרכישות שבחשבון נשארים בחשבון ואינם נמחקים ביציאה\. חלומות ששמרתם במכשיר לפני שהיה חשבון נשארים בו עד מחיקת החשבון או מחיקת נתוני הדפדפן\./);
   // the old promise is gone: saved dreams are not removed at sign-out
   assert.doesNotMatch(privacy, /the saved dreams, the draft and the account's temporary storage|נמחקים מהמכשיר החלומות השמורים/);
-  // and it matches the code: the 7 days, and the legacy dreams that stay
-  assert.match(read('src/hero/openJourneyStore.ts'), /OPEN_JOURNEY_TTL_MS = 7 \* 24 \* 60 \* 60 \* 1000/);
+  // the unfinished-journey store is never written on the site (only the prototype page writes it), so the policy does not describe it
+  assert.doesNotMatch(privacy, /IndexedDB|unfinished dream journey|מסע חלום שלא הסתיים/);
   assert.ok(!(SIGN_OUT_LOCAL_STORAGE_KEYS as readonly string[]).includes('dare.savedDreams.v1'));
 });
 

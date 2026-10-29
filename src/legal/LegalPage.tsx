@@ -54,7 +54,7 @@ export default function LegalPage({ documentKey, onBack }: LegalPageProps) {
             </section>
           ))}
 
-          <p className="legal-draft-notice">{doc.draftNotice}</p>
+          {doc.draftNotice && <p className="legal-draft-notice">{doc.draftNotice}</p>}
 
           <button type="button" className="legal-return" data-cursor-hover onClick={onBack}>
             {t('archive.backToDare')}

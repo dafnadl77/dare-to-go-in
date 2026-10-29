@@ -86,7 +86,7 @@ export default function PrivacyPolicyDialog({ closeLabel, onClose, documentKey =
               <LegalBody body={section.body} paragraphClass="pp-body" listClass="pp-list" />
             </section>
           ))}
-          <p className="pp-draft">{doc.draftNotice}</p>
+          {doc.draftNotice && <p className="pp-draft">{doc.draftNotice}</p>}
         </div>
         <div className="pp-footer">
           <button ref={closeRef} type="button" className="btn btn-primary pp-close" onClick={onClose}>
