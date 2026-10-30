@@ -33,8 +33,9 @@ import type { RiskLevel, SafetyAck } from './safety/riskDetector';
  */
 
 /** 'safety': her words call for the distress path (doc 106), so nothing was sent. */
-/** 'held_back': the answer did not pass the safety check; 'budget_reached': the live test's budget guard refused (local bridge only). */
-export type EngineError = 'safety' | 'not_needed' | 'limit_reached' | 'rate_limited' | 'free_dream_used' | 'not_authenticated' | 'request_failed' | 'held_back' | 'budget_reached';
+/** 'held_back': the answer did not pass the safety check; 'budget_reached': the live test's budget guard refused (local bridge only).
+    'service_unavailable' / 'service_unavailable_refunded': DARE's AI budget ran out (2026-10-30), the dream's credit returned or not. */
+export type EngineError = 'safety' | 'not_needed' | 'limit_reached' | 'rate_limited' | 'free_dream_used' | 'not_authenticated' | 'request_failed' | 'held_back' | 'budget_reached' | 'service_unavailable' | 'service_unavailable_refunded';
 
 export type QuestionOutcome =
   | { status: 'ok'; question: string; source: 'pregenerated' | 'adaptive' | 'fixed'; focus: QuestionFocus | null; subject: string | null; alternative: boolean; requested: boolean }
@@ -69,6 +70,8 @@ export interface ExplorationEngine {
 function reasonOf(status: number, data: unknown): EngineError {
   const r = typeof data === 'object' && data !== null ? (data as { reason?: unknown }).reason : undefined;
   if (status === 409 || r === 'not_needed') return 'not_needed';
+  if (r === 'service_unavailable_refunded') return 'service_unavailable_refunded';
+  if (r === 'service_unavailable') return 'service_unavailable';
   if (status === 429 || r === 'rate_limited') return 'rate_limited';
   if (r === 'free_dream_used') return 'free_dream_used';
   if (r === 'limit_reached') return 'limit_reached';

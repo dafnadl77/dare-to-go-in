@@ -92,7 +92,10 @@ test('transcription: a signed-in account with no credit is refused (read-only ba
 test('image and reflection stay attempt-bound and unchanged (the attempt already carries the spent credit)', () => {
   assert.ok(read('server/routes/dreamImage.ts').includes('reserveImageAttempt('));
   assert.ok(read('server/routes/dreamReflection.ts').includes('reserveReflectionAttempt('));
-  assert.ok(!/credit/i.test(read('server/routes/dreamImage.ts').replace(/billing\|quota\|credit/g, '')));
+  // the image route never spends or grants a credit itself; the one exception is DARE's AI budget running out (2026-10-30), through laterStepBudgetResult
+  const image = read('server/routes/dreamImage.ts');
+  assert.ok(!/start_user_attempt|grant_credits|cancel_user_attempt|refund_attempt_credit_once|refundAttemptCreditOnce|credit_ledger|dream_credits/.test(image));
+  assert.equal(image.split('laterStepBudgetResult(').length - 1, 1);
 });
 
 test('GET /api/credits: verified bearer only, returns only the token holder\'s own balance, read-only', () => {

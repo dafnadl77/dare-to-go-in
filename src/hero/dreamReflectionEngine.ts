@@ -15,6 +15,8 @@ const KNOWN_REASONS: ReflectionErrorReason[] = [
   'billing_issue',
   'not_authenticated',
   'limit_reached',
+  'service_unavailable',
+  'service_unavailable_refunded',
 ];
 
 export interface DreamReflectionRequest {

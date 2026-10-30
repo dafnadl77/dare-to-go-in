@@ -275,6 +275,28 @@ export function refundReflectionAttempt(attemptId: string): Promise<void> {
   return callRefundFn('refund_reflection_attempt', attemptId);
 }
 
+/** What refund_attempt_credit_once answered (see the 20261030 migration). */
+export type CreditRefundOutcome = 'refunded' | 'already_refunded' | 'nothing_spent' | 'already_saved' | 'not_found' | 'invalid';
+const CREDIT_REFUND_OUTCOMES: readonly CreditRefundOutcome[] = ['refunded', 'already_refunded', 'nothing_spent', 'already_saved', 'not_found', 'invalid'];
+
+/**
+ * Returns the dream's credit ONCE when DARE's AI budget ran out on a later step of the dream (2026-10-30). The attempt is kept, so the
+ * dream continues on it when the budget is back. A guest spends no credit, so nothing is asked of the database for one. null = the
+ * database could not be reached (nothing was returned; the caller tells the dreamer without promising a refund).
+ */
+export async function refundAttemptCreditOnce(attemptId: string, identity: CallerIdentity): Promise<CreditRefundOutcome | null> {
+  if (identity.kind !== 'user') return 'nothing_spent';
+  const client = getSupabaseServiceClient();
+  if (!client) return null;
+  try {
+    const { data, error } = await client.rpc('refund_attempt_credit_once', { p_attempt: attemptId, p_owner: identity.userId });
+    if (error) return null;
+    return (CREDIT_REFUND_OUTCOMES as readonly unknown[]).includes(data) ? (data as CreditRefundOutcome) : null;
+  } catch {
+    return null;
+  }
+}
+
 export type ClaimTrialOutcome = 'claimed' | 'already_claimed_by_you' | 'claimed_by_someone_else' | 'not_found' | 'not_configured';
 
 /**

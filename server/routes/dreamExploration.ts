@@ -6,11 +6,13 @@ import { resolveAdultCaller } from '../ageGate.js';
 import {
   completeTrialAttempt,
   getTrialAttemptState,
+  refundAttemptCreditOnce,
   refundLabelsAttempt,
   refundReflectionAttempt,
   reserveLabelsAttempt,
   reserveReflectionAttempt,
 } from '../dreamAttempts.js';
+import { laterStepBudgetResult } from '../budgetExhausted.js';
 import { FREE_DREAM_USED_MESSAGE, MAX_LABEL_CALLS_PER_ATTEMPT } from '../trialAllowance.js';
 import { databaseRateLimitStore, enforceRateLimits, explorationRules, type RateDecision } from '../rateLimit.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
@@ -707,6 +709,8 @@ export interface ExplorationDeps {
   generateTurn: typeof generateConversationTurn;
   /** The second safety layer (moderation.ts); what its failure means is decided by the callers. */
   moderate: Moderate;
+  /** DARE's AI budget ran out (2026-10-30): the dream's credit, once. */
+  refundCredit: typeof refundAttemptCreditOnce;
 }
 
 export const realExplorationDeps: ExplorationDeps = {
@@ -727,6 +731,7 @@ export const realExplorationDeps: ExplorationDeps = {
   // the conversation engine (doc 102)
   generateTurn: generateConversationTurn,
   moderate: realModerate,
+  refundCredit: refundAttemptCreditOnce,
 };
 
 export async function handleExploration(mode: ExplorationMode, rawBody: unknown, headers: RequestHeaders, deps: ExplorationDeps = realExplorationDeps): Promise<HandlerResult> {
@@ -871,6 +876,9 @@ export async function handleExploration(mode: ExplorationMode, rawBody: unknown,
     return withHeaders(okResult({ basedOn: plan.basedOn, wholeView: { ...view, kind } }), cookie);
   } catch (err) {
     await refund();
+    // DARE's AI budget ran out (2026-10-30): once, the dream's credit comes back; the journey stays as it is on her screen
+    const budget = await laterStepBudgetResult(err, attemptId, resolved.identity, deps.refundCredit);
+    if (budget) return withHeaders(budget, cookie);
     if (err instanceof OpenAI.APIError && err.status === 429) return fail(429, 'rate_limited', 'The AI service is busy. Please try again shortly.');
     return fail(502, 'request_failed', 'The request could not be completed.');
   }

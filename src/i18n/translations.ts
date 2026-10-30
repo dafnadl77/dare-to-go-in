@@ -82,6 +82,12 @@ export interface Translations {
     tryAgain: string;
     editDream: string;
   };
+  /** DARE's AI budget ran out (2026-10-30): the approved wording. 'later' when no credit was returned now. */
+  serviceUnavailable: {
+    analysis: string;
+    laterRefunded: string;
+    later: string;
+  };
   leaveDream: {
     title: string;
     body: string;
@@ -636,6 +642,11 @@ export const en: Translations = {
     analysisUncertain: 'I didn’t get an answer in time. Trying again won’t charge you twice.',
     tryAgain: 'TRY AGAIN',
     editDream: 'EDIT',
+  },
+  serviceUnavailable: {
+    analysis: 'DARE is unavailable right now. No credit was used, and you can try again later.',
+    laterRefunded: 'DARE is unavailable right now. The credit for this dream has been returned to your account. If this page stays open, you can try again later and continue from the same point.',
+    later: 'DARE is unavailable right now. If this page stays open, you can try again later and continue from the same point.',
   },
   leaveDream: {
     title: 'Leave this dream?',
@@ -1214,6 +1225,11 @@ export const he: Translations = {
     analysisUncertain: 'לא קיבלתי תשובה בזמן. ניסיון נוסף לא יחייב אותך פעמיים.',
     tryAgain: 'ניסיון נוסף',
     editDream: 'עריכה',
+  },
+  serviceUnavailable: {
+    analysis: 'DARE אינה זמינה כרגע. לא נוצל קרדיט, ואפשר לנסות שוב מאוחר יותר.',
+    laterRefunded: 'DARE אינה זמינה כרגע. הקרדיט של החלום הזה הוחזר לחשבון. אם הדף יישאר פתוח, אפשר לנסות שוב מאוחר יותר ולהמשיך מאותה נקודה.',
+    later: 'DARE אינה זמינה כרגע. אם הדף יישאר פתוח, אפשר לנסות שוב מאוחר יותר ולהמשיך מאותה נקודה.',
   },
   leaveDream: {
     title: 'לעזוב את החלום?',

@@ -5,6 +5,7 @@ import type { ReconstructionBrief } from '../../src/hero/reconstructionBrief.js'
 import { type RequestHeaders } from '../callerIdentity.js';
 import { resolveAdultCaller } from '../ageGate.js';
 import { reserveImageAttempt, refundImageAttempt, getTrialAttemptState } from '../dreamAttempts.js';
+import { laterStepBudgetResult } from '../budgetExhausted.js';
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 
 /**
@@ -136,6 +137,12 @@ export async function handleDreamImage(rawBody: unknown, requestHeaders: Request
     return withHeaders(okResult({ imageDataUrl: `data:image/jpeg;base64,${image.b64_json}` }), cookieHeaders);
   } catch (err) {
     console.error(`${imageFailureLine('provider', err)} ms=${Date.now() - startedAt}`);
+    // DARE's AI budget ran out (2026-10-30): the image slot and, once, the dream's credit come back; the dream stays open
+    const budget = await laterStepBudgetResult(err, attemptId, resolved.identity);
+    if (budget) {
+      await refundImageAttempt(attemptId);
+      return withHeaders(budget, cookieHeaders);
+    }
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {
         await refundImageAttempt(attemptId);

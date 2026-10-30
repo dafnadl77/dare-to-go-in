@@ -78,6 +78,7 @@ export async function analyzeDream(dreamInput: DreamInput, idempotencyKey?: stri
           'idempotency_conflict',
           'analysis_expired',
           'temporarily_unavailable',
+          'service_unavailable',
         ];
         const reason = typeof errData.reason === 'string' && knownReasons.includes(errData.reason) ? errData.reason : 'request_failed';
         return {

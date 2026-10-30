@@ -517,6 +517,6 @@ test('a definitive (refunded) failure removes the protection; signed-out visitor
 test('the uncertain state tells a signed-in dreamer that retrying will not charge again (both languages)', () => {
   const tr = read('src/i18n/translations.ts');
   assert.equal(tr.split('analysisUncertain:').length - 1, 3); // interface + en + he
-  assert.match(read('src/hero/HoldToRemember.tsx'), /t\(analysisUncertain \? 'hold\.analysisUncertain' : 'hold\.analysisFailed'\)/);
+  assert.match(read('src/hero/HoldToRemember.tsx'), /analysisUncertain \? 'hold\.analysisUncertain' : 'hold\.analysisFailed'\)/);
   assert.match(read('src/hero/HeroDream.tsx'), /analysisUncertain=\{!!user && analysisUncertain\}/);
 });

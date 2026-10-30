@@ -16,6 +16,7 @@ import { resolveAdultCaller } from '../ageGate.js';
 import { realModerate } from '../safety/moderation.js';
 import { dareWordsSafe } from '../safety/routeSafety.js';
 import { reserveLabelsAttempt, refundLabelsAttempt, getTrialAttemptState } from '../dreamAttempts.js';
+import { laterStepBudgetResult } from '../budgetExhausted.js';
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 import { handleDreamQuestions } from './dreamQuestions.js';
 import { explorationModeOf, handleExploration } from './dreamExploration.js';
@@ -171,6 +172,9 @@ ${elements.map((e, i) => `${i + 1}. ${e}`).join('\n')}`;
     return withHeaders(okResult({ labels }), cookieHeaders);
   } catch (err) {
     if (reservedLabels) await refundLabelsAttempt(attemptId);
+    // DARE's AI budget ran out (2026-10-30): once, the dream's credit comes back
+    const budget = await laterStepBudgetResult(err, attemptId, resolved.identity);
+    if (budget) return withHeaders(budget, cookieHeaders);
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {
         return withHeaders(errorResult(502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.'), cookieHeaders);

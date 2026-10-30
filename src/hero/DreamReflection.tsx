@@ -8,6 +8,7 @@ import type { DreamReflectionResult } from './dreamReflectionSchema';
 import { EMOTION_IDS, MAX_EMOTIONS, type EmotionId } from './dreamEmotions';
 import type { InsideStep } from './DreamReconstruction';
 import { useLanguage } from '../i18n/LanguageContext';
+import type { ServiceNotice } from './serviceUnavailable';
 import EditorialTitle from '../ui/EditorialTitle';
 import './DreamReflection.css';
 import './DreamEmotions.css';
@@ -18,6 +19,8 @@ interface DreamReflectionProps {
   selectedElement: string | null;
   reflectionResult: DreamReflectionResult | null;
   reflectionErrored: boolean;
+  /** DARE's AI budget ran out (2026-10-30): the approved wording instead of the ordinary failure line; the retry stays. */
+  serviceNotice?: ServiceNotice | null;
   /** Revealed only once the dreamer has had enough time to read the reflection — see HeroDream's continueVisible timer. */
   continueVisible: boolean;
   accentColor: AccentColor | null;
@@ -134,6 +137,7 @@ export default function DreamReflection({
   selectedElement,
   reflectionResult,
   reflectionErrored,
+  serviceNotice = null,
   continueVisible,
   accentColor,
   dreamPalette,
@@ -463,7 +467,9 @@ export default function DreamReflection({
 
       {step === 'interpreting' && reflectionErrored && (
         <div className="dr-reflection-error">
-          <p className="dr-line">{t('reflection.couldntGatherThoughts')}</p>
+          <p className="dr-line">
+            {t(serviceNotice === 'refunded' ? 'serviceUnavailable.laterRefunded' : serviceNotice === 'plain' ? 'serviceUnavailable.later' : 'reflection.couldntGatherThoughts')}
+          </p>
           <button type="button" className="dr-choice" data-cursor-hover onClick={onRetryReflection}>
             {t('reflection.tryAgain')}
           </button>

@@ -8,7 +8,8 @@
  * alone would never exhaust the allowance and a persistently failing provider could otherwise
  * be retried forever.
  */
-export type FirstImageFailureKind = 'failed' | 'rejected' | 'limit';
+/** 'unavailable': DARE's AI budget ran out (2026-10-30). Always retry: the server returned the slot, and the dream stays open. */
+export type FirstImageFailureKind = 'failed' | 'rejected' | 'limit' | 'unavailable';
 
 /** Total image requests a dream may make before its first image succeeds (matches the server's 3 slots per attempt). */
 export const MAX_FIRST_IMAGE_TRIES = 3;
@@ -17,6 +18,7 @@ export const MAX_FIRST_IMAGE_TRIES = 3;
 export function classifyFirstImageFailure(reason: string | null | undefined): FirstImageFailureKind {
   if (reason === 'limit_reached') return 'limit';
   if (reason === 'content_rejected') return 'rejected';
+  if (reason === 'service_unavailable' || reason === 'service_unavailable_refunded') return 'unavailable';
   return 'failed';
 }
 
@@ -29,6 +31,7 @@ export type FirstImageRecovery =
   | { action: 'restart' };
 
 export function recoveryForFirstImageFailure(kind: FirstImageFailureKind, triesSoFar: number): FirstImageRecovery {
+  if (kind === 'unavailable') return { action: 'retry' };
   if (kind === 'limit' || triesSoFar >= MAX_FIRST_IMAGE_TRIES) return { action: 'restart' };
   return kind === 'rejected' ? { action: 'rephrase' } : { action: 'retry' };
 }

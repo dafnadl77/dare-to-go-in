@@ -19,6 +19,7 @@ import { createJourneyEpoch, runInJourney } from './journeyEpoch';
 import { hasUnsavedDream } from './unsavedJourney';
 import { createSessionSubmissionStore, endSubmission, keyForSubmission } from './analysisSubmission';
 import { classifyFirstImageFailure, recoveryForFirstImageFailure } from './firstImageRecovery';
+import { serviceNoticeOf, type ServiceNotice } from './serviceUnavailable';
 import { getAppLanguage, type AppLanguage } from './appLanguage';
 import { analyzeDream, type AnalysisResult } from './dreamAnalysis';
 import DreamAnalysisDevView from './DreamAnalysisDevView';
@@ -314,7 +315,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // Why the last regeneration did not replace the image (null = nothing to say).
   // The previous successful image is ALWAYS kept in that case; 'limit' also
   // removes NOT QUITE, since another regeneration could never succeed.
-  const [regenNotice, setRegenNotice] = useState<'failed' | 'rejected' | 'limit' | null>(null);
+  const [regenNotice, setRegenNotice] = useState<'failed' | 'rejected' | 'limit' | ServiceNotice | null>(null);
 
   const startImageGeneration = useCallback((token: string, briefToUse: ReconstructionBrief, attemptId: string) => {
     if (generationTokenRef.current === token) return;
@@ -561,7 +562,8 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       setCorrections(restored);
       setBrief(buildReconstructionBrief(analysisResult.analysis, restored));
       setRegenNotice(
-        imageResult.reason === 'limit_reached' ? 'limit' : imageResult.reason === 'content_rejected' ? 'rejected' : 'failed',
+        serviceNoticeOf(imageResult.reason) ??
+          (imageResult.reason === 'limit_reached' ? 'limit' : imageResult.reason === 'content_rejected' ? 'rejected' : 'failed'),
       );
       setReconstructionPhase('reveal');
     } else {
@@ -1089,6 +1091,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
             reconstructing={isReconstructing}
             analysisFailed={analysisResult?.status === 'error' || analysisResult?.status === 'safety'}
             analysisUncertain={!!user && analysisUncertain}
+            analysisUnavailable={analysisResult?.status === 'error' && analysisResult.reason === 'service_unavailable'}
             onRetryAnalysis={handleRetryAnalysis}
             capturedDreamText={dreamInputRef.current ? dreamInputSourceText(dreamInputRef.current) : ''}
           />
@@ -1118,6 +1121,8 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
         dreamPalette={dreamPalette}
         revealTextOnLight={revealTextOnLight}
         regenNotice={regenNotice}
+        imageServiceNotice={imageResult?.status === 'error' ? serviceNoticeOf(imageResult.reason) : null}
+        reflectionServiceNotice={reflectionEngineResult?.status === 'error' ? serviceNoticeOf(reflectionEngineResult.reason) : null}
         imageRecovery={firstImageRecovery.action}
         onRetryImage={handleRetryFirstImage}
         onRephraseImage={handleRephraseFirstImage}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { DreamAnalysis } from './dreamAnalysisSchema';
 import type { ReconstructionBrief } from './reconstructionBrief';
+import type { ServiceNotice } from './serviceUnavailable';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
 import type { EmotionId } from './dreamEmotions';
 import { deriveVisualCues } from './reconstructionVisualCues';
@@ -86,7 +87,10 @@ interface DreamReconstructionProps {
   /** Whether the settled image reads as light behind THIS IS WHAT I FOUND — flips that screen's text dark for readability. */
   revealTextOnLight: boolean;
   /** Why the last NOT QUITE regeneration kept the previous image — null when there is nothing to say. 'limit' removes NOT QUITE. */
-  regenNotice: 'failed' | 'rejected' | 'limit' | null;
+  regenNotice: 'failed' | 'rejected' | 'limit' | ServiceNotice | null;
+  /** DARE's AI budget ran out (2026-10-30) on the first image or the reflection: the approved wording, else null. */
+  imageServiceNotice?: ServiceNotice | null;
+  reflectionServiceNotice?: ServiceNotice | null;
   /** What the FIRST-image failure state offers: retry the image, rephrase (moderation), or only restart. */
   imageRecovery: 'retry' | 'rephrase' | 'restart';
   onRetryImage: () => void;
@@ -139,6 +143,8 @@ export default function DreamReconstruction({
   dreamPalette,
   revealTextOnLight,
   regenNotice,
+  imageServiceNotice = null,
+  reflectionServiceNotice = null,
   imageRecovery,
   onRetryImage,
   onRephraseImage,
@@ -372,7 +378,11 @@ export default function DreamReconstruction({
               always available and is the only option once the image attempts are used up. */}
           <p className="dr-line">
             {t(
-              imageRecovery === 'retry'
+              imageServiceNotice
+                ? imageServiceNotice === 'refunded'
+                  ? 'serviceUnavailable.laterRefunded'
+                  : 'serviceUnavailable.later'
+                : imageRecovery === 'retry'
                 ? 'reconstruction.imageFailedRetry'
                 : imageRecovery === 'rephrase'
                   ? 'reconstruction.imageRejected'
@@ -405,7 +415,17 @@ export default function DreamReconstruction({
           <p className="dr-line dr-line--found">{t('reconstruction.thisIsWhatIFound')}</p>
           {regenNotice && (
             <p className="dr-regen-notice" role="status">
-              {t(regenNotice === 'limit' ? 'reconstruction.regenLimit' : regenNotice === 'rejected' ? 'reconstruction.regenRejected' : 'reconstruction.regenFailed')}
+              {t(
+                regenNotice === 'refunded'
+                  ? 'serviceUnavailable.laterRefunded'
+                  : regenNotice === 'plain'
+                    ? 'serviceUnavailable.later'
+                    : regenNotice === 'limit'
+                      ? 'reconstruction.regenLimit'
+                      : regenNotice === 'rejected'
+                        ? 'reconstruction.regenRejected'
+                        : 'reconstruction.regenFailed',
+              )}
             </p>
           )}
           <div className="dr-choices">
@@ -451,6 +471,7 @@ export default function DreamReconstruction({
           selectedElement={selectedElement}
           reflectionResult={reflectionResult}
           reflectionErrored={reflectionErrored}
+          serviceNotice={reflectionServiceNotice}
           continueVisible={continueVisible}
           accentColor={accentColor}
           dreamPalette={dreamPalette}

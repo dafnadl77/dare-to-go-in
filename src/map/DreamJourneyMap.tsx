@@ -83,9 +83,14 @@ export default function DreamJourneyMap({ analysis, exploration, onChange, image
   }
   const e = exploration;
 
-  const troubleOf = (reason: string) => (reason === 'limit_reached' ? s.troubleLimit : reason === 'not_needed' || reason === 'safety' ? null : s.troubleTurn);
+  // DARE's AI budget ran out (2026-10-30): the approved wording; the conversation so far stays on the screen
+  const unavailableOf = (reason: string) =>
+    reason === 'service_unavailable_refunded' ? s.troubleUnavailableRefunded : reason === 'service_unavailable' ? s.troubleUnavailable : null;
+  const troubleOf = (reason: string) =>
+    unavailableOf(reason) ?? (reason === 'limit_reached' ? s.troubleLimit : reason === 'not_needed' || reason === 'safety' ? null : s.troubleTurn);
   const summaryTroubleOf = (reason: string, explored: number) =>
-    reason === 'held_back'
+    unavailableOf(reason) ??
+    (reason === 'held_back'
       ? s.summaryHeldBack
       : reason === 'limit_reached'
         ? s.summaryLimit
@@ -93,7 +98,7 @@ export default function DreamJourneyMap({ analysis, exploration, onChange, image
           ? s.summarySafety
           : reason === 'not_needed' && explored === 0
             ? s.summaryNeedsMoment
-            : s.summaryFailed;
+            : s.summaryFailed);
 
   const showSafety = (id: string, level: RiskLevel) => {
     if (level === 'none') return;

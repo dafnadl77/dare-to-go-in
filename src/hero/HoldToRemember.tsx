@@ -59,6 +59,8 @@ interface HoldToRememberProps {
   analysisFailed?: boolean;
   /** The failure was UNCERTAIN (no answer in time) for a signed-in account: the retry is the same paid request and will not be charged again, and the panel says so. */
   analysisUncertain?: boolean;
+  /** DARE's AI budget ran out (2026-10-30): the approved wording; the attempt was cancelled, so no credit was used. */
+  analysisUnavailable?: boolean;
   /** Re-runs analysis for the exact same captured dream — see
       HeroDream.tsx's retryAnalysis. */
   onRetryAnalysis?: () => void;
@@ -151,6 +153,7 @@ export default function HoldToRemember({
   reconstructing = false,
   analysisFailed = false,
   analysisUncertain = false,
+  analysisUnavailable = false,
   onRetryAnalysis,
   capturedDreamText = '',
   onStartAttempt,
@@ -1089,7 +1092,7 @@ export default function HoldToRemember({
       >
         {analysisFailed ? (
           <>
-            <p className="central-settled-text">{t(analysisUncertain ? 'hold.analysisUncertain' : 'hold.analysisFailed')}</p>
+            <p className="central-settled-text">{t(analysisUnavailable ? 'serviceUnavailable.analysis' : analysisUncertain ? 'hold.analysisUncertain' : 'hold.analysisFailed')}</p>
             <div className="central-settled-actions">
               <button
                 type="button"

@@ -19,6 +19,7 @@ import { resolveAdultCaller } from '../ageGate.js';
 import { realModerate } from '../safety/moderation.js';
 import { dareWordsSafe } from '../safety/routeSafety.js';
 import { reserveLabelsAttempt, refundLabelsAttempt, getTrialAttemptState } from '../dreamAttempts.js';
+import { laterStepBudgetResult } from '../budgetExhausted.js';
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 import { resolveAddressPreference } from './dreamReflection.js';
 import { logModelUsed, resolveStageModel } from '../stageModel.js';
@@ -150,6 +151,9 @@ export async function handleDreamQuestions(rawBody: unknown, requestHeaders: Req
     return withHeaders(okResult(outcome.value.kept), cookieHeaders);
   } catch (err) {
     await refundLabelsAttempt(attemptId);
+    // DARE's AI budget ran out (2026-10-30): once, the dream's credit comes back
+    const budget = await laterStepBudgetResult(err, attemptId, resolved.identity);
+    if (budget) return withHeaders(budget, cookieHeaders);
     if (err instanceof OpenAI.APIError) {
       if (err.status === 429) return withHeaders(errorResult(429, 'rate_limited', 'The OpenAI API rate limit was reached.'), cookieHeaders);
       return withHeaders(errorResult(502, 'request_failed', 'The OpenAI API request failed.'), cookieHeaders);

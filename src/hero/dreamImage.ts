@@ -11,7 +11,10 @@ export type ImageErrorReason =
   | 'billing_issue'
   | 'not_authenticated'
   | 'limit_reached'
-  | 'content_rejected';
+  | 'content_rejected'
+  /** DARE's AI budget ran out (2026-10-30): with or without the dream's credit returned now. */
+  | 'service_unavailable'
+  | 'service_unavailable_refunded';
 
 export type ImageResult =
   | { status: 'ok'; imageDataUrl: string }
@@ -26,6 +29,8 @@ const KNOWN_REASONS: ImageErrorReason[] = [
   'not_authenticated',
   'limit_reached',
   'content_rejected',
+  'service_unavailable',
+  'service_unavailable_refunded',
 ];
 
 /**

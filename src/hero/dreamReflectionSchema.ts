@@ -63,7 +63,10 @@ export type ReflectionErrorReason =
   | 'rate_limited'
   | 'billing_issue'
   | 'not_authenticated'
-  | 'limit_reached';
+  | 'limit_reached'
+  /** DARE's AI budget ran out (2026-10-30): with or without the dream's credit returned now. */
+  | 'service_unavailable'
+  | 'service_unavailable_refunded';
 
 export type ReflectionResult =
   | { status: 'ok'; reflection: DreamReflectionResult }

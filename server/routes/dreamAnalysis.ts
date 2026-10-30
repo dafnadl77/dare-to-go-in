@@ -22,6 +22,7 @@ import {
   startUserAttemptIdempotent,
   completeUserAnalysis,
 } from '../dreamAttempts.js';
+import { analysisBudgetResult } from '../budgetExhausted.js';
 import { startAnalysisAttempt, type AnalysisStartDeps } from '../analysisStart.js';
 import { freeDreamGrantedNow } from '../freeDream.js';
 import { guestDreamsAllowed, SIGN_IN_REQUIRED_MESSAGE, SIGN_IN_REQUIRED_REASON } from '../guestPolicy.js';
@@ -240,6 +241,9 @@ export async function handleDreamAnalysis(
     return withHeaders(okResult({ ...outcome.value, attemptId }), cookieHeaders);
   } catch (err) {
     await deps.abandon(resolved.identity, attemptId);
+    // DARE's AI budget ran out (2026-10-30): the credit came back with the abandoned attempt, as for any failure here
+    const budget = analysisBudgetResult(err);
+    if (budget) return withHeaders(budget, cookieHeaders);
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {
         return withHeaders(errorResult(502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.'), cookieHeaders);

@@ -111,6 +111,8 @@ export type AnalysisErrorReason =
   | 'request_failed'
   | 'empty_input'
   | 'rate_limited'
+  /** DARE's AI budget ran out (2026-10-30); the dream's credit came back with the cancelled attempt. */
+  | 'service_unavailable'
   | 'billing_issue'
   | 'not_authenticated'
   | 'limit_reached'
