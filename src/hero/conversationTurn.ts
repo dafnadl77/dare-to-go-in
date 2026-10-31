@@ -14,7 +14,7 @@ import { locateQuote, repeatsQuote, SENSITIVE_WORD } from './pairCheck.js';
  */
 
 // the turn as the journey keeps it is defined with the journey (exploration.ts), so the journey never imports the engine
-import { MOVES, type ConversationTurn, type Move } from './exploration.js';
+import { asksHer, MOVES, type ConversationTurn, type Move } from './exploration.js';
 export { MOVES, type ConversationTurn, type Move };
 
 export interface TurnSource {
@@ -315,19 +315,22 @@ function repeatsAskedFrame(sentence: string, asked: readonly string[], own: Read
 }
 
 /** One question a turn: when the offer asks, the reply asks nothing; otherwise only the reply's first question stays. */
-function oneQuestion(reply: string, offer: string): string {
-  const asks = (s: string) => s.includes('?');
-  let kept = asks(offer);
-  return byLine(reply, (line) =>
-    sentencesOf(line)
-      .filter((s) => {
-        if (!asks(s)) return true;
-        if (kept) return false;
-        kept = true;
-        return true;
-      })
-      .join(' '),
-  );
+function oneQuestion(reply: string, offer: string): { reply: string; offer: string } {
+  // one question a turn, counted as the counter counts it (asksHer): the offer's first question wins, else the reply's first
+  let kept = false;
+  const keepFirst = (text: string) =>
+    byLine(text, (line) =>
+      sentencesOf(line)
+        .filter((s) => {
+          if (!asksHer(s)) return true;
+          if (kept) return false;
+          kept = true;
+          return true;
+        })
+        .join(' '),
+    );
+  const offerOne = keepFirst(offer);
+  return { reply: keepFirst(reply), offer: offerOne };
 }
 
 /** Said as a possibility to think about, not as a fact: a word of possibility, or a question. */
@@ -425,7 +428,7 @@ export function checkTurn(
     .filter((x) => x.includes('?') && [...ctx.herWords, ...(ctx.questions ?? [])].some((w) => containsVerbatim(w, x)))
     .slice(0, 2);
   if ((raw.open ?? []).length > open.length) dropped.push('an "open question" that was never asked');
-  const asked = oneQuestion(reply, offer);
-  if (asked !== reply) dropped.push('a second question in the same turn');
-  return { reply: asked || offer ? asked : fallbackReply(ctx.language), offer, move: raw.move, dropped, fixed, anchors: offer ? anchors : [], mine, ideas, open };
+  const one = oneQuestion(reply, offer);
+  if (one.reply !== reply || one.offer !== offer) dropped.push('a second question in the same turn');
+  return { reply: one.reply || one.offer ? one.reply : fallbackReply(ctx.language), offer: one.offer, move: raw.move, dropped, fixed, anchors: one.offer ? anchors : [], mine, ideas, open };
 }

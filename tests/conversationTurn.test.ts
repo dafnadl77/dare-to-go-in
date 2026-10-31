@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as T from '../src/hero/conversationTurn';
+import * as X from '../src/hero/exploration';
 import { CONVERSATIONS, summaryOf, type ConversationScript } from '../src/map/conversationScript';
 
 /**
@@ -38,16 +39,27 @@ test('the prompt carries her principles (doc 102), and no dream that is tested',
 
 // ------------------------------------------------------------------------------------------------ the checks
 
-test('every DARE turn of the three conversations passes unchanged: nothing she approved is blocked', () => {
+// One question a turn, absolutely (2026-10-31, her rule for the three-question limit): an approved turn that showed two questions keeps
+// only its first; every other approved turn passes unchanged.
+const questionsShown = (out: { reply: string; offer: string }) => X.questionsIn({ role: 'dare', text: out.reply, offer: out.offer });
+test('every DARE turn of the three conversations passes unchanged, except that a turn never shows a second question', () => {
+  let trimmed = 0;
   for (const c of CONVERSATIONS) {
     const raws = [...c.moments.flatMap((m) => m.turns.flatMap((t) => (t.kind === 'dare' ? [t.raw] : []))), summaryOf(c, c.moments.map((m) => m.label))];
     for (const raw of raws) {
       const out = T.checkTurn(raw, ctxOf(c));
-      assert.deepEqual(out.dropped, [], `${c.key}: ${raw.reply.slice(0, 40)}`);
+      assert.ok(questionsShown(out) <= 1, `${c.key}: ${raw.reply.slice(0, 40)}`);
+      if (out.dropped.length) {
+        trimmed += 1;
+        assert.deepEqual(out.dropped, ['a second question in the same turn'], `${c.key}: ${raw.reply.slice(0, 40)}`);
+        assert.equal(X.questionsIn({ role: 'dare', text: raw.reply, offer: raw.offer }), 2);
+        continue;
+      }
       assert.equal(out.reply, raw.reply.trim());
       assert.equal(out.offer, raw.offer.trim());
     }
   }
+  assert.equal(trimmed, 1, 'only the hall turn ("…? זה נשמע לך נכון?") had two questions');
 });
 
 test('any order: each moment\'s conversation, and its line in "what came up", rest only on the dream and that moment\'s own words', () => {
@@ -56,7 +68,7 @@ test('any order: each moment\'s conversation, and its line in "what came up", re
       const own = { sourceText: c.dreamText, labels: c.moments.map((x) => x.label), herWords: m.turns.flatMap((t) => (t.kind === 'dreamer' ? [t.text] : [])), language: 'he' as const };
       for (const raw of [...m.turns.flatMap((t) => (t.kind === 'dare' ? [t.raw] : [])), summaryOf(c, [m.label])]) {
         const out = T.checkTurn(raw, own);
-        assert.deepEqual(out.dropped, [], `${c.key} «${m.label}»: ${raw.reply.slice(0, 40)}`);
+        assert.ok(out.dropped.every((d) => d === 'a second question in the same turn'), `${c.key} «${m.label}»: ${raw.reply.slice(0, 40)}`);
       }
       assert.equal(m.turns[0]?.kind, 'dare', `${c.key} «${m.label}» opens with DARE`);
     }

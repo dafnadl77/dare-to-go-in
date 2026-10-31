@@ -358,13 +358,28 @@ const cleanTurn = (t: unknown): ConversationTurn | null => {
 
 /** At most this many questions of DARE in a moment (approved 2026-10-25); then a closing line and the ways out. */
 export const MAX_QUESTIONS_PER_MOMENT = 3;
-/** A request to answer without a question mark: "ספרי לי…", "אשמח לשמוע…". */
-const INDIRECT_ASK = /(?<![א-ת])(?:ספרי|ספר|תספרי|תספר|תארי|תאר|תתארי|אשמח\s+לשמוע|מעניין\s+(?:אותי\s+)?(?:לשמוע|לדעת)|נסי\s+לתאר|נסה\s+לתאר)(?![א-ת])|\b(?:tell\s+me|describe|i'?d\s+love\s+to\s+hear)\b/i;
-/** A turn of DARE that asks her to answer: a question mark, or an indirect request. The closing line never does. */
-export const isQuestionTurn = (t: ConversationTurn): boolean => t.role === 'dare' && !t.closing && (/\?/.test(`${t.text} ${t.offer ?? ''}`) || INDIRECT_ASK.test(`${t.text} ${t.offer ?? ''}`));
-/** Questions asked in a moment so far, including those of an earlier, unanswered visit. */
+/**
+ * WHAT COUNTS AS A QUESTION (2026-10-31): every sentence DARE shows that asks her to answer, counted one by one — a question mark (not
+ * one inside a «quote»), a request without one ("ספרי לי…", "שתפי…", "אשמח לשמוע…"), or a sentence that opens as a question and lost
+ * its mark ("מה עלה לך כשראית את זה."). The bare word "ספר" is a book, never a request. The same count is the counter she sees and
+ * the limit the route keeps, so the two can never differ.
+ */
+const HE_ASK = /(?<![א-ת])(?:ספרי|תספרי|תספר|ספר\s+לי|לספר\s+(?:לי|עוד)|שתפי|תשתפי|תשתף|שתף\s+(?:אותי|לי)|לשתף|תארי|תתארי|תאר\s+(?:לי|את)|לתאר|אשמח\s+(?:לשמוע|לדעת)|מעניין\s+(?:אותי\s+)?(?:לשמוע|לדעת)|(?:נסי|נסה)\s+(?:לתאר|להיזכר|לחשוב))(?![א-ת])/;
+const HE_ASK_START = /^ו?(?:(?:האם|למה|מדוע|איפה|היכן|מתי|לאן|מאיפה|איזה|איזו|אילו|באיזה|באיזו)(?![א-ת])|(?:מה|איך)(?![א-ת])(?!\s*ש))/;
+const EN_ASK_START = /^(?:tell\s+me|describe|share|walk\s+me\s+through|i'?d\s+(?:love|like)\s+to\s+hear|i'?m\s+curious\s+(?:what|how|about|whether|if))\b/i;
+/** One sentence of DARE that asks her to answer. */
+export const asksHer = (sentence: string): boolean => {
+  const s = sentence.replace(/«[^»]*»/g, '').trim();
+  return s.includes('?') || HE_ASK.test(s) || HE_ASK_START.test(s) || EN_ASK_START.test(s);
+};
+const sentencesIn = (text: string) => text.split(/(?<=[.!?…])\s+|\n+/u).map((x) => x.trim()).filter(Boolean);
+/** The questions a turn of DARE shows (its reply and its offer). The closing line asks nothing. */
+export const questionsIn = (t: ConversationTurn): number => (t.role === 'dare' && !t.closing ? sentencesIn(`${t.text}\n${t.offer ?? ''}`).filter(asksHer).length : 0);
+/** A turn of DARE that asks her to answer. */
+export const isQuestionTurn = (t: ConversationTurn): boolean => questionsIn(t) > 0;
+/** Questions DARE showed in a moment so far, including those of an earlier, unanswered visit. */
 export function questionsAsked(e: Exploration, id: MomentId): number {
-  return (e.asked?.[id] ?? 0) + (e.explored[id]?.turns ?? []).filter(isQuestionTurn).length;
+  return (e.asked?.[id] ?? 0) + (e.explored[id]?.turns ?? []).reduce((n, t) => n + questionsIn(t), 0);
 }
 /** Another moment she can still go to: not talked about yet, and with questions left (one moment only: there is none). */
 export const anotherMomentLeft = (e: Exploration, id: MomentId): boolean =>
@@ -474,7 +489,7 @@ export function abandonMoment(e: Exploration, id: MomentId): Exploration {
   const explored = { ...e.explored };
   delete explored[id];
   // the questions of this unanswered visit stay counted: coming back does not start the moment over
-  const asked = (entry.turns ?? []).filter(isQuestionTurn).length;
+  const asked = (entry.turns ?? []).reduce((n, t) => n + questionsIn(t), 0);
   return bump(e, { explored, ...(asked ? { asked: { ...(e.asked ?? {}), [id]: (e.asked?.[id] ?? 0) + asked } } : {}) });
 }
 
