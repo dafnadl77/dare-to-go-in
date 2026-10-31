@@ -8,7 +8,7 @@ import './conversation.css';
  * A moment's conversation in its window on the map (doc 102): DARE and the dreamer, an angle offered apart with "זה לא מתאים לי",
  * her answer box, and the way on (another moment). Presentational only: the page that holds it decides what is sent and when.
  * After DARE's turn (2026-10-28): "להמשיך בכיוון" opens the writing box (nothing is asked of DARE), "לשנות כיוון" asks DARE for
- * another direction; the box is closed until then, and Enter sends (Shift+Enter is a new line), with no separate send button.
+ * another direction; the box is closed until then, and Enter sends (Shift+Enter is a new line), as does the small send button in it.
  */
 
 export interface ConversationThreadProps {
@@ -138,25 +138,33 @@ export default function ConversationThread(p: ConversationThreadProps) {
               <label className="dm-visually-hidden" htmlFor={answerId}>
                 {w.write}
               </label>
-              <textarea
-                id={answerId}
-                rows={3}
-                placeholder={w.write}
-                value={p.draft}
-                enterKeyHint="send"
-                aria-describedby={`${answerId}-keys`}
-                autoFocus={writing}
-                onChange={(e) => p.onDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  // Enter sends; Shift+Enter is a new line; a word still being composed (IME) is never sent half-way
-                  if (e.key !== 'Enter' || e.shiftKey || e.nativeEvent.isComposing) return;
-                  e.preventDefault();
-                  if (p.draft.trim()) p.onSend();
-                }}
-              />
-              <span id={`${answerId}-keys`} className="dm-visually-hidden">
+              <div className="cv-compose">
+                <textarea
+                  id={answerId}
+                  rows={3}
+                  placeholder={w.write}
+                  value={p.draft}
+                  enterKeyHint="send"
+                  aria-describedby={`${answerId}-keys`}
+                  autoFocus={writing}
+                  onChange={(e) => p.onDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    // Enter sends; Shift+Enter is a new line; a word still being composed (IME) is never sent half-way
+                    if (e.key !== 'Enter' || e.shiftKey || e.nativeEvent.isComposing) return;
+                    e.preventDefault();
+                    if (p.draft.trim()) p.onSend();
+                  }}
+                />
+                {/* the send button (2026-10-30): the same as Enter, through the form's submit; a touch is enough on a phone */}
+                <button type="submit" className="cv-send" aria-label={w.send} title={w.send} disabled={p.pending || !p.draft.trim()}>
+                  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+                    <path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
+              <p id={`${answerId}-keys`} className="cv-keys">
                 {w.keys}
-              </span>
+              </p>
             </>
           )}
           {(canMoveOn || canFinish) && (

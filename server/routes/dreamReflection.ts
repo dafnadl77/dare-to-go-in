@@ -69,9 +69,86 @@ export interface ReflectionInputExtras {
   /** The optional second question, and the dreamer's answer to it; both present only when they answered. */
   linkQuestion?: string;
   linkResponse?: string;
+  /** After the dream map (2026-10-30): the whole view she already read there, and the questions DARE asked her in the conversation. */
+  wholeViewShown?: string;
+  questionsAsked?: string[];
+  /** After the dream map: her answers moment by moment, in the order of the conversation (journeyRecord.ts momentAnswersFromJourney). */
+  momentAnswers?: MomentAnswerInput[];
+}
+
+export interface MomentAnswerInput {
+  momentId: string;
+  label: string;
+  moment: string;
+  question: string;
+  answer: string;
+  kind?: 'not-for-me' | 'change-direction' | 'keep-going';
 }
 
 const boundedText = (value: unknown, max: number): string => (typeof value === 'string' ? value.trim().slice(0, max) : '');
+
+/** Her answers moment by moment as sent by the journey: bounded, and an item without its moment or her answer is dropped (never guessed). */
+export function parseMomentAnswers(value: unknown): MomentAnswerInput[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const kinds = ['not-for-me', 'change-direction', 'keep-going'] as const;
+  const items = value
+    .filter((x): x is Record<string, unknown> => typeof x === 'object' && x !== null)
+    .map((x) => {
+      const kind = kinds.find((k) => k === x.kind);
+      return { momentId: boundedText(x.momentId, 12), label: boundedText(x.label, 120), moment: boundedText(x.moment, 400), question: boundedText(x.question, 800), answer: boundedText(x.answer, 2000), ...(kind ? { kind } : {}) };
+    })
+    .filter((x) => x.momentId && (x.moment || x.label) && (x.answer || x.kind))
+    .slice(0, 40);
+  return items.length ? items : undefined;
+}
+
+/** Each answer under its own moment, in the order she gave them; what DARE said is marked as DARE's. */
+function momentAnswersBlock(items: readonly MomentAnswerInput[]): string {
+  const lines: string[] = [];
+  let current = '';
+  for (const a of items) {
+    if (a.momentId !== current) {
+      current = a.momentId;
+      lines.push(`[${a.momentId}] "${a.label || a.moment}" — in the dream: "${a.moment || a.label}"`);
+    }
+    if (a.question) lines.push(`  DARE said: "${a.question}"`);
+    if (a.kind === 'not-for-me') lines.push('  THE DREAMER pressed "this doesn\'t fit me" on what DARE offered just before: that possibility is REJECTED, never use it');
+    else if (a.kind === 'change-direction') lines.push('  THE DREAMER pressed "change direction" (no words of theirs)');
+    else if (a.kind === 'keep-going') lines.push('  THE DREAMER pressed "keep going this way" (no words of theirs)');
+    else {
+      const marks = [emphasizes(a.answer) && 'THE DREAMER MARKED THIS AS MORE IMPORTANT', corrects(a.answer) && 'THE DREAMER CORRECTED OR TURNED DOWN what DARE said before: use their version'].filter(Boolean);
+      lines.push(`  THE DREAMER answered (their exact words): "${a.answer}"${marks.length ? ` — ${marks.join('; ')}` : ''}`);
+    }
+  }
+  return lines.join('\n');
+}
+
+/**
+ * What she herself said matters, where she corrected DARE, and whether she tied the dream to her own life (2026-10-31). Read from her own
+ * words only, never inferred: when nothing is found, the model is told that nothing was said (no importance and no life link invented).
+ */
+const EMPHASIS = [
+  /(?:יותר|הכי|בעיקר|במיוחד)\s+(?:חשוב|חשובה|חשובים|משמעותי|משמעותית|בולט|בולטת|זכור|זכורה)/,
+  /(?:חשוב|חשובה|בלט|בלטה|זכור|זכורה)\s+לי\s+(?:יותר|הכי|במיוחד)/,
+  /מה\s+שהכי|(?:^|\s)העיקר(?:\s|$|[,.])/,
+  /\b(?:more|most)\s+important\b|\bmatters?\s+(?:more|most)\b|\bstood\s+out\s+(?:more|most)\b|\babove\s+all\b|\bmainly\b/i,
+];
+export const emphasizes = (answer: string) => EMPHASIS.some((r) => r.test(answer));
+export const corrects = (answer: string) =>
+  /^(?:לא(?!\s+(?:יודע|יודעת|זוכר|זוכרת)(?=[\s,.!?]|$))[\s,]|בעצם[\s,]|זה\s+לא\s+היה|התכוונתי|לא\s+נכון)/.test(answer.trim()) || /^(?:no\b|not\s+quite\b|actually\b|i\s+meant\b|that'?s\s+not\b)/i.test(answer.trim());
+export const pointsToHerLife = (answer: string) =>
+  /(?:^|[\s,.(])(?:בעבודה|בעבודה\s+שלי|בחיים|בחיים\s+שלי|בילדות|אצלי|תקופות\s+של|בתקופה\s+(?:הזאת|הזו|האחרונה)|(?:מזכיר|מזכירה|מזכירים)\s+לי)(?=[\s,.!?)]|$)/.test(answer) ||
+  /\b(?:in\s+my\s+life|at\s+work|my\s+job|in\s+real\s+life|reminds\s+me|when\s+i\s+was\s+a\s+child)\b/i.test(answer);
+
+/** The lines that tell the model what mattered to her and where (if anywhere) she tied the dream to her life. */
+function herWeightLines(answers: readonly { answer: string; momentId?: string }[]): string {
+  const said = answers.filter((a) => a.answer);
+  const where = (a: { momentId?: string }) => (a.momentId ? `[${a.momentId}] ` : '');
+  const weight = said.filter((a) => emphasizes(a.answer));
+  const life = said.filter((a) => pointsToHerLife(a.answer));
+  return `WHAT MATTERS MOST TO THE DREAMER (their own emphasis, give it matching weight): ${weight.length ? weight.map((a) => `${where(a)}"${a.answer}"`).join(' · ') : 'they did not say that anything matters more; do not invent an order of importance'}
+THE DREAMER'S OWN LIFE: ${life.length ? `they tied the dream to their life only in these words: ${life.map((a) => `${where(a)}"${a.answer}"`).join(' · ')}. Refer to that link only as they said it, never wider` : 'they did not tie the dream to their life anywhere. The continuity question must not present such a link as given: stay with the dream, or ask gently whether there is any link at all'}`;
+}
 
 export function buildReflectionInput(
   dreamAnalysis: DreamAnalysis,
@@ -102,7 +179,11 @@ STRUCTURED FACTS FROM THE DREAM (already extracted, use only these — do not in
 
 DEPTH: ${computeDreamDepth(dreamAnalysis)}
 
-THE ELEMENT THE DREAMER CHOSE AS STANDING OUT TO THEM: ${selectedElement}${extras.associationQuestion ? `
+${
+    extras.momentAnswers?.length
+      ? `THE MOMENTS THE DREAMER TALKED ABOUT ON THE DREAM MAP, WITH THEIR ANSWERS, MOMENT BY MOMENT IN THE ORDER OF THE CONVERSATION. Each answer belongs ONLY to the moment it is listed under: never say about one moment what was said about another. "DARE said" is DARE's own words (a question, or a possibility it offered): never the dreamer's words and never a fact about the dream.
+${momentAnswersBlock(extras.momentAnswers)}`
+      : `THE ELEMENT THE DREAMER CHOSE AS STANDING OUT TO THEM: ${selectedElement}${extras.associationQuestion ? `
 
 THE QUESTION THE DREAMER WAS ASKED ABOUT IT (already asked; do not repeat it): "${extras.associationQuestion}"` : ''}
 
@@ -113,9 +194,28 @@ THE DREAMER'S OWN ASSOCIATION WITH THAT ELEMENT (their exact words): "${reflecti
 A SECOND, OPTIONAL QUESTION THE DREAMER CHOSE TO ANSWER (already asked; do not repeat it): "${extras.linkQuestion}"
 THEIR ANSWER (their exact words): "${extras.linkResponse}"`
       : ''
+  }`
   }${
     emotions.length
       ? `\n\nFEELINGS THE DREAMER REPORTED (their own report, chosen from a fixed list after the dream; NOT part of what happened in the dream): ${emotionNamesForModel(emotions, language)}`
+      : ''
+  }${
+    extras.wholeViewShown
+      ? `
+
+AFTER THE DREAM MAP: this dream was explored on the dream map, as a conversation. ${
+          extras.momentAnswers?.length
+            ? 'The dreamer\'s answers are listed above, moment by moment.'
+            : '"The element" above lists the moments the dreamer talked about (separated by "·"), and "their own association" holds their answers in those conversations, across the moments. These answers are listed together, WITHOUT the moment each belongs to: never say which moment or which detail an answer was about, and never tie an answer to a moment.'
+        }
+THE WHOLE VIEW THE DREAMER ALREADY READ ON THE MAP (never repeat it, not even in other words; add what it did not say): "${extras.wholeViewShown}"${
+          extras.questionsAsked?.length
+            ? `
+QUESTIONS DARE ALREADY ASKED THEM IN THE CONVERSATION (never ask them again, not even in other words):
+${extras.questionsAsked.map((x) => `- "${x}"`).join('\n')}`
+            : ''
+        }
+${herWeightLines(extras.momentAnswers?.length ? extras.momentAnswers.filter((a) => !a.kind) : reflectionResponse.split('\n').map((answer) => ({ answer: answer.trim() })))}`
       : ''
   }`;
 }
@@ -262,6 +362,10 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
     associationQuestion?: unknown;
     linkQuestion?: unknown;
     linkResponse?: unknown;
+    /** After the dream map: what she already read there (optional; an older client sends none of it). */
+    wholeViewShown?: unknown;
+    questionsAsked?: unknown;
+    momentAnswers?: unknown;
     language?: unknown;
     attemptId?: unknown;
   };
@@ -330,6 +434,9 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
     // The answer only counts together with the question it answers.
     linkQuestion: linkResponse ? boundedText(body.linkQuestion, 300) || undefined : undefined,
     linkResponse: linkResponse && boundedText(body.linkQuestion, 300) ? linkResponse : undefined,
+    wholeViewShown: boundedText(body.wholeViewShown, 3000) || undefined,
+    questionsAsked: Array.isArray(body.questionsAsked) ? body.questionsAsked.map((x) => boundedText(x, 300)).filter(Boolean).slice(0, 12) : undefined,
+    momentAnswers: parseMomentAnswers(body.momentAnswers),
   };
   const depth: DreamDepth = computeDreamDepth(dreamAnalysis);
   const input = buildReflectionInput(dreamAnalysis, selectedElement, reflectionResponse, reconstructionCorrections, emotions, language, extras);

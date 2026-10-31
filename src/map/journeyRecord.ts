@@ -170,6 +170,65 @@ export function reflectionFromJourney(e: Exploration, language: AppLanguage): Dr
   };
 }
 
+/** One answer of hers with what it answered, in the moment it was said in (2026-10-30). */
+export interface MomentAnswer {
+  momentId: string;
+  /** The moment's title, and its words in the dream. */
+  label: string;
+  moment: string;
+  /** DARE's words right before her answer (a question, or a reflection with an offer); '' when there were none. */
+  question: string;
+  answer: string;
+  /** Her answer was one of the buttons, not words of hers. */
+  kind?: 'not-for-me' | 'change-direction' | 'keep-going';
+}
+
+/**
+ * Her answers moment by moment, in the order of the conversation, each with the moment it belongs to and what DARE said before it.
+ * Only what the journey itself records: a dream kept the earlier way (one question and her answer, a follow-up) gives those, under
+ * their own moment; nothing is ever placed in a moment it was not said in.
+ */
+export function momentAnswersFromJourney(e: Exploration): MomentAnswer[] {
+  return exploredInOrder(e).flatMap(({ moment, entry }) => {
+    const at = { momentId: moment.id, label: moment.label, moment: moment.excerpt ?? moment.label };
+    if (entry.turns?.length) {
+      let before = '';
+      return entry.turns.flatMap((t): MomentAnswer[] => {
+        if (t.role === 'dare') {
+          before = [t.text, t.offer].filter(Boolean).join(' ').trim();
+          return [];
+        }
+        const kind = t.rejection ? ('not-for-me' as const) : t.steer === 'shift' ? ('change-direction' as const) : t.steer ? ('keep-going' as const) : undefined;
+        return [{ ...at, question: before, answer: t.text, ...(kind ? { kind } : {}) }];
+      });
+    }
+    return [
+      ...(entry.firstTry?.answer ? [{ ...at, question: entry.firstTry.question, answer: entry.firstTry.answer }] : []),
+      ...(entry.answer ? [{ ...at, question: entry.question, answer: entry.answer }] : []),
+      ...(entry.followUp?.answer ? [{ ...at, question: entry.followUp.question, answer: entry.followUp.answer }] : []),
+    ];
+  });
+}
+
+/**
+ * What she already read on the map, for the "summary and reflection" screen that follows it (2026-10-30): the whole view and the
+ * questions DARE asked her, so the reflection adds something new instead of saying them again; and her answers moment by moment, so
+ * nothing she said about one moment is given back about another. Text only, nothing new is asked of DARE.
+ */
+export function reflectionContextFromJourney(e: Exploration): { wholeViewShown?: string; questionsAsked?: string[]; momentAnswers?: MomentAnswer[] } {
+  const shown = e.wholeView?.overview?.trim() ?? '';
+  const asked = exploredInOrder(e)
+    .flatMap(({ entry }) => (entry.turns ?? []).filter((t) => t.role === 'dare').flatMap((t) => `${t.text} ${t.offer ?? ''}`.split(/(?<=[.!?…])\s+/u)))
+    .map((x) => x.trim())
+    .filter((x) => x.includes('?'));
+  const answers = momentAnswersFromJourney(e);
+  return {
+    ...(shown ? { wholeViewShown: shown } : {}),
+    ...(asked.length ? { questionsAsked: [...new Set(asked)].slice(0, 12) } : {}),
+    ...(answers.length ? { momentAnswers: answers.slice(0, 40) } : {}),
+  };
+}
+
 /** What the saved record's older fields hold for a map dream: the moments she explored, and her own words in them. */
 export function savedFieldsFromJourney(e: Exploration): { selectedElement: string; reflectionResponse: string } {
   const words = herWordsByMoment(e).flatMap((x) => x.words);

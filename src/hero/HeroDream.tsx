@@ -31,7 +31,7 @@ import { getDisplayLabels, getMomentLabels } from './dreamElementLabels';
 import { DREAM_MAP_JOURNEY } from './journeyMode';
 import type { Exploration } from './exploration';
 import DreamJourneyMap from '../map/DreamJourneyMap';
-import { mapJourneyFrom, mapMomentTexts, reflectionFromJourney, savedFieldsFromJourney } from '../map/journeyRecord';
+import { mapJourneyFrom, mapMomentTexts, reflectionContextFromJourney, reflectionFromJourney, savedFieldsFromJourney } from '../map/journeyRecord';
 import { getDreamQuestions } from './dreamQuestions';
 import type { DreamQuestions } from './dreamQuestionsSchema';
 import { generateDreamImage, type ImageResult } from './dreamImage';
@@ -691,6 +691,8 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   const reflectionExtras = () => ({
     ...(associationQuestion ? { associationQuestion } : {}),
     ...(linkQuestion && linkResponse ? { linkQuestion, linkResponse } : {}),
+    // after the dream map: what she already read there, so the reflection adds something new (a retry sends it again)
+    ...(DREAM_MAP_JOURNEY && exploration ? reflectionContextFromJourney(exploration) : {}),
   });
 
   // Feelings chosen (or skipped: an empty list) -> the ONE existing reflection request, now carrying the feelings.
@@ -745,6 +747,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       reflectionResponse: fields.reflectionResponse,
       reconstructionCorrections: corrections,
       emotions: selectedEmotions,
+      ...reflectionContextFromJourney(exploration),
       attemptId: analysisResult.attemptId,
     });
   };

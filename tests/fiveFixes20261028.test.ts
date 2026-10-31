@@ -111,11 +111,11 @@ test('English: the same rule, with the dream\'s own words', () => {
 
 // ------------------------------------------------------------------------------------------------ 2. the direction buttons and the box
 
-test('after DARE\'s turn: "להמשיך בכיוון" and "לשנות כיוון", "זה לא מתאים לי" only with an offer; the writing box is closed and there is no send button', () => {
+test('after DARE\'s turn: "להמשיך בכיוון" and "לשנות כיוון", "זה לא מתאים לי" only with an offer; the writing box is closed, and so is its send button', () => {
   const html = thread({});
   assert.deepEqual(buttons(html).slice(0, 3), ['להמשיך בכיוון', 'לשנות כיוון', 'זה לא מתאים לי']);
   assert.doesNotMatch(html, /<textarea/, 'the box is hidden until she chooses to go on');
-  assert.doesNotMatch(html, /type="submit"|>שליחה</, 'no separate send button');
+  assert.doesNotMatch(html, /type="submit"/, 'no send button while the box is closed (the button lives in the box, 2026-10-30)');
   const noOffer = thread({ turns: [{ role: 'dare', text: 'מה עלה לך?' }] });
   assert.ok(!buttons(noOffer).includes('זה לא מתאים לי'));
   const rejected = thread({ turns: [{ role: 'dare', text: 'מה עלה?', offer: 'אולי?', rejected: true }] });
@@ -137,8 +137,8 @@ test('the box: Enter sends, Shift+Enter is a new line, a word being composed is 
   assert.match(src, /if \(e\.key !== 'Enter' \|\| e\.shiftKey \|\| e\.nativeEvent\.isComposing\) return;\s*e\.preventDefault\(\);\s*if \(p\.draft\.trim\(\)\) p\.onSend\(\);/);
   assert.match(src, /enterKeyHint="send"/);
   assert.match(src, /aria-describedby=\{`\$\{answerId\}-keys`\}/);
-  assert.equal(threadWords('feminine').keys, 'Enter לשליחה, Shift+Enter לשורה חדשה.');
-  assert.equal(threadWords('neutral', 'en').keys, 'Enter sends. Shift+Enter starts a new line.');
+  assert.equal(threadWords('feminine').keys, 'Enter לשליחה · Shift+Enter לשורה חדשה');
+  assert.equal(threadWords('neutral', 'en').keys, 'Enter to send · Shift+Enter for a new line');
 });
 
 test('the box is never out of reach: without direction buttons, or when her last words wait for DARE, it stays open', () => {

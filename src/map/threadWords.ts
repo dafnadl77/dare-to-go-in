@@ -23,7 +23,7 @@ const wordsEn = {
     `DARE is waiting for your answer.${moveOn ? ` You can also go to another moment${finish ? ', or finish' : ''}.` : finish ? ' You can also finish.' : ''}`,
   open: (finish: boolean, moveOn = true) =>
     moveOn ? (finish ? 'You can keep writing, go to another moment or finish.' : 'You can keep writing or go to another moment.') : finish ? 'You can keep writing or finish.' : 'You can keep writing.',
-  keys: 'Enter sends. Shift+Enter starts a new line.',
+  keys: 'Enter to send · Shift+Enter for a new line',
   done: 'We already talked about this moment.',
 };
 
@@ -47,7 +47,7 @@ const words = (address: Address) => ({
     `DARE מחכה לתשובה שלך.${moveOn ? ` אפשר גם לעבור לרגע אחר${finish ? ', או לסיים' : ''}.` : finish ? ' אפשר גם לסיים.' : ''}`,
   open: (finish: boolean, moveOn = true) =>
     moveOn ? (finish ? 'אפשר להמשיך לכתוב, לעבור לרגע אחר או לסיים.' : 'אפשר להמשיך לכתוב או לעבור לרגע אחר.') : finish ? 'אפשר להמשיך לכתוב או לסיים.' : 'אפשר להמשיך לכתוב.',
-  keys: 'Enter לשליחה, Shift+Enter לשורה חדשה.',
+  keys: 'Enter לשליחה · Shift+Enter לשורה חדשה',
   done: 'כבר דיברנו על הרגע הזה.',
 });
 

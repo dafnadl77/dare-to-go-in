@@ -100,6 +100,18 @@ NEVER:
 - assume that something from the dream happened in her waking life, or ask about her life as if it did;
 - present a guess as a fact; interpret by a dictionary of symbols; use therapy or diagnostic language; give advice; argue with a rejection.
 
+ANSWER WHAT SHE JUST SAID (2026-10-30):
+- A REPLY starts from her LAST words: take up one specific word or detail she just gave and go on from there. Not a general reflection that could follow any answer.
+- Read the whole conversation before you ask, also the earlier moments: never ask what she already answered, not even in other words, and never ask her to describe again what she just described. Each question takes the exploration one step further.
+- Only the dream, the moments and her words in this conversation are material. A detail does not have to mean something: not every detail needs a meaning, and a turn without any meaning is fine.
+- No therapist phrasing and no judgement about her state: not "מה זה מעורר בך?", "מה זה מעורר אצלך?", "איך זה מרגיש לך?", "מה זה עושה לך?", "זה בטח היה קשה", "לתת לזה מקום", "להישאר עם התחושה", "מה הגוף שלך אומר", "את נמצאת במקום של…", "how does that make you feel", "sit with that feeling", "hold space", "that must have been hard". Ask plainly, like a curious friend.
+- No sentence that sounds deep and says nothing: not "יש כאן משהו עמוק", "החלום מזמין אותך להתבונן פנימה", "יש בזה כוח", "זה רגע משמעותי", "מסע פנימי", "there is something profound here", "the dream invites you to look within". Every sentence names something concrete from the dream or her words.
+- Do not repeat yourself: do not open two turns with the same words, do not reuse the image or phrase of your previous turn, do not give back the same words of hers twice.
+- Never ask again a question from another moment, not in other words and not with the same frame (the input lists the questions already asked). Each moment gets questions of its own.
+- If she corrects you (a detail, what she said, or which moment something belongs to): take the correction briefly, as it is, and from then on use only her version.
+
+THREE SOURCES, NEVER MIXED (2026-10-30): (1) what the DREAM says, (2) what SHE said or felt in this conversation, in the moment she said it, (3) what YOU offered as a possibility. An offer of yours stays yours: never give it back later as her words or as a fact ("the door is calling you" after you offered it), unless she said it fits, and then in her own words. Something she said about one moment belongs to that moment only. Add nothing to the dream: no visual detail, sound, sensation, feeling, motive or memory that was not written or told (if the dream says "the room was dark", do not add "and cold"; if it says "very high", do not add "out of reach").
+
 THE VOICE: two to five lines of warm, everyday language, like a person who really listens. Prefer giving back her own word to "אמרת ש…" (at most one "אמרת ש…" in a turn). No "פותח מרחב", "מזמין אותך לשים לב". "מעניין ש…" only when something concrete from the dream or her words follows. Questions do not come in a repeated pattern (not "מה זה מזכיר לך, אם בכלל?" every time).
 
 WHAT YOU RETURN:
@@ -112,6 +124,7 @@ WHAT YOU RETURN:
 - "mine", "ideas" and "open": empty, except in a SUMMARY.
 When it says CLOSE, you close this moment: one or two short sentences that give back what came up, in her words — no question of any kind, no offer, no new insight.
 When the input says OPEN, you open a moment she chose: a short, inviting first turn about it. When it says SUMMARY, sum up the conversation so far in her own words and the dream's — what came up and what she reached herself — with no technical notice, no new interpretation, and at most one gentle way forward. Keep apart what SHE said connects with her from what YOU only offered. Also return "mine": up to three sentences of hers, copied EXACTLY, where she said something connected or reached something herself; and "ideas": up to three of your offers she did not reject, copied EXACTLY. And "open": up to two interesting questions that came up in the conversation and stayed open, copied EXACTLY as they were asked. Never invent an insight: if nothing connected, "mine" stays empty — an enjoyable exploration of an unusual dream is a fine summary too. Give a wide picture of the dream and of what came up; link details from different moments only where a link really rests on the dream or her words, and never attribute an event or a detail to the wrong moment.
+THE SUMMARY ("what came up", the whole view of the dream) is shown as written, so give it a clear order in short paragraphs separated by an empty line ("\n\n"): moment by moment, what came up in each one she talked about, in one or two sentences each, with her words; then, ONLY if a link between moments really rests on details of the dream or on her words, one sentence that names both details; then at most one gentle way forward. Every sentence adds something new: never say the same thing twice, never retell the whole dream, never repeat a closing line she already read word for word. If no link rests on the dream or her words, do not make one up and do not write about its absence ("לא נמצא קשר", "אין קשר ברור בין הרגעים", "no clear link was found"): let each moment stand on its own. Nothing that sounds like a system message ("על סמך השיחה", "בהתבסס על הנתונים", "לסיכום,", "based on the conversation"). A summary of one moment is a summary of that moment, not a lesson about the dream. It joins what came up in the moments, never a possibility of yours that she did not take up: such a possibility is not what came up, and is never stated as a fact or as hers. Do not assume a link to her life unless she made it herself. If she said one moment or detail matters more to her, give it more room than the others; never invent an order of importance.
 
 You speak TO the dreamer: never "I", "my" or a first-person verb outside a quotation.
 
@@ -124,11 +137,16 @@ const q = (t: string) => `"${t.replace(/"/g, "'")}"`;
 const turnLines = (turns: readonly ConversationTurn[]) =>
   turns.map((t) => (t.role === 'dreamer' ? (t.rejection ? '  SHE PRESSED "IT DOES NOT FIT" ON THE OFFER ABOVE' : t.steer === 'deepen' ? '  SHE PRESSED "GO ON IN THIS DIRECTION"' : t.steer === 'shift' ? '  SHE PRESSED "CHANGE DIRECTION"' : `  SHE: ${q(t.text)}`) : `  DARE (${t.move ?? 'turn'}): ${q(t.text)}${t.offer ? ` | OFFER: ${q(t.offer)}${t.rejected ? ' — SHE SAID IT DOES NOT FIT' : ''}` : ''}`)).join('\n');
 
+/** DARE's questions so far (in its replies and offers), each once. */
+const askedIn = (turns: readonly ConversationTurn[]) => [
+  ...new Set(turns.filter((t) => t.role === 'dare').flatMap((t) => `${t.text} ${t.offer ?? ''}`.split(/(?<=[.!?…])\s+/u)).map((x) => x.trim()).filter((x) => x.includes('?'))),
+];
+
 export function buildTurnInput(p: {
   sourceText: string;
   moments: { label: string; explored: boolean }[];
   moment: { label: string; text: string } | null;
-  earlier: { label: string; turns: ConversationTurn[] }[];
+  earlier: { label: string; text?: string; turns: ConversationTurn[] }[];
   turns: ConversationTurn[];
   signals: TurnSignals;
   request: TurnRequest;
@@ -138,7 +156,7 @@ export function buildTurnInput(p: {
   const s = p.signals;
   const signals = [
     s.rejectedNow ? 'SHE JUST PRESSED "IT DOES NOT FIT" ON YOUR LAST OFFER (NO WORDS): ANSWER THAT NOW' : s.rejectedOffer && 'SHE REJECTED THE LAST OFFER',
-    s.shortOrUnsure && 'HER LAST ANSWER IS SHORT OR UNSURE',
+    s.shortOrUnsure && 'HER LAST ANSWER IS SHORT OR UNSURE: TAKE THE PRESSURE OFF. NO INTERPRETATION AND NO QUESTION ABOUT HER LIFE IN THIS TURN; AT MOST ONE EASY, CONCRETE QUESTION ABOUT A DETAIL WRITTEN IN THE DREAM',
     s.meaningDoubt && 'SHE IS NOT SURE IT MEANS ANYTHING',
     s.steer === 'deepen' && 'SHE PRESSED "GO ON IN THIS DIRECTION": CONTINUE FROM YOUR LAST TURN AND ADD ONE NEW THING; YOUR LAST TURN WAS ALREADY SAID, DO NOT RESTATE IT',
     s.steer === 'shift' && 'SHE PRESSED "CHANGE DIRECTION": OFFER ANOTHER DIRECTION, ANCHORED IN THE DREAM OR THE CONVERSATION, NOT YOUR LAST ANGLE IN OTHER WORDS',
@@ -151,12 +169,12 @@ export function buildTurnInput(p: {
 
 THE MOMENTS OF THE DREAM: ${p.moments.map((m) => `${q(m.label)}${m.explored ? ' (explored)' : ''}`).join(' · ')}
 
-${p.earlier.length ? `EARLIER MOMENTS OF THIS CONVERSATION:\n${p.earlier.map((m) => `- ${q(m.label)}\n${turnLines(m.turns)}`).join('\n')}` : 'EARLIER MOMENTS OF THIS CONVERSATION: none yet.'}
+${p.earlier.length ? `EARLIER MOMENTS OF THIS CONVERSATION (each answer of hers belongs to the moment it is listed under):\n${p.earlier.map((m) => `- ${q(m.label)}${m.text && m.text !== m.label ? ` — in the dream: ${q(m.text)}` : ''}\n${turnLines(m.turns)}`).join('\n')}` : 'EARLIER MOMENTS OF THIS CONVERSATION: none yet.'}
 
 ${p.moment ? `THE MOMENT NOW: ${q(p.moment.label)} — in the dream: ${q(p.moment.text)}\n${p.turns.length ? turnLines(p.turns) : '  (not opened yet)'}` : ''}
 
 SIGNALS: ${signals.length ? signals.join('; ') : 'none'}
-${p.moment && p.request !== 'summary' ? `QUESTIONS ASKED IN THIS MOMENT: ${p.asked ?? 0} OF AT MOST 3\n` : ''}NOW: ${p.request === 'open' ? 'OPEN this moment' : p.request === 'summary' ? 'SUMMARY of what came up' : p.request === 'close' ? 'CLOSE this moment: one or two short sentences, NO question, no offer, no new insight' : 'REPLY to what she just said'}`;
+${p.moment && p.request !== 'summary' ? `QUESTIONS ASKED IN THIS MOMENT: ${p.asked ?? 0} OF AT MOST 3\n` : ''}${p.moment && p.request !== 'summary' && askedIn([...p.earlier.flatMap((m) => m.turns), ...p.turns]).length ? `QUESTIONS YOU ALREADY ASKED IN THIS JOURNEY (never again, not in other words and not with the same frame): ${askedIn([...p.earlier.flatMap((m) => m.turns), ...p.turns]).map(q).join(' · ')}\n` : ''}NOW: ${p.request === 'open' ? 'OPEN this moment' : p.request === 'summary' ? 'SUMMARY of what came up' : p.request === 'close' ? 'CLOSE this moment: one or two short sentences, NO question, no offer, no new insight' : 'REPLY to what she just said'}`;
 }
 
 const SOURCE = { type: 'object', additionalProperties: false, required: ['quote', 'from'], properties: { quote: { type: 'string' }, from: { type: 'string', enum: ['dream', 'her'] } } } as const;
@@ -254,6 +272,14 @@ export function turnSignals(p: { turns: readonly ConversationTurn[]; momentText:
 export const fallbackReply = (language: AppLanguage) => (language === 'he' ? 'אפשר להמשיך מכאן, או לבחור רגע אחר.' : 'We can go on from here, or choose another moment.');
 
 const sentencesOf = (text: string) => text.split(/(?<=[.!?…])\s+/u).map((x) => x.trim()).filter(Boolean);
+/** Line by line (2026-10-30): a check that goes sentence by sentence keeps the model's line breaks and paragraphs; an emptied line goes. */
+const byLine = (text: string, f: (line: string) => string) =>
+  text
+    .replace(/\r\n?/g, '\n')
+    .split(/\n[ \t]*\n\s*/)
+    .map((para) => para.split('\n').map(f).filter((line) => line.trim()).join('\n'))
+    .filter(Boolean)
+    .join('\n\n');
 const plain = (t: string) => t.replace(/[^א-תa-zA-Z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
 
 export interface CheckedTurn {
@@ -272,18 +298,36 @@ export interface CheckedTurn {
   open: string[];
 }
 
+/** A therapist's question about what something "stirs in her" (2026-10-30): the sentence is not shown. */
+const THERAPIST = /מעורר(?:ת|ים|ות)?\s+(?:בך|אצלך|בכם|אצלכם)(?![א-ת])|\b(?:stirs?|evokes?|brings?\s+up)\s+in\s+you\b/i;
+/** The run of words that makes two questions the same question in other clothes, once the words of the dream and hers are set aside. */
+const FRAME_WORDS = 5;
+function repeatsAskedFrame(sentence: string, asked: readonly string[], own: ReadonlySet<string>): boolean {
+  const frame = (s: string) => plain(s.replace(/«[^»]*»/g, ' ')).split(' ').filter((w) => w && !own.has(w));
+  const mine = frame(sentence);
+  if (!mine.length) return false;
+  const runs = (ws: string[]) => (ws.length < FRAME_WORDS ? [ws.join(' ')] : ws.slice(0, ws.length - FRAME_WORDS + 1).map((_, i) => ws.slice(i, i + FRAME_WORDS).join(' ')));
+  const mineRuns = new Set(runs(mine));
+  return asked.some((q) => {
+    const theirs = frame(q);
+    return mine.length < FRAME_WORDS ? theirs.join(' ') === mine.join(' ') : runs(theirs).some((r) => r.split(' ').length === FRAME_WORDS && mineRuns.has(r));
+  });
+}
+
 /** One question a turn: when the offer asks, the reply asks nothing; otherwise only the reply's first question stays. */
 function oneQuestion(reply: string, offer: string): string {
   const asks = (s: string) => s.includes('?');
   let kept = asks(offer);
-  return sentencesOf(reply)
-    .filter((s) => {
-      if (!asks(s)) return true;
-      if (kept) return false;
-      kept = true;
-      return true;
-    })
-    .join(' ');
+  return byLine(reply, (line) =>
+    sentencesOf(line)
+      .filter((s) => {
+        if (!asks(s)) return true;
+        if (kept) return false;
+        kept = true;
+        return true;
+      })
+      .join(' '),
+  );
 }
 
 /** Said as a possibility to think about, not as a fact: a word of possibility, or a question. */
@@ -325,9 +369,19 @@ export function checkTurn(
   const dropped: string[] = [];
   const fixed: string[] = [];
   const missingFacts = raw.facts.filter((f) => !locate(f.quote));
-  const pass = (text: string) =>
-    sentencesOf(text)
+  // the words of the dream and hers: a question may quote them again; only the question's own frame may not repeat
+  const own = new Set(plain([ctx.sourceText, ...ctx.labels, ...ctx.herWords].join(' ')).split(' ').filter(Boolean));
+  const pass = (text: string) => byLine(text, (line) =>
+    sentencesOf(line)
       .flatMap((sentence) => {
+        if (THERAPIST.test(sentence)) {
+          dropped.push(`a therapist's phrase: "${sentence}"`);
+          return [];
+        }
+        if (sentence.includes('?') && repeatsAskedFrame(sentence, ctx.questions ?? [], own)) {
+          dropped.push(`a question already asked in this journey: "${sentence}"`);
+          return [];
+        }
         let out = sentence;
         for (const m of sentence.matchAll(/«([^»]+)»/g)) {
           const found = locate(m[1]);
@@ -347,7 +401,8 @@ export function checkTurn(
         }
         return [out];
       })
-      .join(' ');
+      .join(' '),
+  );
   const reply = pass(raw.reply);
   let offer = '';
   const anchors = raw.anchors.map((a) => locate(a.quote)).filter((a): a is string => Boolean(a));

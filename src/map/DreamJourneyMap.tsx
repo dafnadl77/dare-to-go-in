@@ -65,6 +65,8 @@ export default function DreamJourneyMap({ analysis, exploration, onChange, image
   };
   const [draft, setDraft] = useState('');
   const [pending, setPending] = useState(false);
+  /** Her words are on their way to DARE: a second Enter or touch before the screen updates sends nothing more. */
+  const sending = useRef(false);
   const [phase, setPhase] = useState<WholeViewPhase>(exploration?.wholeView ? 'shown' : 'idle');
   const [trouble, setTrouble] = useState<string | null>(null);
   const [wholeNote, setWholeNote] = useState<string | null>(null);
@@ -148,13 +150,18 @@ export default function DreamJourneyMap({ analysis, exploration, onChange, image
 
   const send = async (id: string) => {
     const words = draft.trim();
-    if (!words || stoppedFor(id)) return;
+    if (!words || pending || sending.current || stoppedFor(id)) return;
     const next = X.addDreamerTurn(eRef.current!, id, words);
     if (next === eRef.current) return;
+    sending.current = true;
     set(next);
     setDraft('');
     setSafety(null);
-    await answer(next, id);
+    try {
+      await answer(next, id);
+    } finally {
+      sending.current = false;
+    }
   };
 
   /** Her answer in the distress path: "from the dream" and "not in immediate danger" let the conversation go on, gently. */

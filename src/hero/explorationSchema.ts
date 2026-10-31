@@ -110,7 +110,7 @@ function feelingsBlock(feelings: string): string {
 // ------------------------------------------------------------------------------------------------ shared style
 
 export function styleBlock(language: AppLanguage, address: AddressPreference): string {
-  if (language !== 'he') return `Write in plain, warm, everyday English. Short sentences, one idea each. ${buildLanguageIntegrityInstruction(language)}`;
+  if (language !== 'he') return `Write in plain, warm, everyday English, the way a thoughtful English speaker would say it, never a word-for-word translation from Hebrew. Short sentences, one idea each. ${buildLanguageIntegrityInstruction(language)}`;
   const addressRule = address === 'neutral' ? buildHebrewNeutralSingularInstruction() : buildHebrewAddressInstruction(address);
   return `HEBREW: write the way a thoughtful Hebrew speaker would say it aloud, never a translation from English: short, plain, active sentences (at most about 16 words), everyday words, no chains of "ש..." clauses, never coin a word, never glue "ש" to a word that cannot take it. When you speak of the dreamer together with someone else, use the plural that fits the people (a woman and her brother: "אתם", "הלכתם"). Hebrew letters only. ${addressRule}
 ${buildLanguageIntegrityInstruction(language)}`;

@@ -97,6 +97,68 @@
   resize: vertical;
 }
 
+/* the send button (2026-10-30): a small quiet circle in the box's end corner, the gold of the map's lines */
+.cv-compose {
+  position: relative;
+}
+
+.cv-compose textarea {
+  padding-inline-end: 62px;
+}
+
+.cv-send {
+  position: absolute;
+  inset-inline-end: 14px;
+  bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(var(--dm-gold), 0.75);
+  background: rgba(11, 12, 27, 0.6);
+  color: var(--dm-gold-text);
+  cursor: pointer;
+  transition:
+    background 0.25s,
+    box-shadow 0.25s,
+    opacity 0.25s;
+}
+
+.cv-send:hover:not(:disabled) {
+  background: rgba(var(--dm-gold), 0.14);
+  box-shadow: 0 0 16px rgba(var(--dm-gold), 0.3);
+}
+
+.cv-send:focus-visible {
+  outline: 3px solid #fff1cf;
+  outline-offset: 3px;
+}
+
+.cv-send:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* the keys, under the box: quiet; a touch screen has no Shift, so there the button alone says how to send */
+.cv-keys {
+  margin: -6px 0 0;
+  font-size: 13px;
+  color: var(--dm-text-dim);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .cv-send {
+    width: 44px;
+    height: 44px;
+  }
+  .cv-keys {
+    display: none;
+  }
+}
+
 .cv-actions {
   display: flex;
   flex-wrap: wrap;

@@ -719,6 +719,8 @@
 .dm-whole-overview {
   font-size: 18px;
   line-height: 1.75;
+  /* the model's line breaks and paragraphs are shown as written (2026-10-30) */
+  white-space: pre-line;
 }
 
 .dm-whole-facets {

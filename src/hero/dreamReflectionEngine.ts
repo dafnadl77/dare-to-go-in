@@ -28,6 +28,11 @@ export interface DreamReflectionRequest {
   emotions?: EmotionId[];
   /** The association question as the dreamer saw it (written for this dream, or the fixed one). Lets the reflection avoid repeating it. */
   associationQuestion?: string;
+  /** After the dream map: the whole view she read there, and DARE's questions, so the reflection does not say them again. */
+  wholeViewShown?: string;
+  questionsAsked?: string[];
+  /** After the dream map: her answers moment by moment, each with its moment and what DARE said before it (journeyRecord.ts). */
+  momentAnswers?: { momentId: string; label: string; moment: string; question: string; answer: string; kind?: 'not-for-me' | 'change-direction' | 'keep-going' }[];
   /** The optional second question and the dreamer's answer; sent only when they answered it. */
   linkQuestion?: string;
   linkResponse?: string;

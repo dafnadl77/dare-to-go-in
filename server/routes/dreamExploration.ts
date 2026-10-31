@@ -574,14 +574,14 @@ export type ConversationPlan =
       momentId: MomentId;
       moment: { label: string; text: string };
       turns: ConversationTurn[];
-      earlier: { label: string; turns: ConversationTurn[] }[];
+      earlier: { label: string; text?: string; turns: ConversationTurn[] }[];
       moments: { label: string; explored: boolean }[];
       /** Her first words of the journey were just answered: an anonymous trial's free dream completes here (as with the first insight). */
       first: boolean;
       /** She said she is not in immediate danger, or that it was in the dream (doc 106): the model is told this is a sensitive moment. */
       distress?: boolean;
     }
-  | { kind: 'summary'; basedOn: string; earlier: { label: string; turns: ConversationTurn[] }[]; moments: { label: string; explored: boolean }[]; unexploredIds: MomentId[] };
+  | { kind: 'summary'; basedOn: string; earlier: { label: string; text?: string; turns: ConversationTurn[] }[]; moments: { label: string; explored: boolean }[]; unexploredIds: MomentId[] };
 
 /** Every word she said in this journey: the conversations, and the answers of moments explored the earlier way. */
 const herWordsIn = (e: Exploration) =>
@@ -591,7 +591,7 @@ function planConversation(mode: 'conversation-turn' | 'conversation-summary', e:
   const moments = e.moments.map((m) => ({ label: m.label, explored: e.explored[m.id]?.status === 'explored' }));
   const earlier = exploredInOrder(e)
     .filter((x) => x.moment.id !== momentId)
-    .map(({ moment, entry }) => ({ label: moment.label, turns: entry.turns ?? [{ role: 'dare' as const, text: entry.question }, ...(entry.answer ? [{ role: 'dreamer' as const, text: entry.answer }] : [])] }));
+    .map(({ moment, entry }) => ({ label: moment.label, text: moment.excerpt ?? moment.label, turns: entry.turns ?? [{ role: 'dare' as const, text: entry.question }, ...(entry.answer ? [{ role: 'dreamer' as const, text: entry.answer }] : [])] }));
   if (mode === 'conversation-summary') {
     if (!canRequestWholeView(e)) return null;
     return { kind: 'summary', basedOn: basedOnKey(e), earlier, moments, unexploredIds: e.moments.filter((m) => !e.explored[m.id]).map((m) => m.id) };
