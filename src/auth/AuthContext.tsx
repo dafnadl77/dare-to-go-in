@@ -82,8 +82,10 @@ export const POST_AUTH_REDIRECT_VALUE = 'archive';
 /** The view for a dreamer who signed up / signed in in order to START a dream: the writing screen (see App.tsx's getInitialView). It rides in the
     address, so it survives opening the confirmation link in another tab, browser or device. */
 export const WRITE_VIEW_VALUE = 'write';
-/** Where a freshly authenticated dreamer lands: the archive (the default), or the writing screen when they came to start a dream. */
-export type AfterAuthView = typeof WRITE_VIEW_VALUE;
+/** The view for a visitor who signed up / signed in after choosing a paid package: Pricing, where that package's checkout opens again (see pendingPackage.ts). */
+export const PRICING_VIEW_VALUE = 'pricing';
+/** Where a freshly authenticated dreamer lands: the archive (the default), the writing screen when they came to start a dream, or Pricing when they chose a package. */
+export type AfterAuthView = typeof WRITE_VIEW_VALUE | typeof PRICING_VIEW_VALUE;
 /** The view App.tsx shows for a password-recovery link — see
     ResetPassword.tsx. Exported so App.tsx's getInitialView() recognizes
     it without either file guessing the other's string literal. */

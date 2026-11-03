@@ -12,6 +12,8 @@ import { useAccountPlan } from '../credits/useAccountPlan';
 import DreamBalanceNote from '../credits/DreamBalanceNote';
 import { useDreamBalance } from '../credits/useDreamBalance';
 import type { PaidPackageId } from '../payments/checkout';
+import { takePendingPackage } from './pendingPackage';
+import { track } from '../analytics/analytics';
 import '../archive/DeleteDreamDialog.css';
 import './PricingPage.css';
 
@@ -55,8 +57,8 @@ interface PricingPageProps {
   signedIn?: boolean;
   /** The account was sent here because it has no dream credit — shows why. */
   creditsRequired?: boolean;
-  /** A signed-out visitor chose a paid package: send them to sign in first (nothing is collected from them here). */
-  onRequireSignIn?: () => void;
+  /** A signed-out visitor chose a paid package: send them to sign up / sign in first, keeping which package it was (nothing is collected from them here). */
+  onRequireSignIn?: (packageId: PaidPackageId) => void;
 }
 
 /** Maps each stable package id to its own `pricing.packages.*` translation
@@ -237,7 +239,7 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
   const handleSelectPaidPackage = (id: PackageId) => {
     if (id === 'first_dream') return;
     if (!signedIn) {
-      onRequireSignIn?.();
+      onRequireSignIn?.(id);
       return;
     }
     if (id === heldPackage) {
@@ -246,6 +248,23 @@ export default function PricingPage({ onBack, onStartFree, onOpenLegal, signedIn
     }
     setCheckoutFor(id);
   };
+
+  // MEASUREMENT: the packages were seen (analytics.ts; only whether the visitor is signed in).
+  useEffect(() => {
+    track('pricing_view', { signed_in: signedIn });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Back from sign-up / sign-in for a package chosen while signed out: that package is offered again, through the SAME path as a click
+  // (the checkout dialog, or the 'this is your package' popup), once the account's plan and balance are known. The customer still
+  // enters their details and presses pay themselves; nothing is charged here. The owner, who has no packages, just drops the record.
+  const plansKnown = accountPlan.status !== 'loading' && dreamsLeft.state.status !== 'loading';
+  useEffect(() => {
+    if (!signedIn || !plansKnown) return;
+    const pending = takePendingPackage();
+    if (pending && !isOwner) handleSelectPaidPackage(pending);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signedIn, plansKnown]);
 
   const checkoutPackage = checkoutFor ? PAID_PACKAGES.find((p) => p.id === checkoutFor) : undefined;
 

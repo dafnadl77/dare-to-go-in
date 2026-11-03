@@ -55,6 +55,7 @@ function fillBrowser() {
   session.clear();
   local.setItem('dare.dreamDraft.v1', JSON.stringify({ text: 'החלום של א', savedAt: Date.now() }));
   local.setItem('dare.pendingDreamSave.v1', '{"dream":"of A"}');
+  local.setItem('dare.pendingPackage.v1', '{"id":"explore_10","savedAt":1}');
   local.setItem('dare.savedDreams.v1', '[{"id":"legacy"}]');
   local.setItem('dare.localDreamMigration.v1', '{"user-a":"imported"}');
   local.setItem('dare-language', 'he');
@@ -69,7 +70,7 @@ test('signing out removes the temporary dream data and keeps the device settings
   clearSignOutState(local, session);
   assert.deepEqual(local.keys(), ['dare-a11y-settings', 'dare-language', 'dare.liveWordsOff.v1', 'dare.localDreamMigration.v1', 'dare.savedDreams.v1']);
   assert.deepEqual(session.keys(), [], 'the submission record and the translations are gone');
-  assert.deepEqual([...SIGN_OUT_LOCAL_STORAGE_KEYS].sort(), ['dare.dreamDraft.v1', 'dare.pendingDreamSave.v1']);
+  assert.deepEqual([...SIGN_OUT_LOCAL_STORAGE_KEYS].sort(), ['dare.dreamDraft.v1', 'dare.pendingDreamSave.v1', 'dare.pendingPackage.v1']);
 });
 
 test('deleting the account still removes every DARE key that can hold account or dream content', () => {
@@ -77,7 +78,7 @@ test('deleting the account still removes every DARE key that can hold account or
   clearLocalAccountState(local, session);
   assert.deepEqual(local.keys(), ['dare-a11y-settings', 'dare-language', 'dare.liveWordsOff.v1']);
   assert.deepEqual(session.keys(), []);
-  assert.equal(ACCOUNT_LOCAL_STORAGE_KEYS.length, 4);
+  assert.equal(ACCOUNT_LOCAL_STORAGE_KEYS.length, 5);
   // deletion reloads the page, which also empties every memory cache
   assert.match(read('src/auth/deleteAccount.ts'), /clearLocalAccountState\(\);[\s\S]*clearAllOpenJourneys\(\);[\s\S]*window\.location\.replace\('\/'\)/);
 });
@@ -121,8 +122,8 @@ test('the sign-out she chooses clears all of it before the session ends; a sessi
 
 test('the privacy policy says exactly what signing out removes and keeps (HE and EN, approved 2026-10-29)', () => {
   const privacy = read('src/legal/privacyContent.ts');
-  assert.match(privacy, /When you sign out, the dream draft, a dream waiting to be saved and the tab's temporary storage are removed from the device\. The dreams, conversations, credits and purchases in your account stay in your account and are not deleted when you sign out\. Dreams you saved on this device before an account existed stay on it until you delete your account or clear the browser's data\./);
-  assert.match(privacy, /ביציאה מהחשבון נמחקים מהמכשיר טיוטת החלום, חלום שממתין לשמירה והאחסון הזמני של הלשונית\. החלומות, השיחות, הקרדיטים והרכישות שבחשבון נשארים בחשבון ואינם נמחקים ביציאה\. חלומות ששמרתם במכשיר לפני שהיה חשבון נשארים בו עד מחיקת החשבון או מחיקת נתוני הדפדפן\./);
+  assert.match(privacy, /When you sign out, the dream draft, a dream waiting to be saved, a package chosen before signing in and the tab's temporary storage are removed from the device\. The dreams, conversations, credits and purchases in your account stay in your account and are not deleted when you sign out\. Dreams you saved on this device before an account existed stay on it until you delete your account or clear the browser's data\./);
+  assert.match(privacy, /ביציאה מהחשבון נמחקים מהמכשיר טיוטת החלום, חלום שממתין לשמירה, חבילה שנבחרה לפני ההתחברות והאחסון הזמני של הלשונית\. החלומות, השיחות, הקרדיטים והרכישות שבחשבון נשארים בחשבון ואינם נמחקים ביציאה\. חלומות ששמרתם במכשיר לפני שהיה חשבון נשארים בו עד מחיקת החשבון או מחיקת נתוני הדפדפן\./);
   // the old promise is gone: saved dreams are not removed at sign-out
   assert.doesNotMatch(privacy, /the saved dreams, the draft and the account's temporary storage|נמחקים מהמכשיר החלומות השמורים/);
   // the unfinished-journey store is never written on the site (only the prototype page writes it), so the policy does not describe it

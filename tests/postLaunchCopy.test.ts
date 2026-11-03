@@ -38,7 +38,7 @@ test('post-launch copy: the English texts of the same screens are unchanged', ()
 
 test('opening: the explanation sits directly under the big title, always mounted, and no window size leaves it out', () => {
   const hero = read('src/hero/HeroDream.tsx');
-  assert.match(hero, /<MemoryTitle[\s\S]*?\/>\s*<HowItWorksTagline shown=\{centralMode === 'hold' && !isReconstructing && INTERACTION_PHASES\.has\(phase\) && !howOpen\} \/>\s*<DreamPrompt/);
+  assert.match(hero, /<MemoryTitle[\s\S]*?\/>\s*<HowItWorksTagline shown=\{centralMode === 'hold' && !isReconstructing && INTERACTION_PHASES\.has\(phase\) && !howOpen\} freeFirstDream=\{!user && !authLoading\} \/>\s*<DreamPrompt/);
   const css = read('src/hero/HowItWorks.css');
   assert.match(css, /\.hiw-tagline \{[^}]*position: relative;/, 'in the opening column, not floating at the bottom');
   assert.match(css, /font-size: clamp\(1\.15rem, min\(3\.4vw, 3\.1vh\), 1\.65rem\)/, 'clearly larger than the previous 1rem');

@@ -46,12 +46,15 @@ const STEP_ICONS: ReactNode[] = [
   </svg>,
 ];
 
-/** Always mounted (its place is reserved either way), faded in only on the idle opening. A short window hides it in CSS: the control stays. */
-export function HowItWorksTagline({ shown }: { shown: boolean }) {
+/** Always mounted (its place is reserved either way), faded in only on the idle opening. A short window hides it in CSS: the control stays.
+    For a visitor who is not signed in, a second, quieter line says the first dream is a gift with a new account (the existing account
+    rule, also on the Packages page); a signed-in account, which may already have used it, is promised nothing. */
+export function HowItWorksTagline({ shown, freeFirstDream = false }: { shown: boolean; freeFirstDream?: boolean }) {
   const { t } = useLanguage();
   return (
     <p className={`hiw-tagline${shown ? ' is-shown' : ''}`} aria-hidden={!shown}>
       {t('howItWorks.tagline')}
+      {freeFirstDream && <span className="hiw-gift">{t('howItWorks.freeFirstDream')}</span>}
     </p>
   );
 }
@@ -95,7 +98,9 @@ export function HowItWorksTeaser({ onOpen }: { onOpen: () => void }) {
 
 const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-export function HowItWorksPanel({ onClose }: { onClose: () => void }) {
+/** freeFirstDream: the visitor is not signed in, so the section also says the first dream is a gift with a new account (the only place
+    it is visible on a short screen, where the opening has no room for it). */
+export function HowItWorksPanel({ onClose, freeFirstDream = false }: { onClose: () => void; freeFirstDream?: boolean }) {
   const { t, language } = useLanguage();
   const panelRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -154,6 +159,7 @@ export function HowItWorksPanel({ onClose }: { onClose: () => void }) {
           </ol>
 
           <p className="hiw-note">{t('howItWorks.note')}</p>
+          {freeFirstDream && <p className="hiw-gift-note">{t('howItWorks.freeFirstDream')}</p>}
           <div className="hiw-actions">
             <button type="button" className="btn btn-primary" data-cursor-hover onClick={onClose}>
               {t('howItWorks.start')}

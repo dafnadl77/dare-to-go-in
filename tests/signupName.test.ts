@@ -42,7 +42,7 @@ test('the form: a name field only in sign-up mode, validated with the same rule 
   assert.ok(submit.indexOf("t('auth.errorNameRequired')") < submit.indexOf('looksLikeEmail(trimmedEmail)'));
   assert.match(submit, /if \(isSignUp\) \{\s*if \(name\.trim\(\) === ''\)/);
   assert.match(submit, /normalizeDisplayName\(name\) === null[\s\S]*?t\('auth\.errorInvalidName'\)/);
-  assert.match(submit, /await signUpWithPassword\(trimmedEmail, password, name, startDream \? WRITE_VIEW_VALUE : undefined\)/);
+  assert.match(submit, /await signUpWithPassword\(trimmedEmail, password, name, afterAuth\)/);
   // sign-in keeps its two-argument call
   assert.match(submit, /await signInWithPassword\(trimmedEmail, password\)/);
 });

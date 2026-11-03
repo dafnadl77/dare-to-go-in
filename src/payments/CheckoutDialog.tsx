@@ -8,6 +8,7 @@ import PrivacyPolicyDialog from '../legal/PrivacyPolicyDialog';
 import type { LegalKey } from '../legal/legalContent';
 import { operatorLine } from '../legal/businessDetails';
 import './CheckoutDialog.css';
+import { track } from '../analytics/analytics';
 
 interface CheckoutDialogProps {
   packageId: PaidPackageId;
@@ -148,6 +149,7 @@ export default function CheckoutDialog({ packageId, packageName, dreamsLabel, pr
     const result = await startCheckout(packageId, fullName.trim(), phone.trim());
     if (result.ok) {
       setPhase('redirecting'); // stays locked: the browser is leaving for the Grow page
+      track('checkout_start', { package: packageId }); // the package only, never the name or the phone
       window.location.assign(result.paymentUrl);
       return;
     }

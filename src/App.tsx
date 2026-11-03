@@ -23,6 +23,9 @@ import { createLeaveGate, handleBeforeUnload } from './hero/unsavedJourney';
 import AccessibilityControl from './a11y/AccessibilityControl';
 import AgeGate from './auth/AgeGate';
 import GlobalHeader, { type GlobalNavKey } from './ui/GlobalHeader';
+import { clearPendingPackage, getPendingPackage, setPendingPackage } from './pricing/pendingPackage';
+import type { PaidPackageId } from './payments/checkout';
+import { isNewAccount, track } from './analytics/analytics';
 
 /** Which top-level experience is mounted. No router is introduced for
     this first pass (the whole app is already a single state machine —
@@ -87,6 +90,9 @@ const INITIAL_PAYMENT_RETURN: string | null = (() => {
   }
   return orderId;
 })();
+
+/** This page load is a return from Google or from a confirmation e-mail link (Supabase's code or tokens are in the address). */
+const AUTH_RETURN_ON_LOAD = typeof window !== 'undefined' && /[?&#](code|access_token)=/.test(window.location.search + window.location.hash);
 
 function writeViewToUrl(view: AppView) {
   const url = new URL(window.location.href);
@@ -180,7 +186,7 @@ function App() {
   const [creditsNotice, setCreditsNotice] = useState(false);
   // Set while the notice for a payment the customer just came back from is open (in memory only).
   const [paymentReturn, setPaymentReturn] = useState<string | null>(INITIAL_PAYMENT_RETURN);
-  // A signed-out visitor chose a paid package: after signing in they land back on Pricing.
+  // A signed-out visitor chose a paid package: after signing up / in they land back on Pricing, where that package opens again (pendingPackage.ts).
   const [returnToPricingAfterAuth, setReturnToPricingAfterAuth] = useState(false);
   const [openEntry, setOpenEntry] = useState<ArchiveEntry | null>(null);
   // SAVE THIS DREAM, chosen while signed OUT (see HeroDream.tsx's
@@ -206,6 +212,7 @@ function App() {
   const setView = (next: AppView) => {
     if (next !== 'auth') {
       setStartDreamIntent(false);
+      setReturnToPricingAfterAuth(false);
       setAuthFreeDreamNotice(false);
       setAuthSessionNotice(false);
     }
@@ -416,6 +423,38 @@ function App() {
     }
   }, [openWriting, view, loading, user]);
 
+  // A package chosen while signed out, and the account now signed in (password, Google, or a confirmation link in another tab): back to
+  // Pricing, which opens that package's checkout. Not while a dream is being saved, a payment is being confirmed or a password reset.
+  useEffect(() => {
+    if (loading || !user || view === 'pricing' || view === 'reset-password' || isPasswordRecovery || pendingSaveState !== 'none' || paymentReturn) return;
+    if (getPendingPackage()) setView('pricing');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, user?.id, pendingSaveState]);
+
+  // MEASUREMENT (analytics.ts; no ids, no content). The sign-up screen opened, and why.
+  const signupOpen = view === 'auth' && authMode === 'signup';
+  useEffect(() => {
+    if (!signupOpen) return;
+    track('signup_open', {
+      from: startDreamIntent ? 'start' : returnToPricingAfterAuth ? 'package' : pendingSaveState === 'awaiting-auth' ? 'save' : authFreeDreamNotice ? 'free_dream_used' : 'other',
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signupOpen]);
+
+  // An account created a moment ago has just signed in for the first time in this page (a new account, by password, Google or a
+  // confirmation link). A session restored on an ordinary page load is not counted.
+  const signedOutBeforeRef = useRef(AUTH_RETURN_ON_LOAD);
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      signedOutBeforeRef.current = true;
+      return;
+    }
+    if (signedOutBeforeRef.current && isNewAccount(user.created_at)) track('signup_complete');
+    signedOutBeforeRef.current = false;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, user?.id]);
+
   let screen: ReactNode;
 
   if (pendingSaveState === 'resuming' || pendingSaveState === 'error') {
@@ -448,10 +487,14 @@ function App() {
         onOpenLegal={handleOpenLegal}
         signedIn={!!user}
         creditsRequired={creditsNotice}
-        onRequireSignIn={() => {
-          setAuthMode('signin');
-          setReturnToPricingAfterAuth(true);
+        onRequireSignIn={(packageId: PaidPackageId) => {
+          // Sign-up first (sign-in is one tap away); the chosen package is kept for the way back. Nothing is charged here.
+          setPendingPackage(packageId);
+          setAuthMode('signup');
+          setAuthFreeDreamNotice(false);
+          setAuthSessionNotice(false);
           setView('auth');
+          setReturnToPricingAfterAuth(true);
         }}
       />
     );
@@ -461,6 +504,7 @@ function App() {
         freeDreamNotice={authFreeDreamNotice}
         sessionExpiredNotice={authSessionNotice}
         startDream={startDreamIntent}
+        packageIntent={returnToPricingAfterAuth}
         mode={authMode}
         onSwitchMode={setAuthMode}
         onBack={() => {
@@ -477,6 +521,7 @@ function App() {
             setPendingSaveState('none');
           }
           setReturnToPricingAfterAuth(false);
+          clearPendingPackage();
           setView('dream');
         }}
         onAuthenticated={() => {

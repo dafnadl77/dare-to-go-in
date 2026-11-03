@@ -109,7 +109,7 @@ test('dialog: it is ACCESSIBLE and RTL/LTR safe: labelled dialog, focus trap, Es
 
 test('pricing: nothing is collected before the customer chooses to buy; a signed-out visitor is sent to sign in; credits come from nowhere here', () => {
   const src = strip(read('src/pricing/PricingPage.tsx'));
-  assert.match(src, /const handleSelectPaidPackage = \(id: PackageId\) => \{[\s\S]*if \(!signedIn\) \{[\s\S]*onRequireSignIn\?\.\(\);[\s\S]*return;[\s\S]*setCheckoutFor\(id\)/);
+  assert.match(src, /const handleSelectPaidPackage = \(id: PackageId\) => \{[\s\S]*if \(!signedIn\) \{[\s\S]*onRequireSignIn\?\.\(id\);[\s\S]*return;[\s\S]*setCheckoutFor\(id\)/);
   assert.match(src, /\{checkoutPackage && checkoutFor && \(\s*<CheckoutDialog/, 'the dialog (and its inputs) exist only after a package was chosen');
   assert.ok(!/<input|fullName|phone/i.test(src.replace(/CheckoutDialog/g, '')), 'the Pricing page itself has no payer fields');
   assert.ok(!/comingSoon/.test(src), 'the placeholder is gone');
@@ -189,7 +189,7 @@ test('privacy policy (EN + HE) discloses exactly what is true about payments, wi
       for (const needle of ['שם מלא', 'מספר טלפון נייד', 'Make', 'Grow', 'אנחנו לא שומרים את השם ואת הטלפון ברשומות התשלום שלנו', 'פרטי כרטיס אשראי', 'מוסר אם תמחקו', 'מניעת הונאות', 'הנהלת חשבונות', 'Morning', 'חשבונית מס / קבלה']) assert.ok(text.includes(needle), `${lang}: ${needle}`);
     }
     assert.ok(!/\b\d+\s*(days?|weeks?|months?|years?)\b|\d+\s*(ימים|שבועות|חודשים|שנים)|שנה|year/i.test(text), `${lang}: no invented retention period`);
-    assert.match(doc.updated, lang === 'en' ? /October 2026/ : /אוקטובר 2026/);
+    assert.match(doc.updated, lang === 'en' ? /November 2026/ : /נובמבר 2026/);
   }
 });
 

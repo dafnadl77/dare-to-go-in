@@ -353,6 +353,9 @@ export interface Translations {
     createArchiveTagline: string;
     startDreamTagline: string;
     startDreamSigninTagline: string;
+    /** A signed-out visitor chose a paid package: after signing up / in they return to that package (nothing is charged on the way). */
+    packageTagline: string;
+    packageSigninTagline: string;
     freeDreamUsedNotice: string;
     sessionExpiredNotice: string;
     welcomeBack: string;
@@ -458,6 +461,8 @@ export interface Translations {
   /** The short explanation on the opening screen and the "how it works" section under it. */
   howItWorks: {
     tagline: string;
+    /** Under the tagline on the opening, for a visitor who is not signed in: one free dream per new account (the account rule; nothing new). */
+    freeFirstDream: string;
     trigger: string;
     triggerAria: string;
     eyebrow: string;
@@ -907,6 +912,8 @@ export const en: Translations = {
     createArchiveTagline: 'Create your private dream archive.',
     startDreamTagline: 'Create your account to tell your first dream — it is on us.',
     startDreamSigninTagline: 'Sign in to tell your dream.',
+    packageTagline: 'Create your account, and we will take you straight back to the package you chose.',
+    packageSigninTagline: 'Sign in, and we will take you straight back to the package you chose.',
     freeDreamUsedNotice: 'Your first dream was free. To continue with more dreams, sign in or create an account.',
     sessionExpiredNotice: 'Your sign-in has ended. Sign in again to continue — what you wrote is waiting for you.',
     welcomeBack: 'WELCOME BACK, DREAMER.',
@@ -1011,6 +1018,7 @@ export const en: Translations = {
   },
   howItWorks: {
     tagline: 'DARE TO GO IN is a private space for returning to the dreams that stay: tell them, see them, and ask them questions.',
+    freeFirstDream: 'Your first dream is on us when you create an account.',
     trigger: 'How it works',
     triggerAria: 'How DARE TO GO IN works: open the explanation',
     eyebrow: 'HOW IT WORKS',
@@ -1490,6 +1498,8 @@ export const he: Translations = {
     createArchiveTagline: 'צרו את ארכיון החלומות הפרטי שלכם.',
     startDreamTagline: 'צרו חשבון כדי לספר את החלום הראשון שלכם — הוא במתנה.',
     startDreamSigninTagline: 'התחברו כדי לספר את החלום שלכם.',
+    packageTagline: 'צרו חשבון, ומיד אחר כך נחזור לחבילה שבחרתם.',
+    packageSigninTagline: 'התחברו, ומיד אחר כך נחזור לחבילה שבחרתם.',
     freeDreamUsedNotice: 'החלום הראשון שלך היה במתנה. כדי להמשיך לחלומות נוספים, יש להתחבר או ליצור חשבון.',
     sessionExpiredNotice: 'ההתחברות שלך הסתיימה. התחברו מחדש כדי להמשיך — מה שכתבת מחכה לך.',
     welcomeBack: 'ברוכים השבים, חולמים.',
@@ -1594,6 +1604,7 @@ export const he: Translations = {
   },
   howItWorks: {
     tagline: 'DARE TO GO IN הוא מרחב פרטי לחזור אל חלומות שנשארים: מספרים אותם, רואים אותם ושואלים אותם שאלות.',
+    freeFirstDream: 'החלום הראשון במתנה, עם פתיחת חשבון.',
     trigger: 'איך זה עובד',
     triggerAria: 'איך DARE TO GO IN עובד: פתיחת ההסבר',
     eyebrow: 'איך זה עובד',

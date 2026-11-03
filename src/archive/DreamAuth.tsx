@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import DreamStageBackground from '../hero/DreamStageBackground';
 import { useLanguage } from '../i18n/LanguageContext';
-import { useAuth, WRITE_VIEW_VALUE } from '../auth/AuthContext';
+import { useAuth, PRICING_VIEW_VALUE, WRITE_VIEW_VALUE } from '../auth/AuthContext';
 import { describeAuthError } from '../auth/authErrors';
 import { MAX_DISPLAY_NAME_LENGTH, normalizeDisplayName } from '../auth/displayName';
 import AppFooter from '../legal/AppFooter';
@@ -21,6 +21,8 @@ interface DreamAuthProps {
   sessionExpiredNotice?: boolean;
   /** The visitor came here because they pressed START a dream: the screen says so, and after a confirmation e-mail or Google they are brought back to the writing screen. */
   startDream?: boolean;
+  /** The visitor chose a paid package while signed out: the screen says so, and after a confirmation e-mail or Google they are brought back to Pricing, where that package opens again (nothing is charged). */
+  packageIntent?: boolean;
   mode: AuthMode;
   onSwitchMode: (mode: AuthMode) => void;
   /** No longer called by anything in THIS component (its own "way back" —
@@ -85,7 +87,7 @@ function looksLikeEmail(value: string): boolean {
  * wired to real Supabase Auth (see AuthContext.tsx): email/password and
  * Google both create/resume a genuine session, never a bypass.
  */
-export default function DreamAuth({ freeDreamNotice = false, sessionExpiredNotice = false, startDream = false, mode, onSwitchMode, onBack: _onBack, onAuthenticated, onOpenLegal }: DreamAuthProps) {
+export default function DreamAuth({ freeDreamNotice = false, sessionExpiredNotice = false, startDream = false, packageIntent = false, mode, onSwitchMode, onBack: _onBack, onAuthenticated, onOpenLegal }: DreamAuthProps) {
   const { t } = useLanguage();
   const { signInWithPassword, signUpWithPassword, signInWithGoogle, resetPasswordForEmail } = useAuth();
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -123,6 +125,8 @@ export default function DreamAuth({ freeDreamNotice = false, sessionExpiredNotic
   const [openDoc, setOpenDoc] = useState<LegalKey | null>(null);
 
   const isSignUp = mode === 'signup';
+  // Where the confirmation e-mail link / the Google return lands: the writing screen, Pricing, or (by default) the archive.
+  const afterAuth = startDream ? WRITE_VIEW_VALUE : packageIntent ? PRICING_VIEW_VALUE : undefined;
   const isForgot = mode === 'forgot';
 
   const handleSubmit = async (e: FormEvent) => {
@@ -174,7 +178,7 @@ export default function DreamAuth({ freeDreamNotice = false, sessionExpiredNotic
 
     setPending('password');
     const result = isSignUp
-      ? await signUpWithPassword(trimmedEmail, password, name, startDream ? WRITE_VIEW_VALUE : undefined)
+      ? await signUpWithPassword(trimmedEmail, password, name, afterAuth)
       : await signInWithPassword(trimmedEmail, password);
     setPending(null);
 
@@ -199,7 +203,7 @@ export default function DreamAuth({ freeDreamNotice = false, sessionExpiredNotic
       return;
     }
     setPending('google');
-    const result = await signInWithGoogle(startDream ? WRITE_VIEW_VALUE : undefined);
+    const result = await signInWithGoogle(afterAuth);
     // A successful call already has the browser navigating away to
     // Google — this only ever runs again if that redirect itself
     // couldn't even start (a real, if rare, failure — e.g. the OAuth
@@ -287,12 +291,12 @@ export default function DreamAuth({ freeDreamNotice = false, sessionExpiredNotic
         ) : isSignUp ? (
           <>
             <h1 className="auth-eyebrow-title">{t('auth.keepYourDreams')}</h1>
-            <p className="auth-tagline">{freeDreamNotice ? t('auth.freeDreamUsedNotice') : sessionExpiredNotice ? t('auth.sessionExpiredNotice') : startDream ? t('auth.startDreamTagline') : t('auth.createArchiveTagline')}</p>
+            <p className="auth-tagline">{freeDreamNotice ? t('auth.freeDreamUsedNotice') : sessionExpiredNotice ? t('auth.sessionExpiredNotice') : startDream ? t('auth.startDreamTagline') : packageIntent ? t('auth.packageTagline') : t('auth.createArchiveTagline')}</p>
           </>
         ) : (
           <>
             <h1 className="auth-eyebrow-title">{t('auth.welcomeBack')}</h1>
-            <p className="auth-tagline">{freeDreamNotice ? t('auth.freeDreamUsedNotice') : sessionExpiredNotice ? t('auth.sessionExpiredNotice') : startDream ? t('auth.startDreamSigninTagline') : <>&nbsp;</>}</p>
+            <p className="auth-tagline">{freeDreamNotice ? t('auth.freeDreamUsedNotice') : sessionExpiredNotice ? t('auth.sessionExpiredNotice') : startDream ? t('auth.startDreamSigninTagline') : packageIntent ? t('auth.packageSigninTagline') : <>&nbsp;</>}</p>
           </>
         )}
 

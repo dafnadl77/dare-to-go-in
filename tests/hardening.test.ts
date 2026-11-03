@@ -166,6 +166,8 @@ test('vercel.json sends the security headers, and the CSP covers exactly the ser
   const html = read('index.html');
   for (const origin of new Set(html.match(/https:\/\/[a-z.]+(?=[/"'])/g) ?? [])) {
     if (/w3\.org/.test(origin)) continue;
+    // the site's own address in the link-preview tags ('self'; read by crawlers, never loaded by the page)
+    if (origin === 'https://daretogoin.com') continue;
     assert.ok(csp.includes(origin), `${origin} (index.html) must be in the CSP`);
   }
   assert.ok(!/<script(?![^>]*src=)[^>]*>/.test(html), 'index.html has no inline script (the CSP forbids it)');

@@ -50,6 +50,7 @@ import { addressPreferenceOfUser } from './addressPreference';
 import AppFooter from '../legal/AppFooter';
 import { HowItWorksPanel, HowItWorksTagline, HowItWorksTeaser } from './HowItWorks';
 import type { LegalKey } from '../legal/legalContent';
+import { track } from '../analytics/analytics';
 import './HeroDream.css';
 import './ReadablePlates.css';
 import './MomentChoices.css';
@@ -239,6 +240,8 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // a double-click (or any re-render) can never persist the same dream twice.
   const [continueVisible, setContinueVisible] = useState(false);
   const dreamSavedRef = useRef(false);
+  // MEASUREMENT (analytics.ts, no content): a dream the server accepted counts as started; its journey reaching the closing counts once as completed.
+  const completionPendingRef = useRef(false);
   // Save-failure UX. The record is built ONCE per finished dream and reused by
   // every retry, so a retry after a save that may actually have reached the
   // server (the request failed on the way back) writes the SAME id — the
@@ -400,6 +403,10 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
             if (!handled && seq === analysisSeqRef.current) setAnalysisResult(result);
           });
           return;
+        }
+        if (result.status === 'ok') {
+          track('dream_start');
+          completionPendingRef.current = true;
         }
         setAnalysisResult(result);
       },
@@ -862,6 +869,12 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
 
   const handleLetGo = () => setInsideStep('letting-go');
 
+  useEffect(() => {
+    if (insideStep !== 'closing' || !completionPendingRef.current) return;
+    completionPendingRef.current = false;
+    track('dream_complete');
+  }, [insideStep]);
+
   // LET IT GO — the image dissolves (CSS-driven), then GONE. holds briefly,
   // then returns to the room automatically. Nothing is persisted.
   useEffect(() => {
@@ -1076,7 +1089,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
             reconstructing={isReconstructing}
             pointerRef={pointerRef}
           />
-          <HowItWorksTagline shown={centralMode === 'hold' && !isReconstructing && INTERACTION_PHASES.has(phase) && !howOpen} />
+          <HowItWorksTagline shown={centralMode === 'hold' && !isReconstructing && INTERACTION_PHASES.has(phase) && !howOpen} freeFirstDream={!user && !authLoading} />
           <DreamPrompt revealed={PROMPT_PHASES.has(phase)} quiet={listeningEverStarted} reconstructing={isReconstructing} />
           <HoldToRemember
             revealed={INTERACTION_PHASES.has(phase)}
@@ -1186,6 +1199,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       {centralMode === 'hold' && !isReconstructing && INTERACTION_PHASES.has(phase) && !howOpen && <HowItWorksTeaser onOpen={() => setHowOpen(true)} />}
       {howOpen && (
         <HowItWorksPanel
+          freeFirstDream={!user && !authLoading}
           onClose={() => {
             setHowOpen(false);
             // Back on the opening, focus returns to the control the section was opened from.

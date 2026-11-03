@@ -211,7 +211,7 @@ test('sign-up: age confirmation (18+) and a Terms / Privacy notice, in both lang
   assert.match(src, /PrivacyPolicyDialog/);
   assert.match(src, /renderLegalNotice/);
   // the same calls as before: nothing about the account mechanism changed
-  assert.match(src, /signUpWithPassword\(trimmedEmail, password, name, startDream \? WRITE_VIEW_VALUE : undefined\)/);
+  assert.match(src, /signUpWithPassword\(trimmedEmail, password, name, afterAuth\)/);
   assert.match(src, /signInWithPassword\(trimmedEmail, password\)/);
   for (const [lang, t] of [['en', en], ['he', he]] as const) {
     const a = t.auth as unknown as Record<string, string>;

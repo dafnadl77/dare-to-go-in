@@ -8,6 +8,10 @@ import { LanguageProvider } from './i18n/LanguageContext.tsx'
 import { AuthProvider } from './auth/AuthContext.tsx'
 import { AccessibilityProvider } from './a11y/AccessibilityContext.tsx'
 import './ui/mobileRendering.css'
+import { startAnalytics } from './analytics/analytics'
+
+// Conversion counts on the live site only (no-op elsewhere); see analytics.ts.
+startAnalytics()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

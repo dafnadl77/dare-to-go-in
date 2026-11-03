@@ -54,8 +54,10 @@ test('/?view=write: the e-mail confirmation link and the Google return carry it;
   // without the start intent nothing changes: the archive stays the default landing
   assert.match(auth, /export const POST_AUTH_REDIRECT_VALUE = 'archive';/);
   const form = code('src/archive/DreamAuth.tsx');
-  assert.match(form, /signUpWithPassword\(trimmedEmail, password, name, startDream \? WRITE_VIEW_VALUE : undefined\)/);
-  assert.match(form, /signInWithGoogle\(startDream \? WRITE_VIEW_VALUE : undefined\)/);
+  // the landing is chosen once (the writing screen, Pricing for a package chosen while signed out, or the archive) and used by both calls
+  assert.match(form, /const afterAuth = startDream \? WRITE_VIEW_VALUE : packageIntent \? PRICING_VIEW_VALUE : undefined;/);
+  assert.match(form, /signUpWithPassword\(trimmedEmail, password, name, afterAuth\)/);
+  assert.match(form, /signInWithGoogle\(afterAuth\)/);
 
   const app = code('src/App.tsx');
   assert.match(app, /if \(value === WRITE_VIEW_VALUE\) return 'dream';/);

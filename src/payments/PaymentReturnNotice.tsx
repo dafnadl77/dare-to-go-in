@@ -4,6 +4,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { fetchOrderState } from './checkout';
 import '../archive/DeleteDreamDialog.css';
 import './CheckoutDialog.css';
+import { track } from '../analytics/analytics';
 
 interface PaymentReturnNoticeProps {
   /** The order id from ?payment=. NOT proof of anything: it is only a lookup key the server checks against the signed-in account. */
@@ -44,6 +45,8 @@ export default function PaymentReturnNotice({ orderId, signedIn, authLoading, on
       if (cancelled) return;
       const elapsed = Date.now() - started;
       if (state === 'confirmed' || state === 'unknown') {
+        // MEASUREMENT: a purchase the server itself confirmed (no order id, no amount is sent).
+        if (state === 'confirmed') track('purchase_confirmed');
         setView(state);
         return;
       }
