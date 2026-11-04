@@ -123,7 +123,7 @@ test('the four signals the code gives the model: a rejected offer, a short or un
   const d = (text: string, extra: Partial<T.ConversationTurn> = {}): T.ConversationTurn => ({ role: 'dare', text, ...extra });
   const h = (text: string): T.ConversationTurn => ({ role: 'dreamer', text });
   const base = { momentText: 'אני יוצא מהחנות בלי כלום ביד' };
-  assert.deepEqual(T.turnSignals({ ...base, turns: [d('x'), h('הבנתי שאני מחפש משהו, אבל בעצם ידעתי כבר מה אני צריך.')] }), { rejectedOffer: false, shortOrUnsure: false, sensitive: false, sheAsked: false, meaningDoubt: false, rejectedNow: false, connected: false, steer: null, severalExchanges: false });
+  assert.deepEqual(T.turnSignals({ ...base, turns: [d('x'), h('הבנתי שאני מחפש משהו, אבל בעצם ידעתי כבר מה אני צריך.')] }), { rejectedOffer: false, shortOrUnsure: false, sensitive: false, sheAsked: false, meaningDoubt: false, rejectedNow: false, connected: false, steer: null, severalExchanges: false, brief: null });
   assert.equal(T.turnSignals({ ...base, turns: [d('x', { offer: 'אולי…', rejected: true }), h('לא ממש.')] }).rejectedOffer, true);
   assert.equal(T.turnSignals({ ...base, turns: [d('x'), h('לא יודעת.')] }).shortOrUnsure, true);
   assert.equal(T.turnSignals({ ...base, turns: [d('x'), h('השאלה.')] }).shortOrUnsure, true);

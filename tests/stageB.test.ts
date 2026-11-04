@@ -184,7 +184,7 @@ test("DARE's words: a moderation hit, or moderation down, means the answer is no
     const res = await turn(journey('עץ הזית היה קטן'), deps({ moderate: m, openai: () => client('זו תשובה שנראית רגילה לגמרי.') }));
     const shown = JSON.stringify(res.body);
     assert.ok(!shown.includes('זו תשובה שנראית רגילה'), 'not shown');
-    assert.ok(shown.includes('אפשר להמשיך מכאן'), 'the plain line');
+    assert.ok(shown.includes('מה עוד עולה כשחושבים על הרגע הזה?'), 'the plain line (a question since 2026-11-04)');
   }
 });
 

@@ -1,7 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { register } from 'node:module';
 import * as X from '../src/hero/exploration';
 import * as C from '../src/hero/conversationTurn';
 import * as R from '../server/routes/dreamExploration';
@@ -29,7 +28,6 @@ const requestOf = (e: X.Exploration, id = 'm1') => (R.planCall('conversation-tur
 const open = (q = 'מה בלט לך אצל המוכר?') => X.beginConversation(X.createExploration('q', seeds), 'm1', d(q), T0);
 const say = (e: X.Exploration, words: string, id = 'm1') => X.addDreamerTurn(e, id, words);
 const dare = (e: X.Exploration, turn: X.ConversationTurn, id = 'm1') => X.addDareTurn(e, id, turn);
-const closing = (e: X.Exploration, id = 'm1') => X.addDareTurn(e, id, { role: 'dare', text: 'תודה על מה ששיתפת ברגע הזה.', move: 'summarize', closing: true });
 
 // ------------------------------------------------------------------------------------------------ the root cause: what is a question
 
@@ -65,76 +63,18 @@ test('cause: a turn never shows a second question (reply and offer together, wit
 
 // ------------------------------------------------------------------------------------------------ the scenarios she listed
 
-test('three regular questions: 1, 2, 3, then her answer gets a closing line and nothing more is asked', () => {
-  let e = open();
-  assert.equal(asked(e), 1);
-  e = dare(say(e, 'הוא חייך אליי'), d('מה היה בחיוך?'));
-  assert.equal(asked(e), 2);
-  assert.equal(requestOf(say(e, 'חום')), 'reply');
-  e = dare(say(e, 'חום'), d('ומה עשית אז?'));
-  assert.equal(asked(e), 3);
-  const answered = say(e, 'הלכתי');
-  assert.equal(requestOf(answered), 'close', 'after the third question: the closing line, never a fourth');
-  const closed = closing(answered);
-  assert.equal(asked(closed), 3);
-  assert.equal(X.momentClosed(closed, 'm1'), true);
-  assert.equal(R.planCall('conversation-turn', say(closed, 'עוד משהו'), 'm1'), null, 'a forged answer after the closing line asks DARE nothing');
-});
+// The scenarios of 2026-10-31 that ended a moment with the model's closing line, or counted question sentences, gave way to her rule of
+// 2026-11-04 (three rounds, no fourth turn): they are tests/threeRounds20261104.test.ts.
 
-test('a reply without a question is not a question: the conversation goes on, and the third real question still closes it', () => {
-  let e = open();
-  e = dare(say(e, 'א'), d('הבנתי, זה היה שקט.'));
-  assert.equal(asked(e), 1);
-  e = dare(say(e, 'ב'), d('מה עוד בלט?'));
-  e = dare(say(e, 'ג'), d('ומה עשית אז?'));
-  assert.equal(asked(e), 3);
-  assert.equal(requestOf(say(e, 'ד')), 'close');
-});
 
-test('"change direction" after the first and the second question: counted as before, never reset; after the third it only closes', () => {
-  const w = threadWords('feminine');
-  let e = open();
-  let s = X.steerWithReply(e, 'm1', 'shift', w.shift)!;
-  assert.equal(asked(s), 1, 'the press itself is not a question and resets nothing');
-  assert.equal(requestOf(s), 'reply');
-  e = dare(s, d('ומה עם הקופסה?'));
-  assert.equal(asked(e), 2);
-  s = X.steerWithReply(e, 'm1', 'shift', w.shift)!;
-  e = dare(s, d('ומה עשית שם?'));
-  assert.equal(asked(e), 3);
-  assert.equal(requestOf(X.steerWithReply(e, 'm1', 'shift', w.shift)!), 'close', 'a third press closes, it does not open a fourth question');
-  assert.equal(X.steerWithReply(X.steerWithReply(e, 'm1', 'shift', w.shift)!, 'm1', 'shift', w.shift), null, 'a second click adds nothing');
-});
 
-test('"this doesn\'t fit me" during the conversation: counted as before, never reset; after the third question it only closes', () => {
-  let e = X.beginConversation(X.createExploration('q', seeds), 'm1', d('מעניין.', 'אולי המוכר הוא העיקר?'), T0);
-  const r1 = X.rejectWithReply(e, 'm1', threadWords('feminine').notForMe);
-  assert.equal(r1.reply, true);
-  assert.equal(asked(r1.e), 1);
-  e = dare(r1.e, d('הבנתי. מה בלט לך שם?'));
-  e = dare(say(e, 'הקופסה'), d('מעניין.', 'אולי הקופסה מספרת משהו?'));
-  assert.equal(asked(e), 3);
-  const r2 = X.rejectWithReply(e, 'm1', threadWords('feminine').notForMe);
-  assert.equal(requestOf(r2.e), 'close');
-  assert.deepEqual(X.rejectWithReply(r2.e, 'm1').e, r2.e, 'a second click adds nothing');
-});
 
-test('"keep going this way" asks nothing by itself; her words then count as any answer', () => {
-  const src = read('src/map/ConversationThread.tsx');
-  assert.match(src, /onClick=\{\(\) => setWriting\(true\)\}>\s*\{w\.deepen\}/, 'the button only opens the box');
-  let e = open();
-  e = dare(say(e, 'ממשיכה'), d('מה עוד?'));
-  e = dare(say(e, 'עוד'), d('ואז?'));
-  assert.equal(asked(e), 3);
-  // an older journey that recorded the press as a turn: the same limit
-  assert.equal(requestOf(X.steerWithReply(e, 'm1', 'deepen')!), 'close');
-});
 
 const analysis = () => typedAnalysis(store.dreamText, true) as unknown as DreamAnalysis;
 const stubDeps = (raw: Record<string, unknown>): R.ExplorationDeps => ({
   ...R.realExplorationDeps,
   resolveIdentity: async () => ({ ok: true, identity: { kind: 'user', userId: 'u' } }) as never,
-  openai: () => ({ responses: { create: async () => ({ model: 'stub', output_text: JSON.stringify({ reply: 'בסדר.', offer: '', anchors: [], facts: [], move: 'ask', mine: [], ideas: [], open: [], ...raw }), usage: { input_tokens: 0, output_tokens: 0 } }) } }) as never,
+  openai: () => ({ responses: { create: async () => ({ model: 'stub', output_text: JSON.stringify({ reply: 'בסדר. מה עוד בלט לך שם?', offer: '', anchors: [], facts: [], move: 'ask', mine: [], ideas: [], open: [], ...raw }), usage: { input_tokens: 0, output_tokens: 0 } }) } }) as never,
   rateLimit: async () => ({ allowed: true, retryAfterSeconds: 0 }) as never,
   reserveMoment: async () => 'reserved',
   refundMoment: async () => {},
@@ -149,15 +89,6 @@ const turnFor = async (e: X.Exploration, raw: Record<string, unknown>, language:
   return (out.body as { turn: X.ConversationTurn }).turn;
 };
 
-test('answering after the third question: her words go, and DARE answers with a short closing line that asks nothing', async () => {
-  let e = open();
-  e = dare(say(e, 'א'), d('מה עוד?'));
-  e = dare(say(e, 'ב'), d('ואז?'));
-  const t = await turnFor(say(e, 'ג'), { reply: 'תודה על מה ששיתפת. ומה עוד עלה לך?', offer: 'אולי עוד משהו?', anchors: [{ quote: 'המוכר', from: 'dream' }] });
-  assert.equal(t.closing, true);
-  assert.equal(X.questionsIn({ ...t, closing: undefined }), 0, 'no question of any kind, no offer');
-  assert.equal(t.offer, undefined);
-});
 
 test('the route keeps the limit even when the model writes two questions at the second: the count goes to 3, never 4', async () => {
   let e = open();
@@ -200,42 +131,6 @@ test('moving between two moments and back: each keeps its own count; a moment sh
   assert.equal(asked(e, 'm2'), 2);
   assert.equal(R.planCall('conversation-turn', e, 'm1'), null, 'back to the first: nothing more is asked there');
   assert.equal(asked(e, 'm1'), 2);
-});
-
-// ------------------------------------------------------------------------------------------------ the window, in Hebrew and English
-
-register('data:text/javascript,' + encodeURIComponent(`export async function load(url, context, next) { if (url.endsWith('.css')) return { format: 'module', source: '', shortCircuit: true }; return next(url, context); }`));
-const React = await import('react');
-(globalThis as unknown as { React: typeof React }).React = React;
-const { renderToStaticMarkup } = await import('react-dom/server');
-const { default: ConversationThread } = await import('../src/map/ConversationThread');
-const buttons = (html: string) => [...html.matchAll(/<button[^>]*>([^<]*)<\/button>/g)].map((m) => m[1]).filter(Boolean);
-const windowOf = (e: X.Exploration, language: 'he' | 'en', canMoveOn: boolean) => {
-  const turns = e.explored.m1.turns!;
-  return renderToStaticMarkup(
-    React.createElement(ConversationThread, {
-      title: 'רגע', excerpt: null, turns, address: 'feminine', language, pending: false, draft: '', onDraft: () => {}, onSend: () => {}, onReject: () => {}, onSteer: () => {}, onMoveOn: () => {}, onFinish: () => {}, canFinish: true, canMoveOn,
-      questionNumber: Math.min(X.MAX_QUESTIONS_PER_MOMENT, asked(e)),
-      closed: X.momentClosed(e, 'm1') || (asked(e) >= X.MAX_QUESTIONS_PER_MOMENT && turns[turns.length - 1]?.role === 'dreamer'),
-      titleId: 't',
-    }),
-  );
-};
-
-test('Hebrew and English: the counter is the real count, and after the closing line only the approved ways out', () => {
-  let e = open('מה בלט לך? ומה עוד?');
-  assert.equal(asked(e), 2, 'an older turn that showed two questions counts two');
-  assert.match(windowOf(e, 'he', true), />שאלה 2 מתוך 3</);
-  e = dare(say(e, 'א'), d('Tell me more about the box.'));
-  assert.match(windowOf(e, 'en', true), />Question 3 of 3</);
-  const done = closing(say(e, 'ב'));
-  const he = windowOf(done, 'he', true);
-  assert.doesNotMatch(he, /<textarea|cv-send/, 'no box and no send button after the closing line');
-  assert.deepEqual(buttons(he), ['לרגע אחר', 'לסיים ולראות מה עלה']);
-  assert.deepEqual(buttons(windowOf(done, 'he', false)), ['לסיים ולראות מה עלה'], '"another moment" only when one is left');
-  assert.deepEqual(buttons(windowOf(done, 'en', true)), ['Another moment', 'Finish and see what came up']);
-  // after the third question and before her answer: she may still answer
-  assert.match(windowOf(e, 'he', true), /להמשיך בכיוון/);
 });
 
 test('one send at a time: Enter, the button, a direction or "doesn\'t fit" press cannot send twice', () => {

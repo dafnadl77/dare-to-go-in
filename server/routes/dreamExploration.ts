@@ -62,11 +62,12 @@ import {
   rejectionRepliesUsed,
   MAX_REJECTION_REPLIES,
   questionsAsked,
+  questionsIn,
   isQuestionTurn,
   MAX_QUESTIONS_PER_MOMENT,
 } from '../../src/hero/exploration.js';
 import { isUnsureAnswer } from '../../src/hero/hebrewText.js';
-import { buildTurnInput, buildTurnSystemPrompt, checkTurn, fallbackReply, parseTurn, TURN_JSON_SCHEMA, turnSignals, type TurnRaw } from '../../src/hero/conversationTurn.js';
+import { buildTurnInput, buildTurnSystemPrompt, checkTurn, fallbackReply, fallbackSummaryLine, parseTurn, TURN_JSON_SCHEMA, turnSignals, type TurnRaw } from '../../src/hero/conversationTurn.js';
 import { herWordsForSafety, safetyAckOf } from '../../src/hero/safety/journeySafety.js';
 import { realModerate, type Moderate } from '../safety/moderation.js';
 import { checkHerAnswers, dareWordsSafe } from '../safety/routeSafety.js';
@@ -606,8 +607,10 @@ function planConversation(mode: 'conversation-turn' | 'conversation-summary', e:
   // the "זה לא מתאים לי" button: answered at once, at most MAX_REJECTION_REPLIES times a dream (a forged extra bubble gets nothing)
   if (entry.turns?.[entry.turns.length - 1]?.rejection && rejectionRepliesUsed(e) >= MAX_REJECTION_REPLIES) return null;
   const turns = entry.turns ?? [];
-  // after her answer to the third question (in words or with a button): the closing line, never a fourth question
-  return { kind: 'turn', request: questionsAsked(e, m.id) >= MAX_QUESTIONS_PER_MOMENT ? 'close' : 'reply', momentId: m.id, moment, turns, earlier, moments, first: exploredCount(e) === 0 && turns.filter((t) => t.role === 'dreamer').length === 1 };
+  // three rounds a moment (2026-11-04): after her third answer the moment has ended — no fourth turn and no closing line from the
+  // model (needsTurnCall above already says no; kept here too, so the route itself never asks for one)
+  if (questionsAsked(e, m.id) >= MAX_QUESTIONS_PER_MOMENT) return null;
+  return { kind: 'turn', request: 'reply', momentId: m.id, moment, turns, earlier, moments, first: exploredCount(e) === 0 && turns.filter((t) => t.role === 'dreamer').length === 1 };
 }
 
 /**
@@ -621,6 +624,10 @@ export function momentCapExtra(e: Exploration): number {
 
 /** A turn is two to five lines: its answer is bounded, so its worst cost is known before it is asked for. */
 export const TURN_MAX_OUTPUT_TOKENS = 700;
+
+/** The correction for a turn that asked nothing (2026-11-04): the same one retry every turn already has, never a second. */
+export const NO_QUESTION_NOTE =
+  '\n\nCORRECTION: your previous turn did not end with a question or a concrete invitation to answer, so she would not know what to write. Regenerate the whole turn: build on what she just wrote and end it with exactly ONE clear question, as its last sentence.';
 
 /** The closing line of a moment when none came back usable (no question, nothing invented); "another moment" only when one is left. */
 export const closingLine = (language: AppLanguage, anotherLeft = true) =>
@@ -654,6 +661,12 @@ export async function generateConversationTurn(client: OpenAI, ctx: DreamContext
     const c = checkTurn(raw, cc);
     return [c.reply, c.offer].filter(Boolean);
   };
+  // a turn of the conversation that asks nothing leaves her not knowing what to answer: the one retry the turn already has is asked for
+  const asksNothing = (raw: TurnRaw) => {
+    if (p.kind !== 'turn' || p.request === 'close') return false;
+    const c = checkTurn(raw, cc);
+    return questionsIn({ role: 'dare', text: c.reply, offer: c.offer }) === 0;
+  };
   const outcome = await runWithLanguageIntegrity<TurnRaw>(
     (note) => callModel(client, p.kind === 'turn' ? 'conversation-turn' : 'conversation-summary', 'OPENAI_REFLECTION_MODEL', instructions + note, input, 'conversation_turn', TURN_JSON_SCHEMA, parseTurn, onUsage, TURN_MAX_OUTPUT_TOKENS),
     (v) => [v.reply, v.offer].filter(Boolean),
@@ -663,7 +676,7 @@ export async function generateConversationTurn(client: OpenAI, ctx: DreamContext
       context: ctx.dreamerText,
       strictLatin: true,
       extraCheck: (v) => safety(ctx, shown(v)),
-      qualityCheck: (v) => mixedPluralNote(shown(v), ctx.dreamerText) ?? garbledTextNote(shown(v)),
+      qualityCheck: (v) => mixedPluralNote(shown(v), ctx.dreamerText) ?? garbledTextNote(shown(v)) ?? (asksNothing(v) ? NO_QUESTION_NOTE : null),
       maxQualityRetries: 1,
       rejectExhaustedQuality: true,
     },
@@ -683,9 +696,18 @@ export async function generateConversationTurn(client: OpenAI, ctx: DreamContext
     const closing: ConversationTurn = { role: 'dare', text: said || closingLine(ctx.language, anotherLeft), move: 'summarize', closing: true };
     return { status: 'ok' as const, value: { turn: closing, dropped: checked.dropped, fixed: checked.fixed, takeaways: { mine: [], ideas: [], open: [] } } };
   }
-  const turn: ConversationTurn = odd || unsafe
-    ? { role: 'dare', text: fallbackReply(ctx.language), move: 'reflect' }
-    : { role: 'dare', text: checked.reply, move: checked.move, ...(checked.offer ? { offer: checked.offer, anchors: checked.anchors } : {}) };
+  // the whole view keeps its own plain line (as before 2026-11-04); the conversation's plain line is a question
+  const plainLine = p.kind === 'summary' ? fallbackSummaryLine(ctx.language) : fallbackReply(ctx.language);
+  const shownTurn: ConversationTurn = odd || unsafe
+    ? { role: 'dare', text: plainLine, move: 'reflect' }
+    : { role: 'dare', text: p.kind === 'summary' && checked.reply === fallbackReply(ctx.language) ? plainLine : checked.reply, move: checked.move, ...(checked.offer ? { offer: checked.offer, anchors: checked.anchors } : {}) };
+  // every turn of the conversation ends with one question (2026-11-04): still none after the one retry, the plain question ends it
+  const turn: ConversationTurn =
+    p.kind === 'turn' && p.request !== 'close' && questionsIn(shownTurn) === 0
+      ? shownTurn.offer
+        ? { ...shownTurn, offer: `${shownTurn.offer} ${fallbackReply(ctx.language)}` }
+        : { ...shownTurn, text: `${shownTurn.text} ${fallbackReply(ctx.language)}`.trim() }
+      : shownTurn;
   return { status: 'ok' as const, value: { turn, dropped: checked.dropped, fixed: checked.fixed, takeaways: { mine: unsafe || odd ? [] : checked.mine, ideas: unsafe || odd ? [] : checked.ideas, open: unsafe || odd ? [] : checked.open } } };
 }
 

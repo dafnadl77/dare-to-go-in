@@ -38,7 +38,7 @@ test('2. the three direction buttons sit together above the writing box; "זה �
   assert.doesNotMatch(bubble, /onReject/);
 });
 
-test('3. "שאלה X מתוך 3": from the real count of DARE\'s questions, kept across leaving and coming back', () => {
+test('3. "שאלה X מתוך 3": the real count of DARE\'s rounds (each of its turns is one), kept across leaving and coming back', () => {
   const t = thread();
   assert.match(t, /progress: \(n: number\) => `שאלה \$\{n\} מתוך \$\{MAX_QUESTIONS_PER_MOMENT\}`/);
   assert.match(page(), /questionNumber=\{Math\.min\(X\.MAX_QUESTIONS_PER_MOMENT, X\.questionsAsked\(e, moment\.id\)\)\}/);
@@ -48,9 +48,9 @@ test('3. "שאלה X מתוך 3": from the real count of DARE\'s questions, kept
   let e = X.beginConversation(X.createExploration('ux', seeds), 'm1', q('איך הוא נראה לך?'), new Date());
   assert.equal(X.questionsAsked(e, 'm1'), 1);
   e = X.addDareTurn(X.addDreamerTurn(e, 'm1', 'מבוגר'), 'm1', { role: 'dare', text: 'מבוגר, כמו מישהו שמכיר את המקום.' });
-  assert.equal(X.questionsAsked(e, 'm1'), 1, 'a reply without a question does not move the counter');
+  assert.equal(X.questionsAsked(e, 'm1'), 2, 'every turn of DARE is a round, with or without a question (2026-11-04)');
   e = X.addDareTurn(X.addDreamerTurn(e, 'm1', 'כן'), 'm1', q('ומה הוא עשה?'));
-  assert.equal(X.questionsAsked(e, 'm1'), 2);
+  assert.equal(X.questionsAsked(e, 'm1'), 3);
   // leaving unanswered and coming back continues the count
   let left = X.beginConversation(X.createExploration('ux2', seeds), 'm2', q('ומה כאן?'), new Date());
   left = X.abandonMoment(left, 'm2');

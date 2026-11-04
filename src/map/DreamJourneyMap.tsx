@@ -157,6 +157,11 @@ export default function DreamJourneyMap({ analysis, exploration, onChange, image
     set(next);
     setDraft('');
     setSafety(null);
+    // her third answer ends the moment (2026-11-04): nothing more is asked of DARE, the window shows the ways out
+    if (!X.needsTurnCall(next, id)) {
+      sending.current = false;
+      return;
+    }
     try {
       await answer(next, id);
     } finally {
@@ -222,7 +227,8 @@ export default function DreamJourneyMap({ analysis, exploration, onChange, image
           draft={draft}
           onDraft={setDraft}
           onSend={() => void send(moment.id)}
-          onSteer={() => {
+          // on the moment's last round no new direction can be asked for: the direction buttons give way to her last answer (2026-11-04)
+          onSteer={X.questionsAsked(e, moment.id) >= X.MAX_QUESTIONS_PER_MOMENT ? undefined : () => {
             // "לשנות כיוון": her bubble and DARE's other direction at once: a regular turn (out of the 16), once per DARE turn (doc 117).
             // "להמשיך בכיוון" asks nothing of DARE: it only opens her writing box (2026-10-28).
             if (stoppedFor(moment.id)) return;
@@ -253,8 +259,8 @@ export default function DreamJourneyMap({ analysis, exploration, onChange, image
           canMoveOn={X.anotherMomentLeft(e, moment.id)}
           explored={entry?.status === 'explored'}
           questionNumber={Math.min(X.MAX_QUESTIONS_PER_MOMENT, X.questionsAsked(e, moment.id))}
-          // the moment's three questions are spent: its closing line came (or her last answer stands): only the ways out
-          closed={X.momentClosed(e, moment.id) || (X.questionsAsked(e, moment.id) >= X.MAX_QUESTIONS_PER_MOMENT && entry?.turns?.[entry.turns.length - 1]?.role === 'dreamer' && !pending)}
+          // the moment's three rounds are spent and her third answer is in (or an older journey's closing line came): only the ways out
+          closed={X.momentEnded(e, moment.id) && !pending}
           note={trouble}
           safety={safety?.id === moment.id ? <SafetyPanel level={safety.level} address={address} language={language} onChoice={(c) => choose(moment.id, c)} /> : undefined}
           safetyBlocks={safety?.id === moment.id && safety.level !== 'after-not-immediate'}

@@ -100,7 +100,7 @@ test('opening a moment: one call, the moment slot and the rate limit as before; 
 test('a reply turn after her words; a bad quote costs no second call; nothing to ask when DARE spoke last (409)', async () => {
   let e = X.createExploration('conv-route2', seeds);
   e = X_.beginConversation(e, 'm3', { role: 'dare', text: 'מה עבר לך בראש שם?', move: 'ask' }, T0);
-  const { d } = deps({ openai: () => stub({ reply: 'אמרת «הרגשתי פחד מהמוכר». ויצאת בלי כלום ביד.', offer: '', anchors: [], facts: [], move: 'reflect' }) });
+  const { d } = deps({ openai: () => stub({ reply: 'אמרת «הרגשתי פחד מהמוכר». ויצאת בלי כלום ביד. מה עוד היה שם?', offer: '', anchors: [], facts: [], move: 'reflect' }) });
   assert.equal((await R.handleExploration('conversation-turn' as never, body(e, { momentId: 'm3' }), {}, d)).status, 409);
   e = X_.addDreamerTurn(e, 'm3', 'הבנתי שאני מחפש משהו, אבל בעצם ידעתי כבר מה אני צריך. הרגשתי חוסר ומוזרות.');
   const res = await R.handleExploration('conversation-turn' as never, body(e, { momentId: 'm3' }), {}, d);

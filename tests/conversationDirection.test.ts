@@ -21,12 +21,11 @@ const opened = () => X.beginConversation(X.createExploration('d', seeds), 'm1', 
 
 // ------------------------------------------------------------------------------------------------ א. the instructions
 
-test('א. the guiding principle and "do not dig" are in the instructions, as a target and not a limit', () => {
+test('א. the guiding principle and "do not dig" are in the instructions: three rounds, a beginning, a development and an end', () => {
   const p = C.buildTurnSystemPrompt('he', 'feminine');
   assert.match(p, /two kinds of value/i);
   assert.match(p, /not a questionnaire/i);
-  assert.match(p, /two to four exchanges/i);
-  assert.match(p, /a target, not a limit/i);
+  assert.match(p, /a beginning, a development and an end: three rounds at most/i);
   assert.match(p, /going deeper adds one new thing/i);
   assert.match(p, /never restate/i);
   assert.match(p, /when she says it connects/i);
@@ -73,7 +72,7 @@ test('ג. a direction button adds her bubble once, only after DARE spoke, and ne
 
 const analysis = () => typedAnalysis(store.dreamText, true) as unknown as DreamAnalysis;
 let calls = 0;
-const client = (raw: Record<string, unknown>) => ({ responses: { create: async () => ((calls += 1), { model: 'stub', output_text: JSON.stringify({ reply: 'בסדר.', offer: '', anchors: [], facts: [], move: 'reflect', mine: [], ideas: [], ...raw }), usage: { input_tokens: 0, output_tokens: 0 } }) } }) as never;
+const client = (raw: Record<string, unknown>) => ({ responses: { create: async () => ((calls += 1), { model: 'stub', output_text: JSON.stringify({ reply: 'בסדר. מה עוד בלט לך שם?', offer: '', anchors: [], facts: [], move: 'reflect', mine: [], ideas: [], ...raw }), usage: { input_tokens: 0, output_tokens: 0 } }) } }) as never;
 const deps = (reserved: number[], raw: Record<string, unknown> = {}): R.ExplorationDeps => ({
   ...R.realExplorationDeps,
   resolveIdentity: async () => ({ ok: true, identity: { kind: 'user', userId: 'u' } }) as never,

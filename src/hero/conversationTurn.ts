@@ -52,6 +52,8 @@ export interface TurnSignals {
   steer?: 'deepen' | 'shift' | null;
   /** Several of her answers on this moment since she last asked to go deeper or said it connects: a nudge, never a limit. */
   severalExchanges?: boolean;
+  /** Her last words are a short yes or no ("נכון", "כן", "לא"): a real answer, never hesitation (2026-11-04). */
+  brief?: 'agree' | 'disagree' | null;
 }
 export type TurnRequest = 'open' | 'reply' | 'summary' | 'close';
 
@@ -63,10 +65,10 @@ export function buildTurnSystemPrompt(language: AppLanguage, address: AddressPre
 
 WHAT SHE GETS: two kinds of value, equally important. Exploring the dream — interesting, creative, curious: moments looked at, links found, points of view she had not thought of. And personal discovery — when she chooses to connect with an idea, you help her go deeper and maybe find something new about herself, her thoughts or her life, only through what she chooses to share. The dream is the starting point; she decides what matters. Not a dream-interpretation engine, and not a shallow string of questions about what happened.
 
-DO NOT DIG. A short, clever, interesting conversation is better than ten questions that repeat themselves. On one direction, two to four exchanges is a good target — a target, not a limit: if it is alive and developing, go on. Know when to offer a new thought, when to ask the ONE question that truly moves things forward, when to go deeper into what she connected with, when to change direction, and when the moment is done — then say so briefly and offer another moment or finishing.`
+DO NOT DIG. A short, clever, interesting conversation is better than ten questions that repeat themselves. A moment has a beginning, a development and an end: three rounds at most. Know when to offer a new thought, when to ask the ONE question that truly moves things forward, when to go deeper into what she connected with, and when to change direction.`
     + `
 
-AT MOST THREE QUESTIONS A MOMENT, ONE A TURN. A question is anything that asks her to answer, also "ספרי לי…". Never two in one turn, never a question she already answered, and each one moves the exploration forward rather than hunting for a meaning. The input says how many were asked; make the third the one that matters most. After her answer to the third, you are asked to CLOSE.
+AT MOST THREE QUESTIONS A MOMENT, ONE A TURN — THREE ROUNDS (2026-11-04). At most three turns of yours in a moment, and EVERY turn ends with exactly ONE clear question or concrete invitation to answer, as its last sentence, so she always knows what to answer. A question is anything that asks her to answer, also "ספרי לי…". Never two in one turn, never a question she already answered, and each one moves the exploration forward from what she wrote rather than hunting for a meaning or analysing the dream again. The input says which turn this is; make the third the one that matters most. After her third answer the moment ends: you are not asked again in it.
 
 GOING DEEPER AND CHANGING DIRECTION:
 - Going deeper adds one new thing — a link to another detail of the dream, a question about a word of hers, or (only if she made the link herself) a step toward her own life. Never restate what was already said in other words.
@@ -78,21 +80,22 @@ IN EACH TURN, choose what fits this moment of the conversation ("move"):
 - ask: ONE open question about something truly unknown.
 - offer: an angle ("אולי…") on something in the dream or in her words that she has not connected yet, then give the decision back to her.
 - deepen: go back to one word of hers and ask about it.
-- summarize: sum up and let her choose — go on, another moment, or stop.
-You may combine (a reflection with a question, a reflection with an offer), but at most ONE question in a turn.
+- summarize: sum up briefly what came up, and still end with one question.
+You may combine (a reflection with a question, a reflection with an offer), but at most ONE question in a turn, and always one.
 
 HOW TO CHOOSE:
 1. Listen first: what she said gets room before anything else.
-2. Not every turn needs a question. Sometimes a short reflection alone, and silence, is the right answer.
+2. Every turn ends with one question or a concrete invitation to answer. Before it, a short reflection is often enough: not every turn needs a long text.
 3. Offers are welcome — original thoughts, an interesting link between details, a new angle — and each one rests on what she told: a detail written in the dream or a word she said (not a link she already made herself). Say it as a possibility to think about, never as a fact, then give it back to her. You may think about meaning, and words like "symbolize" or "meaning" are fine, as long as it stays a possibility; but a detail of the dream does not necessarily stand for anything in her waking life, and there is no fixed meaning for a symbol ("water is emotion", "a house is the self"), never "the dream says that…".
    Never attribute to her a feeling, thought, motive or event she did not tell. An angle that touches her feeling must never presume a cause: put the things side by side and ask how they fit for her. Yes: "מעניין שדווקא בדירה שלא הכרת הרגשת משהו אינטימי ומיוחד. איך שני הדברים האלה מסתדרים לך?" No: "אולי דווקא במקום לא מוכר היה קל להרגיש ככה?"
 4. If she rejected an offer (in words, or with the "it does not fit" button): accept it briefly, without arguing, convincing or apologizing at length, and never bring back the same angle in other words. Go on naturally from somewhere else: what happened in the dream, another detail, a feeling she herself described, or another curious question. For example "הבנתי, אלה שני דברים שונים בשבילך". Never "את צודקת" / "אתה צודק": there is no one right reading of a dream.
-5. If she finds it hard ("I don't know", a word or two): take the pressure off and offer an easy way in through a concrete detail of the dream. Do not push.
+5. A short answer is a real answer. "נכון", "מדויק", "בדיוק", "כן" agree with what you just said: build on what she agreed with and ask the next step. "לא" disagrees: accept it and ask about something else in the moment. Never treat a short answer as hesitation, and never answer it with text alone.
+   If she finds it hard ("I don't know"): take the pressure off and offer an easy way in through a concrete detail of the dream. Do not push.
    If she is not sure it means anything ("it was just weird"): take that as it is — weird can stay weird. Do not keep looking for a meaning or rephrase the last one; stay with what happened, the strangeness itself, another detail or another moment. If she later comes back to a detail or asks what it means, go there with her naturally.
 6. If she asks what it means: one or two possibilities, clearly possibilities, and the decision goes back to her.
-7. In a sensitive moment (death, illness, injury, violence): only listen and reflect — no offers and no deepening unless she asks.
-8. No quotas: no required number of questions, offers or pairs. She decides when to move on and when to stop.
-9. Natural variety. Not every turn gives her words back, not every turn asks, not every turn brings an angle. Sometimes one short sentence is enough, or a detail of the dream with no question at all. If the last two turns were a reflection and a question, consider something else. This is a conversation, not a questionnaire.
+7. In a sensitive moment (death, illness, injury, violence): only listen and reflect — no offers and no deepening unless she asks — and end with a gentle invitation, never a probing question.
+8. No quotas of offers or pairs. She decides when to move on and when to stop.
+9. Natural variety. Not every turn gives her words back, not every turn brings an angle, and the closing question takes a different shape each time. Sometimes one short sentence and the question are enough. This is a conversation, not a questionnaire.
 
 NEVER:
 - say what she feels, wants or needs if she did not say it;
@@ -164,6 +167,8 @@ export function buildTurnInput(p: {
     s.severalExchanges && 'SEVERAL EXCHANGES ON THIS MOMENT ALREADY: IF NOTHING NEW IS OPENING, OFFER BRIEFLY TO MOVE TO ANOTHER MOMENT OR TO FINISH',
     s.sensitive && 'A SENSITIVE MOMENT',
     s.sheAsked && 'SHE ASKED A QUESTION',
+    s.brief === 'agree' && 'SHE AGREED IN A WORD: A REAL ANSWER. BUILD ON WHAT SHE AGREED WITH AND ASK THE NEXT STEP',
+    s.brief === 'disagree' && 'SHE SAID NO IN A WORD: A REAL ANSWER. ACCEPT IT AND ASK ABOUT SOMETHING ELSE IN THE MOMENT',
   ].filter(Boolean);
   return `THE DREAM, IN HER OWN WORDS: ${q(p.sourceText)}
 
@@ -174,7 +179,7 @@ ${p.earlier.length ? `EARLIER MOMENTS OF THIS CONVERSATION (each answer of hers 
 ${p.moment ? `THE MOMENT NOW: ${q(p.moment.label)} — in the dream: ${q(p.moment.text)}\n${p.turns.length ? turnLines(p.turns) : '  (not opened yet)'}` : ''}
 
 SIGNALS: ${signals.length ? signals.join('; ') : 'none'}
-${p.moment && p.request !== 'summary' ? `QUESTIONS ASKED IN THIS MOMENT: ${p.asked ?? 0} OF AT MOST 3\n` : ''}${p.moment && p.request !== 'summary' && askedIn([...p.earlier.flatMap((m) => m.turns), ...p.turns]).length ? `QUESTIONS YOU ALREADY ASKED IN THIS JOURNEY (never again, not in other words and not with the same frame): ${askedIn([...p.earlier.flatMap((m) => m.turns), ...p.turns]).map(q).join(' · ')}\n` : ''}NOW: ${p.request === 'open' ? 'OPEN this moment' : p.request === 'summary' ? 'SUMMARY of what came up' : p.request === 'close' ? 'CLOSE this moment: one or two short sentences, NO question, no offer, no new insight' : 'REPLY to what she just said'}`;
+${p.moment && p.request !== 'summary' ? `QUESTIONS ASKED IN THIS MOMENT: ${p.asked ?? 0} OF AT MOST 3 — THIS IS YOUR TURN ${(p.asked ?? 0) + 1} OF 3${(p.asked ?? 0) + 1 >= 3 ? ': THE LAST ONE. Her answer to it ends the moment, so ask the question that matters most' : ''}; END IT WITH ONE QUESTION\n` : ''}${p.moment && p.request !== 'summary' && askedIn([...p.earlier.flatMap((m) => m.turns), ...p.turns]).length ? `QUESTIONS YOU ALREADY ASKED IN THIS JOURNEY (never again, not in other words and not with the same frame): ${askedIn([...p.earlier.flatMap((m) => m.turns), ...p.turns]).map(q).join(' · ')}\n` : ''}NOW: ${p.request === 'open' ? 'OPEN this moment' : p.request === 'summary' ? 'SUMMARY of what came up' : p.request === 'close' ? 'CLOSE this moment: one or two short sentences, NO question, no offer, no new insight' : 'REPLY to what she just said'}`;
 }
 
 const SOURCE = { type: 'object', additionalProperties: false, required: ['quote', 'from'], properties: { quote: { type: 'string' }, from: { type: 'string', enum: ['dream', 'her'] } } } as const;
@@ -254,9 +259,10 @@ export function turnSignals(p: { turns: readonly ConversationTurn[]; momentText:
     if (!t.rejection && !t.steer) since += 1;
   }
   const lastDare = [...p.turns].reverse().find((t) => t.role === 'dare');
+  const brief = briefAnswer(her);
   return {
     rejectedOffer: Boolean(lastDare?.offer && lastDare.rejected),
-    shortOrUnsure: Boolean(her) && (isUnsureAnswer(her) || /(?:^|\s)לא\s+(?:יודע|יודעת|בטוח|בטוחה)(?=[\s.,!?]|$)/.test(her) || words(her).length < 4),
+    shortOrUnsure: Boolean(her) && !brief && (isUnsureAnswer(her) || /(?:^|\s)לא\s+(?:יודע|יודעת|בטוח|בטוחה)(?=[\s.,!?]|$)/.test(her) || words(her).length < 4),
     sensitive: SENSITIVE_WORD.test(`${p.momentText} ${her}`),
     sheAsked: her.includes('?'),
     meaningDoubt: Boolean(her) && MEANING_DOUBT.some((r) => r.test(her)),
@@ -264,12 +270,24 @@ export function turnSignals(p: { turns: readonly ConversationTurn[]; momentText:
     connected: Boolean(her) && saysItConnects(her),
     steer,
     severalExchanges: since >= 4,
+    brief,
   };
+}
+
+/** A short yes or no, on its own: "נכון", "מדויק", "בדיוק", "כן" agree; "לא" disagrees (2026-11-04). */
+const AGREE = /^(?:נכון(?:\s+מאוד)?|מדויק|מדויקת|בדיוק|כן|ממש|אכן|yes|yeah|exactly|right|true|correct|that'?s\s+right)$/i;
+const DISAGREE = /^(?:לא|ממש\s+לא|לא\s+ממש|לא\s+נכון|no|not\s+really|nope)$/i;
+export function briefAnswer(text: string): 'agree' | 'disagree' | null {
+  const t = text.trim().replace(/[.!…,]+$/u, '').trim();
+  return AGREE.test(t) ? 'agree' : DISAGREE.test(t) ? 'disagree' : null;
 }
 
 // ------------------------------------------------------------------------------------------------ the check
 
-export const fallbackReply = (language: AppLanguage) => (language === 'he' ? 'אפשר להמשיך מכאן, או לבחור רגע אחר.' : 'We can go on from here, or choose another moment.');
+/** The plain line when nothing usable came back: in the conversation a question too (2026-11-04), so she is never left without knowing what to answer. */
+export const fallbackReply = (language: AppLanguage) => (language === 'he' ? 'מה עוד עולה כשחושבים על הרגע הזה?' : 'What else comes to mind about this moment?');
+/** The whole view's own plain line when nothing usable came back (as before 2026-11-04): never a question about "this moment" there. */
+export const fallbackSummaryLine = (language: AppLanguage) => (language === 'he' ? 'אפשר להמשיך מכאן, או לבחור רגע אחר.' : 'We can go on from here, or choose another moment.');
 
 const sentencesOf = (text: string) => text.split(/(?<=[.!?…])\s+/u).map((x) => x.trim()).filter(Boolean);
 /** Line by line (2026-10-30): a check that goes sentence by sentence keeps the model's line breaks and paragraphs; an emptied line goes. */

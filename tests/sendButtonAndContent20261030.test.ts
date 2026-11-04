@@ -153,7 +153,7 @@ const stub = (raw: Record<string, unknown>) => ({
   responses: {
     create: async (req: { instructions: string; input: string }) => (
       sent.push({ instructions: req.instructions, input: req.input }),
-      { model: 'stub', output_text: JSON.stringify({ reply: 'בסדר.', offer: '', anchors: [], facts: [], move: 'reflect', mine: [], ideas: [], open: [], ...raw }), usage: { input_tokens: 0, output_tokens: 0 } }
+      { model: 'stub', output_text: JSON.stringify({ reply: 'בסדר. מה עוד בלט לך שם?', offer: '', anchors: [], facts: [], move: 'reflect', mine: [], ideas: [], open: [], ...raw }), usage: { input_tokens: 0, output_tokens: 0 } }
     ),
   },
 }) as never;

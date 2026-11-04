@@ -356,7 +356,10 @@ const cleanTurn = (t: unknown): ConversationTurn | null => {
 
 // ------------------------------------------------------------------------------------------------ three questions a moment
 
-/** At most this many questions of DARE in a moment (approved 2026-10-25); then a closing line and the ways out. */
+/**
+ * THREE ROUNDS A MOMENT (her rule, 2026-11-04): at most three turns of DARE in a moment, each ending with one question, and three
+ * answers of hers. After her third answer the moment ends: no fourth turn of DARE, no closing line from the model, only the ways out.
+ */
 export const MAX_QUESTIONS_PER_MOMENT = 3;
 /**
  * WHAT COUNTS AS A QUESTION (2026-10-31): every sentence DARE shows that asks her to answer, counted one by one — a question mark (not
@@ -377,9 +380,14 @@ const sentencesIn = (text: string) => text.split(/(?<=[.!?…])\s+|\n+/u).map((x
 export const questionsIn = (t: ConversationTurn): number => (t.role === 'dare' && !t.closing ? sentencesIn(`${t.text}\n${t.offer ?? ''}`).filter(asksHer).length : 0);
 /** A turn of DARE that asks her to answer. */
 export const isQuestionTurn = (t: ConversationTurn): boolean => questionsIn(t) > 0;
-/** Questions DARE showed in a moment so far, including those of an earlier, unanswered visit. */
+/** One round of a moment: a turn of DARE, whatever its wording (the closing line of an older journey is not one). */
+export const isDareRound = (t: ConversationTurn): boolean => t.role === 'dare' && !t.closing;
+/**
+ * Rounds DARE opened in a moment so far, including those of an earlier, unanswered visit: the counter she sees ("שאלה X מתוך 3") and
+ * the limit the route keeps. Every turn of DARE is a round, so a turn without a question can no longer leave the counter behind.
+ */
 export function questionsAsked(e: Exploration, id: MomentId): number {
-  return (e.asked?.[id] ?? 0) + (e.explored[id]?.turns ?? []).reduce((n, t) => n + questionsIn(t), 0);
+  return (e.asked?.[id] ?? 0) + (e.explored[id]?.turns ?? []).filter(isDareRound).length;
 }
 /** Another moment she can still go to: not talked about yet, and with questions left (one moment only: there is none). */
 export const anotherMomentLeft = (e: Exploration, id: MomentId): boolean =>
@@ -467,12 +475,25 @@ export function rejectOffer(e: Exploration, id: MomentId): Exploration {
   return withTurns(e, id, entry, entry.turns.map((t, i) => (i === at ? { ...t, rejected: true } : t)));
 }
 
-/** A turn is asked for only after she spoke. */
+/** A turn is asked for only after she spoke, and only while the moment has rounds left: her third answer ends it. */
 export function needsTurnCall(e: Exploration, id: MomentId): boolean {
   const entry = e.explored[id];
-  // after the closing line of a moment nothing more is asked in it, whatever is added
-  return Boolean(entry && entry.status === 'exploring' && entry.turns && entry.turns[entry.turns.length - 1]?.role === 'dreamer' && !entry.turns.some((t) => t.role === 'dare' && t.closing));
+  // after the closing line of a moment (older journeys) or after her third answer, nothing more is asked in it, whatever is added
+  return Boolean(
+    entry &&
+      entry.status === 'exploring' &&
+      entry.turns &&
+      entry.turns[entry.turns.length - 1]?.role === 'dreamer' &&
+      !entry.turns.some((t) => t.role === 'dare' && t.closing) &&
+      questionsAsked(e, id) < MAX_QUESTIONS_PER_MOMENT,
+  );
 }
+
+/** The moment's three rounds are spent and her last answer is in: it has ended (no turn of DARE is asked for again). */
+export const momentEnded = (e: Exploration, id: MomentId): boolean => {
+  const turns = e.explored[id]?.turns ?? [];
+  return momentClosed(e, id) || (questionsAsked(e, id) >= MAX_QUESTIONS_PER_MOMENT && turns[turns.length - 1]?.role === 'dreamer');
+};
 
 /** She moves on: the moment is explored once she has said something in it. */
 export function completeConversation(e: Exploration, id: MomentId, now = new Date()): Exploration {
@@ -489,7 +510,7 @@ export function abandonMoment(e: Exploration, id: MomentId): Exploration {
   const explored = { ...e.explored };
   delete explored[id];
   // the questions of this unanswered visit stay counted: coming back does not start the moment over
-  const asked = (entry.turns ?? []).reduce((n, t) => n + questionsIn(t), 0);
+  const asked = (entry.turns ?? []).filter(isDareRound).length;
   return bump(e, { explored, ...(asked ? { asked: { ...(e.asked ?? {}), [id]: (e.asked?.[id] ?? 0) + asked } } : {}) });
 }
 

@@ -23,7 +23,7 @@ const T0 = new Date('2026-10-24T12:00:00Z');
 
 let calls = 0;
 const stubClient = () =>
-  ({ responses: { create: async () => ((calls += 1), { model: 'stub', output_text: JSON.stringify({ reply: 'פשוט וקליל.', offer: '', anchors: [], facts: [], move: 'reflect' }), usage: { input_tokens: 0, output_tokens: 0 } }) } }) as never;
+  ({ responses: { create: async () => ((calls += 1), { model: 'stub', output_text: JSON.stringify({ reply: 'פשוט וקליל. מה עוד בלט לך בעץ?', offer: '', anchors: [], facts: [], move: 'reflect' }), usage: { input_tokens: 0, output_tokens: 0 } }) } }) as never;
 const deps = (log: string[], over: Partial<R.ExplorationDeps> = {}): R.ExplorationDeps => ({
   ...R.realExplorationDeps,
   moderate: async () => ({ status: 'ok' as const, hit: false }),

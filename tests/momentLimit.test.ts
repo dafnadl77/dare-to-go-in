@@ -73,30 +73,28 @@ const deps = (raw: Record<string, unknown> = {}, over: Partial<R.ExplorationDeps
 const ask = (mode: 'conversation-turn' | 'conversation-summary', e: X.Exploration, d: R.ExplorationDeps, momentId: string | null = 'm1') =>
   R.handleExploration(mode, { language: 'he', attemptId: e.attemptId, dreamAnalysis: analysis(), exploration: e, momentId }, {}, d);
 
-test('after her third answer DARE closes: a short line, no question, no offer — and nothing more is asked in that moment', async () => {
+// her rule of 2026-11-04 replaces the closing line: three rounds, then the moment ends with no fourth turn of the model at all
+test('after her third answer the moment ends: no fourth turn and no closing line from the model — nothing is asked (409, no call)', async () => {
   calls = 0;
-  const res = await ask('conversation-turn', threeAsked(), deps());
-  const t = (res.body as { turn: X.ConversationTurn }).turn;
-  assert.match(lastInput, /CLOSE this moment/);
-  assert.equal(t.closing, true);
-  assert.ok(!t.text.includes('?') && !t.offer, JSON.stringify(t));
-  const closed = X.addDareTurn(threeAsked(), 'm1', t);
-  assert.equal(X.momentClosed(closed, 'm1'), true);
-  // her words afterwards (a stale page, a forged request): no call
-  const after = X.addDreamerTurn(closed, 'm1', 'עוד משהו');
-  assert.equal(X.needsTurnCall(after, 'm1'), false);
+  const done = threeAsked();
+  assert.equal(X.needsTurnCall(done, 'm1'), false);
+  assert.equal(X.momentEnded(done, 'm1'), true);
+  assert.equal((await ask('conversation-turn', done, deps())).status, 409);
+  // her words afterwards (a stale page, a forged request): still nothing
+  const after = X.addDreamerTurn(done, 'm1', 'עוד משהו');
   assert.equal((await ask('conversation-turn', after, deps())).status, 409);
-  assert.equal(calls, 1);
+  assert.equal(calls, 0);
 });
 
-test('the direction buttons and "זה לא מתאים לי" do not get round it: after three questions they lead to the closing line', async () => {
+test('the direction buttons and "זה לא מתאים לי" do not get round it: after three rounds they ask the model nothing', async () => {
+  calls = 0;
   for (const make of [(e: X.Exploration) => X.steerWithReply(e, 'm1', 'deepen'), (e: X.Exploration) => X.steerWithReply(e, 'm1', 'shift'), (e: X.Exploration) => X.rejectWithReply(e, 'm1').e]) {
     let e = X.addDareTurn(threeAsked(), 'm1', q('אולי משהו?', { offer: 'אולי הקופסה היא העיקר?', anchors: ['קופסה מלאה ברגים'] }));
-    // that turn was a fourth question only in this setup: the counter says the moment is spent
+    // that turn was a fourth round only in this setup (an older journey): the counter says the moment is spent
     e = make(e)!;
-    const res = await ask('conversation-turn', e, deps());
-    assert.equal((res.body as { turn: X.ConversationTurn }).turn.closing, true);
+    assert.equal((await ask('conversation-turn', e, deps())).status, 409);
   }
+  assert.equal(calls, 0);
 });
 
 test('the counter is kept per moment: leaving a moment unanswered and opening it again does not start it over; an explored moment cannot be reopened', () => {
