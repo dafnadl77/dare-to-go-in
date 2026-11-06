@@ -9,3 +9,7 @@ export const IMAGE_TIMEOUT_MS = 90_000;
 export const ANALYSIS_TIMEOUT_MS = 45_000;
 export const REFLECTION_TIMEOUT_MS = 45_000;
 export const LABELS_TIMEOUT_MS = 45_000;
+
+/** The same AI request is still running (another device, an earlier visit): asked again this many times, this far apart, then it counts as not answered. */
+export const REQUEST_WAITS = 12;
+export const REQUEST_WAIT_MS = 5000;

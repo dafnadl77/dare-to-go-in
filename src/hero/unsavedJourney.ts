@@ -13,12 +13,14 @@ const RESOLVED_STEPS = new Set(['saved', 'letting-go', 'gone']);
  * and normal step-to-step progression inside the Dream Stage never changes the answer.
  * `saving` still counts as unsaved: the write has not been confirmed yet.
  */
-export function hasUnsavedDream(state: { analysisOk: boolean; insideStep: string; paidAnalysisInFlight?: boolean }): boolean {
+export function hasUnsavedDream(state: { analysisOk: boolean; insideStep: string; paidAnalysisInFlight?: boolean; savedInAccount?: boolean }): boolean {
   // A signed-in account's paid analysis that has been submitted but has no definitive answer yet
   // (still running, or timed out / disconnected) may already have spent a credit, so leaving would
   // discard something paid for. It clears once the server has answered (success, or a failure that
   // released and refunded the attempt).
   if (state.paidAnalysisInFlight) return true;
+  // autosave (2026-11-05): the account confirmed the dream as it stands, so leaving loses nothing; a write that keeps failing does not count
+  if (state.savedInAccount) return false;
   return state.analysisOk && !RESOLVED_STEPS.has(state.insideStep);
 }
 

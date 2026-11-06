@@ -1,3 +1,4 @@
+import type { DreamJourneyState } from './dreamJourneyRecord';
 import type { DreamAnalysis } from './dreamAnalysisSchema';
 import type { DreamReflectionResult } from './dreamReflectionSchema';
 import { getAppLanguage, type AppLanguage } from './appLanguage';
@@ -57,6 +58,8 @@ export interface SavedDream {
       and the whole view. Absent on every dream saved before it existed (they open exactly as before); read it back only through
       parseExploration. Stored in the dream's jsonb payload: no database migration. */
   exploration?: Exploration;
+  /** How far an open dream went (dreamJourneyRecord.ts). Absent on every dream saved before autosave: those are finished dreams. Stored in the dream's jsonb payload: no database migration. */
+  journey?: DreamJourneyState;
 }
 
 const STORAGE_KEY = 'dare.savedDreams.v1';
@@ -173,13 +176,15 @@ export function buildSavedDream(params: {
   appLanguage?: AppLanguage;
   /** The multi-moment journey; stored only when it is a valid exploration (see exploration.ts). */
   exploration?: Exploration;
+  /** The dream's own id when it already exists in the account: finishing it never makes a second dream. */
+  id?: string;
 }): SavedDream {
-  const { appLanguage, emotions, linkQuestion, linkResponse, exploration, ...rest } = params;
+  const { appLanguage, emotions, linkQuestion, linkResponse, exploration, id, ...rest } = params;
   const normalized = normalizeEmotions(emotions);
   const answeredLink = linkQuestion && linkResponse && linkResponse.trim() !== '';
   const validExploration = exploration ? parseExploration(exploration) : null;
   return {
-    id: randomId(),
+    id: id ?? randomId(),
     createdAt: new Date().toISOString(),
     ...rest,
     ...(normalized.length > 0 ? { emotions: normalized } : {}),

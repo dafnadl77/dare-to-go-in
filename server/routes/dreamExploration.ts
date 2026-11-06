@@ -13,6 +13,7 @@ import {
   reserveReflectionAttempt,
 } from '../dreamAttempts.js';
 import { laterStepBudgetResult } from '../budgetExhausted.js';
+import { dreamRefusal, type dreamInAccount } from '../dreamAccess.js';
 import { FREE_DREAM_USED_MESSAGE, MAX_LABEL_CALLS_PER_ATTEMPT } from '../trialAllowance.js';
 import { databaseRateLimitStore, enforceRateLimits, explorationRules, type RateDecision } from '../rateLimit.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
@@ -70,6 +71,7 @@ import { isUnsureAnswer } from '../../src/hero/hebrewText.js';
 import { buildTurnInput, buildTurnSystemPrompt, checkTurn, fallbackReply, fallbackSummaryLine, parseTurn, TURN_JSON_SCHEMA, turnSignals, type TurnRaw } from '../../src/hero/conversationTurn.js';
 import { herWordsForSafety, safetyAckOf } from '../../src/hero/safety/journeySafety.js';
 import { realModerate, type Moderate } from '../safety/moderation.js';
+import { aiRequestKey, realAiRequests, type AiRequestDeps } from '../aiRequestStore.js';
 import { checkHerAnswers, dareWordsSafe } from '../safety/routeSafety.js';
 import { choosePair, listeningWhole, observationBeside, oneReflection, pairAllowedHere, PAIR_WHOLE_NOTE, type PairSources, type PairVerdict } from '../../src/hero/pairCheck.js';
 import {
@@ -622,6 +624,12 @@ export function momentCapExtra(e: Exploration): number {
   return Math.min(MAX_REJECTION_REPLIES, rejectionRepliesUsed(e) + (pending ? 1 : 0));
 }
 
+/** The identity of one logical request, from the journey itself: the moment, how far its conversation went, and her last words. */
+function conversationRequestKey(p: Extract<ConversationPlan, { kind: 'turn' | 'summary' }>, e: Exploration): string {
+  if (p.kind === 'summary') return aiRequestKey('w', [p.basedOn]);
+  return aiRequestKey('t', [p.momentId, p.request, p.turns.length, questionsAsked(e, p.momentId), p.turns[p.turns.length - 1]?.text ?? '']);
+}
+
 /** A turn is two to five lines: its answer is bounded, so its worst cost is known before it is asked for. */
 export const TURN_MAX_OUTPUT_TOKENS = 700;
 
@@ -719,7 +727,11 @@ export interface ExplorationDeps {
   trialState: typeof getTrialAttemptState;
   completeTrial: typeof completeTrialAttempt;
   rateLimit: (subject: string) => Promise<RateDecision>;
-  /** `extra`: the dream's rejection replies (at most MAX_REJECTION_REPLIES) sit above the moment calls, so they never use up the 16. */
+  /** One logical request runs once (aiRequestStore.ts). Default: the real record. */
+  aiRequests?: AiRequestDeps;
+  /** Is the dream still in this account (dreamAccess.ts). Default: the real check. */
+  dreamAccess?: typeof dreamInAccount;
+  /** `extra`: the dream's rejection replies (at most MAX_REJECTION_REPLIES) sit above the moment calls, so they never use up the moment calls. */
   reserveMoment: (attemptId: string, identity: CallerIdentity, extra?: number) => Promise<'reserved' | 'rejected' | null>;
   refundMoment: (attemptId: string) => Promise<void>;
   reserveWhole: (attemptId: string, identity: CallerIdentity) => Promise<'reserved' | 'rejected' | null>;
@@ -766,6 +778,9 @@ export async function handleExploration(mode: ExplorationMode, rawBody: unknown,
   const language: AppLanguage = body.language === 'he' ? 'he' : 'en';
   const attemptId = typeof body.attemptId === 'string' ? body.attemptId : '';
   if (!attemptId) return fail(400, 'invalid_response', 'attemptId is required.');
+  // the dream must still be hers before anything else happens (dreamAccess.ts)
+  const refused = await dreamRefusal(resolved.identity, attemptId, deps.dreamAccess);
+  if (refused) return withHeaders(refused, cookie);
   const analysis = validateDreamAnalysis(body.dreamAnalysis);
   if (!analysis) return fail(400, 'invalid_response', 'dreamAnalysis is missing or invalid.');
   if (JSON.stringify(body.exploration ?? null).length > MAX_BODY_EXPLORATION_CHARS) return fail(413, 'invalid_response', 'The journey is too large.');
@@ -808,15 +823,35 @@ export async function handleExploration(mode: ExplorationMode, rawBody: unknown,
     if (state === 'consumed_elsewhere') return fail(403, 'free_dream_used', FREE_DREAM_USED_MESSAGE);
   }
 
+  // One logical request runs once (autosave, 2026-11-05): what the server already finished comes back with no model call and no slot;
+  // what is still running is waited for; a stuck one runs again on the slot it already took. Only a signed-in account's dream has a record.
+  const owner = resolved.identity.kind === 'user' ? resolved.identity.userId : null;
+  const records = deps.aiRequests ?? realAiRequests;
+  const claim = owner && (plan.kind === 'turn' || plan.kind === 'summary') ? await records.claim(attemptId, owner, conversationRequestKey(plan, exploration)) : null;
+  if (claim?.state === 'done') return withHeaders(okResult(claim.result), cookie);
+  if (claim?.state === 'processing' || claim?.state === 'busy') return withHeaders({ status: 202, body: { pending: true } }, cookie);
+  const aiToken = claim?.state === 'new' || claim?.state === 'retry' ? claim.token : null;
+  /** False when a recovery took this request over while this run was stuck: the slot is that run's now. */
+  const letRequestGo = async () => (owner && aiToken ? (await records.release(attemptId, owner, aiToken)) !== false : true);
+  const delivered = async (body: unknown) => {
+    if (owner && aiToken) await records.finish(attemptId, owner, aiToken, body);
+    return withHeaders(okResult(body), cookie);
+  };
+
   const subject = resolved.identity.kind === 'user' ? `u:${resolved.identity.userId}` : `t:${resolved.identity.trialId}`;
   const rate = await deps.rateLimit(subject);
+  if (!rate.allowed) await letRequestGo();
   if (!rate.allowed) return withHeaders(errorResult(429, 'rate_limited', 'Too many requests for now. Please try again a little later.'), { ...(cookie ?? {}), 'Retry-After': String(rate.retryAfterSeconds) });
 
   const whole = plan.kind === 'whole' || plan.kind === 'summary';
-  const reservation = await (whole ? deps.reserveWhole(attemptId, resolved.identity) : deps.reserveMoment(attemptId, resolved.identity, momentCapExtra(exploration)));
+  // a stuck request runs again on the slot it already took: one logical request never takes two
+  const reservation = claim?.state === 'retry' ? 'reserved' : await (whole ? deps.reserveWhole(attemptId, resolved.identity) : deps.reserveMoment(attemptId, resolved.identity, momentCapExtra(exploration)));
+  if (reservation !== 'reserved') await letRequestGo();
   if (reservation === null) return fail(503, 'not_configured', 'Usage tracking is not configured.');
   if (reservation === 'rejected') return fail(403, 'limit_reached', 'This dream has used its allowance for this step, or the attempt is invalid.');
-  const refund = () => (whole ? deps.refundWhole : deps.refundMoment)(attemptId);
+  const refund = async () => {
+    if (await letRequestGo()) await (whole ? deps.refundWhole : deps.refundMoment)(attemptId);
+  };
 
   const ctx = contextOf(analysis, exploration, language, await deps.address(resolved.identity, headers), emotions);
 
@@ -833,7 +868,7 @@ export async function handleExploration(mode: ExplorationMode, rawBody: unknown,
       if (plan.kind === 'summary') {
         // "what came up": the conversation's own words, kept as the whole view (no technical notice, nothing interpreted by code)
         const wholeView = { kind: 'whole', notice: null, overview: [turn.text, turn.offer ?? ''].filter(Boolean).join(' '), connections: [], recurring: null, contrast: null, readings: [], closingQuestion: '', invite: plan.unexploredIds, ...(takeaways.mine.length || takeaways.ideas.length || takeaways.open.length ? { takeaways: { mine: takeaways.mine, ideas: takeaways.ideas, ...(takeaways.open.length ? { open: takeaways.open } : {}) } } : {}) };
-        return withHeaders(okResult({ basedOn: plan.basedOn, wholeView }), cookie);
+        return await delivered({ basedOn: plan.basedOn, wholeView });
       }
       // An anonymous trial's free dream is complete when DARE first answers her (fails closed, like the first insight).
       if (resolved.identity.kind === 'trial' && plan.first) {
@@ -843,7 +878,7 @@ export async function handleExploration(mode: ExplorationMode, rawBody: unknown,
           return completion === 'consumed' ? fail(403, 'free_dream_used', FREE_DREAM_USED_MESSAGE) : fail(503, 'not_configured', 'Usage tracking is not configured.');
         }
       }
-      return withHeaders(okResult({ momentId: plan.momentId, turn }), cookie);
+      return await delivered({ momentId: plan.momentId, turn });
     }
     if (plan.kind === 'question') {
       const outcome = await deps.generateQuestion(client, ctx, plan);

@@ -109,6 +109,18 @@ export async function completeUserAnalysis(attemptId: string, userId: string, re
   return !error && data === true;
 }
 
+/**
+ * The analysis is recorded and the dream's row is written in ONE transaction (20261105): an analysis that completed always has its dream,
+ * and a row that is missing later can only mean she deleted it. false = the attempt was no longer open (given up on and refunded): no dream.
+ * null = no answer from the database: nothing is known, so nothing is undone.
+ */
+export async function completeAnalysisOpenDream(attemptId: string, userId: string, result: unknown, payload: object): Promise<boolean | null> {
+  const client = getSupabaseServiceClient();
+  if (!client) return null;
+  const { data, error } = await client.rpc('complete_analysis_open_dream', { p_attempt: attemptId, p_owner: userId, p_result: result, p_payload: payload });
+  return error ? null : data === true;
+}
+
 /** For a trial's attempt: is the free dream still open, already delivered by THIS attempt, or consumed by another? null = could not be determined (callers fail closed). */
 export async function getTrialAttemptState(attemptId: string, trialId: string): Promise<TrialAttemptState | null> {
   const client = getSupabaseServiceClient();
@@ -276,8 +288,8 @@ export function refundReflectionAttempt(attemptId: string): Promise<void> {
 }
 
 /** What refund_attempt_credit_once answered (see the 20261030 migration). */
-export type CreditRefundOutcome = 'refunded' | 'already_refunded' | 'nothing_spent' | 'already_saved' | 'not_found' | 'invalid';
-const CREDIT_REFUND_OUTCOMES: readonly CreditRefundOutcome[] = ['refunded', 'already_refunded', 'nothing_spent', 'already_saved', 'not_found', 'invalid'];
+export type CreditRefundOutcome = 'refunded' | 'already_refunded' | 'nothing_spent' | 'already_saved' | 'no_dream' | 'not_found' | 'invalid';
+const CREDIT_REFUND_OUTCOMES: readonly CreditRefundOutcome[] = ['refunded', 'already_refunded', 'nothing_spent', 'already_saved', 'no_dream', 'not_found', 'invalid'];
 
 /**
  * Returns the dream's credit ONCE when DARE's AI budget ran out on a later step of the dream (2026-10-30). The attempt is kept, so the

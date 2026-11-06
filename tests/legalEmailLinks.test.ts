@@ -35,8 +35,8 @@ test('privacy policy (EN + HE) discloses the temporary ~2h retention of the anal
   const he = JSON.stringify(getLegalDocument('he', 'privacy'));
   assert.match(en, /we keep the result temporarily, up to about two hours/);
   assert.match(en, /preventing double charging/);
-  assert.match(en, /it is not part of your archive unless you saved the dream/);
+  assert.match(en, /it is separate from the dream kept in your archive/);
   assert.match(he, /אנחנו שומרים זמנית את התוצאה, עד כשעתיים בערך/);
   assert.match(he, /מניעת חיוב כפול/);
-  assert.match(he, /אינה חלק מהארכיון אלא אם שמרתם את החלום/);
+  assert.match(he, /נפרדת מהחלום שנשמר בארכיון/);
 });

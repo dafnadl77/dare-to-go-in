@@ -1,3 +1,5 @@
+import { dreamInAccount } from '../dreamAccess.js';
+import { openDreamPayload } from '../../src/hero/dreamJourneyRecord.js';
 import { createHash } from 'node:crypto';
 import OpenAI from 'openai';
 import { getOpenAIClient } from '../openaiClient.js';
@@ -21,6 +23,7 @@ import {
   abandonAttempt,
   startUserAttemptIdempotent,
   completeUserAnalysis,
+  completeAnalysisOpenDream,
 } from '../dreamAttempts.js';
 import { analysisBudgetResult } from '../budgetExhausted.js';
 import { startAnalysisAttempt, type AnalysisStartDeps } from '../analysisStart.js';
@@ -82,6 +85,10 @@ export interface DreamAnalysisDeps {
   guestsAllowed?: () => boolean;
   /** The second safety layer (moderation.ts). Default: the real service. */
   moderate?: Moderate;
+  /** The analysis recorded and the dream's row written, in one transaction. Absent in tests of the older path. */
+  completeAndOpen?: typeof completeAnalysisOpenDream;
+  /** Is the dream still in this account (dreamAccess.ts). Default: the real check. */
+  dreamAccess?: typeof dreamInAccount;
 }
 
 const realDeps: DreamAnalysisDeps = {
@@ -94,6 +101,7 @@ const realDeps: DreamAnalysisDeps = {
   },
   abandon: abandonAttempt,
   complete: completeUserAnalysis,
+  completeAndOpen: completeAnalysisOpenDream,
   runModel: runAnalysisModel,
   settleFreeDream: freeDreamGrantedNow,
 };
@@ -127,7 +135,7 @@ export async function handleDreamAnalysis(
     return withHeaders(errorResult(401, SIGN_IN_REQUIRED_REASON, SIGN_IN_REQUIRED_MESSAGE), cookieHeaders);
   }
 
-  const body = (rawBody ?? {}) as { sourceText?: unknown; inputMode?: unknown; idempotencyKey?: unknown };
+  const body = (rawBody ?? {}) as { sourceText?: unknown; inputMode?: unknown; idempotencyKey?: unknown; language?: unknown };
   const sourceText = typeof body.sourceText === 'string' ? body.sourceText.trim() : '';
   const inputMode = body.inputMode === 'voice' || body.inputMode === 'text' ? body.inputMode : null;
 
@@ -184,7 +192,14 @@ export async function handleDreamAnalysis(
   if (started.kind === 'replay') {
     // Already analyzed (e.g. the client timed out but the server finished): hand back the SAME attempt and
     // result. No credit is spent and the model is NOT called again.
-    return withHeaders(okResult({ ...started.analysis, attemptId: started.attemptId }), cookieHeaders);
+    // A replay never writes a dream: the analysis wrote its row when it completed, so a row that is missing is a dream she deleted, and an
+    // old key can never bring it back.
+    if (resolved.identity.kind === 'user') {
+      const access = await (deps.dreamAccess ?? dreamInAccount)(started.attemptId, resolved.identity.userId);
+      if (access === 'missing') return withHeaders(errorResult(409, 'analysis_expired', 'The earlier analysis of this dream is no longer available.'), cookieHeaders);
+      if (access === 'unavailable') return withHeaders(errorResult(503, 'temporarily_unavailable', TEMPORARILY_UNAVAILABLE_MESSAGE), cookieHeaders);
+    }
+    return withHeaders(okResult({ ...started.analysis, attemptId: started.attemptId, dreamOpened: resolved.identity.kind === 'user' }), cookieHeaders);
   }
   if (started.kind === 'in_progress') {
     return withHeaders(errorResult(409, 'analysis_in_progress', ANALYSIS_IN_PROGRESS_MESSAGE), cookieHeaders);
@@ -234,8 +249,18 @@ export async function handleDreamAnalysis(
 
     // Record the result on its attempt so a retry of the same submission returns it instead of paying again.
     if (idempotent && resolved.identity.kind === 'user') {
-      const recorded = await deps.complete(attemptId, resolved.identity.userId, outcome.value);
-      if (!recorded) console.error(`dream_analysis_result_not_recorded attempt_id=${attemptId}`);
+      // The dream is in her account from here on, even if she closes the page now, in the same transaction that completes the analysis. An
+      // attempt that was given up on and refunded never becomes a dream as well.
+      const payload = openDreamPayload({ sourceText, inputMode, analysis: outcome.value, language: body.language === 'en' ? 'en' : 'he' });
+      const opened = deps.completeAndOpen ? await deps.completeAndOpen(attemptId, resolved.identity.userId, outcome.value, payload) : await deps.complete(attemptId, resolved.identity.userId, outcome.value);
+      if (opened !== true) {
+        console.error(`dream_analysis_result_not_recorded attempt_id=${attemptId}`);
+        // false: the attempt is closed, its credit settled (abandoning it again changes nothing). null: nothing is known, so nothing is undone:
+        // the same key finds the dream if it was written, and the stale job returns the credit if it was not.
+        if (opened === false) await deps.abandon(resolved.identity, attemptId);
+        return withHeaders(errorResult(503, 'temporarily_unavailable', TEMPORARILY_UNAVAILABLE_MESSAGE), cookieHeaders);
+      }
+      return withHeaders(okResult({ ...outcome.value, attemptId, dreamOpened: true }), cookieHeaders);
     }
 
     return withHeaders(okResult({ ...outcome.value, attemptId }), cookieHeaders);

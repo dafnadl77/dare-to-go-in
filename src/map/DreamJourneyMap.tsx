@@ -37,6 +37,11 @@ interface DreamJourneyMapProps {
   onContinue: () => void;
   /** Tests and the demo may hand in their own engine; the journey uses the real one. */
   engine?: ExplorationEngine;
+  /** Her words reach the account before DARE is asked (autosave). True even when saving fails (the note on the screen says so); false when
+      another device moved on: nothing is asked of DARE from an older state. */
+  onPersist?: (e: X.Exploration) => Promise<boolean>;
+  /** The moment she left, when the journey comes back to it. */
+  resumeMomentId?: string | null;
 }
 
 /** A moment's window: a moment not opened yet asks DARE for its first turn once, after it is shown (never while rendering). */
@@ -53,7 +58,7 @@ function MomentWindow({ shouldOpen, onOpen, children }: { shouldOpen: boolean; o
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export default function DreamJourneyMap({ analysis, exploration, onChange, imageSrc, language, address, emotions, onContinue, engine = explorationEngine }: DreamJourneyMapProps) {
+export default function DreamJourneyMap({ analysis, exploration, onChange, imageSrc, language, address, emotions, onContinue, engine = explorationEngine, onPersist, resumeMomentId = null }: DreamJourneyMapProps) {
   const s = mapStrings(language);
   const w = threadWords(address, language);
   /** The journey as it is now (a late reply or a click never works on an older copy). */
@@ -73,6 +78,14 @@ export default function DreamJourneyMap({ analysis, exploration, onChange, image
   /** The distress path in a moment's window (doc 106); nothing about it is kept. */
   const [safety, setSafety] = useState<{ id: string; level: CrisisLevel } | null>(null);
   const [date] = useState(today);
+  /** Her answer was left without DARE's turn when she went: asked once on her return (the server hands back an answer it already has). */
+  const resumed = useRef(false);
+  useEffect(() => {
+    if (resumed.current || !resumeMomentId || !exploration) return;
+    resumed.current = true;
+    if (X.needsTurnCall(exploration, resumeMomentId) && !sessionStopped()) void answer(exploration, resumeMomentId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exploration, resumeMomentId]);
 
   if (!exploration) {
     return (
@@ -126,6 +139,7 @@ export default function DreamJourneyMap({ analysis, exploration, onChange, image
     if (other && other !== id) base = leave(base, other);
     set(base);
     setPending(true);
+    if ((await onPersist?.(base)) === false) return setPending(false);
     const out = await engine.turn(base, analysis, id, language, emotions);
     setPending(false);
     if (out.status === 'safety') showSafety(id, out.level);
@@ -139,6 +153,7 @@ export default function DreamJourneyMap({ analysis, exploration, onChange, image
   /** DARE's turn after her words; with her answer to the distress path when she gave one. */
   const answer = async (next: X.Exploration, id: string, ack?: SafetyAck) => {
     setPending(true);
+    if ((await onPersist?.(next)) === false) return setPending(false);
     const out = await engine.turn(next, analysis, id, language, emotions, ack ? { safetyAck: ack } : undefined);
     setPending(false);
     if (out.status === 'safety') showSafety(id, out.level);
@@ -201,6 +216,7 @@ export default function DreamJourneyMap({ analysis, exploration, onChange, image
     setWholeNote(null);
     setPhase('revealing');
     goToWhole();
+    if ((await onPersist?.(base)) === false) return setPhase(eRef.current!.wholeView ? 'shown' : 'idle');
     const out = await engine.wholeView(base, analysis, language, emotions, 'conversation-summary');
     if (out.status === 'ok') {
       set(X.receiveWholeView(eRef.current!, out.view, out.basedOn));
@@ -290,6 +306,7 @@ export default function DreamJourneyMap({ analysis, exploration, onChange, image
         onToggleFavorite={() => {}}
         onBack={() => {}}
         renderMoment={renderMoment}
+        initialMoment={resumeMomentId && e.explored[resumeMomentId]?.status === 'exploring' ? resumeMomentId : null}
         journey={{ continueLabel: s.continueJourney, onContinue }}
       />
     </div>

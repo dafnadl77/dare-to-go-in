@@ -19,8 +19,8 @@ import { MAX_LABEL_CALLS_PER_ATTEMPT } from '../server/trialAllowance';
 
 const sql = (name: string) => readFileSync(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8');
 
-// the route's own numbers (server/routes/dreamExploration.ts): label calls before the conversation, 16 turns, up to 3 rejection replies
-const MOMENT_CALLS = 16;
+// the route's own numbers (server/routes/dreamExploration.ts): label calls before the conversation, 20 calls, up to 3 rejection replies
+const MOMENT_CALLS = 20;
 const REJECTION_REPLIES = 3;
 const momentCap = (extra: number) => MAX_LABEL_CALLS_PER_ATTEMPT + MOMENT_CALLS + Math.min(REJECTION_REPLIES, extra);
 

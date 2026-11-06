@@ -2,7 +2,7 @@ import { paidFetch } from '../auth/paidFetch';
 import type { DreamAnalysis } from './dreamAnalysisSchema';
 import { validateDreamReflectionResult, type ReflectionResult, type ReflectionErrorReason } from './dreamReflectionSchema';
 import { getAppLanguage, type AppLanguage } from './appLanguage';
-import { REFLECTION_TIMEOUT_MS } from './requestTimeouts';
+import { REFLECTION_TIMEOUT_MS, REQUEST_WAITS, REQUEST_WAIT_MS } from './requestTimeouts';
 import { getAuthHeader } from '../auth/getAccessToken';
 import { safetyLevelOf } from './safety/safetyResponse';
 import type { EmotionId } from './dreamEmotions';
@@ -56,15 +56,23 @@ export async function getDreamReflection(request: DreamReflectionRequest): Promi
   try {
     const authHeader = await getAuthHeader();
     // A timeout aborts and lands in the catch below as an ordinary request_failed (the existing retry UX).
-    const res = await paidFetch(
-      '/api/dream-reflection',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeader },
-        body: JSON.stringify({ ...request, language: request.language ?? getAppLanguage() }),
-      },
-      { timeoutMs: REFLECTION_TIMEOUT_MS },
-    );
+    const ask = () =>
+      paidFetch(
+        '/api/dream-reflection',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader },
+          body: JSON.stringify({ ...request, language: request.language ?? getAppLanguage() }),
+        },
+        { timeoutMs: REFLECTION_TIMEOUT_MS },
+      );
+    // the same reflection is still being written (another device, an earlier visit): its answer is waited for, nothing is written twice
+    let res = await ask();
+    for (let i = 1; res.status === 202 && i < REQUEST_WAITS; i += 1) {
+      await new Promise((resolve) => setTimeout(resolve, REQUEST_WAIT_MS));
+      res = await ask();
+    }
+    if (res.status === 202) return { status: 'error', reason: 'request_failed', message: 'The reflection is still being written.' };
 
     const data: unknown = await res.json().catch(() => null);
     const safety = res.ok ? safetyLevelOf(data) : null;

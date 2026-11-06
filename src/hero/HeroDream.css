@@ -132,3 +132,20 @@
    now provides that persistent brand mark on every screen, including
    this one at every phase, wired to this journey's own handleGoHome via
    HeroDream.tsx's onRegisterHomeHandler. */
+
+/* Autosave: the one line shown when saving has not worked. Above every step of the journey, out of the way of the map's writing box. */
+.hd-save-note {
+  position: fixed;
+  inset-block-start: 76px;
+  inset-inline: 16px;
+  z-index: 60;
+  max-width: 34rem;
+  margin-inline: auto;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(10, 12, 24, 0.86);
+  color: #f2ece0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-align: center;
+}

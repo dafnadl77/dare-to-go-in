@@ -36,6 +36,8 @@ export interface DreamMapProps {
   onBack: () => void;
   /** The conversation of a moment (doc 102) in the moment's window, in place of its details. Absent: the window is as it was. */
   renderMoment?: (moment: MapMoment, close: () => void) => ReactNode;
+  /** A journey that comes back opens on the moment it left. */
+  initialMoment?: string | null;
   /** The map inside the real dream journey (not yet saved): no way back to the archive and no favourite yet, and once the whole view is
       shown, the way on to keeping or letting go of the dream. Absent: the map is as it was. */
   journey?: { continueLabel: string; onContinue: () => void };
@@ -106,7 +108,7 @@ export default function DreamMap(props: DreamMapProps) {
   }
 
   // ---- dialogs
-  const [openMoment, setOpenMoment] = useState<string | null>(null);
+  const [openMoment, setOpenMoment] = useState<string | null>(props.initialMoment ?? null);
   const [imageOpen, setImageOpen] = useState(false);
   const openMomentData = dream.moments.find((m) => m.id === openMoment) ?? null;
 

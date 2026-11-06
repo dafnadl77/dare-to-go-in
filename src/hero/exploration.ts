@@ -38,7 +38,7 @@ export const MAX_MOMENTS = 6;
 /** One whole view and two updates per dream (the server's reflection_count allows 3). */
 export const MAX_WHOLE_VIEWS = 3;
 /** The client's mirror of the per-dream allowance for moment calls (the server, label_count, is the authority). */
-export const MAX_MOMENT_CALLS = 16;
+export const MAX_MOMENT_CALLS = 20;
 /** The longest answer kept (same bound the reflection route already applies). */
 export const MAX_ANSWER_CHARS = 2000;
 

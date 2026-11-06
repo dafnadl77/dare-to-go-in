@@ -36,7 +36,7 @@ function extractBearerToken(authorizationHeader: string): string | null {
 interface DreamRow {
   id: string;
   created_at: string;
-  payload: { dreamAnalysis: DreamAnalysis; selectedElement: string; dreamReflection: { observation: string } };
+  payload: { dreamAnalysis: DreamAnalysis; selectedElement: string; dreamReflection: { observation: string }; journey?: { status?: string } };
 }
 
 /**
@@ -97,7 +97,8 @@ export async function handlePatternReflection(rawBody: unknown, requestHeaders: 
       if (dreamIds.length === 0) return [];
       const { data, error } = await scoped.from('dreams').select('id, created_at, payload').in('id', dreamIds);
       if (error || !data) return [];
-      return (data as DreamRow[]).map(
+      // a dream she has not finished is not part of her patterns yet
+      return (data as DreamRow[]).filter((row) => row.payload.journey?.status !== 'open').map(
         (row): OwnedDreamForReflection => ({
           id: row.id,
           createdAt: row.created_at,

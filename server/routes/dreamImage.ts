@@ -5,6 +5,7 @@ import type { ReconstructionBrief } from '../../src/hero/reconstructionBrief.js'
 import { type RequestHeaders } from '../callerIdentity.js';
 import { resolveAdultCaller } from '../ageGate.js';
 import { reserveImageAttempt, refundImageAttempt, getTrialAttemptState } from '../dreamAttempts.js';
+import { dreamRefusal } from '../dreamAccess.js';
 import { laterStepBudgetResult } from '../budgetExhausted.js';
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 
@@ -74,6 +75,9 @@ export async function handleDreamImage(rawBody: unknown, requestHeaders: Request
     console.error(imageFailureLine('no_attempt'));
     return withHeaders(errorResult(400, 'invalid_response', 'attemptId is required.'), cookieHeaders);
   }
+  // the dream must still be hers before anything else happens (dreamAccess.ts)
+  const refused = await dreamRefusal(resolved.identity, attemptId);
+  if (refused) return withHeaders(refused, cookieHeaders);
 
   const client = getOpenAIClient();
   if (!client) {

@@ -109,6 +109,42 @@ export async function saveDreamRemote(dream: SavedDream, ownerId: string): Promi
   }
 }
 
+/** One of this user's dreams, or null (not there, or not theirs: RLS decides). */
+export async function getDreamRemote(id: string, ownerId: string): Promise<SavedDream | null> {
+  const { data, error } = await supabase.from('dreams').select('id, owner_id, created_at, favorite, payload').eq('id', id).eq('owner_id', ownerId).maybeSingle();
+  if (error) throw error;
+  return data ? rowToSavedDream(data as DreamRow) : null;
+}
+
+/** Creates an open dream's row when the server could not (the same id, so it can never become a second dream). */
+export async function openDreamRemote(dream: SavedDream, ownerId: string): Promise<void> {
+  const { error } = await supabase.from('dreams').upsert(savedDreamToRow({ ...dream, dreamImageDataUrl: null }, ownerId), { onConflict: 'id', ignoreDuplicates: true });
+  if (error) throw error;
+}
+
+/**
+ * The open dream as it stands now, written only on the version this device last knew: a row another device moved on is left alone
+ * ('conflict'), and a dream deleted meanwhile is never brought back ('gone', an update cannot create a row). Throws when the write did
+ * not reach the server. Never carries the picture itself: dreamImagePath only.
+ */
+export async function saveDreamProgressRemote(dream: SavedDream, ownerId: string, baseRev: number): Promise<'saved' | 'conflict' | 'gone'> {
+  const { id, createdAt: _createdAt, favorite: _favorite, ...payload } = dream;
+  void _createdAt;
+  void _favorite;
+  const { data, error } = await supabase
+    .from('dreams')
+    .update({ payload: { ...payload, dreamImageDataUrl: null } })
+    .eq('id', id)
+    .eq('owner_id', ownerId)
+    .eq('payload->journey->>rev', String(baseRev))
+    .select('id');
+  if (error) throw error;
+  if ((data ?? []).length > 0) return 'saved';
+  const { data: still, error: readError } = await supabase.from('dreams').select('id').eq('id', id).eq('owner_id', ownerId).maybeSingle();
+  if (readError) throw readError;
+  return still ? 'conflict' : 'gone';
+}
+
 export async function toggleFavoriteRemote(id: string, ownerId: string, next: boolean): Promise<void> {
   const { error } = await supabase.from('dreams').update({ favorite: next }).eq('id', id).eq('owner_id', ownerId);
   if (error) throw error;

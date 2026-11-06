@@ -4,6 +4,7 @@ import { validateDreamAnalysis, type AnalysisResult } from './dreamAnalysisSchem
 import { getAuthHeader } from '../auth/getAccessToken';
 import { ANALYSIS_TIMEOUT_MS } from './requestTimeouts';
 import { safetyLevelOf } from './safety/safetyResponse';
+import { getAppLanguage } from './appLanguage';
 
 export type {
   DreamPerson,
@@ -50,7 +51,7 @@ export async function analyzeDream(dreamInput: DreamInput, idempotencyKey?: stri
         headers: { 'Content-Type': 'application/json', ...authHeader },
         // The idempotency key identifies THIS submitted dream: re-sending it (after a timeout or a dropped
         // connection) is recognised by the server as the same paid request, never a second one.
-        body: JSON.stringify({ sourceText, inputMode: dreamInput.inputMode, idempotencyKey, ...(safetyAck ? { safetyAck } : {}) }),
+        body: JSON.stringify({ sourceText, inputMode: dreamInput.inputMode, idempotencyKey, language: getAppLanguage(), ...(safetyAck ? { safetyAck } : {}) }),
       },
       { timeoutMs: ANALYSIS_TIMEOUT_MS },
     );
@@ -106,7 +107,7 @@ export async function analyzeDream(dreamInput: DreamInput, idempotencyKey?: stri
         uncertain: true,
       };
     }
-    return { status: 'ok', analysis: validated, attemptId };
+    return { status: 'ok', analysis: validated, attemptId, dreamOpened: (data as { dreamOpened?: unknown }).dreamOpened === true };
   } catch (err) {
     return {
       status: 'error',

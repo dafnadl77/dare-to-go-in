@@ -1,7 +1,7 @@
 import type { AppLanguage } from './appLanguage';
 import type { DreamAnalysis } from './dreamAnalysisSchema';
 import type { EmotionId } from './dreamEmotions';
-import { REFLECTION_TIMEOUT_MS, LABELS_TIMEOUT_MS } from './requestTimeouts';
+import { REFLECTION_TIMEOUT_MS, LABELS_TIMEOUT_MS, REQUEST_WAITS, REQUEST_WAIT_MS } from './requestTimeouts';
 import { segmentDream, segmentsForMoment } from './dreamSegments';
 import { unsureLook, type QuestionFocus } from './claimCheck';
 import {
@@ -54,6 +54,8 @@ export type TurnOutcome = { status: 'ok'; turn: ConversationTurn } | { status: '
 
 export interface EngineDeps {
   post: (url: string, body: unknown, timeoutMs: number) => Promise<{ status: number; data: unknown }>;
+  /** Tests skip the pause between two questions about a request still running. */
+  wait?: (ms: number) => Promise<void>;
 }
 
 export interface ExplorationEngine {
@@ -102,6 +104,16 @@ export function createExplorationEngine(deps: EngineDeps): ExplorationEngine {
   const send = async (url: string, body: unknown, timeoutMs: number) => {
     stats.sent += 1;
     return deps.post(url, body, timeoutMs);
+  };
+
+  /** The same request is still running (another device, an earlier visit): waited for a bounded time, then it counts as not answered. */
+  const sendAndWait = async (url: string, body: unknown, timeoutMs: number) => {
+    for (let i = 0; i < REQUEST_WAITS; i += 1) {
+      const answer = await send(url, body, timeoutMs);
+      if (answer.status !== 202) return answer;
+      await (deps.wait ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))))(REQUEST_WAIT_MS);
+    }
+    return { status: 503, data: null };
   };
 
   return {
@@ -194,7 +206,7 @@ export function createExplorationEngine(deps: EngineDeps): ExplorationEngine {
       const n = e.explored[momentId]?.turns?.length ?? 0;
       return once(`${e.attemptId}|t|${momentId}|${n}|${ack ?? ''}`, async () => {
         try {
-          const { status, data } = await send('/api/dream-reflection', { mode: 'conversation-turn', attemptId: e.attemptId, language, dreamAnalysis: analysis, exploration: e, momentId, emotions, ...(ack ? { safetyAck: ack } : {}) }, REFLECTION_TIMEOUT_MS);
+          const { status, data } = await sendAndWait('/api/dream-reflection', { mode: 'conversation-turn', attemptId: e.attemptId, language, dreamAnalysis: analysis, exploration: e, momentId, emotions, ...(ack ? { safetyAck: ack } : {}) }, REFLECTION_TIMEOUT_MS);
           const d = data as Record<string, unknown> | null;
           const t = d && typeof d.turn === 'object' && d.turn !== null ? (d.turn as Record<string, unknown>) : null;
           const safety = d && typeof d.safety === 'object' && d.safety !== null ? (d.safety as { level?: unknown }).level : undefined;
@@ -232,7 +244,7 @@ export function createExplorationEngine(deps: EngineDeps): ExplorationEngine {
       }
       return once(`${e.attemptId}|w|${key}`, async () => {
         try {
-          const { status, data } = await send('/api/dream-reflection', { mode, attemptId: e.attemptId, language, dreamAnalysis: analysis, exploration: e, emotions }, REFLECTION_TIMEOUT_MS);
+          const { status, data } = await sendAndWait('/api/dream-reflection', { mode, attemptId: e.attemptId, language, dreamAnalysis: analysis, exploration: e, emotions }, REFLECTION_TIMEOUT_MS);
           const d = data as Record<string, unknown> | null;
           const w = d && typeof d.wholeView === 'object' && d.wholeView !== null ? (d.wholeView as Record<string, unknown>) : null;
           if (status === 200 && d && isStr(d.basedOn) && w && isStr(w.overview)) {

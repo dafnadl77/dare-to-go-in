@@ -214,7 +214,7 @@ test('the closing screen keeps its ORIGINAL round buttons; only the endless ring
     assert.equal((choices.match(new RegExp(`className="${layer}[ "]`, 'g')) ?? []).length, 2, `${layer} on both buttons`);
   }
   assert.match(choices, /<DispersingLetters text=\{t\('closing\.letItGo'\)\} \/>/, 'the let-go label disperses letter by letter on hover');
-  assert.match(choices, /closing\.keepThisDream/);
+  assert.match(choices, /closing\.finishJourney/);
   // original size and frame
   assert.match(css, /\.dc-portal \{[^}]*width: min\(28vw, 230px\);[^}]*height: min\(28vw, 230px\);/);
   assert.match(css, /\.dc-portal-arc \{[^}]*border-top-color: rgba\(var\(--accent-rgb\), 0\.75\);/);

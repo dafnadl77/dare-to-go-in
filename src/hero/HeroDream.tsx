@@ -17,6 +17,9 @@ import { useUnifiedDreamSequence } from './useUnifiedDreamSequence';
 import { dreamInputSourceText, type DreamInput } from './dreamInput';
 import { createJourneyEpoch, runInJourney } from './journeyEpoch';
 import { hasUnsavedDream } from './unsavedJourney';
+import { createAutosave, createProgressWriter, type Autosave, type AutosaveStatus, type ProgressState } from './dreamAutosave';
+import { emptyReflection, isOpenDream, journeyStepOf, type DreamJourneyState } from './dreamJourneyRecord';
+import { forgetOpenDream, rememberOpenDream, type DreamResume } from './dreamResume';
 import { createSessionSubmissionStore, endSubmission, keyForSubmission } from './analysisSubmission';
 import { classifyFirstImageFailure, recoveryForFirstImageFailure } from './firstImageRecovery';
 import { serviceNoticeOf, type ServiceNotice } from './serviceUnavailable';
@@ -29,7 +32,7 @@ import { pickMemoryFragments } from './memoryFragments';
 import { deriveDreamElements, wholeDreamReference } from './dreamElements';
 import { getDisplayLabels, getMomentLabels } from './dreamElementLabels';
 import { DREAM_MAP_JOURNEY } from './journeyMode';
-import type { Exploration } from './exploration';
+import { exploringId, type Exploration } from './exploration';
 import DreamJourneyMap from '../map/DreamJourneyMap';
 import { mapJourneyFrom, mapMomentTexts, reflectionContextFromJourney, reflectionFromJourney, savedFieldsFromJourney } from '../map/journeyRecord';
 import { getDreamQuestions } from './dreamQuestions';
@@ -39,7 +42,9 @@ import { getDreamReflection, type DreamReflectionRequest } from './dreamReflecti
 import type { EmotionId } from './dreamEmotions';
 import type { ReflectionResult } from './dreamReflectionSchema';
 import { buildSavedDream, type SavedDream } from './dreamStorage';
-import { saveDreamRemote } from './dreamRemoteStorage';
+import { getDreamRemote, openDreamRemote, saveDreamProgressRemote } from './dreamRemoteStorage';
+import { deleteDreamImage, uploadDreamImage } from './dreamImageStorage';
+import { useLanguage } from '../i18n/LanguageContext';
 import { extractAccentColor, extractDreamPalette, isImageCenterLight, type AccentColor } from './dreamAccentColor';
 import type { CentralMode } from './centralMode';
 import { useAuth } from '../auth/AuthContext';
@@ -90,6 +95,8 @@ const GONE_HOLD_MS = 1800;
 // (dr-image-memory-lock / dr-memory-frame-trace in DreamReconstruction.css)
 // so DREAM SAVED. only appears once that visual beat has actually played.
 const SAVE_LOCK_MS = 1600;
+// Her words reach the account before DARE is asked, but a slow connection never holds DARE back longer than this.
+const PERSIST_WAIT_MS = 4000;
 
 const TITLE_PHASES = new Set(['title', 'prompt', 'interaction', 'idle']);
 const PROMPT_PHASES = new Set(['prompt', 'interaction', 'idle']);
@@ -135,10 +142,20 @@ interface HeroDreamProps {
   /** App asks for the writing screen to open (after sign-in or e-mail confirmation: /?view=write). Consumed once through onWritingOpened. */
   openWriting?: boolean;
   onWritingOpened?: () => void;
+  /** An open dream she came back to (dreamResume.ts): read once, when this screen mounts. */
+  resume?: DreamResume | null;
+  onResumeTaken?: () => void;
+  /** Another device moved this dream on: App opens it as it now stands (null: it no longer exists). */
+  onDreamMovedOn?: (dream: SavedDream | null) => void;
 }
 
-export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal, onRegisterHomeHandler, onFreeDreamUsed, onCreditsRequired, onSessionExpired, onUnsavedDreamChange, onStartRequiresSignIn, openWriting = false, onWritingOpened }: HeroDreamProps) {
+export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal, onRegisterHomeHandler, onFreeDreamUsed, onCreditsRequired, onSessionExpired, onUnsavedDreamChange, onStartRequiresSignIn, openWriting = false, onWritingOpened, resume = null, onResumeTaken, onDreamMovedOn }: HeroDreamProps) {
   const { user, loading: authLoading } = useAuth();
+  const { t } = useLanguage();
+  // The dream she came back to, as it was read when this screen opened; cleared when she leaves it for the room.
+  const resumedRef = useRef(resume);
+  const resumedDream = resume?.dream ?? null;
+  const resumedInside = resume?.phase === 'inside';
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
   const uiLayerRef = useRef<HTMLDivElement>(null);
@@ -164,13 +181,16 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // completes, plus the Dream Analysis pipeline's result for it. STAGE 3
   // ONLY: the temporary dev view below is not final UI.
   const dreamInputRef = useRef<DreamInput | null>(null);
+  const resumedInputModeRef = useRef(resumedDream?.inputMode ?? null);
   const [analysisPending, setAnalysisPending] = useState(false);
   // True while a submitted analysis has NO definitive answer (timeout, dropped connection, a platform
   // error page, or "still processing"): the server may have started or finished it and, for a signed-in
   // account, spent a credit. Retrying reuses the same submission identity, so it can never be charged twice.
   const [analysisUncertain, setAnalysisUncertain] = useState(false);
   const [submissionStore] = useState(createSessionSubmissionStore);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(() =>
+    resumedDream ? { status: 'ok', analysis: resumedDream.dreamAnalysis, attemptId: resumedDream.id, dreamOpened: true } : null,
+  );
   // Only present with ?debug=1 — the dev view must never appear in the
   // normal user journey, only as a development aid.
   const [debugMode] = useState(() => new URLSearchParams(window.location.search).has('debug'));
@@ -178,34 +198,34 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // Dream Reconstruction — begins only once a REAL DreamAnalysis has
   // succeeded. Every fragment/brief field below is derived from that real
   // analysis; nothing here is invented or demo content.
-  const [reconstructionPhase, setReconstructionPhase] = useState<ReconstructionPhase>('none');
-  const [brief, setBrief] = useState<ReconstructionBrief | null>(null);
+  const [reconstructionPhase, setReconstructionPhase] = useState<ReconstructionPhase>(resume?.phase ?? 'none');
+  const [brief, setBrief] = useState<ReconstructionBrief | null>(() => (resumedDream ? buildReconstructionBrief(resumedDream.dreamAnalysis, resumedDream.corrections) : null));
   const [fragments, setFragments] = useState<string[]>([]);
-  const [corrections, setCorrections] = useState<string[]>([]);
+  const [corrections, setCorrections] = useState<string[]>(resumedDream?.corrections ?? []);
   // ENTER THE DREAM — the portal hands off directly into the Dream Stage at
   // 'prompt' ("WHAT STANDS OUT TO YOU?") → choices → reflection. Terminal at
   // 'stored'.
-  const [insideStep, setInsideStep] = useState<InsideStep>('prompt');
+  const [insideStep, setInsideStep] = useState<InsideStep>(resumedInside && resume ? resume.insideStep : 'prompt');
   // The selectable elements are derived once from the real DreamAnalysis
   // (never invented, never hardcoded per-dream) — see dreamElements.ts.
   const [dreamElements, setDreamElements] = useState<string[]>([]);
-  const [selectedElement, setSelectedElement] = useState<string | null>(null);
+  const [selectedElement, setSelectedElement] = useState<string | null>(resumedDream?.selectedElement || null);
   // True once the candidate elements have been finalised for this dream —
   // immediately when there were none to label, otherwise once the labels
   // request settled (ok or raw fallback). It is what lets the Dream Stage tell
   // "still loading" apart from "genuinely nothing to choose from".
-  const [elementsResolved, setElementsResolved] = useState(false);
-  const [reflectionResponse, setReflectionResponse] = useState<string | null>(null);
+  const [elementsResolved, setElementsResolved] = useState(resume !== null && resume.phase !== 'none');
+  const [reflectionResponse, setReflectionResponse] = useState<string | null>(resumedDream?.reflectionResponse || null);
   // Questions written for this dream (see dreamQuestions.ts), asked for in the background while the picture is made. They are matched to
   // the moments by label; absent or blank = the fixed question / no optional link step. Purely an enhancement.
   const [dreamQuestions, setDreamQuestions] = useState<(DreamQuestions & { moments: string[] }) | null>(null);
   // The dreamer's answer to the optional link question (null = not asked or skipped).
   const [linkResponse, setLinkResponse] = useState<string | null>(null);
   // The feelings the dreamer named at the optional feelings step (empty when skipped).
-  const [selectedEmotions, setSelectedEmotions] = useState<EmotionId[]>([]);
+  const [selectedEmotions, setSelectedEmotions] = useState<EmotionId[]>(resumedDream?.emotions ?? []);
   // The dream map journey (journeyMode.ts): the dream's moments, the conversations in them and the whole view. Null until the moments
   // are prepared; saved with the dream.
-  const [exploration, setExploration] = useState<Exploration | null>(null);
+  const [exploration, setExploration] = useState<Exploration | null>(resume?.exploration ?? null);
 
   // JOURNEY EPOCH — see journeyEpoch.ts. Every async result below is applied only if it
   // still belongs to the journey that started it. Bumped when the journey is abandoned
@@ -221,17 +241,19 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // (element labels) and used for labels, the reflection and the saved dream's stamp, so
   // switching the interface language mid-journey can never leave a saved dream stamped
   // with a language different from the content that was generated for it.
-  const journeyLanguageRef = useRef<AppLanguage | null>(null);
+  const journeyLanguageRef = useRef<AppLanguage | null>(resumedDream?.appLanguage ?? null);
   // Orders analyses within one journey (TRY AGAIN / EDIT re-submits): only the latest applies.
   const analysisSeqRef = useRef(0);
   // Image requests fired before the FIRST image succeeded (see firstImageRecovery.ts).
   const firstImageTriesRef = useRef(0);
-  const imageEverSucceededRef = useRef(false);
+  const imageEverSucceededRef = useRef(Boolean(resume?.imageUrl));
 
   // The one grounded reflection engine call — real OpenAI, idempotent per
   // token exactly like image generation, never re-fired by rerenders.
   const [reflectionPending, setReflectionPending] = useState(false);
-  const [reflectionEngineResult, setReflectionEngineResult] = useState<ReflectionResult | null>(null);
+  const [reflectionEngineResult, setReflectionEngineResult] = useState<ReflectionResult | null>(() =>
+    resumedDream?.journey?.reflected ? { status: 'ok', reflection: resumedDream.dreamReflection } : null,
+  );
   const reflectionTokenRef = useRef<string | null>(null);
   const reflectionRetryCountRef = useRef(0);
 
@@ -295,7 +317,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // the 'imaging' phase. `generationTokenRef` makes generation idempotent —
   // a given token (e.g. 'initial', 'correction-1') only ever fires one real
   // request, no matter how many times rerenders/effects/StrictMode touch it.
-  const [displayedImageUrl, setDisplayedImageUrl] = useState<string | null>(null);
+  const [displayedImageUrl, setDisplayedImageUrl] = useState<string | null>(resume?.imageUrl ?? null);
   const [incomingImageUrl, setIncomingImageUrl] = useState<string | null>(null);
   const [imagePending, setImagePending] = useState(false);
   const [imageResult, setImageResult] = useState<ImageResult | null>(null);
@@ -312,7 +334,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // against a bright photo; a dark photo keeps the existing light text.
   const [revealTextOnLight, setRevealTextOnLight] = useState(false);
   const generationTokenRef = useRef<string | null>(null);
-  const correctionCountRef = useRef(0);
+  const correctionCountRef = useRef(resumedDream?.corrections.length ?? 0);
   const reconstructingEnteredAtRef = useRef(0);
 
   // Why the last regeneration did not replace the image (null = nothing to say).
@@ -346,6 +368,20 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     onStartRequiresSignIn();
     return false;
   };
+
+  // The map's moments are the dream's own events (journeyRecord.ts), titled by the labels call with the moment rules. A failed call never
+  // blocks: titles built from the moments' own words.
+  const prepareMoments = useCallback(
+    (analysis: Extract<AnalysisResult, { status: 'ok' }>['analysis'], attemptId: string, language: AppLanguage) => {
+      const momentTexts = mapMomentTexts(analysis).map((m) => m.text);
+      runInJourney(
+        epoch,
+        () => (momentTexts.length > 0 ? getMomentLabels(analysis.sourceText, momentTexts, attemptId, language) : Promise.resolve(null)),
+        (result) => setExploration(mapJourneyFrom(attemptId, analysis, result?.status === 'ok' ? result.labels : null)),
+      );
+    },
+    [epoch],
+  );
 
   const runAnalysis = (input: DreamInput, safetyAck?: 'dream' | 'not-immediate') => {
     // Safety net behind the entry gate: words are never analyzed for a visitor who is not signed in; they are kept for their return.
@@ -453,19 +489,17 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       if (journeyLanguageRef.current === null) journeyLanguageRef.current = getAppLanguage();
       const journeyLanguage = journeyLanguageRef.current;
       const attemptId = analysisResult.attemptId;
-      if (rawFragments.length > 0) {
+      // a dream she came back to asks for nothing it already has: its moments are saved, and the fragments stay in the dream's own words
+      const cameBack = resumedRef.current;
+      if (cameBack) setFragments(rawFragments);
+      else if (rawFragments.length > 0) {
         runInJourney(
           epoch,
           () => getDisplayLabels(analysis.sourceText, rawFragments, attemptId, journeyLanguage),
           (result) => setFragments(result.status === 'ok' ? result.labels : rawFragments),
         );
       }
-      const momentTexts = mapMomentTexts(analysis).map((m) => m.text);
-      runInJourney(
-        epoch,
-        () => (momentTexts.length > 0 ? getMomentLabels(analysis.sourceText, momentTexts, attemptId, journeyLanguage) : Promise.resolve(null)),
-        (result) => setExploration(mapJourneyFrom(attemptId, analysis, result?.status === 'ok' ? result.labels : null)),
-      );
+      if (!cameBack?.exploration) prepareMoments(analysis, attemptId, journeyLanguage);
       setElementsResolved(true);
     } else if (combined.length > 0) {
       // First language-dependent generation: the journey's language is fixed here.
@@ -503,7 +537,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     startImageGeneration('initial', newBrief, analysisResult.attemptId);
     const t = setTimeout(() => setReconstructionPhase('dissolving'), SETTLE_PAUSE_MS);
     return () => clearTimeout(t);
-  }, [analysisResult, reconstructionPhase, startImageGeneration, epoch]);
+  }, [analysisResult, reconstructionPhase, startImageGeneration, prepareMoments, epoch]);
 
   // Timer-driven phase progression for the room's own dissolve. User
   // choices (NOT QUITE / YES) take over from 'reveal' onward.
@@ -638,7 +672,8 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // no quiet pause, no look-around, no return to a bare fullscreen image.
   useEffect(() => {
     // the dream map journey goes straight to the feelings step, and from it to the map
-    if (reconstructionPhase === 'inside') setInsideStep(DREAM_MAP_JOURNEY ? 'emotions' : 'prompt');
+    // (a dream she came back to is already at its own step)
+    if (reconstructionPhase === 'inside' && resumedRef.current?.phase !== 'inside') setInsideStep(DREAM_MAP_JOURNEY ? 'emotions' : 'prompt');
   }, [reconstructionPhase]);
 
   useEffect(() => {
@@ -759,6 +794,21 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     });
   };
 
+  // A dream she came back to: what was asked for and not received when she went is asked for once, on the same request (the server hands
+  // back an answer it already has). Deferred, so a double mount in development starts it once.
+  useEffect(() => {
+    const cameBack = resumedRef.current;
+    if (!cameBack) return;
+    const t = setTimeout(() => {
+      onResumeTaken?.();
+      if (analysisResult?.status !== 'ok' || cameBack.phase === 'none') return;
+      if (DREAM_MAP_JOURNEY && !exploration) prepareMoments(analysisResult.analysis, analysisResult.attemptId, journeyLanguageRef.current ?? getAppLanguage());
+      if (cameBack.phase === 'inside' && cameBack.insideStep === 'interpreting') handleContinueFromMap();
+    }, 0);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleRetryReflection = () => {
     if (analysisResult?.status !== 'ok' || !selectedElement || !reflectionResponse) return;
     reflectionRetryCountRef.current += 1;
@@ -790,14 +840,132 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // A finished dream map journey in the saved record's own shape (journeyRecord.ts); null until its whole view is there.
   const journeyReflection = DREAM_MAP_JOURNEY && exploration ? reflectionFromJourney(exploration, journeyLanguageRef.current ?? getAppLanguage()) : null;
 
+  // AUTOSAVE (dreamAutosave.ts). From the end of the analysis the dream lives in the account, in one row with the attempt's id; each change
+  // of the journey below writes it there. Nothing here decides anything about credits or AI requests.
+  const autosaveRef = useRef<Autosave<ProgressState<SavedDream>> | null>(null);
+  const [saveStatus, setSaveStatus] = useState<AutosaveStatus>('idle');
+  const [everSaved, setEverSaved] = useState(resume !== null);
+  const lastProgressRef = useRef('');
+  /** A dream she came back to is written only when something changes: just opening it never touches the row, so another device open on it is left alone. */
+  const cameBackUnchangedRef = useRef(resume !== null);
+  /** Finishing has begun: only the finished dream may be written from here on. */
+  const finishingRef = useRef(false);
+
+  const autosaveFor = (dreamId: string, opened: boolean) => {
+    if (!user) return null;
+    if (autosaveRef.current) return autosaveRef.current;
+    const cameBack = resumedRef.current;
+    const write = createProgressWriter<SavedDream>(
+      { ownerId: user.id, opened, imagePath: cameBack?.dream.dreamImagePath ?? null, savedImage: cameBack?.imageUrl ?? null },
+      { open: openDreamRemote, upload: uploadDreamImage, save: saveDreamProgressRemote, removeImage: deleteDreamImage },
+    );
+    const autosave: Autosave<ProgressState<SavedDream>> = createAutosave<ProgressState<SavedDream>>(
+      {
+        write,
+        onStatus: (status) => {
+          if (autosaveRef.current !== autosave) return; // a journey she already left
+          setSaveStatus(status);
+          if (status === 'saved') setEverSaved(true);
+        },
+      },
+      cameBack?.dream.journey?.rev ?? 0,
+    );
+    autosaveRef.current = autosave;
+    rememberOpenDream(dreamId);
+    return autosave;
+  };
+
+  /** The latest picture, the moment it exists: before its reveal has played, so closing the screen never loses it. */
+  const latestImage = imageResult?.status === 'ok' ? imageResult.imageDataUrl : displayedImageUrl;
+
+  const progressRecord = (ex: Exploration | null): SavedDream | null => {
+    if (analysisResult?.status !== 'ok') return null;
+    const language = journeyLanguageRef.current ?? getAppLanguage();
+    const reflected = reflectionEngineResult?.status === 'ok';
+    const journey: DreamJourneyState = {
+      status: 'open',
+      step: journeyStepOf(reconstructionPhase, insideStep),
+      momentId: ex ? exploringId(ex) : null,
+      rev: 0,
+      ...(reflected ? { reflected: true } : {}),
+    };
+    return {
+      ...buildSavedDream({
+        id: analysisResult.attemptId,
+        sourceText: analysisResult.analysis.sourceText,
+        inputMode: dreamInputRef.current?.inputMode ?? resumedInputModeRef.current ?? 'text',
+        dreamAnalysis: analysisResult.analysis,
+        dreamImageDataUrl: null,
+        ...(ex ? savedFieldsFromJourney(ex) : { selectedElement: '', reflectionResponse: '' }),
+        dreamReflection: reflected ? reflectionEngineResult.reflection : emptyReflection(language),
+        corrections,
+        emotions: selectedEmotions,
+        appLanguage: language,
+        ...(ex ? { exploration: ex } : {}),
+      }),
+      journey,
+    };
+  };
+
+  /** Writes the journey as it stands, unless that very state was already written. */
+  const pushProgress = (ex: Exploration | null) => {
+    if (finishingRef.current || analysisResult?.status !== 'ok') return null;
+    const record = progressRecord(ex);
+    const autosave = record && autosaveFor(record.id, analysisResult.dreamOpened === true);
+    if (!record || !autosave) return null;
+    const mark = JSON.stringify([record.journey, record.exploration ?? null, record.emotions ?? [], record.corrections, record.dreamReflection.observation, latestImage?.length ?? 0, latestImage?.slice(-48) ?? '']);
+    if (mark === lastProgressRef.current) return null;
+    lastProgressRef.current = mark;
+    if (cameBackUnchangedRef.current) {
+      cameBackUnchangedRef.current = false;
+      return null;
+    }
+    return autosave.push({ record, image: latestImage });
+  };
+
+  useEffect(() => {
+    if (insideStep === 'letting-go' || insideStep === 'gone') return;
+    pushProgress(exploration);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, analysisResult, reconstructionPhase, insideStep, exploration, selectedEmotions, corrections, latestImage, reflectionEngineResult]);
+
+  /** Before DARE is asked: her words are in the account first, so a reply can never belong to words that were lost. False: another device moved on (or the dream is gone), so nothing is asked from this older state. */
+  const persistBeforeAi = async (ex: Exploration): Promise<boolean> => {
+    const saved = pushProgress(ex);
+    if (!saved) return true;
+    const outcome = await Promise.race([saved, new Promise<null>((resolve) => setTimeout(() => resolve(null), PERSIST_WAIT_MS))]);
+    return outcome !== 'conflict' && outcome !== 'gone';
+  };
+
+  // the connection is back: a write that failed goes at once
+  useEffect(() => {
+    const onOnline = () => autosaveRef.current?.retryNow();
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, []);
+
+  // another device moved this dream on: this screen takes the dream as it now stands, it never writes over it
+  useEffect(() => {
+    if (saveStatus !== 'conflict' || finishingRef.current || !user || analysisResult?.status !== 'ok') return;
+    getDreamRemote(analysisResult.attemptId, user.id).then(
+      (dream) => onDreamMovedOn?.(dream),
+      (err) => console.error('Failed to read the dream back:', err),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saveStatus]);
+
+  useEffect(() => () => forgetOpenDream(), []);
+
   /** The finished dream as it is saved, built once and reused by every retry; null when the journey is not finished yet. */
   const buildRecord = (): SavedDream | null => {
     if (analysisResult?.status !== 'ok') return null;
     const common = {
       sourceText: analysisResult.analysis.sourceText,
-      inputMode: dreamInputRef.current?.inputMode ?? ('text' as const),
+      inputMode: dreamInputRef.current?.inputMode ?? resumedInputModeRef.current ?? ('text' as const),
       dreamAnalysis: analysisResult.analysis,
       dreamImageDataUrl: displayedImageUrl,
+      // the row that has been following this dream: finishing it never makes a second one
+      ...(user ? { id: analysisResult.attemptId } : {}),
       corrections,
       emotions: selectedEmotions,
       appLanguage: journeyLanguageRef.current ?? undefined,
@@ -816,6 +984,23 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
       dreamReflection: reflectionEngineResult.reflection,
       ...(linkQuestion && linkResponse ? { linkQuestion, linkResponse } : {}),
     });
+  };
+
+  /** The same row, now finished. Resolves only when the account confirmed it. */
+  const finishInAccount = async (record: SavedDream) => {
+    const autosave = autosaveFor(record.id, analysisResult?.status === 'ok' && analysisResult.dreamOpened === true);
+    if (!autosave || !user) throw new Error('not_signed_in');
+    const finished = { record: { ...record, journey: { status: 'done', step: 'closing', momentId: null, rev: 0, reflected: true } satisfies DreamJourneyState }, image: displayedImageUrl };
+    let outcome = await autosave.push(finished);
+    if (outcome === 'conflict') {
+      const remote = await getDreamRemote(record.id, user.id);
+      if (remote && !isOpenDream(remote)) return; // another device already finished it
+      if (remote) {
+        autosave.adopt(remote.journey?.rev ?? 0);
+        outcome = await autosave.push(finished);
+      }
+    }
+    if (outcome !== 'saved') throw new Error('dream_not_saved');
   };
 
   const handleSaveDream = () => {
@@ -845,12 +1030,14 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     // DREAM / LET IT GO choice with dreamSavedRef reset, so the dreamer
     // can retry with the exact same record.
     setSaveFailed(false);
+    finishingRef.current = true;
     setInsideStep('saving');
     const startedAt = Date.now();
     const token = ++saveTokenRef.current;
     clearTimeout(saveTimerRef.current);
-    saveDreamRemote(record, user.id).then(
+    finishInAccount(record).then(
       () => {
+        forgetOpenDream();
         if (token !== saveTokenRef.current) return; // the dreamer already left this journey
         const remaining = Math.max(SAVE_LOCK_MS - (Date.now() - startedAt), 0);
         saveTimerRef.current = setTimeout(() => setInsideStep('saved'), remaining);
@@ -917,7 +1104,9 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   // Protected from the moment a signed-in account's PAID analysis is submitted (it may already have spent a
   // credit) until the server answers definitively, and then, as before, until the analyzed dream is saved.
   const paidAnalysisInFlight = !!user && (analysisPending || analysisUncertain);
-  const unsavedDream = hasUnsavedDream({ analysisOk: analysisResult?.status === 'ok', insideStep, paidAnalysisInFlight });
+  const savedInAccount =
+    ((analysisResult?.status === 'ok' && analysisResult.dreamOpened === true) || everSaved) && saveStatus !== 'retrying' && saveStatus !== 'failing' && saveStatus !== 'gone';
+  const unsavedDream = hasUnsavedDream({ analysisOk: analysisResult?.status === 'ok', insideStep, paidAnalysisInFlight, savedInAccount });
   useEffect(() => {
     onUnsavedDreamChange(unsavedDream);
   }, [unsavedDream, onUnsavedDreamChange]);
@@ -1011,6 +1200,16 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     clearTimeout(saveTimerRef.current);
     savedRecordRef.current = null;
     setSaveFailed(false);
+    // a write still on its way finishes on its own; what comes next is another dream
+    autosaveRef.current = null;
+    lastProgressRef.current = '';
+    cameBackUnchangedRef.current = false;
+    finishingRef.current = false;
+    resumedRef.current = null;
+    resumedInputModeRef.current = null;
+    setSaveStatus('idle');
+    setEverSaved(false);
+    forgetOpenDream();
   };
 
   // Keeps App.tsx's ref to the CURRENT handleGoHome closure up to date
@@ -1172,7 +1371,16 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
           address={addressPreferenceOfUser(user)}
           emotions={selectedEmotions}
           onContinue={handleContinueFromMap}
+          onPersist={persistBeforeAi}
+          resumeMomentId={resumedRef.current?.dream.journey?.momentId ?? null}
         />
+      )}
+
+      {/* Autosave: said only when something is wrong, in the approved words. */}
+      {(saveStatus === 'retrying' || saveStatus === 'failing' || saveStatus === 'gone') && (
+        <p className="hd-save-note" role="status">
+          {t(saveStatus === 'retrying' ? 'autosave.retrying' : saveStatus === 'failing' ? 'autosave.failing' : 'autosave.gone')}
+        </p>
       )}
 
       {/* Development aid only — never part of the normal user journey.

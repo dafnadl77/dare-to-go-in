@@ -2,6 +2,7 @@ import type { ArchiveEntry } from './archiveData';
 import { formatEntryDayMonth, formatEntryMonth, formatEntryYear } from './archiveData';
 import { useDreamImageSrc } from './useDreamImageSrc';
 import { useLanguage } from '../i18n/LanguageContext';
+import { isOpenDream } from '../hero/dreamJourneyRecord';
 import type { AppLanguage } from '../hero/appLanguage';
 import './DreamTimeline.css';
 
@@ -70,6 +71,7 @@ function DreamCard({
             <span className="dt-card-title">{entry.title}</span>
             <span className="dt-card-date">{formatEntryDayMonth(entry.date, language)}</span>
           </span>
+          {entry.kind === 'real' && isOpenDream(entry.savedDream) && <span className="dt-card-progress">{t('archive.inProgress')}</span>}
           <span className="dt-card-excerpt">{entry.excerpt}</span>
           {entry.keywords.length > 0 && <span className="dt-card-keywords">{entry.keywords.join(' · ')}</span>}
         </span>

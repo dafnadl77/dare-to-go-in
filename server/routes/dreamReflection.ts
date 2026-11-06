@@ -24,8 +24,10 @@ import { resolveAdultCaller } from '../ageGate.js';
 import { realModerate, type Moderate } from '../safety/moderation.js';
 import { checkHerAnswers, dareWordsSafe, safetyBody } from '../safety/routeSafety.js';
 import { safetyAckOf } from '../../src/hero/safety/journeySafety.js';
+import { aiRequestKey, realAiRequests, type AiRequestDeps } from '../aiRequestStore.js';
 import { reserveReflectionAttempt, refundReflectionAttempt, getTrialAttemptState, completeTrialAttempt } from '../dreamAttempts.js';
 import { laterStepBudgetResult } from '../budgetExhausted.js';
+import { dreamRefusal, type dreamInAccount } from '../dreamAccess.js';
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 import { getSupabaseUserScopedClient } from '../supabaseUserScopedClient.js';
 import { logModelUsed, resolveStageModel } from '../stageModel.js';
@@ -335,6 +337,10 @@ export interface ReflectionDeps {
   resolveIdentity?: (headers: RequestHeaders) => Promise<ResolveCallerResult>;
   /** The second safety layer (moderation.ts). */
   moderate?: Moderate;
+  /** One logical request runs once (aiRequestStore.ts). Default: the real record. */
+  aiRequests?: AiRequestDeps;
+  /** Is the dream still in this account (dreamAccess.ts). Default: the real check. */
+  dreamAccess?: typeof dreamInAccount;
 }
 
 export async function handleDreamReflection(rawBody: unknown, requestHeaders: RequestHeaders, deps: ReflectionDeps = {}): Promise<HandlerResult> {
@@ -396,6 +402,9 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
   if (!attemptId) {
     return withHeaders(errorResult(400, 'invalid_response', 'attemptId is required.'), cookieHeaders);
   }
+  // the dream must still be hers before anything else happens (dreamAccess.ts)
+  const refused = await dreamRefusal(resolved.identity, attemptId, deps.dreamAccess);
+  if (refused) return withHeaders(refused, cookieHeaders);
 
   // The distress path (doc 106/109), before any model or slot: her words in this request, and her corrections.
   const herNow = [reflectionResponse, typeof body.linkResponse === 'string' ? body.linkResponse.trim() : ''].filter(Boolean).join('. ');
@@ -417,7 +426,22 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
     }
   }
 
-  const reservation = await reserveReflectionAttempt(attemptId, resolved.identity);
+  // One logical request runs once (autosave, 2026-11-05): a reflection the server already finished comes back with no model call and no
+  // slot, one still running is waited for, a stuck one runs again on the slot it already took.
+  const owner = resolved.identity.kind === 'user' ? resolved.identity.userId : null;
+  const records = deps.aiRequests ?? realAiRequests;
+  const claim = owner ? await records.claim(attemptId, owner, aiRequestKey('r', [selectedElement, reflectionResponse, language])) : null;
+  if (claim?.state === 'done') return withHeaders(okResult(claim.result), cookieHeaders);
+  if (claim?.state === 'processing' || claim?.state === 'busy') return withHeaders({ status: 202, body: { pending: true } }, cookieHeaders);
+  const aiToken = claim?.state === 'new' || claim?.state === 'retry' ? claim.token : null;
+  /** False when a recovery took this request over while this run was stuck: the slot is that run's now. */
+  const letRequestGo = async () => (owner && aiToken ? (await records.release(attemptId, owner, aiToken)) !== false : true);
+  const refundSlot = async () => {
+    if (await letRequestGo()) await refundReflectionAttempt(attemptId);
+  };
+
+  const reservation = claim?.state === 'retry' ? ('reserved' as const) : await reserveReflectionAttempt(attemptId, resolved.identity);
+  if (reservation !== 'reserved') await letRequestGo();
   if (reservation === null) {
     return withHeaders(errorResult(503, 'not_configured', 'Reflection usage tracking is not configured.'), cookieHeaders);
   }
@@ -449,7 +473,7 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
   try {
     const outcome = await generateDreamReflection(client, { input, language, addressPreference, dreamerText, emotions });
     if (outcome.status !== 'ok') {
-      await refundReflectionAttempt(attemptId);
+      await refundSlot();
       return withHeaders(
         errorResult(
           502,
@@ -464,7 +488,7 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
     const validated = finalizeDeliveredReflection(outcome.value, { emotions, language, depth, dreamerText, summary: dreamAnalysis.summary });
     // DARE's words are checked before they are shown; not passing, or moderation down, = not delivered (the attempt is returned).
     if (!(await dareWordsSafe(validated, moderate))) {
-      await refundReflectionAttempt(attemptId);
+      await refundSlot();
       return withHeaders(errorResult(502, 'invalid_response', 'The reflection could not be completed.'), cookieHeaders);
     }
 
@@ -476,16 +500,17 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
     if (resolved.identity.kind === 'trial') {
       const completion = await completeTrialAttempt(attemptId, resolved.identity.trialId);
       if (completion !== 'completed') {
-        await refundReflectionAttempt(attemptId);
+        await refundSlot();
         return completion === 'consumed'
           ? withHeaders(errorResult(403, 'free_dream_used', FREE_DREAM_USED_MESSAGE), cookieHeaders)
           : withHeaders(errorResult(503, 'not_configured', 'Reflection usage tracking is not configured.'), cookieHeaders);
       }
     }
 
+    if (owner && aiToken) await records.finish(attemptId, owner, aiToken, validated);
     return withHeaders(okResult(validated), cookieHeaders);
   } catch (err) {
-    await refundReflectionAttempt(attemptId);
+    await refundSlot();
     // DARE's AI budget ran out (2026-10-30): once, the dream's credit comes back
     const budget = await laterStepBudgetResult(err, attemptId, resolved.identity);
     if (budget) return withHeaders(budget, cookieHeaders);

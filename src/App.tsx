@@ -5,7 +5,9 @@ import DreamArchive from './archive/DreamArchive';
 import DreamDetail from './archive/DreamDetail';
 import type { ArchiveEntry } from './archive/archiveData';
 import type { SavedDream } from './hero/dreamStorage';
-import { saveDreamRemote } from './hero/dreamRemoteStorage';
+import { getDreamRemote, saveDreamRemote } from './hero/dreamRemoteStorage';
+import { isOpenDream } from './hero/dreamJourneyRecord';
+import { forgetOpenDream, openDreamInThisTab, prepareResume, type DreamResume } from './hero/dreamResume';
 import { getPendingDreamSave, setPendingDreamSave, clearPendingDreamSave } from './hero/pendingDreamSave';
 import { supabase } from './auth/supabaseClient';
 import ResetPassword from './archive/ResetPassword';
@@ -249,6 +251,31 @@ function App() {
   // journey (bumping its epoch via the registered home handler) and then navigates; Stay
   // changes nothing. With nothing meaningful unsaved, none of this ever interferes.
   const [unsavedDream, setUnsavedDream] = useState(false);
+  // AN OPEN DREAM SHE COMES BACK TO (autosave): read fresh from the account, then the dream screen opens on it. The key gives it a new screen.
+  const [resume, setResume] = useState<DreamResume | null>(null);
+  const [heroKey, setHeroKey] = useState(0);
+  const continueDream = useCallback(async (dream: SavedDream) => {
+    const prepared = await prepareResume(dream);
+    setResume(prepared);
+    setHeroKey((k) => k + 1);
+    setView('dream');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // a refresh of this tab comes back to the dream it was on (only the dream's id is kept, for this tab only)
+  const refreshChecked = useRef(false);
+  useEffect(() => {
+    if (loading || refreshChecked.current) return;
+    refreshChecked.current = true;
+    const id = openDreamInThisTab();
+    if (!id || !user) return;
+    getDreamRemote(id, user.id).then(
+      (dream) => {
+        if (dream && isOpenDream(dream)) void continueDream(dream);
+        else forgetOpenDream();
+      },
+      (err) => console.error('Failed to read the dream:', err),
+    );
+  }, [loading, user, continueDream]);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [leaveGate] = useState(() => createLeaveGate(() => heroHomeHandlerRef.current?.()));
   const requestLeave = (action: () => void) => {
@@ -566,8 +593,23 @@ function App() {
         onBack={() => setView('dream')}
         onOpenPackages={() => setView('pricing')}
         onOpenEntry={(entry) => {
-          setOpenEntry(entry);
-          setView('detail');
+          const openDream = entry.kind === 'real' && isOpenDream(entry.savedDream) ? entry.savedDream : null;
+          if (!openDream || !user) {
+            setOpenEntry(entry);
+            setView('detail');
+            return;
+          }
+          // the row as it is now: another device may have moved it on since this list was read
+          getDreamRemote(openDream.id, user.id).then(
+            (fresh) => {
+              if (fresh && isOpenDream(fresh)) void continueDream(fresh);
+              else if (fresh && entry.kind === 'real') {
+                setOpenEntry({ ...entry, savedDream: fresh });
+                setView('detail');
+              }
+            },
+            (err) => console.error('Failed to read the dream:', err),
+          );
         }}
         onOpenLegal={handleOpenLegal}
       />
@@ -575,6 +617,13 @@ function App() {
   } else {
     screen = (
       <HeroDream
+        key={heroKey}
+        resume={resume}
+        onResumeTaken={() => setResume(null)}
+        onDreamMovedOn={(dream) => {
+          if (dream && isOpenDream(dream)) void continueDream(dream);
+          else setView('archive');
+        }}
         onGoToArchive={() => setView(user ? 'archive' : 'auth')}
         onRequireAuthForSave={handleRequireAuthForSave}
         onOpenLegal={handleOpenLegal}

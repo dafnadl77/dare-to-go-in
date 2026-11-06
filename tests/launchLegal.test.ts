@@ -93,7 +93,7 @@ test('deleting one dream also deletes the pattern reflections drawn from it: the
   assert.match(m, /old\.id::text = any \(dream_ids\)/);
   assert.match(m, /owner_id = old\.owner_id/, 'only the same account is touched');
   assert.match(read('supabase/rollbacks/20261018_pattern_reflections_follow_dream_deletion_rollback.sql'), /drop trigger if exists dreams_delete_pattern_reflections/);
-  assert.match(text('en', 'privacy'), /removes the saved dream, its image and the pattern reflections drawn from it/);
+  assert.match(text('en', 'privacy'), /removes the saved dream \(even if it is not finished\), its image and the pattern reflections drawn from it/);
   assert.match(text('en', 'privacy'), /Reflections drawn only from other dreams are not affected/);
   assert.match(text('he', 'privacy'), /את הרהורי הדפוסים שנוצרו ממנו/);
   assert.match(text('he', 'privacy'), /הרהורים שנוצרו רק מחלומות אחרים אינם מושפעים/);

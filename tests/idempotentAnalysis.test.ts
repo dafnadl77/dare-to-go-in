@@ -486,7 +486,7 @@ test('HeroDream wiring: the key is created per submission, reused for TRY AGAIN,
   assert.ok(!/endSubmission/.test(goHome));
   const client = read('src/hero/dreamAnalysis.ts');
   // the key is always sent; her answer on the distress path rides along only when there is one
-  assert.match(client, /JSON\.stringify\(\{ sourceText, inputMode: dreamInput\.inputMode, idempotencyKey, \.\.\.\(safetyAck \? \{ safetyAck \} : \{\}\) \}\)/);
+  assert.match(client, /JSON\.stringify\(\{ sourceText, inputMode: dreamInput\.inputMode, idempotencyKey, language: getAppLanguage\(\), \.\.\.\(safetyAck \? \{ safetyAck \} : \{\}\) \}\)/);
   assert.equal((client.match(/uncertain: true/g) ?? []).length, 3, 'timeout/disconnect, platform error page, unusable 200');
   assert.match(client, /uncertain: reason === 'analysis_in_progress'/);
 });

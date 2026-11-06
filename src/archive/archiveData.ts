@@ -3,6 +3,7 @@ import { containsHebrew, getAppLanguage, type AppLanguage } from '../hero/appLan
 import { dateLocale } from '../i18n/locale';
 import type { MockDream } from './mockDreams';
 import { CONCEPTS, conceptsOfDream, type ConceptId } from '../hero/conceptTaxonomy';
+import { isOpenDream } from '../hero/dreamJourneyRecord';
 
 /**
  * One entry in the MY DREAM ARCHIVE timeline — either a real dream this
@@ -546,7 +547,9 @@ const MAX_NEWEST_DREAM_ROWS = 8;
  * Only ever called with THIS dreamer's own entries (the archive is loaded per
  * owner), so no dream content or concept ever crosses accounts.
  */
-export function getRecurringInsights(entries: ArchiveEntry[]): RecurringMotif[] | null {
+export function getRecurringInsights(allEntries: ArchiveEntry[]): RecurringMotif[] | null {
+  // a dream she has not finished is not part of her patterns yet
+  const entries = allEntries.filter((e) => e.kind !== 'real' || !isOpenDream(e.savedDream));
   // Uncut here: the one cut happens at the end, where it can keep the newest dream's rows.
   const motifs = getRecurringMotifs(entries, Number.POSITIVE_INFINITY);
   if (motifs === null) return null;

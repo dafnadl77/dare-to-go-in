@@ -88,6 +88,11 @@ export interface Translations {
     laterRefunded: string;
     later: string;
   };
+  autosave: {
+    retrying: string;
+    failing: string;
+    gone: string;
+  };
   leaveDream: {
     title: string;
     body: string;
@@ -179,6 +184,9 @@ export interface Translations {
   };
   closing: {
     dontLetItDisappear: string;
+    journeyEnded: string;
+    finishJourney: string;
+    waitsInArchive: string;
     keepThisDream: string;
     letItGo: string;
     theChoiceIsYours: string;
@@ -227,6 +235,7 @@ export interface Translations {
     emptyFavoritesBody: string;
     emptyAllDreamsTitle: string;
     emptyAllDreamsBody: string;
+    inProgress: string;
     insightsSubtitle: string;
     insightsNotEnough: string;
     insightsEmpty: string;
@@ -653,6 +662,11 @@ export const en: Translations = {
     laterRefunded: 'DARE is unavailable right now. The credit for this dream has been returned to your account. If this page stays open, you can try again later and continue from the same point.',
     later: 'DARE is unavailable right now. If this page stays open, you can try again later and continue from the same point.',
   },
+  autosave: {
+    retrying: "We couldn't save your progress. Trying again…",
+    failing: "Saving still hasn't worked. Please keep this screen open until it does.",
+    gone: "This dream was deleted from the archive, so your progress isn't being saved.",
+  },
   leaveDream: {
     title: 'Leave this dream?',
     body: 'This dream hasn’t been saved yet. If you leave now, it will be lost, along with its image and reflection.',
@@ -739,6 +753,9 @@ export const en: Translations = {
   },
   closing: {
     dontLetItDisappear: 'DON’T LET THE DREAM DISAPPEAR.',
+    journeyEnded: 'THE JOURNEY HAS COME TO ITS END.',
+    finishJourney: 'FINISH\nTHE JOURNEY',
+    waitsInArchive: 'YOUR DREAM IS WAITING FOR YOU IN THE ARCHIVE.',
     keepThisDream: 'KEEP THIS\nDREAM',
     letItGo: 'LET IT GO',
     theChoiceIsYours: 'THE CHOICE IS YOURS.',
@@ -788,7 +805,8 @@ export const en: Translations = {
     emptyFavoritesTitle: 'No favorites yet',
     emptyFavoritesBody: 'Mark a dream as a favorite to see it here.',
     emptyAllDreamsTitle: 'No dreams saved yet',
-    emptyAllDreamsBody: 'Your saved dreams will appear here once you keep your first one.',
+    emptyAllDreamsBody: 'Your dreams will appear here.',
+    inProgress: 'In progress',
     insightsSubtitle: "What keeps recurring in your dreams.",
     insightsNotEnough: 'Save a few more dreams to start seeing recurring themes here.',
     insightsEmpty: "Nothing recurring yet across your saved dreams.",
@@ -1239,6 +1257,11 @@ export const he: Translations = {
     laterRefunded: 'DARE אינה זמינה כרגע. הקרדיט של החלום הזה הוחזר לחשבון. אם הדף יישאר פתוח, אפשר לנסות שוב מאוחר יותר ולהמשיך מאותה נקודה.',
     later: 'DARE אינה זמינה כרגע. אם הדף יישאר פתוח, אפשר לנסות שוב מאוחר יותר ולהמשיך מאותה נקודה.',
   },
+  autosave: {
+    retrying: 'לא הצלחנו לשמור את ההתקדמות. מנסים שוב…',
+    failing: 'השמירה עדיין לא הצליחה. נא לא לסגור את המסך עד שהיא תצליח.',
+    gone: 'החלום הזה נמחק מהארכיון, ולכן ההתקדמות לא נשמרת.',
+  },
   leaveDream: {
     title: 'לעזוב את החלום?',
     body: 'החלום הזה עדיין לא נשמר. אם עוזבים עכשיו, הוא יאבד, יחד עם התמונה וההתבוננות שלו.',
@@ -1325,6 +1348,9 @@ export const he: Translations = {
   },
   closing: {
     dontLetItDisappear: 'לא לתת לחלום להיעלם.',
+    journeyEnded: 'המסע הגיע לסופו.',
+    finishJourney: 'לסיים\nאת המסע',
+    waitsInArchive: 'החלום שלך מחכה לך בארכיון.',
     keepThisDream: 'לשמור\nעל החלום',
     letItGo: 'לשחרר אותו',
     theChoiceIsYours: 'הבחירה בידך.',
@@ -1374,7 +1400,8 @@ export const he: Translations = {
     emptyFavoritesTitle: 'אין עדיין מועדפים',
     emptyFavoritesBody: 'סמנו חלום כמועדף כדי לראות אותו כאן.',
     emptyAllDreamsTitle: 'עדיין לא נשמרו חלומות',
-    emptyAllDreamsBody: 'החלומות השמורים שלכם יופיעו כאן ברגע שתשמרו את הראשון.',
+    emptyAllDreamsBody: 'החלומות שלכם יופיעו כאן.',
+    inProgress: 'בתהליך',
     insightsSubtitle: 'מה שחוזר בחלומות שלכם.',
     insightsNotEnough: 'שמרו עוד כמה חלומות כדי לראות כאן נושאים חוזרים.',
     insightsEmpty: 'עדיין אין דבר שחוזר בין החלומות השמורים שלכם.',

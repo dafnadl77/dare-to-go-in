@@ -154,6 +154,14 @@ html[lang='he'] .dt-card-date {
   letter-spacing: normal;
 }
 
+/* A dream she has not finished yet: opening it continues the journey. */
+.dt-card-progress {
+  font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--dream-warm-neutral);
+}
+
 .dt-card-excerpt {
   display: -webkit-box;
   -webkit-line-clamp: 2;

@@ -39,6 +39,9 @@ function DispersingLetters({ text }: { text: string }) {
   );
 }
 
+/** The closing offers one way on since autosave (2026-11-05): the dream is already in the account. Letting go stays in the code, unused. */
+const LET_GO_OFFERED = false;
+
 const RING_PARTICLE_COUNT = 7;
 const RING_ARC_COUNT = 6;
 const SPARK_COUNT = 10;
@@ -70,7 +73,7 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
 
           <div className="dc-block dc-block--closing" style={accentVars}>
             <p className="dc-title">
-              <EditorialTitle text={t('closing.dontLetItDisappear')} />
+              <EditorialTitle text={t('closing.journeyEnded')} />
             </p>
             <div className="dc-choices">
               <button type="button" className="dc-portal dc-portal--keep" data-cursor-hover onClick={onSave}>
@@ -91,7 +94,7 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
                   <path d="M16 9v17.6" stroke="currentColor" strokeWidth="1.3" />
                 </svg>
                 <span className="dc-portal-label">
-                  {t('closing.keepThisDream').split('\n').map((line, i) => (
+                  {t('closing.finishJourney').split('\n').map((line, i) => (
                     <span key={i}>
                       {i > 0 && <br />}
                       {line}
@@ -100,7 +103,7 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
                 </span>
               </button>
 
-              <button type="button" className="dc-portal dc-portal--let-go" data-cursor-hover onClick={onLetGo}>
+              {LET_GO_OFFERED && <button type="button" className="dc-portal dc-portal--let-go" data-cursor-hover onClick={onLetGo}>
                 <span className="dc-portal-glow" aria-hidden="true" />
                 <span className="dc-portal-arcs dc-portal-arcs--loose" aria-hidden="true">
                   {Array.from({ length: RING_ARC_COUNT }).map((_, i) => (
@@ -124,7 +127,7 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
                 <span className="dc-portal-label">
                   <DispersingLetters text={t('closing.letItGo')} />
                 </span>
-              </button>
+              </button>}
             </div>
             {saveFailed && (
               <div className="dc-save-error" role="alert">
@@ -134,7 +137,7 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
                 </button>
               </div>
             )}
-            <p className="dc-choice-hint">{t('closing.theChoiceIsYours')}</p>
+            {LET_GO_OFFERED && <p className="dc-choice-hint">{t('closing.theChoiceIsYours')}</p>}
           </div>
         </>
       )}
@@ -154,7 +157,7 @@ export default function DreamClosing({ step, reflectionResult, accentColor, onSa
       {step === 'saved' && (
         <div className="dc-block dc-block--enter" style={accentVars}>
           <p className="dc-title dc-title--small dc-title--materialize">
-            <EditorialTitle text={t('closing.dreamSaved')} />
+            <EditorialTitle text={t('closing.waitsInArchive')} />
           </p>
           <button type="button" className="dr-choice dr-choice--yes" data-cursor-hover onClick={onReturnToRoom}>
             {t('closing.returnToTheRoom')}

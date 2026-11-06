@@ -16,6 +16,7 @@ import { resolveAdultCaller } from '../ageGate.js';
 import { realModerate } from '../safety/moderation.js';
 import { dareWordsSafe } from '../safety/routeSafety.js';
 import { reserveLabelsAttempt, refundLabelsAttempt, getTrialAttemptState } from '../dreamAttempts.js';
+import { dreamRefusal } from '../dreamAccess.js';
 import { laterStepBudgetResult } from '../budgetExhausted.js';
 import { FREE_DREAM_USED_MESSAGE } from '../trialAllowance.js';
 import { handleDreamQuestions } from './dreamQuestions.js';
@@ -66,6 +67,9 @@ export async function handleDreamElementLabels(rawBody: unknown, requestHeaders:
   if (!attemptId) {
     return withHeaders(errorResult(400, 'invalid_response', 'attemptId is required.'), cookieHeaders);
   }
+  // the dream must still be hers before anything else happens (dreamAccess.ts)
+  const refused = await dreamRefusal(resolved.identity, attemptId);
+  if (refused) return withHeaders(refused, cookieHeaders);
   if (resolved.identity.kind === 'trial') {
     const state = await getTrialAttemptState(attemptId, resolved.identity.trialId);
     if (state === null) {

@@ -166,7 +166,7 @@ test('moment calls use the moment slots; the whole view uses the whole-view slot
   ({ deps, log } = fakeDeps());
   assert.equal((await handleExploration('moment-reply', body(e, { momentId: 'm2' }), {}, deps)).status, 200);
   assert.deepEqual(log, ['rate', 'reserve-moment', 'model']);
-  assert.equal(EXPLORATION_LABEL_CAP, 19, '3 for labels and the pre-written questions + 16 for the journey');
+  assert.equal(EXPLORATION_LABEL_CAP, 23, '3 for labels and the pre-written questions + 20 for the journey (approved 2026-11-05)');
   assert.match(read('server/dreamAttempts.ts'), /max: number = MAX_LABEL_CALLS_PER_ATTEMPT/, 'the labels and questions keep their own lower ceiling');
 });
 
