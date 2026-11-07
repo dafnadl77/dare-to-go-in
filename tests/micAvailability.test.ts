@@ -94,7 +94,7 @@ test('without a microphone: the kind message, a clear "Write your dream" button,
   assert.match(hold, /htr-type-link\$\{noMicrophone \? ' htr-type-link--primary' : ''\}/);
   // writing is always one tap away, in every state: the button is never conditional on a microphone
   // (the only addition is the sign-in gate for a visitor who is not signed in: it never depends on a microphone)
-  assert.match(hold, /onClick=\{\(\) => \{\s*if \(onStartAttempt && !onStartAttempt\(\)\) return;\s*setCentralMode\('typing'\);\s*\}\}\s*>\s*\{noMicrophone/);
+  assert.match(hold, /onClick=\{\(\) => \{\s*if \(onStartAttempt && !onStartAttempt\(\)\) return;\s*if \(onTypingChosen\) onTypingChosen\(\);\s*else setCentralMode\('typing'\);\s*\}\}\s*>\s*\{noMicrophone/);
 
   const css = read('src/hero/HoldToRemember.css');
   const noMic = css.slice(css.indexOf('.htr-circle.is-no-mic'), css.indexOf('/* "Press and hold while you speak"'));

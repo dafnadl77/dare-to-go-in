@@ -4,6 +4,7 @@ import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { claimTrial } from './claimTrial';
 import { ADDRESS_PREFERENCE_METADATA_KEY, type AddressPreference } from '../hero/addressPreference';
 import { DISPLAY_NAME_METADATA_KEY, normalizeDisplayName } from './displayName';
+import { HOW_IT_WORKS_SEEN_METADATA_KEY } from '../hero/howItWorksOnce';
 import { clearAllOpenJourneys } from '../hero/openJourneyStore';
 import { clearSignOutState } from './localAccountState';
 import { clearTranslationMemory } from '../archive/dreamTitleTranslation';
@@ -67,6 +68,8 @@ interface AuthContextValue {
   /** The name the dreamer types in Settings, stored on the same Supabase auth user metadata (key `displayName`, which a Google
       sign-in never overwrites). Validated here as well as in the UI; an unusable name is refused without touching anything. */
   updateDisplayName: (name: string) => Promise<AuthActionResult>;
+  /** The account has had its automatic "How it works" (howItWorksOnce.ts). A failure blocks nothing. */
+  markHowItWorksSeen: () => Promise<AuthActionResult>;
   signOut: () => Promise<void>;
 }
 
@@ -252,6 +255,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const clean = normalizeDisplayName(name);
         if (clean === null) return { ok: false, error: new Error('invalid_name') };
         const { error } = await supabase.auth.updateUser({ data: { [DISPLAY_NAME_METADATA_KEY]: clean } });
+        if (error) return { ok: false, error };
+        return { ok: true, sessionCreated: false };
+      },
+      async markHowItWorksSeen() {
+        const { error } = await supabase.auth.updateUser({ data: { [HOW_IT_WORKS_SEEN_METADATA_KEY]: new Date().toISOString() } });
         if (error) return { ok: false, error };
         return { ok: true, sessionCreated: false };
       },

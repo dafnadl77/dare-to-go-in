@@ -38,7 +38,8 @@ test('how it works: the Hebrew has no stray Latin words (apart from the brand na
 
 test('how it works: shown only on the idle opening screen, never inside the journey, and the opening underneath is made inert while it is open', () => {
   const hero = read('src/hero/HeroDream.tsx');
-  assert.match(hero, /centralMode === 'hold' && !isReconstructing && INTERACTION_PHASES\.has\(phase\) && !howOpen && <HowItWorksTeaser/);
+  assert.match(hero, /const openingShown = centralMode === 'hold' && !isReconstructing && INTERACTION_PHASES\.has\(phase\) && !howOpen;/);
+  assert.match(hero, /const teaser = openingShown \? <HowItWorksTeaser onOpen=\{handleHowOpened\} \/> : null;/);
   assert.match(hero, /className="hero-ui-layer" inert=\{howOpen\}/);
   assert.match(hero, /setHowOpen\(false\);\n\s+setReconstructionPhase\('none'\)/, 'going home closes the section');
   const panel = read('src/hero/HowItWorks.tsx');
