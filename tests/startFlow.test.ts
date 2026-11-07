@@ -24,7 +24,7 @@ test('pressing START while signed out opens sign-up (never the recorder or the w
   assert.ok(begin.indexOf('if (noMicrophone) return;') < begin.indexOf('onStartAttempt && !onStartAttempt()'), 'gate after the mic check');
   assert.ok(begin.includes('if (onStartAttempt && !onStartAttempt()) return;'));
   // "write your dream" / "I'd rather type"
-  assert.match(hold, /onClick=\{\(\) => \{\s*if \(onStartAttempt && !onStartAttempt\(\)\) return;\s*setCentralMode\('typing'\);\s*\}\}/);
+  assert.match(hold, /onClick=\{\(\) => \{\s*if \(onStartAttempt && !onStartAttempt\(\)\) return;\s*if \(onTypingChosen\) onTypingChosen\(\);\s*else setCentralMode\('typing'\);\s*\}\}/);
   // sending words typed while signed out (a kept draft): kept, not sent
   assert.match(hold, /if \(dreamHasText && onStartAttempt && !onStartAttempt\(\)\) \{\s*saveDreamDraft\(entry\);\s*return;\s*\}/);
 });
@@ -68,7 +68,7 @@ test('/?view=write: the e-mail confirmation link and the Google return carry it;
   assert.match(app, /const handleWritingOpened = \(\) => \{\s*writeArrivalRef\.current = false;\s*setOpenWriting\(false\);\s*writeViewToUrl\('dream'\);/);
   // the writing screen opens from the HOME state only (never interrupts a recording or a dream under way)
   const hold = code('src/hero/HoldToRemember.tsx');
-  assert.match(hold, /if \(!openWriting \|\| !revealed \|\| centralMode !== 'hold'\) return;\s*setCentralMode\('typing'\);\s*onWritingOpened\?\.\(\);/);
+  assert.match(hold, /if \(!openWriting \|\| !revealed \|\| centralMode !== 'hold'\) return;\s*if \(onTypingChosen\) onTypingChosen\(\);\s*else setCentralMode\('typing'\);\s*onWritingOpened\?\.\(\);/);
 });
 
 test('the e-mail screen uses the neutral wording that does not reveal whether an address is registered', () => {

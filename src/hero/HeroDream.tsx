@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import DreamVideo from './DreamVideo';
 import MemoryVeil from './MemoryVeil';
 import MemoryTitle from './MemoryTitle';
@@ -42,7 +42,7 @@ import { getDreamReflection, type DreamReflectionRequest } from './dreamReflecti
 import type { EmotionId } from './dreamEmotions';
 import type { ReflectionResult } from './dreamReflectionSchema';
 import { buildSavedDream, type SavedDream } from './dreamStorage';
-import { getDreamRemote, openDreamRemote, saveDreamProgressRemote } from './dreamRemoteStorage';
+import { accountHowItWorksState, getDreamRemote, openDreamRemote, saveDreamProgressRemote } from './dreamRemoteStorage';
 import { deleteDreamImage, uploadDreamImage } from './dreamImageStorage';
 import { useLanguage } from '../i18n/LanguageContext';
 import { extractAccentColor, extractDreamPalette, isImageCenterLight, type AccentColor } from './dreamAccentColor';
@@ -54,6 +54,8 @@ import { stopForSession } from './safety/sessionStop';
 import { addressPreferenceOfUser } from './addressPreference';
 import AppFooter from '../legal/AppFooter';
 import { HowItWorksPanel, HowItWorksTagline, HowItWorksTeaser } from './HowItWorks';
+import { useOpeningFit } from './useOpeningFit';
+import { DREAM_CHECK_LIMIT_MS, forgetGuestSawHowItWorks, guestSawHowItWorks, howItWorksSeen, rememberGuestSawHowItWorks, rememberHowItWorksSeen, typingStepFor, type AccountDreamCheck } from './howItWorksOnce';
 import type { LegalKey } from '../legal/legalContent';
 import { track } from '../analytics/analytics';
 import './HeroDream.css';
@@ -150,8 +152,8 @@ interface HeroDreamProps {
 }
 
 export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenLegal, onRegisterHomeHandler, onFreeDreamUsed, onCreditsRequired, onSessionExpired, onUnsavedDreamChange, onStartRequiresSignIn, openWriting = false, onWritingOpened, resume = null, onResumeTaken, onDreamMovedOn }: HeroDreamProps) {
-  const { user, loading: authLoading } = useAuth();
-  const { t } = useLanguage();
+  const { user, loading: authLoading, markHowItWorksSeen } = useAuth();
+  const { t, language } = useLanguage();
   // The dream she came back to, as it was read when this screen opened; cleared when she leaves it for the room.
   const resumedRef = useRef(resume);
   const resumedDream = resume?.dream ?? null;
@@ -173,6 +175,10 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
   const [centralMode, setCentralMode] = useState<CentralMode>('hold');
   // The "how it works" section that rises from below the opening (HowItWorks.tsx). Only ever opened from the idle opening screen.
   const [howOpen, setHowOpen] = useState(false);
+  // The automatic "How it works" (howItWorksOnce.ts): what the account holds, and whether closing the section goes on to the writing screen.
+  const [accountDreams, setAccountDreams] = useState<AccountDreamCheck>('pending');
+  const writeAfterHowRef = useRef(false);
+  const howSeen = howItWorksSeen(user);
   const [micUnavailable, setMicUnavailable] = useState(false);
   // Kept wired (though fragments aren't rendered right now) so re-enabling
   // the visual layer later doesn't require touching this plumbing again.
@@ -367,6 +373,52 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     if (user) return true;
     onStartRequiresSignIn();
     return false;
+  };
+
+  // Read on the home screen only, and again on each return to it (a dream told by voice may have been saved since). A mark already on the
+  // account needs no read. The limit keeps a slow answer from holding back the writing screen that opens by itself after sign-in.
+  useEffect(() => {
+    if (!user?.id || howSeen || centralMode !== 'hold') return;
+    let live = true;
+    const settle = (result: AccountDreamCheck) => {
+      if (live) setAccountDreams(result);
+      live = false;
+    };
+    setAccountDreams('pending');
+    const limit = setTimeout(() => settle('unknown'), DREAM_CHECK_LIMIT_MS);
+    accountHowItWorksState(user.id).then(settle, () => settle('unknown'));
+    return () => {
+      live = false;
+      clearTimeout(limit);
+    };
+  }, [user?.id, howSeen, centralMode]);
+
+  // A failed save of the mark never stops anything: writing goes on, and the section stays closed on this page.
+  const markHowSeen = (userId: string) => {
+    rememberHowItWorksSeen(userId);
+    void markHowItWorksSeen().catch(() => undefined);
+  };
+
+  // Opened by hand: read is read, so the first choice to write does not bring it again. A guest has no account yet: this device remembers.
+  const handleHowOpened = () => {
+    setHowOpen(true);
+    if (!user) rememberGuestSawHowItWorks();
+    else if (!howSeen) markHowSeen(user.id);
+  };
+
+  // The dreamer chose to write.
+  const handleTypingChosen = () => {
+    const step = typingStepFor(howSeen, accountDreams, guestSawHowItWorks());
+    if (step !== 'write' && user) {
+      markHowSeen(user.id);
+      forgetGuestSawHowItWorks();
+    }
+    if (step === 'explain') {
+      writeAfterHowRef.current = true;
+      setHowOpen(true);
+      return;
+    }
+    setCentralMode('typing');
   };
 
   // The map's moments are the dream's own events (journeyRecord.ts), titled by the labels call with the moment rules. A failed call never
@@ -1162,6 +1214,7 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     journeyLanguageRef.current = null;
     firstImageTriesRef.current = 0;
     imageEverSucceededRef.current = false;
+    writeAfterHowRef.current = false;
     setHowOpen(false);
     setReconstructionPhase('none');
     setInsideStep('prompt');
@@ -1255,8 +1308,14 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
     return () => cancelAnimationFrame(raf);
   }, [pointerRef]);
 
+  // The idle opening with its controls; when it does not fit this screen it scrolls (useOpeningFit.ts), and only then.
+  const openingShown = centralMode === 'hold' && !isReconstructing && INTERACTION_PHASES.has(phase) && !howOpen;
+  const fit = useOpeningFit(openingShown, language);
+  const footer = centralMode === 'hold' && !isReconstructing ? <AppFooter onNavigate={onOpenLegal} pinned /> : null;
+  const teaser = openingShown ? <HowItWorksTeaser onOpen={handleHowOpened} /> : null;
+
   return (
-    <div className="hero-dream">
+    <div className={`hero-dream${fit.scroll ? ' is-scroll-fit' : ''}`} style={fit.scroll ? ({ '--hero-fit-top': `${fit.top}px` } as CSSProperties) : undefined} data-fit={fit.reason ?? undefined}>
       {safety && (
         <SafetyOverlay
           level={safety.level}
@@ -1301,7 +1360,8 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
             onTypedTranscriptChange={setTypedTranscript}
             onDreamCapture={handleDreamCapture}
             onStartAttempt={handleStartAttempt}
-            openWriting={openWriting}
+            onTypingChosen={handleTypingChosen}
+            openWriting={openWriting && (howSeen || accountDreams !== 'pending')}
             onWritingOpened={onWritingOpened}
             reconstructing={isReconstructing}
             analysisFailed={analysisResult?.status === 'error' || analysisResult?.status === 'safety'}
@@ -1310,6 +1370,13 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
             onRetryAnalysis={handleRetryAnalysis}
             capturedDreamText={dreamInputRef.current ? dreamInputSourceText(dreamInputRef.current) : ''}
           />
+          {/* Only when the opening scrolls: "How it works" and the footer follow the typing button, in the page. */}
+          {fit.scroll && (
+            <div className="hero-fit-end">
+              {teaser}
+              {footer}
+            </div>
+          )}
         </div>
       </div>
 
@@ -1402,14 +1469,20 @@ export default function HeroDream({ onGoToArchive, onRequireAuthForSave, onOpenL
           HoldToRemember.tsx), and isReconstructing covers everything
           after that. The immersive recording/transcription/reconstruction/
           reflection/closing journey must never share the screen with it. */}
-      {centralMode === 'hold' && !isReconstructing && <AppFooter onNavigate={onOpenLegal} pinned />}
+      {!fit.scroll && footer}
       {/* The short explanation and its "how it works" control: the idle opening only, once the opening has revealed its controls. */}
-      {centralMode === 'hold' && !isReconstructing && INTERACTION_PHASES.has(phase) && !howOpen && <HowItWorksTeaser onOpen={() => setHowOpen(true)} />}
+      {!fit.scroll && teaser}
       {howOpen && (
         <HowItWorksPanel
           freeFirstDream={!user && !authLoading}
           onClose={() => {
             setHowOpen(false);
+            // Opened by the choice to write: closing it goes straight on to writing.
+            if (writeAfterHowRef.current) {
+              writeAfterHowRef.current = false;
+              setCentralMode('typing');
+              return;
+            }
             // Back on the opening, focus returns to the control the section was opened from.
             requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.hiw-trigger')?.focus());
           }}

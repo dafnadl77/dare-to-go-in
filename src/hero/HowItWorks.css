@@ -14,6 +14,8 @@
   justify-content: center;
   pointer-events: none;
   animation: hiw-teaser-in 1.4s var(--ease-memory) both;
+  /* Zero unless, under the header of a short phone, it would touch the header's links (typeLinkClearance.ts). */
+  margin-top: var(--hiw-teaser-drop, 0px);
 }
 
 .hiw-teaser > * {

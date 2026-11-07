@@ -69,6 +69,8 @@ interface HoldToRememberProps {
   /** Called when the dreamer tries to START (press the circle, choose to write, or send their words). true = go ahead. false = the app took over
       (a visitor who is not signed in is sent to sign-up / sign-in first). Absent = always allowed. */
   onStartAttempt?: () => boolean;
+  /** The dreamer chose to write: the parent decides what opens first (howItWorksOnce.ts). Without it the writing screen opens. */
+  onTypingChosen?: () => void;
   /** Open the writing screen as soon as the home screen is ready (after sign-in or e-mail confirmation: /?view=write). Consumed once through onWritingOpened. */
   openWriting?: boolean;
   onWritingOpened?: () => void;
@@ -157,6 +159,7 @@ export default function HoldToRemember({
   onRetryAnalysis,
   capturedDreamText = '',
   onStartAttempt,
+  onTypingChosen,
   openWriting = false,
   onWritingOpened,
 }: HoldToRememberProps) {
@@ -419,9 +422,10 @@ export default function HoldToRemember({
   // state, so it never interrupts a recording or a dream already under way.
   useEffect(() => {
     if (!openWriting || !revealed || centralMode !== 'hold') return;
-    setCentralMode('typing');
+    if (onTypingChosen) onTypingChosen();
+    else setCentralMode('typing');
     onWritingOpened?.();
-  }, [openWriting, revealed, centralMode, setCentralMode, onWritingOpened]);
+  }, [openWriting, revealed, centralMode, setCentralMode, onTypingChosen, onWritingOpened]);
 
   // Live voice-reactive breathing: mirrors the mic level into the shared
   // holdRef (MemoryVeil reads it) and the ambient listening orb, every
@@ -909,7 +913,8 @@ export default function HoldToRemember({
         aria-hidden={isHoldFaded}
         onClick={() => {
           if (onStartAttempt && !onStartAttempt()) return;
-          setCentralMode('typing');
+          if (onTypingChosen) onTypingChosen();
+          else setCentralMode('typing');
         }}
       >
         {noMicrophone ? t('hold.writeYourDream') : t('hold.idRatherType')}

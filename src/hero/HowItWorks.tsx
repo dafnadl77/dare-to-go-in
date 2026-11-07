@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
+import { useTypeLinkClearance } from './typeLinkClearance';
 import './HowItWorks.css';
 
 /**
@@ -60,10 +61,11 @@ export function HowItWorksTagline({ shown, freeFirstDream = false }: { shown: bo
 }
 
 export function HowItWorksTeaser({ onOpen }: { onOpen: () => void }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   // Both pieces sit just above the pinned footer, whatever height it has (on a phone its links wrap onto several lines).
   const [footerHeight, setFooterHeight] = useState<number | null>(null);
-  useEffect(() => {
+  // a layout effect: the control is in its place before the opening measures whether it fits (useOpeningFit.ts)
+  useLayoutEffect(() => {
     const footer = document.querySelector('.app-footer--pinned');
     if (!footer) return;
     // The footer's height is also published for the opening's own column, which must leave room for it when the explanation is shown (HowItWorks.css).
@@ -81,6 +83,8 @@ export function HowItWorksTeaser({ onOpen }: { onOpen: () => void }) {
       root.style.removeProperty('--hiw-footer-h');
     };
   }, []);
+  // The typing button stays clear of this control on every window (typeLinkClearance.ts).
+  useTypeLinkClearance(`${footerHeight}:${language}`);
   const style = { '--hiw-bottom': footerHeight === null ? '4.4rem' : `${footerHeight}px` } as CSSProperties;
   return (
     <>

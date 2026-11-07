@@ -149,3 +149,45 @@
   line-height: 1.5;
   text-align: center;
 }
+
+/* THE OPENING SCROLLS ONLY WHEN IT DOES NOT FIT (2026-11-07, useOpeningFit.ts). Nothing here applies on a screen where everything fits. The page
+   starts below the real header (so nothing scrolls under it), the column keeps its own spacing and stays centred in the room below the header (it moves only when it is taller than that room), and "How it works" and the footer (credit line and
+   legal links kept) follow the typing button. The circle keeps its place, size and animation; a vertical swipe that starts on it scrolls the page
+   instead of starting a recording (the browser takes the swipe and the press is released, see HoldToRemember's pointer handling). */
+.hero-dream.is-scroll-fit .hero-ui-layer {
+  top: var(--hero-fit-top, 4rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hero-dream.is-scroll-fit .hero-ui-stack,
+.hero-dream.is-scroll-fit .hero-ui-stack:has(.hiw-tagline) {
+  height: auto;
+  min-height: 100%;
+  padding-top: 0.75rem;
+  padding-bottom: 0.9rem;
+}
+
+.hero-dream.is-scroll-fit .hero-fit-end {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.hero-dream.is-scroll-fit .hero-fit-end .hiw-teaser {
+  position: static;
+  display: flex;
+}
+
+.hero-dream.is-scroll-fit .hero-fit-end .app-footer--pinned {
+  position: static;
+  display: block;
+}
+
+.hero-dream.is-scroll-fit .htr-circle {
+  touch-action: pan-y;
+}
+

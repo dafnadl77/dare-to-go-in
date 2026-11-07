@@ -231,6 +231,8 @@
    still comes from the unchanged flex `gap`). */
 .htr-type-link {
   position: relative;
+  /* Zero unless "How it works" would touch the button on this window (typeLinkClearance.ts). */
+  top: calc(-1 * var(--hiw-type-lift, 0px));
   margin-top: 2.4rem;
   font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
   font-size: 0.9375rem;

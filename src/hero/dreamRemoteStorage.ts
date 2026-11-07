@@ -4,6 +4,7 @@ import { uploadDreamImage, deleteDreamImage, removeDreamImage } from './dreamIma
 import { deleteDream as deleteLocalDream } from './dreamStorage';
 import { clearPendingDreamSaveIfId } from './pendingDreamSave';
 import { deleteSavedDream, type DeletedRow, type ImageCleanup } from './dreamDeletion';
+import { HOW_IT_WORKS_SEEN_METADATA_KEY } from './howItWorksOnce';
 
 /**
  * Supabase-backed dream persistence for AUTHENTICATED users only — the
@@ -54,6 +55,16 @@ export async function getDreamsRemote(ownerId: string): Promise<SavedDream[]> {
     .order('created_at', { ascending: false });
   if (error) throw error;
   return (data ?? []).map(rowToSavedDream);
+}
+
+/** For the automatic "How it works": the mark as the account holds it now (a session kept on this device may be older than a mark set on another
+    one), and whether the account holds any dream, from one id and no dream content. */
+export async function accountHowItWorksState(ownerId: string): Promise<'seen' | 'some' | 'none'> {
+  const [account, dreams] = await Promise.all([supabase.auth.getUser(), supabase.from('dreams').select('id').eq('owner_id', ownerId).limit(1)]);
+  if (account.error) throw account.error;
+  if (dreams.error) throw dreams.error;
+  if (account.data.user?.user_metadata?.[HOW_IT_WORKS_SEEN_METADATA_KEY]) return 'seen';
+  return (dreams.data ?? []).length > 0 ? 'some' : 'none';
 }
 
 /**
