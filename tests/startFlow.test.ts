@@ -147,7 +147,7 @@ test('the writing panel: height-capped to the measured room, scrolls inside itse
 
 test('the decorative title and prompt fade (visibility, so nothing shifts) only while the panel is crowding them', () => {
   const css = read('src/hero/HeroDream.css');
-  assert.match(css, /\.hero-ui-stack:has\(\.hold-to-remember\.is-crowded\) \.memory-title,\s*\.hero-ui-stack:has\(\.hold-to-remember\.is-crowded\) \.dream-prompt \{[\s\S]*?opacity: 0 !important;[\s\S]*?visibility: hidden !important;/);
+  assert.match(css, /\.hero-ui-stack:has\(\.hold-to-remember\.is-title-crowded\) \.memory-title,\s*\.hero-ui-stack:has\(\.hold-to-remember\.is-crowded\) \.dream-prompt \{[\s\S]*?opacity: 0 !important;[\s\S]*?visibility: hidden !important;/);
   const hold = code('src/hero/HoldToRemember.tsx');
   assert.match(hold, /useKeyboardViewport\(centralMode === 'typing', typingPanelRef\);/);
   assert.match(hold, /useTypingPanelFit\(centralMode === 'typing', typingPanelRef, \[entry, doneBlocked, micUnavailable, transcriptionErrorMessage, canRetryTranscription\]\);/);
@@ -160,4 +160,14 @@ test('the look, background and animations are untouched: only the writing panel 
   assert.match(css, /\.central-back \{/);
   assert.match(css, /\.central-done \{/);
   assert.ok(!/keyframes/.test(read('src/hero/useTypingPanelFit.ts') + read('src/hero/useKeyboardViewport.ts')));
+});
+
+test('writing never blinks the title: only closing the writing screen takes the fit down, and a keystroke only asks for a new measure', () => {
+  const hook = read('src/hero/useTypingPanelFit.ts');
+  const setup = hook.slice(hook.indexOf('// set up once'), hook.indexOf('// what she writes, or a message'));
+  assert.match(setup, /classList\.remove\(CROWDED_CLASS, TITLE_CROWDED_CLASS\)/);
+  assert.match(setup, /\}, \[active, panelRef\]\);/, 'the part that clears is not tied to what she writes');
+  assert.match(hook, /measure\.current\(\);\n[^\n]*\n\s+\}, \[active, \.\.\.dependencies\]\);/);
+  assert.match(hook, /isCrowded\(rect\.top \+ shift, bottomOf\('\.memory-title'\)\)/, 'the title steps aside only for itself');
+  assert.match(hook, /isCrowded\(rect\.top \+ shift, bottomOf\('\.dream-prompt'\)\)/);
 });

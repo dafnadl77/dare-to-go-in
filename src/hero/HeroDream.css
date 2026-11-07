@@ -119,7 +119,7 @@
 
 /* The writing panel grew (a long dream, a message under the buttons) and would run into the decorative title and prompt above it: they
    fade away for as long as that is true (useTypingPanelFit.ts toggles .is-crowded). visibility, not display, so nothing shifts. */
-.hero-ui-stack:has(.hold-to-remember.is-crowded) .memory-title,
+.hero-ui-stack:has(.hold-to-remember.is-title-crowded) .memory-title,
 .hero-ui-stack:has(.hold-to-remember.is-crowded) .dream-prompt {
   /* !important: the title's own reveal rules (.is-revealed / .is-settled) set their opacity with more specificity. */
   opacity: 0 !important;

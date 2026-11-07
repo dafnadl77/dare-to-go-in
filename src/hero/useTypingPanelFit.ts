@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 
 /**
  * Keeps the writing panel inside the part of the screen that is really usable, and keeps the decorative title out of its way.
@@ -7,11 +7,14 @@ import { useEffect, type RefObject } from 'react';
  * message under the buttons, makes the panel taller and, being centred, it rises into the title above it — or, on a tall screen, its
  * lower edge slips past the bottom. Instead of guessing with fixed numbers, this measures: the panel is nudged (a vertical shift, nothing
  * else about it changes) back into the band between the menu and the bottom of the visible area, and the title / prompt are faded away
- * ONLY while they would actually collide with it. With room to spare nothing moves and nothing fades.
+ * ONLY while they would actually collide with it, each on its own: the prompt sits lower and is reached first, the title stays until the
+ * panel really reaches the title. With room to spare nothing moves and nothing fades. What she writes only asks for a new measure: nothing
+ * is taken down and put back between two keys, which is what made the title blink on every key.
  */
 export const FIT_MARGIN_PX = 8;
 export const CROWDED_GAP_PX = 10;
 export const CROWDED_CLASS = 'is-crowded';
+export const TITLE_CROWDED_CLASS = 'is-title-crowded';
 
 export interface Band {
   top: number;
@@ -35,6 +38,9 @@ export function isCrowded(panelTop: number, decorBottom: number | null, gap: num
 }
 
 export function useTypingPanelFit(active: boolean, panelRef: RefObject<HTMLElement | null>, dependencies: ReadonlyArray<unknown>): void {
+  const measure = useRef<() => void>(() => {});
+
+  // set up once for as long as the writing screen is open: only closing it takes anything down
   useEffect(() => {
     const panel = panelRef.current;
     if (!active || !panel) return;
@@ -58,18 +64,18 @@ export function useTypingPanelFit(active: boolean, panelRef: RefObject<HTMLEleme
       panel.style.setProperty('--htr-shift', `${shift}px`);
 
       // The decorative title and prompt step aside only while the (shifted) panel would touch them.
-      let decorBottom: number | null = null;
-      for (const el of document.querySelectorAll('.memory-title, .dream-prompt')) {
-        const b = (el as HTMLElement).getBoundingClientRect();
-        if (b.height > 0) decorBottom = Math.max(decorBottom ?? -Infinity, b.bottom);
-      }
-      root?.classList.toggle(CROWDED_CLASS, isCrowded(rect.top + shift, decorBottom));
+      const bottomOf = (selector: string) => {
+        const b = document.querySelector(selector)?.getBoundingClientRect();
+        return b && b.height > 0 ? b.bottom : null;
+      };
+      root?.classList.toggle(CROWDED_CLASS, isCrowded(rect.top + shift, bottomOf('.dream-prompt')));
+      root?.classList.toggle(TITLE_CROWDED_CLASS, isCrowded(rect.top + shift, bottomOf('.memory-title')));
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(fit);
     };
 
-    schedule();
+    measure.current = schedule;
     const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(schedule) : null;
     observer?.observe(panel);
     window.addEventListener('resize', schedule);
@@ -83,8 +89,14 @@ export function useTypingPanelFit(active: boolean, panelRef: RefObject<HTMLEleme
       window.visualViewport?.removeEventListener('scroll', schedule);
       panel.style.removeProperty('--htr-shift');
       panel.style.removeProperty('--htr-room');
-      root?.classList.remove(CROWDED_CLASS);
+      root?.classList.remove(CROWDED_CLASS, TITLE_CROWDED_CLASS);
+      measure.current = () => {};
     };
+  }, [active, panelRef]);
+
+  // what she writes, or a message under the buttons, only asks for a new measure
+  useEffect(() => {
+    measure.current();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, panelRef, ...dependencies]);
+  }, [active, ...dependencies]);
 }
