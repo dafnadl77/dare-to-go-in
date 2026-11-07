@@ -2,11 +2,14 @@ import OpenAI from 'openai';
 import { errorResult, type HandlerResult } from './httpResult.js';
 import type { CallerIdentity } from './callerIdentity.js';
 import { refundAttemptCreditOnce, type CreditRefundOutcome } from './dreamAttempts.js';
+import { namesBudgetCode } from './openaiBudgetCodes.js';
 
 /**
- * DARE'S AI BUDGET RAN OUT (2026-10-30). The OpenAI project has a hard monthly spend limit; once it is reached every request fails with
- * HTTP 429 and the code `insufficient_quota`. Only that case is handled here: an ordinary rate limit (also 429, `rate_limit_exceeded`)
- * and every other failure keep their existing behaviour in each route.
+ * DARE'S AI BUDGET RAN OUT (2026-10-30; codes widened 2026-11-07). The OpenAI project has a hard monthly spend limit; once it is reached
+ * every request fails with HTTP 429. OpenAI's current answer for that is `project_spend_limit_exceeded` (also: the organization's limit,
+ * OpenAI's own usage cap, an empty credit balance, and the older `insufficient_quota`): see openaiBudgetCodes.ts. Only those are handled
+ * here: an ordinary rate limit (also 429, `rate_limit_exceeded` / `slow_down`) and every other failure keep their existing behaviour in
+ * each route.
  *
  *   service_unavailable_refunded  a later step of the dream failed and its credit is back in the account (now, or earlier in this dream)
  *   service_unavailable           nothing was returned now: the analysis (whose credit comes back through cancel_user_attempt, as
@@ -19,8 +22,7 @@ const MESSAGE = 'DARE is unavailable right now. Please try again later.';
 
 export function isBudgetExhausted(err: unknown): boolean {
   if (!(err instanceof OpenAI.APIError) || err.status !== 429) return false;
-  const inner = err.error as { code?: unknown; type?: unknown } | undefined;
-  return err.code === BUDGET_EXHAUSTED_CODE || err.type === BUDGET_EXHAUSTED_CODE || inner?.code === BUDGET_EXHAUSTED_CODE || inner?.type === BUDGET_EXHAUSTED_CODE;
+  return namesBudgetCode({ code: err.code, type: err.type, error: err.error as { code?: unknown; type?: unknown } | undefined });
 }
 
 /** The analysis: its credit already came back through the attempt's cancellation; only the answer names the cause. */
