@@ -194,7 +194,7 @@ const inputAt = (step: string) => {
 test('3. "I don\'t know": no interpretation and no question about her life in the next turn, one easy question about the dream at most', () => {
   const input = inputAt('say m2');
   assert.match(input, /SHE: "לא יודעת, זה פשוט היה יפה ושקט"/);
-  assert.match(input, /HER LAST ANSWER IS SHORT OR UNSURE: TAKE THE PRESSURE OFF\. NO INTERPRETATION AND NO QUESTION ABOUT HER LIFE IN THIS TURN/);
+  assert.match(input, /HER LAST ANSWER IS UNSURE: TAKE THE PRESSURE OFF\. NO INTERPRETATION AND NO QUESTION ABOUT HER LIFE IN THIS TURN/);
 });
 
 test('3. the turn input: earlier moments with their words in the dream, and every question already asked in the journey', () => {

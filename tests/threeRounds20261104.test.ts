@@ -141,7 +141,7 @@ test('"נכון", "מדויק", "כן" and "לא" are real answers: told to the 
   const input = (her: string) => C.buildTurnInput({ sourceText: store.dreamText, moments: [], moment: { label: 'מוכר', text: 'x' }, earlier: [], turns: [d('מה בלט?'), { role: 'dreamer', text: her }], signals: sig(her), request: 'reply', asked: 1 });
   assert.match(input('מדויק'), /SHE AGREED IN A WORD: A REAL ANSWER\. BUILD ON WHAT SHE AGREED WITH AND ASK THE NEXT STEP/);
   assert.match(input('לא'), /SHE SAID NO IN A WORD: A REAL ANSWER\. ACCEPT IT AND ASK ABOUT SOMETHING ELSE IN THE MOMENT/);
-  assert.doesNotMatch(input('מדויק'), /SHORT OR UNSURE/);
+  assert.doesNotMatch(input('מדויק'), /IS UNSURE|SHORT BUT REAL/);
 });
 
 test('the instructions: three rounds, every turn ends with one question, a short answer is a real answer, the third turn is the last', () => {
@@ -259,7 +259,72 @@ test('the whole view keeps its own plain line: never the conversation\'s questio
   calls = 0;
   const res = await R.handleExploration('conversation-summary', { language: 'he', attemptId: e.attemptId, dreamAnalysis: analysis(), exploration: e }, {}, deps([{ reply: 'אמרת «משהו שלא נאמר מעולם».', move: 'summarize' }]));
   const overview = (res.body as { wholeView: { overview: string } }).wholeView.overview;
-  assert.equal(overview, C.fallbackSummaryLine('he'));
-  assert.equal(overview, 'אפשר להמשיך מכאן, או לבחור רגע אחר.', 'the line it had before');
+  // since 2026-11-07 what she said, in her own words, instead of a general line; never the conversation's question
+  assert.equal(overview, 'מה שעלה בשיחה, במילים שלך:\n\n«המוכר לתוך העץ»: «נכון»');
+  assert.doesNotMatch(overview, /הרגע הזה\?/);
   assert.equal(C.fallbackSummaryLine('en'), 'We can go on from here, or choose another moment.');
+});
+
+// ------------------------------------------------------------------------------------------------ when the one fix fails (her rule, 2026-11-08)
+
+test('a turn whose fresh answer still says what she did not tell: never shown as it is, never cut; her words and one question instead', async () => {
+  let e = X.beginConversation(X.createExploration('attr', seeds), 'm1', d('ומה עשית כשלא מצאת?'), T0);
+  e = say(e, 'המשכתי לחפש');
+  const claim = 'לא ויתרת ישר, פשוט המשכת לחפש. מה משך אותך להמשיך?';
+  const failed = await ask(e, [{ reply: claim, offer: 'אולי החיפוש עצמו היה העיקר.' }]);
+  assert.equal(calls, 2, 'one fresh answer, never a third call');
+  assert.match(seen[1], /CORRECTION: part of your previous attempt did not rest on the dreamer's own words/);
+  assert.equal(failed.status, 200);
+  const t = (failed.body as { turn: X.ConversationTurn }).turn;
+  assert.equal(t.text, 'אמרת: «המשכתי לחפש». מה משך אותך להמשיך?', 'her words, and the answer\'s own single question');
+  assert.equal(t.offer, undefined, 'the failed answer\'s offer is not shown');
+  assert.doesNotMatch(t.text, /ויתרת/, 'the claim is not shown as a fact');
+  assert.equal(X.questionsIn(t), 1, 'exactly one question');
+  const noQuestion = await ask(e, [{ reply: 'לא ויתרת ישר, פשוט המשכת לחפש.' }]);
+  assert.ok(calls <= 2, 'still no third call for wording');
+  assert.equal((noQuestion.body as { turn: X.ConversationTurn }).turn.text, `אמרת: «המשכתי לחפש». ${'מה עוד זכור לך מהרגע «המוכר לתוך העץ»?'}`, 'no question of its own: one about the moment, not a general one');
+  const better = await ask(e, [{ reply: claim }, { reply: 'המשכת לחפש. מה משך אותך להמשיך?' }]);
+  assert.equal(calls, 2);
+  assert.equal((better.body as { turn: X.ConversationTurn }).turn.text, 'המשכת לחפש. מה משך אותך להמשיך?', 'a good fresh answer is shown as it is');
+  const idea = await ask(e, [{ reply: 'אולי לא ויתרת כי החיפוש עצמו היה חשוב. מה משך אותך להמשיך?' }]);
+  assert.equal(calls, 1, 'a possibility needs no fresh answer: curiosity and ideas are untouched');
+  assert.match((idea.body as { turn: X.ConversationTurn }).turn.text, /^אולי לא ויתרת/);
+  const en = await ask(e, [{ reply: 'You did not give up. What kept you looking?' }], 'en');
+  assert.equal((en.body as { turn: X.ConversationTurn }).turn.text, 'You said: “המשכתי לחפש”. What kept you looking?');
+});
+
+test('the whole view: what rests on her words is shown whole; a view that still does not is replaced by her own words, moment by moment', async () => {
+  let e = X.beginConversation(X.createExploration('wv2', seeds), 'm1', d('ומה עשית כשלא מצאת?'), T0);
+  e = X.completeConversation(say(e, 'הלכתי ברגל, לא יודעת לאן'), 'm1', T0);
+  const summary = (reply: string) => {
+    calls = 0;
+    return R.handleExploration('conversation-summary', { language: 'he', attemptId: e.attemptId, dreamAnalysis: analysis(), exploration: e }, {}, deps([{ reply, move: 'summarize' }]));
+  };
+  const view = 'המשכת ללכת ברגל, בלי לדעת לאן.\n\nאפשר להמשיך מכאן.';
+  const good = await summary(view);
+  assert.equal(calls, 1, 'nothing to correct');
+  assert.equal((good.body as { wholeView: { overview: string } }).wholeView.overview, view, 'her "לא יודעת" supports "בלי לדעת": shown whole');
+  const bad = await summary('הלכת ברגל ולא ויתרת, כי פחדת להישאר.\n\nאפשר להמשיך מכאן.');
+  assert.equal(calls, 2);
+  assert.equal((bad.body as { wholeView: { overview: string } }).wholeView.overview, 'מה שעלה בשיחה, במילים שלך:\n\n«המוכר לתוך העץ»: «הלכתי ברגל, לא יודעת לאן»');
+});
+
+test('when the one fix fails: the safety check still decides first, and nothing of hers is logged', async () => {
+  const route = read('server/routes/dreamExploration.ts');
+  assert.match(route, /const shownTurn: ConversationTurn = odd \|\| unsafe\s*\? \{ role: 'dare', text: plainLine, move: 'reflect' \}\s*: unverified/, 'unsafe wins over the verified turn');
+  assert.match(route, /if \(unsafe && p\.kind === 'summary'\) return \{ status: 'unsafe' as const \};/);
+  const log = /console\.warn\(`\[\$\{p\.kind[^`]*`\)/.exec(route)?.[0] ?? '';
+  assert.match(log, /reason=not-her-words-after-retry/);
+  assert.doesNotMatch(log, /herLast|checked|text|sourceText/, 'only the reason');
+});
+
+test('a set-aside turn whose own question takes for granted what she never told: a neutral question about the moment instead (2026-11-08)', async () => {
+  let e = X.beginConversation(X.createExploration('attr2', seeds), 'm1', d('ומה עשית כשלא מצאת?'), T0);
+  e = say(e, 'המשכתי לחפש');
+  const res = await ask(e, [{ reply: 'לא ויתרת ישר. מה הרגשת כשאבא שלך כעס?' }]);
+  assert.equal(calls, 2, 'one fresh answer, no third call');
+  const t = (res.body as { turn: X.ConversationTurn }).turn;
+  assert.equal(t.text, 'אמרת: «המשכתי לחפש». מה עוד זכור לך מהרגע «המוכר לתוך העץ»?');
+  assert.doesNotMatch(t.text, /אבא|ויתרת/);
+  assert.equal(X.questionsIn(t), 1);
 });

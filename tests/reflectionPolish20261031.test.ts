@@ -138,7 +138,8 @@ test('4. the whole view gives more room to what she said matters, and invents no
 test('4. with the stub: one call; the model reads the new rules and the lines about what matters to her and her life', async () => {
   const seen: { instructions: string; input: string }[] = [];
   const client = { responses: { create: async (req: { instructions: string; input: string }) => (seen.push(req), { model: 'stub', output_text: JSON.stringify({ ...live, existentialFit: 'none', existentialLens: null, alternativeReadings: [], continuityQuestion: 'מה עוד זכור לך מהשלג שירד רק בחוץ?', lenses: { cognitive: null, jungian: null, psychodynamic: null } }), usage: { input_tokens: 0, output_tokens: 0 } }) } } as never;
-  const out = await generateDreamReflection(client, { input: inputOf(replay()), language: 'he', addressPreference: 'feminine', dreamerText: fx.dream, emotions: ['wonder', 'confusion'] });
+  const out = await generateDreamReflection(client, { input: inputOf(replay()), language: 'he', addressPreference: 'feminine', dreamerText: [fx.dream, ...fx.steps.filter((s) => s.her).map((s) => s.her)].join('\n'), emotions: ['wonder', 'confusion'] });
+  // the dreamer's text as the route builds it: the dream and her answers (since 2026-11-07 the reflection's check reads them)
   assert.equal(seen.length, 1);
   assert.equal(out.status, 'ok');
   assert.match(seen[0].instructions, /WHAT MATTERS TO THE DREAMER \(2026-10-31\)/);

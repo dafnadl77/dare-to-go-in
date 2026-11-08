@@ -307,7 +307,8 @@ test('wiring: the questions share the existing endpoint (no new serverless funct
 
 test('wiring: the reflection request carries the answers, and the money paths are not touched', () => {
   const route = read('server/routes/dreamReflection.ts');
-  assert.match(route, /finalizeDeliveredReflection\(outcome\.value, \{ emotions, language, depth, dreamerText, summary: dreamAnalysis\.summary \}\)/);
+  // since 2026-11-08 the fields that still do not rest on her words are replaced by verified words first (verifiedFallback.ts)
+  assert.match(route, /finalizeDeliveredReflection\(verified\.value, \{ emotions, language, depth, dreamerText, summary: dreamAnalysis\.summary \}\)/);
   assert.match(route, /finalizeReflectionExtras\(accepted, p\.depth/);
   assert.match(route, /completeTrialAttempt/);
   const engine = read('src/hero/dreamReflectionEngine.ts');

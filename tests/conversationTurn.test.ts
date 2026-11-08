@@ -123,10 +123,10 @@ test('the four signals the code gives the model: a rejected offer, a short or un
   const d = (text: string, extra: Partial<T.ConversationTurn> = {}): T.ConversationTurn => ({ role: 'dare', text, ...extra });
   const h = (text: string): T.ConversationTurn => ({ role: 'dreamer', text });
   const base = { momentText: 'אני יוצא מהחנות בלי כלום ביד' };
-  assert.deepEqual(T.turnSignals({ ...base, turns: [d('x'), h('הבנתי שאני מחפש משהו, אבל בעצם ידעתי כבר מה אני צריך.')] }), { rejectedOffer: false, shortOrUnsure: false, sensitive: false, sheAsked: false, meaningDoubt: false, rejectedNow: false, connected: false, steer: null, severalExchanges: false, brief: null });
+  assert.deepEqual(T.turnSignals({ ...base, turns: [d('x'), h('הבנתי שאני מחפש משהו, אבל בעצם ידעתי כבר מה אני צריך.')] }), { rejectedOffer: false, shortOrUnsure: false, shortAnswer: false, brought: [], sensitive: false, sheAsked: false, meaningDoubt: false, rejectedNow: false, connected: false, steer: null, severalExchanges: false, brief: null });
   assert.equal(T.turnSignals({ ...base, turns: [d('x', { offer: 'אולי…', rejected: true }), h('לא ממש.')] }).rejectedOffer, true);
   assert.equal(T.turnSignals({ ...base, turns: [d('x'), h('לא יודעת.')] }).shortOrUnsure, true);
-  assert.equal(T.turnSignals({ ...base, turns: [d('x'), h('השאלה.')] }).shortOrUnsure, true);
+  assert.equal(T.turnSignals({ ...base, turns: [d('x'), h('השאלה.')] }).shortAnswer, true);
   assert.equal(T.turnSignals({ momentText: 'אבא שלי שכב בבית החולים', turns: [d('x'), h('זה היה קשה לראות אותו ככה.')] }).sensitive, true);
   assert.equal(T.turnSignals({ ...base, turns: [d('x'), h('אף אחד מהם לא היה מה שהייתי צריך באמת.')] }).sensitive, false, '"באמת" is not "מת"');
   assert.equal(T.turnSignals({ ...base, turns: [d('x'), h('מה זה אומר, שיצאתי בלי כלום?')] }).sheAsked, true);
@@ -142,5 +142,5 @@ test('the input tells the model the signals, the conversation so far, and what i
     signals: { rejectedOffer: true, shortOrUnsure: true, sensitive: false, sheAsked: false },
     request: 'reply',
   });
-  for (const must of ['REJECTED', 'SHORT OR UNSURE', 'פשוט וקליל', 'מה עבר לך בראש שם?', 'REPLY']) assert.ok(input.includes(must), `the input lacks: ${must}`);
+  for (const must of ['REJECTED', 'IS UNSURE', 'פשוט וקליל', 'מה עבר לך בראש שם?', 'REPLY']) assert.ok(input.includes(must), `the input lacks: ${must}`);
 });

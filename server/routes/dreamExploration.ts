@@ -65,10 +65,13 @@ import {
   questionsAsked,
   questionsIn,
   isQuestionTurn,
+  asksHer,
   MAX_QUESTIONS_PER_MOMENT,
 } from '../../src/hero/exploration.js';
+import { stillUnverified, thinWholeViewLine, verifiedClosingText, verifiedTurnText } from '../../src/hero/verifiedFallback.js';
 import { isUnsureAnswer } from '../../src/hero/hebrewText.js';
-import { buildTurnInput, buildTurnSystemPrompt, checkTurn, fallbackReply, fallbackSummaryLine, parseTurn, TURN_JSON_SCHEMA, turnSignals, type TurnRaw } from '../../src/hero/conversationTurn.js';
+import { attributionNote, questionTakesForGranted } from '../../src/hero/attribution.js';
+import { buildTurnInput, buildTurnSystemPrompt, checkTurn, fallbackReply, fallbackSummaryLine, wordsOfHerSummary, parseTurn, TURN_JSON_SCHEMA, turnSignals, type TurnRaw } from '../../src/hero/conversationTurn.js';
 import { herWordsForSafety, safetyAckOf } from '../../src/hero/safety/journeySafety.js';
 import { realModerate, type Moderate } from '../safety/moderation.js';
 import { aiRequestKey, realAiRequests, type AiRequestDeps } from '../aiRequestStore.js';
@@ -648,6 +651,8 @@ export const closingLine = (language: AppLanguage, anotherLeft = true) =>
       : 'Thank you for what you shared in this moment. You can see what came up.';
 
 const conversationContext = (ctx: DreamContext, e: Exploration) => ({ sourceText: ctx.sourceText, labels: e.moments.map((m) => m.label), herWords: herWordsIn(e), language: ctx.language,
+  // DARE's questions she answered with a no (attribution.ts)
+  answeredNo: Object.values(e.explored).flatMap((x) => (x.turns ?? []).flatMap((t, i, all) => (t.role === 'dreamer' && !t.rejection && !t.steer && /^(?:לא|no|not)(?![א-תa-z])/i.test(t.text.trim()) && all[i - 1]?.role === 'dare' ? [`${all[i - 1].text} ${all[i - 1].offer ?? ''}`] : []))),
   // the only ideas a summary may list as offered: DARE's offers she did not reject
   offers: Object.values(e.explored).flatMap((x) => (x.turns ?? []).filter((t) => t.role === 'dare' && t.offer && !t.rejected).map((t) => t.offer as string)),
   // the only "open questions" a summary may keep (with her own): questions DARE really asked
@@ -684,7 +689,9 @@ export async function generateConversationTurn(client: OpenAI, ctx: DreamContext
       context: ctx.dreamerText,
       strictLatin: true,
       extraCheck: (v) => safety(ctx, shown(v)),
-      qualityCheck: (v) => mixedPluralNote(shown(v), ctx.dreamerText) ?? garbledTextNote(shown(v)) ?? (asksNothing(v) ? NO_QUESTION_NOTE : null),
+      // what is said about her that she never told, DARE's first person, a work's content (2026-11-07): one fresh answer at most. When the fresh
+      // answer still fails, it is not shown as it is and nothing is cut out of it: `unverified` below builds the turn from verified parts only.
+      qualityCheck: (v) => mixedPluralNote(shown(v), ctx.dreamerText) ?? garbledTextNote(shown(v)) ?? (asksNothing(v) ? NO_QUESTION_NOTE : null) ?? attributionNote(shown(v), { herWords: cc.herWords, sourceText: ctx.sourceText, language: ctx.language, answeredNo: cc.answeredNo }),
       maxQualityRetries: 1,
       rejectExhaustedQuality: true,
     },
@@ -693,21 +700,38 @@ export async function generateConversationTurn(client: OpenAI, ctx: DreamContext
   const checked = checkTurn(outcome.value, cc);
   // still failing a wording check after its one retry: the plain line, never the odd wording
   const odd = outcome.status === 'quality_failed' && (mixedPluralNote(shown(outcome.value), ctx.dreamerText) || garbledTextNote(shown(outcome.value)));
+  // the fresh answer still says as hers what she did not tell (her rule, 2026-11-08): set aside as a whole, never cut, never a third call.
+  // What she sees instead: her own words and one question (a turn), her words and the thanks (a closing), her words moment by moment (the
+  // whole view). Only the reason is logged, never a word.
+  const about = { herWords: cc.herWords, sourceText: ctx.sourceText, language: ctx.language, answeredNo: cc.answeredNo };
+  const unverified = outcome.status === 'quality_failed' && !odd && stillUnverified(shown(outcome.value), about);
+  if (unverified) console.warn(`[${p.kind === 'turn' ? 'conversation-turn' : 'conversation-summary'}] shown from verified parts reason=not-her-words-after-retry`);
   // DARE's words are checked before they are shown (doc 106): its own check and moderation (doc 110). If either fails, the check
   // cannot run, or moderation is down, the plain line instead.
   const unsafe = !(await dareWordsSafe([checked.reply, checked.offer, ...checked.mine, ...checked.ideas].filter(Boolean), moderate));
   if (unsafe && p.kind === 'summary') return { status: 'unsafe' as const };
   if (p.kind === 'turn' && p.request === 'close') {
     // the closing line: no question of any kind and no offer, whatever came back; nothing usable = the plain closing line
-    const said = odd || unsafe ? '' : checked.reply.split(/(?<=[.!?…])\s+/u).filter((x) => x.trim() && !isQuestionTurn({ role: 'dare', text: x })).join(' ');
+    const said = odd || unsafe || unverified ? '' : checked.reply.split(/(?<=[.!?…])\s+/u).filter((x) => x.trim() && !isQuestionTurn({ role: 'dare', text: x })).join(' ');
     const anotherLeft = p.moments.some((x) => !x.explored && x.label !== p.moment.label);
-    const closing: ConversationTurn = { role: 'dare', text: said || closingLine(ctx.language, anotherLeft), move: 'summarize', closing: true };
+    const thanks = closingLine(ctx.language, anotherLeft);
+    const closing: ConversationTurn = { role: 'dare', text: said || (unverified && !unsafe ? verifiedClosingText(lastIsHers ? herLast : '', thanks, ctx.language) : thanks), move: 'summarize', closing: true };
     return { status: 'ok' as const, value: { turn: closing, dropped: checked.dropped, fixed: checked.fixed, takeaways: { mine: [], ideas: [], open: [] } } };
   }
   // the whole view keeps its own plain line (as before 2026-11-04); the conversation's plain line is a question
-  const plainLine = p.kind === 'summary' ? fallbackSummaryLine(ctx.language) : fallbackReply(ctx.language);
+  // the whole view that cannot be shown as written: her own words, moment by moment (2026-11-07); only the reason is logged, never a word
+  const herSummary = p.kind === 'summary' ? wordsOfHerSummary(p.earlier, ctx.language) : null;
+  const emptied = p.kind === 'summary' && checked.reply === fallbackReply(ctx.language);
+  if (p.kind === 'summary' && (odd || emptied)) console.warn(`[conversation-summary] shown in her own words reason=${odd ? 'quality' : 'nothing-left-after-check'} moments=${p.earlier.length}`);
+  const plainLine = p.kind === 'summary' ? herSummary ?? (unverified ? thinWholeViewLine(ctx.language) : fallbackSummaryLine(ctx.language)) : fallbackReply(ctx.language);
+  // a turn from verified parts: the failed answer's own single question when it asks one and states nothing unverified, else one about the moment
+  // (kept only when it takes nothing for granted that she never told, read strictly, 2026-11-08; else a neutral one about the moment)
+  const ownQuestions = [checked.reply, checked.offer ?? ''].flatMap((t) => t.split(/(?<=[.!?…])\s+/u)).map((x) => x.trim()).filter((x) => x && asksHer(x) && !questionTakesForGranted(x, about));
+  const verifiedLine = p.kind === 'turn' ? verifiedTurnText({ herLast: lastIsHers ? herLast : '', questions: ownQuestions, label: p.moment.label, language: ctx.language }) : plainLine;
   const shownTurn: ConversationTurn = odd || unsafe
     ? { role: 'dare', text: plainLine, move: 'reflect' }
+    : unverified
+    ? { role: 'dare', text: verifiedLine, move: p.kind === 'summary' ? 'summarize' : 'ask' }
     : { role: 'dare', text: p.kind === 'summary' && checked.reply === fallbackReply(ctx.language) ? plainLine : checked.reply, move: checked.move, ...(checked.offer ? { offer: checked.offer, anchors: checked.anchors } : {}) };
   // every turn of the conversation ends with one question (2026-11-04): still none after the one retry, the plain question ends it
   const turn: ConversationTurn =

@@ -15,6 +15,7 @@ import { locateQuote, repeatsQuote, SENSITIVE_WORD } from './pairCheck.js';
 
 // the turn as the journey keeps it is defined with the journey (exploration.ts), so the journey never imports the engine
 import { asksHer, MOVES, type ConversationTurn, type Move } from './exploration.js';
+import { herBrought, type BroughtKind } from './herBrought.js';
 export { MOVES, type ConversationTurn, type Move };
 
 export interface TurnSource {
@@ -54,6 +55,10 @@ export interface TurnSignals {
   severalExchanges?: boolean;
   /** Her last words are a short yes or no ("נכון", "כן", "לא"): a real answer, never hesitation (2026-11-04). */
   brief?: 'agree' | 'disagree' | null;
+  /** Her last words are few but say something ("המשכתי לחפש"): a real answer, never hesitation (2026-11-07). */
+  shortAnswer?: boolean;
+  /** What her last words bring from her own world. Only `life` is a link to her waking life, and only because she said so. */
+  brought?: readonly BroughtKind[];
 }
 export type TurnRequest = 'open' | 'reply' | 'summary' | 'close';
 
@@ -82,6 +87,10 @@ IN EACH TURN, choose what fits this moment of the conversation ("move"):
 - deepen: go back to one word of hers and ask about it.
 - summarize: sum up briefly what came up, and still end with one question.
 You may combine (a reflection with a question, a reflection with an offer), but at most ONE question in a turn, and always one.
+
+HER OWN WORDS ONLY. Describe what she did and felt only with what she said: never add a feeling, a motive, a choice, a knowing or something she did not do ("you did not give up", "without touching it") as if she had told it. A new idea of yours is welcome when it rests on the dream or her words and is worded as a possibility she can turn down.
+WHAT SHE BRINGS. When she names a film, a book, a song or a memory of her own, ask what in it came up for her; never describe its plot or content, and never assume why it came up.
+LITTLE MATERIAL. When her answers are short, keep your turn short and close to her words: a short true turn is better than a long reading.
 
 HOW TO CHOOSE:
 1. Listen first: what she said gets room before anything else.
@@ -127,7 +136,7 @@ WHAT YOU RETURN:
 - "mine", "ideas" and "open": empty, except in a SUMMARY.
 When it says CLOSE, you close this moment: one or two short sentences that give back what came up, in her words — no question of any kind, no offer, no new insight.
 When the input says OPEN, you open a moment she chose: a short, inviting first turn about it. When it says SUMMARY, sum up the conversation so far in her own words and the dream's — what came up and what she reached herself — with no technical notice, no new interpretation, and at most one gentle way forward. Keep apart what SHE said connects with her from what YOU only offered. Also return "mine": up to three sentences of hers, copied EXACTLY, where she said something connected or reached something herself; and "ideas": up to three of your offers she did not reject, copied EXACTLY. And "open": up to two interesting questions that came up in the conversation and stayed open, copied EXACTLY as they were asked. Never invent an insight: if nothing connected, "mine" stays empty — an enjoyable exploration of an unusual dream is a fine summary too. Give a wide picture of the dream and of what came up; link details from different moments only where a link really rests on the dream or her words, and never attribute an event or a detail to the wrong moment.
-THE SUMMARY ("what came up", the whole view of the dream) is shown as written, so give it a clear order in short paragraphs separated by an empty line ("\n\n"): moment by moment, what came up in each one she talked about, in one or two sentences each, with her words; then, ONLY if a link between moments really rests on details of the dream or on her words, one sentence that names both details; then at most one gentle way forward. Every sentence adds something new: never say the same thing twice, never retell the whole dream, never repeat a closing line she already read word for word. If no link rests on the dream or her words, do not make one up and do not write about its absence ("לא נמצא קשר", "אין קשר ברור בין הרגעים", "no clear link was found"): let each moment stand on its own. Nothing that sounds like a system message ("על סמך השיחה", "בהתבסס על הנתונים", "לסיכום,", "based on the conversation"). A summary of one moment is a summary of that moment, not a lesson about the dream. It joins what came up in the moments, never a possibility of yours that she did not take up: such a possibility is not what came up, and is never stated as a fact or as hers. Do not assume a link to her life unless she made it herself. If she said one moment or detail matters more to her, give it more room than the others; never invent an order of importance.
+THE SUMMARY ("what came up", the whole view of the dream) is shown as written, so give it a clear order in short paragraphs separated by an empty line ("\n\n"): moment by moment, what came up in each one she talked about, in one or two sentences each, with her words; then, ONLY if a link between moments really rests on details of the dream or on her words, one sentence that names both details; then at most one gentle way forward. Every sentence adds something new: never say the same thing twice, never retell the whole dream, never repeat a closing line she already read word for word. If no link rests on the dream or her words, do not make one up and do not write about its absence ("לא נמצא קשר", "אין קשר ברור בין הרגעים", "no clear link was found"): let each moment stand on its own. Nothing that sounds like a system message ("על סמך השיחה", "בהתבסס על הנתונים", "לסיכום,", "based on the conversation"). A summary of one moment is a summary of that moment, not a lesson about the dream. When she said little, the whole view is short and stays with her words. It joins what came up in the moments, never a possibility of yours that she did not take up: such a possibility is not what came up, and is never stated as a fact or as hers. Do not assume a link to her life unless she made it herself. If she said one moment or detail matters more to her, give it more room than the others; never invent an order of importance.
 
 You speak TO the dreamer: never "I", "my" or a first-person verb outside a quotation.
 
@@ -159,7 +168,10 @@ export function buildTurnInput(p: {
   const s = p.signals;
   const signals = [
     s.rejectedNow ? 'SHE JUST PRESSED "IT DOES NOT FIT" ON YOUR LAST OFFER (NO WORDS): ANSWER THAT NOW' : s.rejectedOffer && 'SHE REJECTED THE LAST OFFER',
-    s.shortOrUnsure && 'HER LAST ANSWER IS SHORT OR UNSURE: TAKE THE PRESSURE OFF. NO INTERPRETATION AND NO QUESTION ABOUT HER LIFE IN THIS TURN; AT MOST ONE EASY, CONCRETE QUESTION ABOUT A DETAIL WRITTEN IN THE DREAM',
+    s.shortOrUnsure && 'HER LAST ANSWER IS UNSURE: TAKE THE PRESSURE OFF. NO INTERPRETATION AND NO QUESTION ABOUT HER LIFE IN THIS TURN; EXACTLY ONE EASY, CONCRETE QUESTION ABOUT A DETAIL WRITTEN IN THE DREAM',
+    s.shortAnswer && 'HER LAST ANSWER IS SHORT BUT REAL: TAKE IT AS AN ANSWER, DO NOT STRETCH IT INTO A READING, AND ASK EXACTLY ONE QUESTION THAT FOLLOWS FROM ITS WORDS',
+    s.brought?.some((k) => k !== 'life') && `SHE BROUGHT SOMETHING OF HER OWN (${s.brought.filter((k) => k !== 'life').join(', ')}): ASK ABOUT WHAT IN IT CAME UP FOR HER, USING ONLY WHAT SHE SAID ABOUT IT${s.brought.includes('life') ? '' : '. THIS IS NOT BY ITSELF A LINK TO HER LIFE TODAY'}`,
+    s.brought?.includes('life') && 'SHE LINKED THIS TO HER WAKING LIFE IN HER OWN WORDS: STAY WITH WHAT SHE SAID ABOUT IT, AND ADD NOTHING ABOUT HER LIFE THAT SHE DID NOT SAY',
     s.meaningDoubt && 'SHE IS NOT SURE IT MEANS ANYTHING',
     s.steer === 'deepen' && 'SHE PRESSED "GO ON IN THIS DIRECTION": CONTINUE FROM YOUR LAST TURN AND ADD ONE NEW THING; YOUR LAST TURN WAS ALREADY SAID, DO NOT RESTATE IT',
     s.steer === 'shift' && 'SHE PRESSED "CHANGE DIRECTION": OFFER ANOTHER DIRECTION, ANCHORED IN THE DREAM OR THE CONVERSATION, NOT YOUR LAST ANGLE IN OTHER WORDS',
@@ -260,9 +272,12 @@ export function turnSignals(p: { turns: readonly ConversationTurn[]; momentText:
   }
   const lastDare = [...p.turns].reverse().find((t) => t.role === 'dare');
   const brief = briefAnswer(her);
+  const unsure = Boolean(her) && !brief && (isUnsureAnswer(her) || /(?:^|\s)לא\s+(?:יודע|יודעת|בטוח|בטוחה)(?=[\s.,!?]|$)/.test(her));
   return {
     rejectedOffer: Boolean(lastDare?.offer && lastDare.rejected),
-    shortOrUnsure: Boolean(her) && !brief && (isUnsureAnswer(her) || /(?:^|\s)לא\s+(?:יודע|יודעת|בטוח|בטוחה)(?=[\s.,!?]|$)/.test(her) || words(her).length < 4),
+    shortOrUnsure: unsure,
+    shortAnswer: Boolean(her) && !brief && !unsure && words(her).length < 4,
+    brought: her ? herBrought(her) : [],
     sensitive: SENSITIVE_WORD.test(`${p.momentText} ${her}`),
     sheAsked: her.includes('?'),
     meaningDoubt: Boolean(her) && MEANING_DOUBT.some((r) => r.test(her)),
@@ -288,6 +303,20 @@ export function briefAnswer(text: string): 'agree' | 'disagree' | null {
 export const fallbackReply = (language: AppLanguage) => (language === 'he' ? 'מה עוד עולה כשחושבים על הרגע הזה?' : 'What else comes to mind about this moment?');
 /** The whole view's own plain line when nothing usable came back (as before 2026-11-04): never a question about "this moment" there. */
 export const fallbackSummaryLine = (language: AppLanguage) => (language === 'he' ? 'אפשר להמשיך מכאן, או לבחור רגע אחר.' : 'We can go on from here, or choose another moment.');
+
+/**
+ * The whole view when DARE's text cannot be shown (2026-11-07): what she said in each moment, in her own words and nothing else. No fact is
+ * added and nothing is interpreted; a moment with no answer of hers is left out. Null when she said nothing at all.
+ */
+export function wordsOfHerSummary(moments: readonly { label: string; turns: readonly ConversationTurn[] }[], language: AppLanguage): string | null {
+  const cut = (t: string) => (t.length > 200 ? `${t.slice(0, 197).trimEnd()}…` : t);
+  const lines = moments
+    .map((m) => ({ label: m.label, said: m.turns.filter((t) => t.role === 'dreamer' && !t.rejection && !t.steer && t.text.trim()).map((t) => cut(t.text.trim())) }))
+    .filter((m) => m.said.length > 0)
+    .map((m) => (language === 'he' ? `«${m.label}»: ${m.said.map((x) => `«${x}»`).join(' · ')}` : `"${m.label}": ${m.said.map((x) => `"${x}"`).join(' · ')}`));
+  if (!lines.length) return null;
+  return [language === 'he' ? 'מה שעלה בשיחה, במילים שלך:' : 'What came up in the conversation, in your own words:', ...lines].join('\n\n');
+}
 
 const sentencesOf = (text: string) => text.split(/(?<=[.!?…])\s+/u).map((x) => x.trim()).filter(Boolean);
 /** Line by line (2026-10-30): a check that goes sentence by sentence keeps the model's line breaks and paragraphs; an emptied line goes. */
@@ -392,6 +421,8 @@ export function checkTurn(
   const missingFacts = raw.facts.filter((f) => !locate(f.quote));
   // the words of the dream and hers: a question may quote them again; only the question's own frame may not repeat
   const own = new Set(plain([ctx.sourceText, ...ctx.labels, ...ctx.herWords].join(' ')).split(' ').filter(Boolean));
+  // What she did not tell, DARE's first person and a work's content (2026-11-07) are NOT looked for here: no sentence is removed for a word.
+  // They only ask the model once for a fresh answer (attributionNote in the route); the last answer is then kept as it is.
   const pass = (text: string) => byLine(text, (line) =>
     sentencesOf(line)
       .flatMap((sentence) => {

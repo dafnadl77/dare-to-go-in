@@ -191,10 +191,23 @@ const FEMININE_YOU_VERB = new RegExp(
   '(?<![\u0590-\u05FF])(?:כש|וש|[ושכ])?את\\s+(?:לא\\s+)?(?:מ[\u05D0-\u05EA]{2,}[תה]|פוגשת|חווה|רואה|יודעת|חשה|זוכרת|שומעת|עומדת|הולכת|מחפשת|נמצאת|בוחרת|כותבת|אומרת|חושבת|רוצה|צריכה|יכולה|אוהבת|מסוגלת|ממשיכה|מרגישה|מבינה|מנסה|ציינת|הרגשת|בחרת|אמרת|תיארת|כתבת|נזכרת|נכנסת|נשארת|נבהלת|נפגשת|נרדמת)(?![\u0590-\u05FF])(?!\\s+ה)',
 );
 
+/**
+ * The future forms of a way forward (2026-11-07): "אם תרצה" / "אם תבחר" said to a dreamer who asked for neutral or feminine Hebrew, and
+ * "תרצי" / "תבחרי" said to one who did not ask for feminine. The feminine forms end in י and are second person only; a masculine form is also a
+ * third person feminine ("היא תרצה"), so it counts only right after "אם", "כש" or "אולי", where it can only address her.
+ */
+const FEMININE_FUTURE = /(?<![\u0590-\u05FF])(?:ו|ש|כש|אם\s+)?ת(?:רצי|בחרי|חשבי|משיכי|שימי|סתכלי|חזרי|ספרי|נסי|תארי|עצרי|רגישי|זכרי|שאלי|וכלי|גידי|מצאי|עמיקי|בחיני|דמייני|קחי|תני)(?![\u0590-\u05FF])/;
+const MASCULINE_FUTURE = /(?<![\u0590-\u05FF])(?:ו?אם|כש|כאשר|ו?אולי)\s+(?:לא\s+)?ת(?:רצה|בחר|חשוב|משיך|שים|סתכל|חזור|ספר|נסה|תאר|עצור|רגיש|זכור|שאל|וכל|גיד|מצא|עמיק|בחין|דמיין|קח|תן)(?![\u0590-\u05FF])/;
+const futureNote = (form: 'masculine' | 'feminine', preference: AddressPreference) =>
+  `\n\nCORRECTION: your previous attempt addressed the dreamer with a ${form} future or imperative form (such as ${form === 'masculine' ? '"אם תרצה" or "אם תבחר"' : '"אם תרצי" or "תבחרי"'}), but this dreamer ${preference === 'neutral' ? "has not told DARE their grammatical gender" : `asked to be addressed in ${preference.toUpperCase()} Hebrew`}. Regenerate the entire response from scratch. ${preference === 'neutral' ? 'For a way forward use wording that reads the same for everyone, such as "אפשר להמשיך מכאן" or "אפשר להסתכל על".' : `Use ${preference} forms only.`}`;
+
 export function findAddressViolation(texts: readonly string[], language: AppLanguage | null, preference: AddressPreference): string | null {
-  if (language !== 'he' || preference === 'masculine') return null;
+  if (language !== 'he') return null;
   for (const text of texts) {
     const unquoted = text.replace(QUOTED_SPAN, ' ');
+    if (preference !== 'masculine' && MASCULINE_FUTURE.test(unquoted)) return futureNote('masculine', preference);
+    if (preference !== 'feminine' && FEMININE_FUTURE.test(unquoted)) return futureNote('feminine', preference);
+    if (preference === 'masculine') continue;
     if (MASCULINE_YOU.test(unquoted)) {
       return preference === 'feminine'
         ? '\n\nCORRECTION: your previous attempt addressed the dreamer with the masculine pronoun "אתה", but this dreamer asked to be addressed in FEMININE Hebrew. Regenerate the entire response from scratch with feminine forms only, never a masculine singular form.'

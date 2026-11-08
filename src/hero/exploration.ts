@@ -364,10 +364,11 @@ export const MAX_QUESTIONS_PER_MOMENT = 3;
 /**
  * WHAT COUNTS AS A QUESTION (2026-10-31): every sentence DARE shows that asks her to answer, counted one by one — a question mark (not
  * one inside a «quote»), a request without one ("ספרי לי…", "שתפי…", "אשמח לשמוע…"), or a sentence that opens as a question and lost
- * its mark ("מה עלה לך כשראית את זה."). The bare word "ספר" is a book, never a request. The same count is the counter she sees and
+ * its mark ("מה עלה לך כשראית את זה."). The bare word "ספר" is a book, never a request, and "לתאר" or "לשתף" alone ("בחרת לתאר את הגשם")
+ * are not one either (2026-11-07): only "אפשר/תוכלי… לתאר", "לתאר לי", "לשתף אותי". The same count is the counter she sees and
  * the limit the route keeps, so the two can never differ.
  */
-const HE_ASK = /(?<![א-ת])(?:ספרי|תספרי|תספר|ספר\s+לי|לספר\s+(?:לי|עוד)|שתפי|תשתפי|תשתף|שתף\s+(?:אותי|לי)|לשתף|תארי|תתארי|תאר\s+(?:לי|את)|לתאר|אשמח\s+(?:לשמוע|לדעת)|מעניין\s+(?:אותי\s+)?(?:לשמוע|לדעת)|(?:נסי|נסה)\s+(?:לתאר|להיזכר|לחשוב))(?![א-ת])/;
+const HE_ASK = /(?<![א-ת])(?:ספרי|תספרי|תספר|ספר\s+לי|לספר\s+(?:לי|עוד)|שתפי|תשתפי|תשתף|שתף\s+(?:אותי|לי)|(?:אפשר|תוכלי|תוכל|תוכלו|מוזמנת|מוזמן|מוזמנים|רוצה|תרצי|תרצה)\s+(?:גם\s+)?(?:לשתף|לתאר)|לשתף\s+(?:אותי|לי)|לתאר\s+לי|תארי|תתארי|תאר\s+(?:לי|את)|אשמח\s+(?:לשמוע|לדעת)|מעניין\s+(?:אותי\s+)?(?:לשמוע|לדעת)|(?:נסי|נסה)\s+(?:לתאר|להיזכר|לחשוב))(?![א-ת])/;
 const HE_ASK_START = /^ו?(?:(?:האם|למה|מדוע|איפה|היכן|מתי|לאן|מאיפה|איזה|איזו|אילו|באיזה|באיזו)(?![א-ת])|(?:מה|איך)(?![א-ת])(?!\s*ש))/;
 const EN_ASK_START = /^(?:tell\s+me|describe|share|walk\s+me\s+through|i'?d\s+(?:love|like)\s+to\s+hear|i'?m\s+curious\s+(?:what|how|about|whether|if))\b/i;
 /** One sentence of DARE that asks her to answer. */
