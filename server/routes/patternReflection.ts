@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { getOpenAIClient } from '../openaiClient.js';
+import { getExtrasOpenAIClient, extrasModel } from '../openaiClient.js';
 import { okResult, errorResult, type HandlerResult } from '../httpResult.js';
 import { getSupabaseUserScopedClient } from '../supabaseUserScopedClient.js';
 import { type RequestHeaders } from '../callerIdentity.js';
@@ -19,7 +19,38 @@ import {
 import { buildPatternReflectionInput, type DreamEvidence } from '../../src/archive/patternReflectionInput.js';
 import { findReflectionProblems, buildReflectionRepairNote } from '../../src/archive/patternReflectionQuality.js';
 import { normalizeAddressPreference } from '../../src/hero/addressPreference.js';
-import { runPatternReflection, type OwnedDreamForReflection, type PatternReflectionDeps } from '../patternReflectionCore.js';
+import { runPatternReflection, type GenerateOutcome, type OwnedDreamForReflection, type PatternReflectionDeps } from '../patternReflectionCore.js';
+import { isBudgetExhausted } from '../budgetExhausted.js';
+import {
+  checkExtrasAllowance,
+  claimPatternGeneration,
+  databaseExtrasStore,
+  patternPolicy,
+  PATTERN_MAX_FIELD_CHARS,
+  PATTERN_MAX_OUTPUT_TOKENS,
+  type ExtrasStore,
+} from '../extrasLimits.js';
+
+/**
+ * 2026-11-08: a NEW reflection is guarded before any AI call — one generation at a time for the same reflection, then the
+ * account's and the site's allowance (server/extrasLimits.ts). Only reached on a cache miss: a saved reflection is never counted.
+ * Returns null when the call may go ahead.
+ */
+export async function guardPatternGeneration(
+  store: ExtrasStore,
+  ownerId: string,
+  identity: { conceptId: string; language: string; addressPreference: string; dreamIds: readonly string[] },
+  env: Record<string, string | undefined> = process.env,
+): Promise<Extract<GenerateOutcome, { status: 'refused' }> | null> {
+  const lock = await claimPatternGeneration(store, ownerId, [identity.conceptId, identity.language, identity.addressPreference, ...[...identity.dreamIds].sort()]);
+  if (!lock.allowed) return { status: 'refused', httpStatus: lock.status, reason: lock.reason, retryAfterSeconds: lock.retryAfterSeconds };
+  const allowance = await checkExtrasAllowance(store, patternPolicy(env), ownerId, 1);
+  if (!allowance.allowed) return { status: 'refused', httpStatus: allowance.status, reason: allowance.reason, retryAfterSeconds: allowance.retryAfterSeconds };
+  return null;
+}
+
+/** What one dream contributes to the prompt, bounded (the longest saved dream so far is about 150 characters). */
+const bounded = (text: string) => text.slice(0, PATTERN_MAX_FIELD_CHARS);
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
 
@@ -64,6 +95,7 @@ export async function handlePatternReflection(rawBody: unknown, requestHeaders: 
   if (resolved.identity.kind !== 'user') {
     return errorResult(401, 'not_authenticated', 'Pattern Reflection requires a signed-in account.');
   }
+  const ownerId = resolved.identity.userId;
   const token = requestHeaders.authorization ? extractBearerToken(requestHeaders.authorization) : null;
   if (!token) {
     // Unreachable in practice — resolveCallerIdentity already required a
@@ -75,7 +107,7 @@ export async function handlePatternReflection(rawBody: unknown, requestHeaders: 
     return errorResult(503, 'not_configured', 'Pattern Reflection is missing its Supabase configuration.');
   }
 
-  const client = getOpenAIClient();
+  const client = getExtrasOpenAIClient();
   if (!client) {
     return errorResult(503, 'not_configured', 'The Pattern Reflection backend is missing OPENAI_API_KEY.');
   }
@@ -130,15 +162,17 @@ export async function handlePatternReflection(rawBody: unknown, requestHeaders: 
     },
 
     async generateReflection({ dreams, totalDreamCount, conceptId, language, addressPreference: pref }) {
+      const refused = await guardPatternGeneration(databaseExtrasStore, ownerId, { conceptId, language, addressPreference: pref, dreamIds: dreams.map((d) => d.id) });
+      if (refused) return refused;
       const concept = CONCEPTS[conceptId as ConceptId];
       const evidence: DreamEvidence[] = dreams.map((d) => ({
         id: d.id,
         createdAt: d.createdAt,
-        sourceText: d.dreamAnalysis.sourceText ?? '',
-        summary: d.dreamAnalysis.summary ?? '',
+        sourceText: bounded(d.dreamAnalysis.sourceText ?? ''),
+        summary: bounded(d.dreamAnalysis.summary ?? ''),
         emotions: (d.dreamAnalysis.emotions ?? []).map((e) => e.emotion).filter(Boolean),
         selectedElement: d.selectedElement,
-        observation: d.dreamReflectionObservation,
+        observation: bounded(d.dreamReflectionObservation),
       }));
       const input = buildPatternReflectionInput({ label: concept.en, definition: concept.definition }, evidence, totalDreamCount);
       const dreamerText = evidence.map((e) => [e.sourceText, e.selectedElement, e.observation].join('\n')).join('\n');
@@ -158,8 +192,9 @@ export async function handlePatternReflection(rawBody: unknown, requestHeaders: 
         async (retryNote) => {
           const generate = async (note: string): Promise<PatternReflectionResult | null> => {
             const response = await client.responses.create({
-              model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+              model: extrasModel(DEFAULT_MODEL),
               store: false,
+              max_output_tokens: PATTERN_MAX_OUTPUT_TOKENS,
               instructions: instructions + retryNote + note,
               input,
               text: {
@@ -238,6 +273,15 @@ export async function handlePatternReflection(rawBody: unknown, requestHeaders: 
         return errorResult(400, 'invalid_response', 'dreamIds must be a non-empty array of dream ids.');
       case 'insufficient_evidence':
         return errorResult(400, 'insufficient_evidence', 'This concept does not currently occur in at least 2 of your saved dreams.');
+      case 'refused':
+        return {
+          ...errorResult(
+            outcome.httpStatus,
+            outcome.reason,
+            outcome.reason === 'in_progress' ? 'This reflection is being written. Please open it again in a moment.' : 'Pattern reflections are not available right now.',
+          ),
+          headers: { 'Retry-After': String(outcome.retryAfterSeconds) },
+        };
       case 'generation_failed':
         return errorResult(
           502,
@@ -248,6 +292,9 @@ export async function handlePatternReflection(rawBody: unknown, requestHeaders: 
         );
     }
   } catch (err) {
+    if (isBudgetExhausted(err)) {
+      return { ...errorResult(429, 'usage_limited', 'Pattern reflections are not available right now.'), headers: { 'Retry-After': '3600' } };
+    }
     if (err instanceof OpenAI.APIError) {
       if (err.status === 401 || err.status === 403) {
         return errorResult(502, 'not_configured', 'The configured OPENAI_API_KEY was rejected by OpenAI.');

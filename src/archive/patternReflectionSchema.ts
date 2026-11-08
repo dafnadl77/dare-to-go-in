@@ -45,7 +45,11 @@ export type PatternReflectionErrorReason =
   | 'billing_issue'
   | 'not_authenticated'
   | 'invalid_concept'
-  | 'insufficient_evidence';
+  | 'insufficient_evidence'
+  // 2026-11-08, the extras' limits (server/extrasLimits.ts): the reflection is "not available right now"; nothing is retried.
+  | 'usage_limited'
+  | 'in_progress'
+  | 'limits_unavailable';
 
 export type PatternReflectionApiResult =
   | { status: 'ok'; reflection: PatternReflectionResult; totalDreamCount: number; synthesizedDreamCount: number }

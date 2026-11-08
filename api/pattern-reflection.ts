@@ -7,5 +7,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
   const result = await handlePatternReflection(req.body, { authorization: req.headers.authorization, cookie: req.headers.cookie });
+  if (result.headers) {
+    for (const [key, value] of Object.entries(result.headers)) res.setHeader(key, value);
+  }
   res.status(result.status).json(result.body);
 }

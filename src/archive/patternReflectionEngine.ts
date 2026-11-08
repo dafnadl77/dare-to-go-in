@@ -12,6 +12,9 @@ const KNOWN_REASONS: PatternReflectionErrorReason[] = [
   'not_authenticated',
   'invalid_concept',
   'insufficient_evidence',
+  'usage_limited',
+  'in_progress',
+  'limits_unavailable',
 ];
 
 /**

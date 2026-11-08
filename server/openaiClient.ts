@@ -18,6 +18,29 @@ export function getOpenAIClient(): OpenAI | null {
   return client;
 }
 
+let extrasClient: OpenAI | null = null;
+let extrasClientKey: string | undefined;
+
+/**
+ * The AI EXTRAS' own client (translation, pattern reflection; 2026-11-08, Option A). With OPENAI_EXTRAS_API_KEY set — a key of a
+ * SEPARATE OpenAI project with its own hard spend limit — their spend can never use up the dream journey's budget. Unset, it is the
+ * shared key exactly as before, so deploying this code alone changes nothing. Same never-retry-a-budget-answer fetch as the main client.
+ */
+export function getExtrasOpenAIClient(): OpenAI | null {
+  const apiKey = process.env.OPENAI_EXTRAS_API_KEY?.trim() || process.env.OPENAI_API_KEY;
+  if (!apiKey) return null;
+  if (!extrasClient || extrasClientKey !== apiKey) {
+    extrasClient = new OpenAI({ apiKey, fetch: budgetAwareFetch((input, init) => fetch(input, init)) });
+    extrasClientKey = apiKey;
+  }
+  return extrasClient;
+}
+
+/** The extras' model: OPENAI_EXTRAS_MODEL when set, otherwise the shared OPENAI_MODEL exactly as before. */
+export function extrasModel(fallback: string): string {
+  return process.env.OPENAI_EXTRAS_MODEL?.trim() || process.env.OPENAI_MODEL || fallback;
+}
+
 /**
  * A budget answer is never retried (2026-11-07). The SDK retries every 429 up to twice unless the response says `x-should-retry: false`;
  * a 429 that names a budget code (openaiBudgetCodes.ts) gets that header here, so the route sees the error at once: no second or third

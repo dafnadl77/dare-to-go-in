@@ -22,7 +22,12 @@ export type TranslationErrorReason =
   | 'rate_limited'
   | 'billing_issue'
   | 'empty_input'
-  | 'not_authenticated';
+  | 'not_authenticated'
+  // 2026-11-08, the extras' limits (server/extrasLimits.ts): never retried by the browser; the original text is shown.
+  | 'usage_limited'
+  | 'too_large'
+  | 'limits_unavailable'
+  | 'no_saved_dream';
 
 export type TranslationResult =
   | { status: 'ok'; translations: string[] }

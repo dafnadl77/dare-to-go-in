@@ -70,6 +70,10 @@ export function clearTranslationMemory(): void {
   inFlight.clear();
 }
 const MAX_PER_REQUEST = 40;
+/** How many archive requests may be open at once (2026-11-08). */
+const MAX_PARALLEL = 3;
+/** Answers after which the remaining chunks of this pass are not sent (the allowance said no, or there is nothing to translate). */
+const STOP_REASONS: readonly string[] = ['usage_limited', 'limits_unavailable', 'no_saved_dream', 'billing_issue', 'not_authenticated'];
 
 const keyOf = (kind: Kind, text: string, language: AppLanguage) => `${kind}|${language}|${text}`;
 
@@ -192,21 +196,37 @@ export function useTranslatedCards(entries: ArchiveEntry[], language: AppLanguag
       s.keywords.forEach((w) => want('keyword', w));
     }
     const items = [...pending.entries()];
-    for (let i = 0; i < items.length; i += MAX_PER_REQUEST) {
-      const chunk = items.slice(i, i + MAX_PER_REQUEST);
-      chunk.forEach(([key]) => inFlight.add(key));
-      translateTexts(
-        chunk.map(([, item]) => item.text),
-        language,
-      ).then((result) => {
-        chunk.forEach(([key, item], j) => {
-          inFlight.delete(key);
-          if (result.status === 'ok') store(item.kind, item.text, language, result.translations[j]);
-          else failed.current.add(key);
-        });
-        if (mounted.current) setVersion((v) => v + 1);
+    const chunks: (typeof items)[] = [];
+    for (let i = 0; i < items.length; i += MAX_PER_REQUEST) chunks.push(items.slice(i, i + MAX_PER_REQUEST));
+    items.forEach(([key]) => inFlight.add(key));
+    // 2026-11-08: at most MAX_PARALLEL requests at a time (a large archive used to send every chunk at once), and once the
+    // allowance says no, the rest are not sent at all: the cards keep their original text, as on any failure.
+    let next = 0;
+    let stopped = false;
+    const settle = (chunk: typeof items, result: Awaited<ReturnType<typeof translateTexts>> | null) => {
+      chunk.forEach(([key, item], j) => {
+        inFlight.delete(key);
+        if (result && result.status === 'ok') store(item.kind, item.text, language, result.translations[j]);
+        else failed.current.add(key);
       });
-    }
+    };
+    const worker = async () => {
+      while (next < chunks.length) {
+        const chunk = chunks[next++];
+        if (stopped) {
+          settle(chunk, null);
+          continue;
+        }
+        const result = await translateTexts(
+          chunk.map(([, item]) => item.text),
+          language,
+        );
+        if (result.status === 'error' && STOP_REASONS.includes(result.reason)) stopped = true;
+        settle(chunk, result);
+        if (mounted.current) setVersion((v) => v + 1);
+      }
+    };
+    for (let w = 0; w < Math.min(MAX_PARALLEL, chunks.length); w += 1) void worker();
   }, [entries, language]);
 
   return useMemo(() => {

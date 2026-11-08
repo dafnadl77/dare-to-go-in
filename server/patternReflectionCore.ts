@@ -67,7 +67,9 @@ export interface CachedPatternReflection {
 export type GenerateOutcome =
   | { status: 'ok'; value: PatternReflectionResult }
   | { status: 'invalid' }
-  | { status: 'language_intrusion' };
+  | { status: 'language_intrusion' }
+  /** 2026-11-08: the allowance or the one-at-a-time guard said no BEFORE any AI call (see server/extrasLimits.ts). */
+  | { status: 'refused'; httpStatus: number; reason: string; retryAfterSeconds: number };
 
 export type PersistOutcome = { status: 'inserted' } | { status: 'conflict' } | { status: 'failed'; error: unknown };
 
@@ -97,7 +99,8 @@ export type PatternReflectionOutcome =
   | { status: 'invalid_concept' }
   | { status: 'invalid_input' }
   | { status: 'insufficient_evidence' }
-  | { status: 'generation_failed'; reason: 'invalid' | 'language_intrusion' };
+  | { status: 'generation_failed'; reason: 'invalid' | 'language_intrusion' }
+  | { status: 'refused'; httpStatus: number; reason: string; retryAfterSeconds: number };
 
 export interface PatternReflectionRequest {
   ownerId: string;
@@ -168,6 +171,9 @@ export async function runPatternReflection(request: PatternReflectionRequest, de
   const synthesized = selectDreamsForSynthesis(verified, MAX_SYNTHESIS_DREAMS);
 
   const generated = await deps.generateReflection({ dreams: synthesized, totalDreamCount, conceptId, language, addressPreference });
+  if (generated.status === 'refused') {
+    return { status: 'refused', httpStatus: generated.httpStatus, reason: generated.reason, retryAfterSeconds: generated.retryAfterSeconds };
+  }
   if (generated.status !== 'ok') {
     return { status: 'generation_failed', reason: generated.status };
   }

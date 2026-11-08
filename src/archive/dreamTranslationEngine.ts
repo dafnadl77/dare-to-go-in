@@ -1,5 +1,6 @@
 import { validateTranslations, type TranslationResult, type TranslationErrorReason, type TranslationTarget } from './dreamTranslationSchema';
 import { getAuthHeader } from '../auth/getAccessToken';
+import { batchTexts } from './translationBatches';
 
 const KNOWN_REASONS: TranslationErrorReason[] = [
   'not_configured',
@@ -9,7 +10,24 @@ const KNOWN_REASONS: TranslationErrorReason[] = [
   'billing_issue',
   'empty_input',
   'not_authenticated',
+  'usage_limited',
+  'too_large',
+  'limits_unavailable',
+  'no_saved_dream',
 ];
+
+/** Translates any number of texts, in order, one bounded batch at a time; the first batch that fails is the answer (no partial mix). */
+export async function translateTexts(texts: string[], targetLanguage: TranslationTarget = 'en'): Promise<TranslationResult> {
+  const batches = batchTexts(texts);
+  if (batches.length <= 1) return translateBatch(texts, targetLanguage);
+  const all: string[] = [];
+  for (const batch of batches) {
+    const result = await translateBatch(batch, targetLanguage);
+    if (result.status !== 'ok') return result;
+    all.push(...result.translations);
+  }
+  return { status: 'ok', translations: all };
+}
 
 /**
  * Calls the local backend for a batch of real English translations — same
@@ -19,7 +37,7 @@ const KNOWN_REASONS: TranslationErrorReason[] = [
  * result instead, which DreamDetail.tsx falls back from (see its own
  * comment on what it shows while this is pending/failed).
  */
-export async function translateTexts(texts: string[], targetLanguage: TranslationTarget = 'en'): Promise<TranslationResult> {
+async function translateBatch(texts: string[], targetLanguage: TranslationTarget): Promise<TranslationResult> {
   try {
     const authHeader = await getAuthHeader();
     const res = await fetch('/api/dream-translation', {
