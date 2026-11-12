@@ -156,3 +156,7 @@ test('nothing in the other language is shown as a translation: an unchanged or w
   assert.match(hook, /if \(readsAs\(value, language\)\) cacheMapText\(t, language, value\);\n\s*else untranslatable\.add/);
   assert.match(hook, /return untranslatable\.has\(keyOf\(t, language\)\) \|\| refused \? unavailable : null;/);
 });
+
+test('an older cached entry that is not in the interface language is never used (a tab that kept one from the earlier Preview)', () => {
+  assert.match(read('src/archive/dreamTitleTranslation.ts'), /return value !== null && readsAs\(value, language\) \? value : null;/);
+});

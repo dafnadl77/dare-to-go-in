@@ -105,7 +105,9 @@ function finalize(kind: Kind, language: AppLanguage, translated: string): string
 }
 
 function getCached(kind: Kind, text: string, language: AppLanguage): string | null {
-  return cache.get(keyOf(kind, text, language)) ?? null;
+  // an entry kept by an older version (or another tab's) that is not really in this language is never used as a translation
+  const value = cache.get(keyOf(kind, text, language)) ?? null;
+  return value !== null && readsAs(value, language) ? value : null;
 }
 
 function store(kind: Kind, text: string, language: AppLanguage, translated: string): void {
@@ -208,7 +210,7 @@ export function useTranslatedCards(entries: ArchiveEntry[], language: AppLanguag
     const want = (kind: Kind, text: string | null) => {
       if (!text) return;
       const key = keyOf(kind, text, language);
-      if (cache.has(key) || inFlight.has(key) || failed.current.has(key)) return;
+      if (getCached(kind, text, language) !== null || inFlight.has(key) || failed.current.has(key)) return;
       pending.set(key, { kind, text });
     };
     for (const entry of entries) {
