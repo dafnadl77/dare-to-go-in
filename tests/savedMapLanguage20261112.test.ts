@@ -160,3 +160,10 @@ test('nothing in the other language is shown as a translation: an unchanged or w
 test('an older cached entry that is not in the interface language is never used (a tab that kept one from the earlier Preview)', () => {
   assert.match(read('src/archive/dreamTitleTranslation.ts'), /return value !== null && readsAs\(value, language\) \? value : null;/);
 });
+
+test('the Insights labels: asked in the interface language and kept in the shared cache, so coming back to the archive asks nothing again', () => {
+  const page = read('src/archive/DreamArchive.tsx');
+  assert.match(page, /getCachedLabel\(m\.label, language\) === null,/);
+  assert.match(page, /translateTexts\(\n\s*pending\.map\(\(m\) => m\.label\),\n\s*language,\n\s*\)/);
+  assert.match(page, /if \(result\.status === 'ok'\) pending\.forEach\(\(m, i\) => cacheLabel\(m\.label, language, result\.translations\[i\]\)\);/);
+});

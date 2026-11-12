@@ -12,7 +12,7 @@ import { getDreamsRemote, toggleFavoriteRemote, deleteDreamRemote } from '../her
 import type { SavedDream } from '../hero/dreamStorage';
 import { containsHebrew } from '../hero/appLanguage';
 import { translateTexts } from './dreamTranslationEngine';
-import { useTranslatedCards } from './dreamTitleTranslation';
+import { cacheLabel, getCachedLabel, useTranslatedCards } from './dreamTitleTranslation';
 import DreamTimeline from './DreamTimeline';
 import DeleteDreamDialog from './DeleteDreamDialog';
 import { archiveDisplay, statusWhenFetchStarts, statusWhenFetchFails, type ArchiveLoadStatus } from './archiveLoad';
@@ -340,11 +340,21 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onOpenP
   useEffect(() => {
     if (!recurringMotifs) return;
     const pending = recurringMotifs.filter(
-      (m) => !m.conceptId && motifLabelNeedsLocalization(m.label, language) && !(`${language}:${m.key}` in motifTranslations),
+      (m) =>
+        !m.conceptId &&
+        motifLabelNeedsLocalization(m.label, language) &&
+        !(`${language}:${m.key}` in motifTranslations) &&
+        // 2026-11-12: kept in the shared tab cache, so coming back to the archive never asks for the same labels again
+        getCachedLabel(m.label, language) === null,
     );
     if (pending.length === 0) return;
     let cancelled = false;
-    translateTexts(pending.map((m) => m.label)).then((result) => {
+    // into the interface language (it was always English before 2026-11-12, also on the Hebrew interface)
+    translateTexts(
+      pending.map((m) => m.label),
+      language,
+    ).then((result) => {
+      if (result.status === 'ok') pending.forEach((m, i) => cacheLabel(m.label, language, result.translations[i]));
       if (cancelled || result.status !== 'ok') return;
       setMotifTranslations((prev) => {
         const next = { ...prev };
@@ -367,7 +377,7 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onOpenP
       returns anything other than a real label — an Insight is never
       hidden for language reasons (see the effect above). */
   const motifDisplayLabel = (m: RecurringMotif): string =>
-    m.conceptId ? conceptLabel(m.conceptId, language) : (motifTranslations[`${language}:${m.key}`] ?? m.label);
+    m.conceptId ? conceptLabel(m.conceptId, language) : (getCachedLabel(m.label, language) ?? motifTranslations[`${language}:${m.key}`] ?? m.label);
 
   const handleToggleFavorite = (id: string) => {
     if (!user) return;
