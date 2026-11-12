@@ -3,7 +3,7 @@ import DreamStageBackground from '../hero/DreamStageBackground';
 import { sanitizeAiTextForDisplay, containsHebrew } from '../hero/appLanguage';
 import { normalizeEmotions } from '../hero/dreamEmotions';
 import { formatEntryDayMonth, formatEntryYear, titleFromSavedDream, type ArchiveEntry } from './archiveData';
-import { cacheLabel, cacheTitle, getCachedLabel, getCachedTitle, needsTranslation, savedTitleSource } from './dreamTitleTranslation';
+import { cacheLabel, cacheReflectionText, cacheTitle, getCachedLabel, getCachedReflectionText, getCachedTitle, needsTranslation, savedTitleSource } from './dreamTitleTranslation';
 import { useDreamImageSrc } from './useDreamImageSrc';
 import { translateTexts } from './dreamTranslationEngine';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -151,9 +151,24 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
     if (existentialRaw && needsTranslation(existentialRaw, language)) items.push({ key: 'existential', text: existentialRaw });
     if (items.length === 0) return;
 
+    // 2026-11-12: every field already translated in this tab comes from the shared cache, so switching the language back (or coming back
+    // from the dream's map) asks for nothing again; only what is missing is sent.
+    const fromCache: Partial<Record<FieldKey, string>> = {};
+    const toAsk = items.filter((item) => {
+      if (item.key === 'title' || item.key === 'stoodOut') return true;
+      const hit = getCachedReflectionText(item.text, language);
+      if (hit) fromCache[item.key] = hit;
+      return !hit;
+    });
+    if (toAsk.length === 0) {
+      setTranslated(fromCache);
+      setTranslationState('ready');
+      return;
+    }
+
     let cancelled = false;
     setTranslationState('loading');
-    const texts = items.map((i) => i.text);
+    const texts = toAsk.map((i) => i.text);
     // One silent retry for a transient failure (network blip, cold start, rate
     // limit); a definite failure (not signed in, not configured, billing) is not retried.
     const request = async () => {
@@ -164,14 +179,18 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
       return cancelled ? first : translateTexts(texts, language);
     };
     request().then((result) => {
-      const titleIndex = items.findIndex((item) => item.key === 'title');
+      const titleIndex = toAsk.findIndex((item) => item.key === 'title');
       if (result.status === 'ok' && titleIndex >= 0) cacheTitle(ownTitle, language, result.translations[titleIndex]);
-      const labelIndex = items.findIndex((item) => item.key === 'stoodOut');
+      const labelIndex = toAsk.findIndex((item) => item.key === 'stoodOut');
       if (result.status === 'ok' && labelIndex >= 0 && selectedElementRaw) cacheLabel(selectedElementRaw, language, result.translations[labelIndex]);
+      if (result.status === 'ok')
+        toAsk.forEach((item, i) => {
+          if (item.key !== 'title' && item.key !== 'stoodOut' && result.translations[i]?.trim()) cacheReflectionText(item.text, language, result.translations[i]);
+        });
       if (cancelled) return;
       if (result.status === 'ok') {
-        const next: Partial<Record<FieldKey, string>> = {};
-        items.forEach((item, i) => {
+        const next: Partial<Record<FieldKey, string>> = { ...fromCache };
+        toAsk.forEach((item, i) => {
           next[item.key] = result.translations[i];
         });
         setTranslated(next);

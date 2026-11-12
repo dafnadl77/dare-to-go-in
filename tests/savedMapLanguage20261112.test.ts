@@ -115,3 +115,11 @@ test('drawn: each moment\'s conversation window on the English interface has no 
     assert.doesNotMatch(html.replace(/<[^>]+>/g, ' '), HEBREW, `moment ${moment.id}`);
   }
 });
+
+test('the dream\'s page reuses what this tab already translated: back to English (or back from the map) asks for nothing again', () => {
+  const page = read('src/archive/DreamDetail.tsx');
+  assert.match(page, /const hit = getCachedReflectionText\(item\.text, language\);/);
+  assert.match(page, /if \(toAsk\.length === 0\) \{\n\s*setTranslated\(fromCache\);\n\s*setTranslationState\('ready'\);\n\s*return;/);
+  assert.match(page, /cacheReflectionText\(item\.text, language, result\.translations\[i\]\)/);
+  assert.match(page, /const texts = toAsk\.map\(\(i\) => i\.text\);/, 'only what is missing is sent');
+});
