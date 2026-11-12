@@ -3,3 +3,9 @@
 .dd-dialog .ag-note {
   margin-top: 1.1rem;
 }
+
+/* Hebrew, Google Sans (2026-11-12): on a phone the note no longer fits one line and left the last word ("לידה.") alone on the
+   second. Balanced, the two lines come out even; where the note fits one line nothing changes. */
+:root[dir='rtl'] .dd-dialog .ag-note {
+  text-wrap: balance;
+}

@@ -40,8 +40,11 @@
          italic needed) is loaded solely for .memory-title, the "DARE TO
          GO IN" brand mark, which intentionally keeps its own serif
          treatment in every language — see index.css/MemoryTitle.css. -->
-    <!-- Both typefaces are served from this site itself (public/fonts, SIL OFL): no request goes to Google. -->
+    <!-- Google Sans is the Hebrew interface font (index.css, dir=rtl); Heebo stays the English one. -->
+    <!-- Every typeface is served from this site itself (public/fonts, SIL OFL): no request goes to Google. -->
     <link rel="stylesheet" href="/fonts/fonts.css" />
+    <link rel="preload" href="/fonts/google-sans-hebrew-wght.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/google-sans-latin-wght.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/heebo-hebrew.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/heebo-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />

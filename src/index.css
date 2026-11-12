@@ -259,9 +259,12 @@ button:disabled {
    branch instead, so there is no word-spacing property left to leak into
    Hebrew here (unlike the old word-spacing approximation this replaced,
    which did need an explicit reset). */
+/* 2026-11-12: the Hebrew interface uses Google Sans (self-hosted in public/fonts, like the "יש לי?" landing page), with
+   Heebo right behind it as the fallback. The English interface (dir='ltr') is never matched here and stays on Heebo.
+   Google Sans has weights 400-700, so the two Hebrew texts set at weight 300 show at 400. */
 :root[dir='rtl'] * {
   letter-spacing: normal !important;
-  font-family: 'Heebo', 'Assistant', system-ui, sans-serif !important;
+  font-family: 'Google Sans', 'Heebo', 'Assistant', system-ui, sans-serif !important;
 }
 
 /* BUG FIX: the blanket `:root[dir='rtl'] *` rule above matches EVERY

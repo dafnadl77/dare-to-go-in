@@ -111,7 +111,7 @@ test('the backup period quoted is the real worst case of the two B2 lifecycle ru
 test('fonts are self-hosted: every file exists, nothing loads from Google, and the CSP no longer allows it', () => {
   const css = read('public/fonts/fonts.css');
   const files = [...css.matchAll(/url\(\/fonts\/([a-z-]+\.woff2)\)/g)].map((m) => m[1]);
-  assert.equal(files.length, 7);
+  assert.equal(files.length, 9);
   for (const f of files) {
     const buf = readFileSync(new URL(`../public/fonts/${f}`, import.meta.url));
     assert.equal(buf.subarray(0, 4).toString('latin1'), 'wOF2', `${f} is a real woff2 file`);
@@ -119,6 +119,10 @@ test('fonts are self-hosted: every file exists, nothing loads from Google, and t
   }
   assert.match(css, /font-family: 'Heebo'[\s\S]*?font-weight: 300 700/);
   assert.match(css, /font-family: 'Fraunces'[\s\S]*?font-weight: 400/);
+  // Google Sans: the Hebrew interface only (weights 400-700), with the full OFL text next to the files
+  assert.match(css, /font-family: 'Google Sans'[\s\S]*?font-weight: 400 700/);
+  assert.match(read('src/index.css'), /:root\[dir='rtl'\] \* \{[^}]*font-family: 'Google Sans', 'Heebo'/);
+  assert.match(read('public/fonts/OFL-GoogleSans.txt'), /SIL OPEN FONT LICENSE Version 1\.1/);
   for (const page of ['index.html', 'public/faq/index.html', 'public/en/faq/index.html', 'src/faq/renderFaqPage.ts']) {
     const src = read(page);
     assert.ok(!/fonts\.googleapis\.com|fonts\.gstatic\.com/.test(src), `${page}: no Google Fonts`);
