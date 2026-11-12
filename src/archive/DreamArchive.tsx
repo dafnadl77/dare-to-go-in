@@ -12,7 +12,7 @@ import { getDreamsRemote, toggleFavoriteRemote, deleteDreamRemote } from '../her
 import type { SavedDream } from '../hero/dreamStorage';
 import { containsHebrew } from '../hero/appLanguage';
 import { translateTexts } from './dreamTranslationEngine';
-import { cacheLabel, getCachedLabel, useTranslatedCards } from './dreamTitleTranslation';
+import { cacheLabel, getCachedLabel, useTranslatedCards, wasUntranslatable } from './dreamTitleTranslation';
 import DreamTimeline from './DreamTimeline';
 import DeleteDreamDialog from './DeleteDreamDialog';
 import { archiveDisplay, statusWhenFetchStarts, statusWhenFetchFails, type ArchiveLoadStatus } from './archiveLoad';
@@ -345,7 +345,8 @@ export default function DreamArchive({ onBack, onOpenEntry, onOpenLegal, onOpenP
         motifLabelNeedsLocalization(m.label, language) &&
         !(`${language}:${m.key}` in motifTranslations) &&
         // 2026-11-12: kept in the shared tab cache, so coming back to the archive never asks for the same labels again
-        getCachedLabel(m.label, language) === null,
+        getCachedLabel(m.label, language) === null &&
+        !wasUntranslatable('label', m.label, language),
     );
     if (pending.length === 0) return;
     let cancelled = false;

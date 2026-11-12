@@ -120,7 +120,7 @@ test('the dream\'s page reuses what this tab already translated: back to English
   const page = read('src/archive/DreamDetail.tsx');
   assert.match(page, /const hit = getCachedReflectionText\(item\.text, language\);/);
   assert.match(page, /if \(toAsk\.length === 0\) \{\n\s*setTranslated\(fromCache\);\n\s*setTranslationState\('ready'\);\n\s*return;/);
-  assert.match(page, /cacheReflectionText\(item\.text, language, result\.translations\[i\]\)/);
+  assert.match(page, /cacheReflectionText\(item\.text, language, result\.translations\[i\] \?\? ''\)/);
   assert.match(page, /const texts = toAsk\.map\(\(i\) => i\.text\);/, 'only what is missing is sent');
 });
 
@@ -151,7 +151,7 @@ test('nothing in the other language is shown as a translation: an unchanged or w
   assert.match(page, /if \(translationState === 'ready'\) return readsAs\(translated\[key\], language\) \? translated\[key\]! : t\('dreamDetail\.translationUnavailable'\);/);
   assert.doesNotMatch(page, /if \(translationState === 'error'\) return raw;/, 'never the saved text in the other language');
   assert.match(page, /if \(sourceTextRaw && needsTranslation\(sourceTextRaw, language\)\)/, 'her words follow the interface both ways');
-  assert.match(read('src/archive/dreamTitleTranslation.ts'), /if \(!value \|\| !readsAs\(value, language\)\) return;/, 'never cached');
+  assert.match(read('src/archive/dreamTitleTranslation.ts'), /if \(!value \|\| !readsAs\(value, language\)\) \{/, 'never cached');
   const hook = read('src/map/savedMapTranslation.ts');
   assert.match(hook, /if \(readsAs\(value, language\)\) cacheMapText\(t, language, value\);\n\s*else untranslatable\.add/);
   assert.match(hook, /return untranslatable\.has\(keyOf\(t, language\)\) \|\| refused \? unavailable : null;/);
@@ -163,7 +163,17 @@ test('an older cached entry that is not in the interface language is never used 
 
 test('the Insights labels: asked in the interface language and kept in the shared cache, so coming back to the archive asks nothing again', () => {
   const page = read('src/archive/DreamArchive.tsx');
-  assert.match(page, /getCachedLabel\(m\.label, language\) === null,/);
+  assert.match(page, /getCachedLabel\(m\.label, language\) === null &&/);
   assert.match(page, /translateTexts\(\n\s*pending\.map\(\(m\) => m\.label\),\n\s*language,\n\s*\)/);
   assert.match(page, /if \(result\.status === 'ok'\) pending\.forEach\(\(m, i\) => cacheLabel\(m\.label, language, result\.translations\[i\]\)\);/);
+});
+
+test('the demo matches an Insights label without its article, and a text found untranslatable is not asked for again on every visit', () => {
+  assert.equal(translateSample('Golden Key', 'he'), 'מפתח זהב');
+  assert.equal(translateSample('Old House By The Sea', 'he'), 'בית ישן ליד הים');
+  const cache = read('src/archive/dreamTitleTranslation.ts');
+  assert.match(cache, /untranslatable\.add\(keyOf\(kind, text, language\)\);/);
+  assert.match(cache, /\|\| untranslatable\.has\(key\)\) return;/, 'archive cards');
+  assert.match(read('src/archive/DreamArchive.tsx'), /!wasUntranslatable\('label', m\.label, language\)/, 'Insights labels');
+  assert.match(read('src/archive/DreamDetail.tsx'), /return !hit && !wasUntranslatable\('reflection', item\.text, language\);/, 'the dream page');
 });

@@ -3,7 +3,7 @@ import DreamStageBackground from '../hero/DreamStageBackground';
 import { sanitizeAiTextForDisplay } from '../hero/appLanguage';
 import { normalizeEmotions } from '../hero/dreamEmotions';
 import { formatEntryDayMonth, formatEntryYear, titleFromSavedDream, type ArchiveEntry } from './archiveData';
-import { cacheLabel, cacheReflectionText, cacheTitle, getCachedLabel, getCachedReflectionText, getCachedTitle, needsTranslation, readsAs, savedTitleSource } from './dreamTitleTranslation';
+import { cacheLabel, cacheReflectionText, cacheTitle, getCachedLabel, getCachedReflectionText, getCachedTitle, needsTranslation, readsAs, savedTitleSource, wasUntranslatable } from './dreamTitleTranslation';
 import { useDreamImageSrc } from './useDreamImageSrc';
 import { translateTexts } from './dreamTranslationEngine';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -161,7 +161,8 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
       if (item.key === 'title' || item.key === 'stoodOut') return true;
       const hit = getCachedReflectionText(item.text, language);
       if (hit) fromCache[item.key] = hit;
-      return !hit;
+      // found untranslatable earlier in this tab: not asked again (its field shows the "translation unavailable" line)
+      return !hit && !wasUntranslatable('reflection', item.text, language);
     });
     if (toAsk.length === 0) {
       setTranslated(fromCache);
@@ -188,7 +189,7 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
       if (result.status === 'ok' && labelIndex >= 0 && selectedElementRaw) cacheLabel(selectedElementRaw, language, result.translations[labelIndex]);
       if (result.status === 'ok')
         toAsk.forEach((item, i) => {
-          if (item.key !== 'title' && item.key !== 'stoodOut' && result.translations[i]?.trim()) cacheReflectionText(item.text, language, result.translations[i]);
+          if (item.key !== 'title' && item.key !== 'stoodOut') cacheReflectionText(item.text, language, result.translations[i] ?? '');
         });
       if (cancelled) return;
       if (result.status === 'ok') {

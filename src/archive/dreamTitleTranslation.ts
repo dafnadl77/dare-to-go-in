@@ -75,11 +75,14 @@ function loadCache(): Map<string, string> {
 }
 const cache = loadCache();
 const inFlight = new Set<string>();
+// Texts whose answer was not a translation (2026-11-12): remembered for the whole tab, so no screen asks for them again on every visit.
+const untranslatable = new Set<string>();
 
 /** Forgets every translation held in memory (sign-out, account deletion): otherwise the next store() would write the previous account's
     dream texts back into this tab's storage under whoever signs in next. The stored copy is removed by the caller. */
 export function clearTranslationMemory(): void {
   cache.clear();
+  untranslatable.clear();
   inFlight.clear();
 }
 const MAX_PER_REQUEST = 40;
@@ -112,14 +115,22 @@ function getCached(kind: Kind, text: string, language: AppLanguage): string | nu
 
 function store(kind: Kind, text: string, language: AppLanguage, translated: string): void {
   const value = finalize(kind, language, translated);
-  // not a translation (empty, unchanged, or still in the other language): never kept, so it is never shown as one
-  if (!value || !readsAs(value, language)) return;
+  // not a translation (empty, unchanged, or still in the other language): never kept, so it is never shown as one, and not asked again
+  if (!value || !readsAs(value, language)) {
+    untranslatable.add(keyOf(kind, text, language));
+    return;
+  }
   cache.set(keyOf(kind, text, language), value);
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(cache)));
   } catch {
     /* storage unavailable — in-memory only */
   }
+}
+
+/** A text this tab already found untranslatable (its answer was not in the target language): not asked for again. */
+export function wasUntranslatable(kind: 'label' | 'reflection', text: string, language: AppLanguage): boolean {
+  return untranslatable.has(keyOf(kind, text, language));
 }
 
 /** Title cache, used by DreamDetail so it and the list share one translation. */
@@ -210,7 +221,7 @@ export function useTranslatedCards(entries: ArchiveEntry[], language: AppLanguag
     const want = (kind: Kind, text: string | null) => {
       if (!text) return;
       const key = keyOf(kind, text, language);
-      if (getCached(kind, text, language) !== null || inFlight.has(key) || failed.current.has(key)) return;
+      if (getCached(kind, text, language) !== null || inFlight.has(key) || failed.current.has(key) || untranslatable.has(key)) return;
       pending.set(key, { kind, text });
     };
     for (const entry of entries) {

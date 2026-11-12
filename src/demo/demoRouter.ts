@@ -506,7 +506,8 @@ const SAMPLE_SOURCES: Array<[he: string, en: string]> = [
 ];
 /** The feelings each sample row carries (demoInitialRows): the reflection's feelings line differs with them. */
 const SAMPLE_EMOTION_SETS: string[][] = [['longing', 'calm', 'wonder'], ['fear', 'excitement'], []];
-const norm = (text: string) => text.trim().toLowerCase();
+// lower case, and an English label's leading article left out ("A golden key" is also the Insights label "Golden Key")
+const norm = (text: string) => text.trim().toLowerCase().replace(/^(?:a|an|the)\s+/, '');
 let samplePairs: Map<string, string> | null = null;
 function pairsOfSamples(): Map<string, string> {
   if (samplePairs) return samplePairs;
