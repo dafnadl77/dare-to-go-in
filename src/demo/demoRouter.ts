@@ -426,6 +426,9 @@ function demoMapJourney(now: number): Json {
   return e as unknown as Json;
 }
 
+const LONG_HE = 'חלמתי שאני עפה מעל ים כחול ועצום, ואור זהוב נשפך מהאופק. '.repeat(8);
+const LONG_EN = 'I dreamed that I was flying over an enormous blue sea while golden light spilled from the horizon. '.repeat(7);
+
 /** The saved journey goes with the dream, as a real dream saved from the map. */
 function withJourney(row: Json, exploration: Json): Json {
   return { ...row, payload: { ...(row.payload as Json), exploration } };
@@ -433,8 +436,8 @@ function withJourney(row: Json, exploration: Json): Json {
 
 /** Six invented dreams. Two carry feelings and the new "in short" line, four read exactly as dreams saved before the feelings step existed. */
 export function demoInitialRows(now: number): Json[] {
-  const longHe = 'חלמתי שאני עפה מעל ים כחול ועצום, ואור זהוב נשפך מהאופק. '.repeat(8);
-  const longEn = 'I dreamed that I was flying over an enormous blue sea while golden light spilled from the horizon. '.repeat(7);
+  const longHe = LONG_HE;
+  const longEn = LONG_EN;
   return [
     savedRow('a0000001-0000-4000-8000-000000000001', true, 'דוגמה · עפתי מעל הים', 'חלמתי שאני עפה מעל ים כחול אל בית ישן עם דלת ירוקה.', 1, true, IMAGES[0], now, ['longing', 'calm', 'wonder'], ['flying_falling', 'water', 'home_dwelling']),
     savedRow('a0000001-0000-4000-8000-000000000002', false, 'Sample · Flying to a green door', 'I was flying over a blue sea toward an old house with a green door.', 2, false, IMAGES[2], now, ['fear', 'excitement'], ['flying_falling', 'home_dwelling']),
@@ -485,13 +488,52 @@ const GLOSSARY: Array<[he: string, en: string]> = [
   ["דוגמה · הגשר והמנורה", "Sample · The bridge and the lamp"],
 ];
 
-export function translateSample(text: string, target: 'he' | 'en'): string {
-  const key = text.trim().toLowerCase();
-  for (const [he, en] of GLOSSARY) {
-    if (target === 'en' && he.toLowerCase() === key) return en;
-    if (target === 'he' && en.toLowerCase() === key) return he;
+/**
+ * EVERY TEXT OF THE SAMPLES IN BOTH LANGUAGES (2026-11-12, her request: the whole archive can be checked in English in a Preview). The
+ * samples are written in both languages already (sampleAnalysis, sampleReflection, savedRow), so each Hebrew string is paired with its
+ * English twin by walking the two versions side by side; the sample dreams themselves get their twin below. The real product
+ * translates with the model; the demo has none, so it knows its own samples only (a dream the visitor typed comes back unchanged).
+ */
+const SAMPLE_SOURCES: Array<[he: string, en: string]> = [
+  ['חלמתי שאני עפה מעל ים כחול אל בית ישן עם דלת ירוקה.', 'I dreamed I was flying over a blue sea to an old house with a green door.'],
+  ['עפתי מעל ים כחול לעבר בית ישן עם דלת ירוקה.', 'I was flying over a blue sea toward an old house with a green door.'],
+  [LONG_HE, 'I dreamed that I was flying over a vast blue sea, and golden light poured from the horizon. '.repeat(8)],
+  ['מסדרון ארוך עם הרבה דלתות.', 'A long corridor with many doors.'],
+  ['חלמתי על בית ישן.', 'I dreamed about an old house.'],
+  ['חלמתי שעפתי מעל ים עצום וכחול, בזמן שאור זהוב נשפך מהאופק. '.repeat(7), LONG_EN],
+  ['זה מזכיר לי את הגינה של סבתא', "It reminds me of my grandmother's garden"],
+  ['דלת ירוקה', 'GREEN DOOR'],
+];
+/** The feelings each sample row carries (demoInitialRows): the reflection's feelings line differs with them. */
+const SAMPLE_EMOTION_SETS: string[][] = [['longing', 'calm', 'wonder'], ['fear', 'excitement'], []];
+const norm = (text: string) => text.trim().toLowerCase();
+let samplePairs: Map<string, string> | null = null;
+function pairsOfSamples(): Map<string, string> {
+  if (samplePairs) return samplePairs;
+  const m = new Map<string, string>();
+  const add = (he: unknown, en: unknown) => {
+    if (typeof he !== 'string' || typeof en !== 'string' || !he.trim() || !en.trim() || he === en) return;
+    if (!m.has(`en|${norm(he)}`)) m.set(`en|${norm(he)}`, en);
+    if (!m.has(`he|${norm(en)}`)) m.set(`he|${norm(en)}`, he);
+  };
+  const walk = (he: unknown, en: unknown): void => {
+    if (typeof he === 'string') return add(he, en);
+    if (Array.isArray(he) && Array.isArray(en)) return he.forEach((x, i) => walk(x, en[i]));
+    if (he && en && typeof he === 'object' && typeof en === 'object') for (const k of Object.keys(he)) walk((he as Json)[k], (en as Json)[k]);
+  };
+  for (const [he, en] of GLOSSARY) add(he, en);
+  for (const [he, en] of SAMPLE_SOURCES) add(he, en);
+  walk(sampleAnalysis('', true), sampleAnalysis('', false));
+  for (const emotions of SAMPLE_EMOTION_SETS) {
+    walk(sampleReflection(true, emotions, SAMPLE_SOURCES[6][0]), sampleReflection(false, emotions, SAMPLE_SOURCES[6][1]));
+    walk(sampleReflection(true, emotions, ''), sampleReflection(false, emotions, ''));
   }
-  return text;
+  samplePairs = m;
+  return m;
+}
+
+export function translateSample(text: string, target: 'he' | 'en'): string {
+  return pairsOfSamples().get(`${target}|${norm(text)}`) ?? text;
 }
 
 function demoSession(userMetadata: Json, now: number): Json {

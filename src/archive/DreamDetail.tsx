@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import DreamStageBackground from '../hero/DreamStageBackground';
-import { sanitizeAiTextForDisplay, containsHebrew } from '../hero/appLanguage';
+import { sanitizeAiTextForDisplay } from '../hero/appLanguage';
 import { normalizeEmotions } from '../hero/dreamEmotions';
 import { formatEntryDayMonth, formatEntryYear, titleFromSavedDream, type ArchiveEntry } from './archiveData';
-import { cacheLabel, cacheReflectionText, cacheTitle, getCachedLabel, getCachedReflectionText, getCachedTitle, needsTranslation, savedTitleSource } from './dreamTitleTranslation';
+import { cacheLabel, cacheReflectionText, cacheTitle, getCachedLabel, getCachedReflectionText, getCachedTitle, needsTranslation, readsAs, savedTitleSource } from './dreamTitleTranslation';
 import { useDreamImageSrc } from './useDreamImageSrc';
 import { translateTexts } from './dreamTranslationEngine';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -41,8 +41,11 @@ interface DreamDetailProps {
     rendered directly when it contains Hebrew while the UI is English —
     only `display` is, which is either the original (already English), the
     resolved translation, or a plain loading/error placeholder — so raw
-    Hebrew never reaches an English page, even for a moment. */
-type FieldKey = 'dream' | 'stoodOut' | 'association' | 'title' | 'thread' | 'question' | 'feelings' | 'summary' | 'linkQuestion' | 'linkAnswer' | 'reading0' | 'reading1' | 'existential';
+    Hebrew never reaches an English page, even for a moment.
+    2026-11-12 (her rule: everything shown follows the interface language): the dreamer's own words now follow it in BOTH directions,
+    like every other field, and a field whose translation is not to be had shows the plain "translation unavailable" line in the
+    interface language, never the text in the other language. The saved record is never changed. */
+type FieldKey = 'dream' | 'stoodOut' | 'association' | 'associationAi' | 'title' | 'thread' | 'question' | 'feelings' | 'summary' | 'linkQuestion' | 'linkAnswer' | 'reading0' | 'reading1' | 'existential';
 
 type TranslationState = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -92,6 +95,8 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
   const reflection = entry.kind === 'real' ? entry.savedDream.dreamReflection : null;
   const sourceTextRaw = entry.kind === 'real' ? entry.savedDream.sourceText : null;
   const associationRaw = entry.kind === 'real' ? entry.savedDream.reflectionResponse : null;
+  // without her own answer, the association line is the reflection's (DARE's words): it follows the interface language as well
+  const associationAiRaw = entry.kind === 'real' ? (entry.savedDream.dreamReflection?.personalAssociation?.trim() || null) : null;
   const selectedElementRaw = entry.kind === 'real' ? entry.savedDream.selectedElement : null;
 
   // The title is derived from the saved record in the language the dream was
@@ -124,13 +129,11 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
     if (entry.kind !== 'real') return;
 
     const items: { key: FieldKey; text: string }[] = [];
-    // The dreamer's own words: only the English UI ever force-translates
-    // them — see the module comment above.
-    if (language === 'en') {
-      if (sourceTextRaw && containsHebrew(sourceTextRaw)) items.push({ key: 'dream', text: sourceTextRaw });
-      if (associationRaw && containsHebrew(associationRaw)) items.push({ key: 'association', text: associationRaw });
-      if (linkAnswerRaw && containsHebrew(linkAnswerRaw)) items.push({ key: 'linkAnswer', text: linkAnswerRaw });
-    }
+    // The dreamer's own words follow the interface language too (2026-11-12) — see the note above FieldKey.
+    if (sourceTextRaw && needsTranslation(sourceTextRaw, language)) items.push({ key: 'dream', text: sourceTextRaw });
+    if (associationRaw && needsTranslation(associationRaw, language)) items.push({ key: 'association', text: associationRaw });
+    if (!associationRaw && associationAiRaw && needsTranslation(associationAiRaw, language)) items.push({ key: 'associationAi', text: associationAiRaw });
+    if (linkAnswerRaw && needsTranslation(linkAnswerRaw, language)) items.push({ key: 'linkAnswer', text: linkAnswerRaw });
     // AI-generated/derived fields (title, "what stood out" label, direction to
     // explore, question to keep) follow the active UI language in either
     // direction — including labels saved in the other language by older records.
@@ -215,9 +218,8 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
       explicit instruction not to auto-translate user content. */
   function resolve(key: FieldKey, raw: string | null): string | null {
     if (!raw) return null;
-    if (language !== 'en') return raw;
-    if (!containsHebrew(raw)) return sanitizeAiTextForDisplay(raw);
-    if (translationState === 'ready') return translated[key]?.trim() ? translated[key]! : t('dreamDetail.translationUnavailable');
+    if (!needsTranslation(raw, language)) return language === 'en' ? sanitizeAiTextForDisplay(raw) : raw;
+    if (translationState === 'ready') return readsAs(translated[key], language) ? translated[key]! : t('dreamDetail.translationUnavailable');
     if (translationState === 'error') return t('dreamDetail.translationUnavailable');
     return null; // loading — see the *-loading placeholder rendered below
   }
@@ -231,11 +233,13 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
       "." or "?"), and never stays stuck on the placeholder. */
   function resolveAi(key: FieldKey, raw: string): string | null {
     if (!needsTranslation(raw, language)) return raw;
-    if (translationState === 'ready') return translated[key]?.trim() ? translated[key]! : raw;
-    if (translationState === 'error') return raw;
+    // 2026-11-12: a translation that is not to be had shows the plain line in the interface language, never the other language
+    if (translationState === 'ready') return readsAs(translated[key], language) ? translated[key]! : t('dreamDetail.translationUnavailable');
+    if (translationState === 'error') return t('dreamDetail.translationUnavailable');
     return null;
   }
 
+  const sanitizeOrNull = (v: string | null) => (v === null ? null : sanitizeAiTextForDisplay(v));
   const dreamText = sourceTextRaw ? resolve('dream', sourceTextRaw) : null;
   const stoodOutText = selectedElementRaw
     ? needsTranslation(selectedElementRaw, language)
@@ -246,8 +250,8 @@ export default function DreamDetail({ entry, onBack, onGoHome, onOpenLegal }: Dr
       : null;
   const associationText = associationRaw
     ? resolve('association', associationRaw)
-    : reflection
-      ? sanitizeAiTextForDisplay(reflection.personalAssociation)
+    : associationAiRaw
+      ? sanitizeOrNull(resolveAi('associationAi', associationAiRaw))
       : null;
   const threadText = threadRaw ? resolveAi('thread', threadRaw) : null;
   const questionText = questionRaw ? resolveAi('question', questionRaw) : null;

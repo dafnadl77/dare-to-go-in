@@ -65,12 +65,12 @@ test('a text whose translation is not there keeps its saved words; the Hebrew in
   assert.equal(JSON.stringify(translatedSavedMap(saved, source, 'he', () => 'X').exploration), JSON.stringify(saved));
 });
 
-test('a dream saved in English on the Hebrew interface: DARE\'s words follow the interface, her own words stay as she wrote them', () => {
+test('a dream saved in English on the Hebrew interface: everything follows the interface, DARE\'s words and hers (her rule, 2026-11-12)', () => {
   let e = X.createExploration('en-dream', [{ label: 'The key in the pocket', excerpt: 'I found a small brass key' }]);
   e = X.beginConversation(e, 'm1', { role: 'dare', text: 'What was the key like in your hand?', move: 'ask' });
   e = X.addDreamerTurn(e, 'm1', 'Small and cold.');
   const texts = savedMapTextsToTranslate(e, 'I found a small brass key in my coat.', 'he');
-  assert.deepEqual(texts, ['The key in the pocket', 'What was the key like in your hand?']);
+  assert.deepEqual(texts, ['I found a small brass key in my coat.', 'The key in the pocket', 'I found a small brass key', 'What was the key like in your hand?', 'Small and cold.']);
   assert.equal(savedMapTextsToTranslate(e, 'I found a small brass key in my coat.', 'en').length, 0, 'English on English: nothing');
 });
 
@@ -82,12 +82,12 @@ test('the demo stands in for the model with a glossary that covers the whole sam
 
 test('wiring: the saved map uses the translation, shows nothing half-translated, and goes through the archive\'s mechanism and cache', () => {
   const page = read('src/map/SavedDreamMap.tsx');
-  assert.match(page, /useSavedMapTranslation\(saved, savedSource, language\)/);
+  assert.match(page, /useSavedMapTranslation\(saved, savedSource, language, t\('dreamDetail\.translationUnavailable'\)\)/);
   assert.match(page, /if \(state === 'translating'\)/);
   assert.match(page, /mapFromExploration\(exploration, \{ key: exploration\.attemptId, language, date, sourceText, imageSrc \}\)/);
   const hook = read('src/map/savedMapTranslation.ts');
   assert.match(hook, /import \{ translateTexts \} from '\.\.\/archive\/dreamTranslationEngine';/, 'the same /api/dream-translation route: the extras key and its limits');
-  assert.match(hook, /import \{ cacheMapText, getCachedMapText \} from '\.\.\/archive\/dreamTitleTranslation';/, 'the same tab cache: a language switch asks nothing twice');
+  assert.match(hook, /import \{ cacheMapText, getCachedMapText, readsAs \} from '\.\.\/archive\/dreamTitleTranslation';/, 'the same tab cache: a language switch asks nothing twice');
   assert.match(hook, /const inFlight = new Map/, 'one request at a time for the same texts');
   assert.match(hook, /refusedUntil/, 'a refusal is not repeated at once');
   assert.match(read('src/archive/dreamTitleTranslation.ts'), /export function getCachedMapText\(text: string, language: AppLanguage\)/);
@@ -122,4 +122,37 @@ test('the dream\'s page reuses what this tab already translated: back to English
   assert.match(page, /if \(toAsk\.length === 0\) \{\n\s*setTranslated\(fromCache\);\n\s*setTranslationState\('ready'\);\n\s*return;/);
   assert.match(page, /cacheReflectionText\(item\.text, language, result\.translations\[i\]\)/);
   assert.match(page, /const texts = toAsk\.map\(\(i\) => i\.text\);/, 'only what is missing is sent');
+});
+
+test('the demo knows every text its sample dreams show, in both directions: the dream page and the map can be checked fully in either language', () => {
+  const HE = /[\u05D0-\u05EA]/;
+  for (const row of demoInitialRows(Date.now()) as { id: string; payload: Record<string, unknown> }[]) {
+    const p = row.payload as { sourceText: string; selectedElement: string; reflectionResponse: string; dreamReflection: Record<string, unknown>; exploration?: unknown };
+    const r = p.dreamReflection;
+    const shown = [p.sourceText, p.selectedElement, p.reflectionResponse, r.personalAssociation, r.possibleThread, r.continuityQuestion, r.emotionReflection, r.summary, r.observation]
+      .filter((x): x is string => typeof x === 'string' && x.trim() !== '');
+    const he = HE.test(p.sourceText);
+    const target = he ? 'en' : 'he';
+    for (const text of shown) {
+      if (HE.test(text) !== he) continue; // already in the other language
+      const out = translateSample(text, target);
+      assert.notEqual(out, text, `${row.id}: no twin for "${text.slice(0, 50)}"`);
+      assert.equal(HE.test(out), target === 'he', `${row.id}: the twin reads in ${target}`);
+    }
+    if (p.exploration) {
+      const e = X.parseExploration(p.exploration)!;
+      assert.deepEqual(savedMapTextsToTranslate(e, p.sourceText, target).filter((t) => translateSample(t, target) === t), [], `${row.id}: the map`);
+    }
+  }
+});
+
+test('nothing in the other language is shown as a translation: an unchanged or wrong-script answer is never kept, and its field shows the interface\'s own line', () => {
+  const page = read('src/archive/DreamDetail.tsx');
+  assert.match(page, /if \(translationState === 'ready'\) return readsAs\(translated\[key\], language\) \? translated\[key\]! : t\('dreamDetail\.translationUnavailable'\);/);
+  assert.doesNotMatch(page, /if \(translationState === 'error'\) return raw;/, 'never the saved text in the other language');
+  assert.match(page, /if \(sourceTextRaw && needsTranslation\(sourceTextRaw, language\)\)/, 'her words follow the interface both ways');
+  assert.match(read('src/archive/dreamTitleTranslation.ts'), /if \(!value \|\| !readsAs\(value, language\)\) return;/, 'never cached');
+  const hook = read('src/map/savedMapTranslation.ts');
+  assert.match(hook, /if \(readsAs\(value, language\)\) cacheMapText\(t, language, value\);\n\s*else untranslatable\.add/);
+  assert.match(hook, /return untranslatable\.has\(keyOf\(t, language\)\) \|\| refused \? unavailable : null;/);
 });

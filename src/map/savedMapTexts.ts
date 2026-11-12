@@ -8,8 +8,8 @@ import { containsHebrew, type AppLanguage } from '../hero/appLanguage';
  *
  * Now the content is translated for display only, with the same mechanism as the rest of the dream's page (translateTexts →
  * /api/dream-translation, the extras key and its limits): the saved dream is never changed and no new dream is made. The same rule as
- * DreamDetail: on the English interface everything in Hebrew is translated, her own words too; on the Hebrew interface only DARE's
- * words written in English are, and her own words stay exactly as she wrote them. Each text is translated once per language and tab
+ * DreamDetail: everything shown follows the interface language, DARE's words and her own, in both directions (her rule, 2026-11-12).
+ * Each text is translated once per language and tab
  * (the shared archive cache), so a language switch back and forth, or opening the map again, asks for nothing new.
  */
 
@@ -22,8 +22,9 @@ export function needsTranslation(text: string, language: AppLanguage): boolean {
 /** Whose words a text is: DARE's (follows the interface both ways) or hers (translated only on the English interface). */
 type Owner = 'dare' | 'hers';
 
-const wanted = (text: string | null | undefined, owner: Owner, language: AppLanguage): text is string =>
-  typeof text === 'string' && text.trim() !== '' && (owner === 'dare' || language === 'en') && needsTranslation(text, language);
+// whose words a text is no longer changes whether it is translated (both follow the interface); kept to show what each field is
+const wanted = (text: string | null | undefined, _owner: Owner, language: AppLanguage): text is string =>
+  typeof text === 'string' && text.trim() !== '' && needsTranslation(text, language);
 
 /** Every text the saved map can show, with whose words it is. */
 function eachText(e: Exploration, sourceText: string, visit: (text: string | null | undefined, owner: Owner) => void): void {

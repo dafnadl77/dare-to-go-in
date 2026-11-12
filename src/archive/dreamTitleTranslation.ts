@@ -35,6 +35,19 @@ export function needsTranslation(text: string, language: AppLanguage): boolean {
   return !containsHebrew(text) && /[A-Za-z]{3}/.test(text);
 }
 
+/**
+ * Whether a translation really reads in the target language (2026-11-12): an answer that came back unchanged, or mostly in the other
+ * script, is not a translation and is never shown or kept as one. A Hebrew name or quote inside English (or the reverse) is fine.
+ */
+export function readsAs(text: string | null | undefined, language: AppLanguage): boolean {
+  const value = (text ?? '').trim();
+  if (!value) return false;
+  const hebrew = (value.match(/[א-ת]/g) ?? []).length;
+  const latin = (value.match(/[A-Za-z]/g) ?? []).length;
+  if (hebrew + latin === 0) return true;
+  return language === 'he' ? hebrew > 0 && hebrew >= latin * 0.5 : latin > 0 && hebrew <= latin * 0.3;
+}
+
 /** The title exactly as derived from the saved record, in the language the
     dream's content is actually written in (see dreamContentLanguage — not the
     record's UI-language stamp, which is wrong for older records) — the source
@@ -97,7 +110,8 @@ function getCached(kind: Kind, text: string, language: AppLanguage): string | nu
 
 function store(kind: Kind, text: string, language: AppLanguage, translated: string): void {
   const value = finalize(kind, language, translated);
-  if (!value) return;
+  // not a translation (empty, unchanged, or still in the other language): never kept, so it is never shown as one
+  if (!value || !readsAs(value, language)) return;
   cache.set(keyOf(kind, text, language), value);
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(cache)));

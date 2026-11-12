@@ -35,7 +35,7 @@ const noop = () => {};
 export default function SavedDreamMap({ exploration: saved, sourceText: savedSource, imageSrc, date, language, address, onBack, onShowSummary }: SavedDreamMapProps) {
   const s = mapStrings(language);
   const { t } = useLanguage();
-  const { state, exploration, sourceText } = useSavedMapTranslation(saved, savedSource, language);
+  const { state, exploration, sourceText } = useSavedMapTranslation(saved, savedSource, language, t('dreamDetail.translationUnavailable'));
   const m = mapFromExploration(exploration, { key: exploration.attemptId, language, date, sourceText, imageSrc });
 
   // a moment's window: its saved conversation, read-only (no writing box, no buttons that ask DARE)
