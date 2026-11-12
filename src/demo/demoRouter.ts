@@ -1,5 +1,5 @@
 import { emotionNamesForModel, normalizeEmotions } from '../hero/dreamEmotions';
-import { anotherMomentLeft, basedOnKey, exploredInOrder, MAX_QUESTIONS_PER_MOMENT, parseExploration, questionsAsked } from '../hero/exploration';
+import { addDareTurn, addDreamerTurn, anotherMomentLeft, basedOnKey, beginConversation, completeConversation, createExploration, exploredInOrder, MAX_QUESTIONS_PER_MOMENT, parseExploration, questionsAsked, receiveWholeView } from '../hero/exploration';
 import { checkLabel } from '../hero/claimCheck';
 import { saysItConnects } from '../hero/conversationTurn';
 
@@ -389,6 +389,48 @@ function savedRow(id: string, he: boolean, title: string, source: string, daysAg
   return { id, owner_id: DEMO_USER_ID, created_at: new Date(now - daysAgo * 86400000).toISOString(), favorite, payload };
 }
 
+/**
+ * A seventh sample (2026-11-12): a dream saved in Hebrew WITH its dream map, so the demo shows the saved map on the English interface
+ * (translated for display, with the glossary below standing in for the model). Invented; never a visitor's dream.
+ */
+const MAP_SAMPLE = {
+  "src": "חלמתי שאני עומדת על גשר עץ מעל נהר. באמצע הגשר מצאתי מנורה קטנה דולקת.",
+  "l1": "הגשר מעל הנהר",
+  "e1": "עומדת על גשר עץ מעל נהר",
+  "l2": "המנורה הדולקת",
+  "e2": "מצאתי מנורה קטנה דולקת",
+  "d1": "מה הרגשת כשעמדת על הגשר?",
+  "h1": "שקט, אבל גם קצת גובה",
+  "d2": "שקט וגובה יחד. מה עוד ראית מתחת לגשר?",
+  "h2": "מים כהים שזורמים לאט",
+  "d3": "מה משך אותך למנורה?",
+  "h3": "האור שלה היה חם",
+  "d4": "אור חם באמצע הגשר. מה עשית איתה?",
+  "h4": "החזקתי אותה בידיים",
+  "ov": "על הגשר היה שקט, עם תחושה של גובה, ומתחת זרמו מים כהים לאט.\n\nבאמצע הגשר מצאת מנורה עם אור חם, והחזקת אותה בידיים.",
+  "ct": "שקט ואור באמצע הדרך",
+  "cb": "שקט על הגשר; אור חם של המנורה",
+  "title": "דוגמה · הגשר והמנורה"
+} as const;
+function demoMapJourney(now: number): Json {
+  const t = new Date(now - 3 * 86400000);
+  const ask = (text: string) => ({ role: 'dare' as const, text, move: 'ask' as const });
+  let e = createExploration('demo-map-sample', [{ label: MAP_SAMPLE.l1, excerpt: MAP_SAMPLE.e1 }, { label: MAP_SAMPLE.l2, excerpt: MAP_SAMPLE.e2 }]);
+  e = beginConversation(e, 'm1', ask(MAP_SAMPLE.d1), t);
+  e = addDareTurn(addDreamerTurn(e, 'm1', MAP_SAMPLE.h1), 'm1', ask(MAP_SAMPLE.d2));
+  e = completeConversation(addDreamerTurn(e, 'm1', MAP_SAMPLE.h2), 'm1', t);
+  e = beginConversation(e, 'm2', ask(MAP_SAMPLE.d3), t);
+  e = addDareTurn(addDreamerTurn(e, 'm2', MAP_SAMPLE.h3), 'm2', ask(MAP_SAMPLE.d4));
+  e = completeConversation(addDreamerTurn(e, 'm2', MAP_SAMPLE.h4), 'm2', t);
+  e = receiveWholeView(e, { overview: MAP_SAMPLE.ov, recurring: null, contrast: null, readings: [], closingQuestion: '', connections: [{ from: 'm1', to: 'm2', title: MAP_SAMPLE.ct, basis: MAP_SAMPLE.cb }] }, basedOnKey(e), t);
+  return e as unknown as Json;
+}
+
+/** The saved journey goes with the dream, as a real dream saved from the map. */
+function withJourney(row: Json, exploration: Json): Json {
+  return { ...row, payload: { ...(row.payload as Json), exploration } };
+}
+
 /** Six invented dreams. Two carry feelings and the new "in short" line, four read exactly as dreams saved before the feelings step existed. */
 export function demoInitialRows(now: number): Json[] {
   const longHe = 'חלמתי שאני עפה מעל ים כחול ועצום, ואור זהוב נשפך מהאופק. '.repeat(8);
@@ -400,6 +442,7 @@ export function demoInitialRows(now: number): Json[] {
     savedRow('a0000001-0000-4000-8000-000000000004', false, 'Sample · The corridor', 'A long corridor with many doors.', 9, true, IMAGES[1], now),
     savedRow('a0000001-0000-4000-8000-000000000005', true, 'דוגמה · בית ישן', 'חלמתי על בית ישן.', 14, false, null, now, undefined, ['home_dwelling']),
     savedRow('a0000001-0000-4000-8000-000000000006', false, 'Sample · Golden light on water', longEn, 20, false, IMAGES[0], now, undefined, ['water']),
+    withJourney(savedRow('a0000001-0000-4000-8000-000000000007', true, MAP_SAMPLE.title, MAP_SAMPLE.src, 3, false, IMAGES[2], now), demoMapJourney(now)),
   ];
 }
 
@@ -422,6 +465,24 @@ const GLOSSARY: Array<[he: string, en: string]> = [
   ['דוגמה · עפה אל דלת ירוקה', 'Sample · Flying to a green door'],
   ['דוגמה · המסדרון', 'Sample · The corridor'],
   ['דוגמה · אור זהוב מעל המים', 'Sample · Golden light on water'],
+  // the seventh sample: its dream, its map and its whole view (2026-11-12)
+  ["חלמתי שאני עומדת על גשר עץ מעל נהר. באמצע הגשר מצאתי מנורה קטנה דולקת.", "I dreamed I was standing on a wooden bridge over a river. In the middle of the bridge I found a small lit lamp."],
+  ["הגשר מעל הנהר", "The bridge over the river"],
+  ["עומדת על גשר עץ מעל נהר", "standing on a wooden bridge over a river"],
+  ["המנורה הדולקת", "The lit lamp"],
+  ["מצאתי מנורה קטנה דולקת", "I found a small lit lamp"],
+  ["מה הרגשת כשעמדת על הגשר?", "What did you feel when you stood on the bridge?"],
+  ["שקט, אבל גם קצת גובה", "Quiet, but also a little height"],
+  ["שקט וגובה יחד. מה עוד ראית מתחת לגשר?", "Quiet and height together. What else did you see under the bridge?"],
+  ["מים כהים שזורמים לאט", "Dark water flowing slowly"],
+  ["מה משך אותך למנורה?", "What drew you to the lamp?"],
+  ["האור שלה היה חם", "Its light was warm"],
+  ["אור חם באמצע הגשר. מה עשית איתה?", "A warm light in the middle of the bridge. What did you do with it?"],
+  ["החזקתי אותה בידיים", "I held it in my hands"],
+  ["על הגשר היה שקט, עם תחושה של גובה, ומתחת זרמו מים כהים לאט.\n\nבאמצע הגשר מצאת מנורה עם אור חם, והחזקת אותה בידיים.", "On the bridge it was quiet, with a sense of height, and dark water flowed slowly below.\n\nIn the middle of the bridge you found a lamp with a warm light, and you held it in your hands."],
+  ["שקט ואור באמצע הדרך", "Quiet and light in the middle of the way"],
+  ["שקט על הגשר; אור חם של המנורה", "quiet on the bridge; the warm light of the lamp"],
+  ["דוגמה · הגשר והמנורה", "Sample · The bridge and the lamp"],
 ];
 
 export function translateSample(text: string, target: 'he' | 'en'): string {

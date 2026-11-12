@@ -2,6 +2,8 @@ import DreamMap from './DreamMap';
 import ConversationThread from './ConversationThread';
 import { mapFromExploration } from './fromExploration';
 import { mapStrings } from './mapStrings';
+import { useSavedMapTranslation } from './savedMapTranslation';
+import { useLanguage } from '../i18n/LanguageContext';
 import type { Exploration } from '../hero/exploration';
 import type { AddressPreference } from '../hero/addressPreference';
 import type { MapMoment } from './mapTypes';
@@ -11,6 +13,9 @@ import './DreamJourneyMap.css';
  * THE MAP OF A SAVED DREAM (2026-10-28): the approved map, drawn from the journey saved with the dream — its moments, each moment's
  * conversation as it was, the whole view and what she took from it. Read-only: nothing is asked of DARE, nothing is spent, nothing is
  * saved. Back leads to the archive; the dream's other page, "summary and reflection", is one click away.
+ *
+ * 2026-11-12: its content follows the interface language too (savedMapTranslation.ts): a dream saved in Hebrew reads in English on the
+ * English interface, translated for display only; nothing half-translated is shown while the translation is on its way.
  */
 
 interface SavedDreamMapProps {
@@ -27,8 +32,10 @@ interface SavedDreamMapProps {
 
 const noop = () => {};
 
-export default function SavedDreamMap({ exploration, sourceText, imageSrc, date, language, address, onBack, onShowSummary }: SavedDreamMapProps) {
+export default function SavedDreamMap({ exploration: saved, sourceText: savedSource, imageSrc, date, language, address, onBack, onShowSummary }: SavedDreamMapProps) {
   const s = mapStrings(language);
+  const { t } = useLanguage();
+  const { state, exploration, sourceText } = useSavedMapTranslation(saved, savedSource, language);
   const m = mapFromExploration(exploration, { key: exploration.attemptId, language, date, sourceText, imageSrc });
 
   // a moment's window: its saved conversation, read-only (no writing box, no buttons that ask DARE)
@@ -52,6 +59,16 @@ export default function SavedDreamMap({ exploration, sourceText, imageSrc, date,
       />
     );
   };
+
+  if (state === 'translating') {
+    return (
+      <div className="dj-map">
+        <p className="dd-body dd-body--loading" role="status" aria-live="polite">
+          {t('dreamDetail.translating')}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="dj-map">

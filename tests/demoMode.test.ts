@@ -121,16 +121,18 @@ test('demo: its own Supabase keeps dreams in memory only (list, save, favourite,
   const { router } = setup();
   const list = async () => (await router.handle(`${ORIGIN}/__demo/rest/v1/dreams?select=*&order=created_at.desc`)).json();
   const start = await list();
-  assert.equal(start.length, 6);
+  // seven samples since 2026-11-12: the seventh is saved in Hebrew with its dream map (the saved map in the English interface)
+  assert.equal(start.length, 7);
+  assert.ok(start.some((r: { payload: { exploration?: unknown } }) => r.payload.exploration), 'one sample carries its dream map');
   assert.ok(start.some((r: { payload: { emotions?: string[] } }) => (r.payload.emotions ?? []).length > 0), 'some sample dreams carry feelings');
   assert.ok(start.some((r: { payload: { emotions?: string[] } }) => !r.payload.emotions), 'and some read like older dreams');
   const row = { ...start[0], id: 'b0000001-0000-4000-8000-000000000001' };
   await router.handle(`${ORIGIN}/__demo/rest/v1/dreams`, { method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates' }, body: JSON.stringify(row) });
-  assert.equal((await list()).length, 7);
+  assert.equal((await list()).length, 8);
   await router.handle(`${ORIGIN}/__demo/rest/v1/dreams?id=eq.${row.id}`, { method: 'PATCH', body: JSON.stringify({ favorite: true }) });
   assert.equal((await list()).find((r: { id: string }) => r.id === row.id).favorite, true);
   await router.handle(`${ORIGIN}/__demo/rest/v1/dreams?id=eq.${row.id}`, { method: 'DELETE' });
-  assert.equal((await list()).length, 6);
+  assert.equal((await list()).length, 7);
   const user = await (await router.handle(`${ORIGIN}/__demo/auth/v1/user`)).json();
   assert.equal(user.email, 'demo@example.test');
 });

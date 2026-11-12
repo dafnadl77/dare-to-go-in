@@ -44,7 +44,7 @@ export function savedTitleSource(dream: SavedDream): string {
   return titleFromSavedDream(dream, dreamContentLanguage(dream));
 }
 
-type Kind = 'title' | 'excerpt' | 'keyword' | 'label' | 'reflection';
+type Kind = 'title' | 'excerpt' | 'keyword' | 'label' | 'reflection' | 'map';
 
 // Survives a refresh within the tab, never leaves the browser, cleared when
 // the tab closes.
@@ -82,7 +82,7 @@ const keyOf = (kind: Kind, text: string, language: AppLanguage) => `${kind}|${la
 const stripTrailing = (text: string) => text.trim().replace(/[\s.,;:!?…]+$/u, '');
 
 function finalize(kind: Kind, language: AppLanguage, translated: string): string {
-  if (kind === 'excerpt' || kind === 'reflection') return translated.trim();
+  if (kind === 'excerpt' || kind === 'reflection' || kind === 'map') return translated.trim();
   const clean = stripTrailing(translated);
   // A "What stood out" label keeps whatever casing the translation has.
   if (kind === 'label') return clean;
@@ -130,6 +130,15 @@ export function getCachedReflectionText(text: string, language: AppLanguage): st
 }
 export function cacheReflectionText(text: string, language: AppLanguage, translated: string): void {
   store('reflection', text, language, translated);
+}
+
+/** A text of a saved dream's map (savedMapTranslation.ts), translated for display — cached like the rest, so opening the map again or
+    switching the language back and forth never asks twice (2026-11-12). */
+export function getCachedMapText(text: string, language: AppLanguage): string | null {
+  return getCached('map', text, language);
+}
+export function cacheMapText(text: string, language: AppLanguage, translated: string): void {
+  store('map', text, language, translated);
 }
 
 /** What the card needs translated for one entry: the saved-language source
