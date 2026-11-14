@@ -100,6 +100,12 @@ export async function handleStartCheckout(rawBody: unknown, requestHeaders: Requ
 
   const payload = buildMakeCheckoutPayload(order.orderId, parsed.pkg, siteUrl, parsed.payer);
   const link = await deps.requestLink(payload);
+  // The order check must never reach the browser: a payment link that carries it is refused like any bad answer.
+  if (link.ok && payload.notifyCheck && link.paymentUrl.toLowerCase().includes(payload.notifyCheck)) {
+    console.error('checkout_link_failed reason=link_exposes_check');
+    await deps.markLink(order.orderId, verified.userId, 'link_failed');
+    return errorResult(502, 'checkout_unavailable', 'We could not start the payment. Please try again in a moment.');
+  }
   if (!link.ok) {
     console.error(`checkout_link_failed reason=${link.reason}`);
     await deps.markLink(order.orderId, verified.userId, 'link_failed');

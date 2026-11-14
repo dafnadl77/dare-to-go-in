@@ -13,6 +13,7 @@ import { handleUnlimitedAccess } from './routes/adminUnlimitedAccess.js';
 import { handleAdminPaidOrders } from './routes/adminPaidOrders.js';
 import { handleStartCheckout } from './payments/checkoutStart.js';
 import { handlePaymentComplete } from './payments/paymentComplete.js';
+import { handleGrowNotify } from './payments/growNotify.js';
 import { handleDeleteAccount } from './routes/deleteAccount.js';
 import { handleTrialSession } from './routes/trialSession.js';
 import type { HandlerResult } from './httpResult.js';
@@ -79,6 +80,20 @@ app.post('/api/credits', async (req, res) => {
 
 app.post('/api/payment-complete', async (req, res) => {
   send(res, await handlePaymentComplete(req.body, { authorization: req.headers.authorization }));
+});
+
+// Local mirror of the /api/grow-notify rewrite. Locally there is no x-vercel-forwarded-for, so it refuses every request (as intended).
+app.all('/api/grow-notify', async (req, res) => {
+  send(
+    res,
+    await handleGrowNotify({
+      method: req.method,
+      vercelForwardedFor: req.headers['x-vercel-forwarded-for'],
+      contentType: req.headers['content-type'],
+      contentLength: req.headers['content-length'],
+      readBody: () => req.body,
+    }).catch(() => ({ status: 503, body: { reason: 'not_configured', message: 'Not available right now.' } })),
+  );
 });
 
 app.get('/api/credits', async (req, res) => {

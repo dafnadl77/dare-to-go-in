@@ -34,7 +34,8 @@ const KEYS = ['amount', 'currency', 'orderId', 'providerStatus', 'schema', 'stat
 const STATUSES = ['paid', 'failed', 'cancelled', 'pending'];
 const TRANSACTION_ID = /^[A-Za-z0-9_-]{3,64}$/;
 
-function parseAmount(raw: unknown): number | null {
+/** Shared with the direct Grow notification (growNotify.ts): one amount rule for every completion path. */
+export function parseAmount(raw: unknown): number | null {
   let text: string;
   if (typeof raw === 'number') {
     if (!Number.isFinite(raw)) return null;

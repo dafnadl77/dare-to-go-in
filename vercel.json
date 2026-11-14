@@ -1,4 +1,7 @@
 {
+  "rewrites": [
+    { "source": "/api/grow-notify", "destination": "/api/payment-complete?via=grow-notify" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

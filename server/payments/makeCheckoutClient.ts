@@ -1,5 +1,6 @@
 import type { PayerDetails } from '../../src/payments/payerDetails.js';
 import type { PaidPackage } from './checkoutPackages.js';
+import { growNotifyCheck, growNotifySecret } from './growNotify.js';
 
 /**
  * DARE -> Make: the checkout request, and Make's synchronous answer (the Grow payment link).
@@ -27,9 +28,22 @@ export interface MakeCheckoutPayload {
   phone: string;
   /** Present only on the one-off sample sent while Make learns the payload structure. */
   sample?: true;
+  /**
+   * The order check for the direct Grow notification (growNotify.ts): Make puts it in Grow's Custom Field 2. Present only when
+   * GROW_NOTIFY_SECRET is configured, so the payload is unchanged until then. It binds a notification to an order DARE created;
+   * it is not proof of payment, never returned to the browser and never logged.
+   */
+  notifyCheck?: string;
 }
 
-export function buildMakeCheckoutPayload(orderId: string, pkg: PaidPackage, siteUrl: string, payer: PayerDetails, options: { sample?: boolean } = {}): MakeCheckoutPayload {
+export function buildMakeCheckoutPayload(
+  orderId: string,
+  pkg: PaidPackage,
+  siteUrl: string,
+  payer: PayerDetails,
+  options: { sample?: boolean; env?: NodeJS.ProcessEnv } = {},
+): MakeCheckoutPayload {
+  const secret = growNotifySecret(options.env ?? process.env);
   return {
     schema: 'dare.checkout.v1',
     orderId,
@@ -42,6 +56,7 @@ export function buildMakeCheckoutPayload(orderId: string, pkg: PaidPackage, site
     fullName: payer.fullName,
     phone: payer.phone,
     ...(options.sample ? { sample: true as const } : {}),
+    ...(secret ? { notifyCheck: growNotifyCheck(orderId, secret) } : {}),
   };
 }
 
