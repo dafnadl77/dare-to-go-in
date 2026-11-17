@@ -9,7 +9,7 @@ import {
 import { buildLabelRepairNote, findLabelProblems, normalizeLabel } from '../../src/hero/dreamElementLabelQuality.js';
 import { containsHebrew, type AppLanguage } from '../../src/hero/appLanguage.js';
 import { momentLabelRules } from '../../src/hero/explorationSchema.js';
-import { checkLabel } from '../../src/hero/claimCheck.js';
+import { checkMomentTitle } from '../../src/hero/momentTitle.js';
 import { runWithLanguageIntegrity } from '../languageGuard.js';
 import { type RequestHeaders } from '../callerIdentity.js';
 import { resolveAdultCaller } from '../ageGate.js';
@@ -99,7 +99,7 @@ ${elements.map((e, i) => `${i + 1}. ${e}`).join('\n')}`;
     if (!moments || containsHebrew(sourceText) !== (language === 'he')) return labels;
     const used: string[] = [];
     return labels.map((label, i) => {
-      const checked = checkLabel(label, elements[i], used, sourceText);
+      const checked = checkMomentTitle(label, elements[i], used, sourceText);
       used.push(checked);
       return checked;
     });

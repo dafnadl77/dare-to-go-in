@@ -1,6 +1,6 @@
 import { createExploration, exploredInOrder, MAX_MOMENTS, type Exploration } from '../hero/exploration';
 import { momentGroups, segmentDream, textOfSegments } from '../hero/dreamSegments';
-import { checkLabel } from '../hero/claimCheck';
+import { checkMomentTitle } from '../hero/momentTitle';
 import { getGroundingStatement, type DreamReflectionResult } from '../hero/dreamReflectionSchema';
 import type { DreamAnalysis } from '../hero/dreamAnalysisSchema';
 import type { AppLanguage } from '../hero/appLanguage';
@@ -132,7 +132,7 @@ export function mapJourneyFrom(attemptId: string, analysis: DreamAnalysis, label
   const used: string[] = [];
   const seeds = moments.map((m, i) => {
     const given = labels?.[i]?.trim() ?? '';
-    const label = given || checkLabel('', m.text, used, analysis.sourceText);
+    const label = given || checkMomentTitle('', m.text, used, analysis.sourceText);
     used.push(label);
     return { label, excerpt: m.text, segmentIds: m.segmentIds };
   });

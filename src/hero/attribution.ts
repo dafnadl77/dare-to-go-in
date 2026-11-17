@@ -60,6 +60,13 @@ const HE_STATE = /(?<![א-ת])(?:ו|ש|כש)?(ידעת|החלטת|ויתרת|ו�
 // a feeling said as hers with "היית" ("היית עצובה", 2026-11-08): the adjective must come from her words
 const HE_FELT = /(?<![א-ת])(?:ו|ש|כש)?היית\s+(?:כל\s+כך\s+|ממש\s+|קצת\s+)?(עצובה|עצוב|כועסת|כועס|מפוחדת|מפוחד|לחוצה|לחוץ|בודדה|בודד|מאוכזבת|מאוכזב|נבוכה|נבוך|מבוהלת|מבוהל|פגועה|פגוע)(?![א-ת])/g;
 
+// What the dream or a figure in it did NOT stir in her, said as a fact about her ("הדמות לא העלתה בך תחושת ביטחון", 2026-11-17). When she turns
+// an offer down, DARE's own words of that offer are not hers: the sentence is hers only when its feeling word is in her words or the dream.
+const HE_NOT_STIRRED = /(?<![א-ת])(?:ו|ש|כש)?לא\s+(?:(?:באמת|בכלל|ממש|עדיין)\s+)?(?:העלתה|העלה|עוררה|עורר|יצרה|יצר|גרמה|גרם|הציפה|הציף|נתנה|נתן|הביאה|הביא|השרתה|השרה|יצרו|עוררו)\s+(?:[א-ת]+\s+){0,2}?(?:בך|אצלך|לך)(?![א-ת])([^.!?\n]*)/g;
+const EN_NOT_STIRRED = /\b(?:did\s+not|didn['’]t|never|does\s+not|doesn['’]t|hasn['’]t|has\s+not)\s+(?:really\s+|even\s+)?(?:evoke|raise|bring\s+up|stir|create|arouse|give\s+you|make\s+you\s+feel|leave\s+you\s+with|inspire\s+in\s+you)\b([^.!?\n]*)/gi;
+const HE_FEELING_GENERIC = /^(?:תחושה|תחושת|הרגשה|הרגשת|רגש|רגשות|רגשית|משהו|דבר|כלל|בכלל|בך|אצלך|לך)$/;
+const EN_FEELING_GENERIC = /^(?:a|an|the|any|sense|feeling|feelings|sensation|something|nothing|anything|you|in|of|to|for|that|this|your|really|and|or|at|all)$/;
+
 // English: "you didn't feel", "you never wanted", "without giving up", "you knew", "you chose to"
 const EN_NEGATED = /\byou\s+(?:didn['’]t|did\s+not|never|weren['’]t|were\s+not)\s+(?:really\s+|even\s+)?(\w+)/gi;
 const EN_WITHOUT = /\bwithout\s+(\w+ing)\b/gi;
@@ -144,6 +151,15 @@ export function unreportedAttribution(sentence: string, ctx: AttributionContext,
   for (const m of s.matchAll(HE_WITHOUT)) if (!supportedHe(m[1], pool, true)) return m[0].trim();
   for (const m of s.matchAll(HE_STATE)) if (!supportedHe(m[1], pool)) return m[0].trim();
   for (const m of s.matchAll(HE_FELT)) if (!supportedHe(m[1], pool) && !supportedHe(m[1].replace(/^מ/, ''), pool)) return m[0].trim();
+  // her no to an offer does not make DARE's words of it hers: the feeling word it denies must come from her words or the dream
+  for (const m of s.matchAll(HE_NOT_STIRRED)) {
+    const feeling = heWords(m[1] ?? '').filter((w) => !HE_FEELING_GENERIC.test(w) && w.length >= 3);
+    if (feeling.length && !feeling.some((w) => supportedHe(w, pool))) return m[0].trim();
+  }
+  for (const m of s.matchAll(EN_NOT_STIRRED)) {
+    const feeling = (m[1] ?? '').toLowerCase().match(/[a-z']+/g)?.filter((w) => !EN_FEELING_GENERIC.test(w) && w.length >= 3) ?? [];
+    if (feeling.length && !feeling.some((w) => supportedEn(w, pool))) return m[0].trim();
+  }
   for (const m of s.matchAll(EN_NEGATED)) if (!supportedEn(m[1], pool)) return m[0].trim();
   for (const m of s.matchAll(EN_WITHOUT)) if (!supportedEn(m[1], pool)) return m[0].trim();
   for (const m of s.matchAll(EN_STATE)) if (!supportedEn(m[1], pool)) return m[0].trim();

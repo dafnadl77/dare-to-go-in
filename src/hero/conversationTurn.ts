@@ -301,6 +301,33 @@ export function briefAnswer(text: string): 'agree' | 'disagree' | null {
 
 /** The plain line when nothing usable came back: in the conversation a question too (2026-11-04), so she is never left without knowing what to answer. */
 export const fallbackReply = (language: AppLanguage) => (language === 'he' ? 'מה עוד עולה כשחושבים על הרגע הזה?' : 'What else comes to mind about this moment?');
+const FALLBACK_QUESTIONS: Record<AppLanguage, { general: readonly string[]; newAngle: readonly string[] }> = {
+  he: {
+    general: ['מה עוד עולה כשחושבים על הרגע הזה?', 'מה בלט לך ברגע הזה?', 'מה הפתיע אותך ברגע הזה?', 'מה משך אותך דווקא לרגע הזה?', 'מה הדבר הראשון שנראה או נשמע ברגע הזה?', 'מה הכי פחות ברור לך ברגע הזה?'],
+    newAngle: ['איזה פרט ברגע הזה עוד לא דיברנו עליו?', 'מה קורה סביב הרגע הזה, מה נראה או נשמע שם?', 'מה היה בחלום ממש לפני הרגע הזה, ומה אחריו?'],
+  },
+  en: {
+    general: ['What else comes to mind about this moment?', 'What stood out to you in this moment?', 'What surprised you in this moment?', 'What drew you to this moment?', 'What is the first thing you see or hear in this moment?', 'What is least clear to you in this moment?'],
+    newAngle: ['Which detail of this moment have we not talked about yet?', 'What is going on around this moment, what can be seen or heard there?', 'What happened in the dream just before this moment, and just after it?'],
+  },
+};
+const askedKey = (q: string) => q.replace(/[^א-תa-zA-Z0-9\s]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+/**
+ * The plain question when no usable one came back (2026-11-17). Never one already asked in this journey (the same fixed question twice in two
+ * moments was a real fault), and after "change direction" one that opens another angle of the moment, not the same kind of question again.
+ * Every candidate is neutral: it presupposes nothing about her. When all were asked, the one asked longest ago comes back.
+ */
+export function pickFallbackQuestion(language: AppLanguage, asked: readonly string[], newAngle = false): string {
+  const pool = FALLBACK_QUESTIONS[language];
+  const order = newAngle ? [...pool.newAngle, ...pool.general] : [...pool.general];
+  const seen = asked.map(askedKey);
+  const unasked = order.find((q) => !seen.some((a) => a === askedKey(q) || a.includes(askedKey(q))));
+  if (unasked) return unasked;
+  // all asked: the one whose last asking is the oldest
+  const last = (q: string) => seen.reduce((at, a, i) => (a.includes(askedKey(q)) ? i : at), -1);
+  return [...order].sort((x, y) => last(x) - last(y))[0];
+}
+
 /** The whole view's own plain line when nothing usable came back (as before 2026-11-04): never a question about "this moment" there. */
 export const fallbackSummaryLine = (language: AppLanguage) => (language === 'he' ? 'אפשר להמשיך מכאן, או לבחור רגע אחר.' : 'We can go on from here, or choose another moment.');
 
