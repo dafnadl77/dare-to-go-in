@@ -78,6 +78,16 @@ const FEELING_FORMS: Record<string, string> = {
 };
 const feelingWordsOf = (feelings: string) => feelings.split(/\s*,\s*/).filter(Boolean).map((f) => `${f} ${FEELING_FORMS[f.toLowerCase()] ?? ''}`).join(' ');
 const HE_FEELING_SKIP = /^(?:כאילו|כמו|את|אותו|אותה|אותם|בה|בו|בהם|שם|לא|משהו|דבר|כלום|זה|זאת|כך|ככה|עצמך|בעצמך)$/;
+// An inner state denied without a "you" (2026-11-22, live Hebrew whole view): "לא היה דחף לזוז", "there was no urge to run". It is a claim about
+// her all the same: the inner word (urge, need, fear...) must be hers, in one of its forms; what was or was not in the PLACE is not touched.
+const HE_NO_INNER = /(?<![א-ת])(?:ו|ש|כש)?לא\s+(?:היה|היתה|הייתה)\s+(?:(?:לך|בך|אצלך|שם)\s+)?(?:(?:שום|כל|איזשהו|איזשהי)\s+)?(דחף|צורך|רצון|חשק|פחד|כעס|לחץ|דאגה|בהלה|עצב|בושה|אשמה|כאב|געגוע|תסכול|ספק|היסוס)(?![א-ת])/g;
+const EN_NO_INNER = /\b(?:there\s+was\s+no|there\s+wasn['’]t\s+(?:any|an?)|you\s+had\s+no|you\s+didn['’]t\s+have\s+(?:any|an?))\s+(?:real\s+|sense\s+of\s+|feeling\s+of\s+)?(urge|need|wish|desire|fear|anger|pressure|worry|panic|sadness|shame|guilt|pain|longing|frustration|doubt|hesitation)\b/gi;
+const INNER_FORMS: Record<string, string> = {
+  'צורך': 'צריך צריכה צריכים צריכות', 'רצון': 'רציתי רצית רוצה רוצים', 'פחד': 'פחדתי פחדת מפחדת מפחד פוחדת', 'דאגה': 'דאגתי דואגת', 'כעס': 'כעסתי כועסת',
+  'לחץ': 'לחוצה לחוץ', 'עצב': 'עצובה עצוב', 'היסוס': 'היססתי היססת', 'געגוע': 'התגעגעתי מתגעגעת',
+  need: 'needed needing', fear: 'afraid scared feared frightened', wish: 'wished wanted', desire: 'wanted', worry: 'worried', doubt: 'doubted unsure',
+  hesitation: 'hesitated hesitant', longing: 'longed missed', panic: 'panicked', sadness: 'sad', anger: 'angry', shame: 'ashamed', guilt: 'guilty',
+};
 const HE_FEELING_GENERIC = /^(?:תחושה|תחושת|הרגשה|הרגשת|רגש|רגשות|רגשית|משהו|דבר|כלל|בכלל|בך|אצלך|לך)$/;
 const EN_FEELING_GENERIC = /^(?:a|an|the|any|sense|feeling|feelings|sensation|something|nothing|anything|you|in|of|to|for|that|this|your|really|and|or|at|all)$/;
 
@@ -184,6 +194,23 @@ export function unreportedAttribution(sentence: string, ctx: AttributionContext,
   }
   for (const m of s.matchAll(EN_FEELING_SAID)) if (!EN_FEELING_SKIP.test(m[1].toLowerCase()) && !supportedEn(m[1], feelingPool)) return m[0].trim();
   for (const m of s.matchAll(EN_WERE_FEELING)) if (!supportedEn(m[1], feelingPool)) return m[0].trim();
+  // "לא היה דחף לזוז" / "there was no urge to run": the inner word itself, or one of its forms, must be hers
+  // a state of the SCENE, not of her ("לא היה כאב בחלום עצמו", "there was no pain in the library", "לא היה ספק ש…" = "no doubt that"): left alone
+  const HE_SCENE_AFTER = /^\s+(?:(?:ב|ל)(?:חלום|סצנה|סצנת|תחנה|מקום|חדר|בית|שדה|ספרייה|ספריה|תמונה))/;
+  const EN_SCENE_AFTER = /^\s+(?:in|at|on|near|inside)\s+(?:the|this|that|a)\s+(?:scene|dream|library|room|place|station|house|garden|field|air|picture|image)\b|^\s+that\b/i;
+  for (const m of s.matchAll(HE_NO_INNER)) {
+    const afterHe = s.slice((m.index ?? 0) + m[0].length);
+    if (HE_SCENE_AFTER.test(afterHe) || (m[1] === 'ספק' && /^\s+ש/.test(afterHe))) continue;
+    const forms = [m[1], ...(INNER_FORMS[m[1]] ?? '').split(' ').filter(Boolean)];
+    if (!forms.some((w) => supportedHe(w, feelingPool))) return m[0].trim();
+  }
+  for (const m of s.matchAll(EN_NO_INNER)) {
+    if (EN_SCENE_AFTER.test(s.slice((m.index ?? 0) + m[0].length))) continue;
+    const forms = [m[1], ...(INNER_FORMS[m[1].toLowerCase()] ?? '').split(' ').filter(Boolean)];
+    // its own word match (not supportedEn: its lemma reads "need" as "ne", a word too short to need a basis)
+    const words = feelingPool.flatMap((t) => t.toLowerCase().match(/[a-z'’]+/g) ?? []);
+    if (!forms.some((f) => words.some((x) => x === f.toLowerCase() || (f.length >= 4 && x.startsWith(f.toLowerCase()))))) return m[0].trim();
+  }
   // her no to an offer does not make DARE's words of it hers: the feeling word it denies must come from her words or the dream
   for (const m of s.matchAll(HE_NOT_STIRRED)) {
     const feeling = heWords(m[1] ?? '').filter((w) => !HE_FEELING_GENERIC.test(w) && w.length >= 3);

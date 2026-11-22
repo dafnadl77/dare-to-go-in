@@ -316,3 +316,29 @@ test('2026-11-22: the round-2 feeling rules keep her own feelings and plain ques
   for (const s of ['You felt ashamed.', 'You did not feel safe.', 'You were angry at him.']) assert.notEqual(unreportedAttribution(s, en), null, s);
   assert.notEqual(unreportedAttribution('הרגשת בושה.', he), null);
 });
+
+// 2026-11-22, the live Hebrew whole view (run map-live-en-1): "לא היה דחף לזוז" was shown though she only wrote "לא קמתי ללכת לשער".
+test('2026-11-22: an inner state denied without "you" ("לא היה דחף", "there was no urge") needs her own word; the place is untouched', () => {
+  const he = { herWords: ['ילד קטן ישב לידי על הספסל והחזיק שעון עומד. בסוף הרציף היה שער פתוח.', 'השעון עצר. הרגשתי שהזמן לא זז, וזה דווקא הרגיע אותי.', 'שלא צריך למהר לשום מקום. אבל לא קמתי ללכת לשער.'], sourceText: '', language: 'he' as const, feelings: 'בלבול, שלווה' };
+  assert.equal(unreportedAttribution('וגם כשלא קמת ללכת לשער, לא היה דחף לזוז.', he), 'לא היה דחף');
+  assert.equal(unreportedAttribution('לא היה פחד.', he), 'לא היה פחד');
+  assert.equal(unreportedAttribution('לא היה צורך למהר.', he), null); // "צריך" is hers
+  assert.equal(unreportedAttribution('לא היה שם אף אחד חוץ מהילד.', he), null); // the place, not her
+  assert.equal(unreportedAttribution('לא היה פחד.', { ...he, feelings: 'פחד' }), null); // a feeling she chose
+  const en = { herWords: ["I didn't want to go in. I wanted to stay where it was warm."], sourceText: '', language: 'en' as const };
+  assert.equal(unreportedAttribution('There was no urge to run.', en), 'There was no urge');
+  assert.equal(unreportedAttribution('You had no need to hurry.', en), 'You had no need');
+  assert.equal(unreportedAttribution('There was no one else in the library.', en), null);
+  assert.equal(unreportedAttribution('There was no wish to go in.', en), null); // "wanted" is hers
+  // the whole view that says it is asked for a fresh answer (one retry), never shown as hers
+  assert.notEqual(attributionNote(['כתבת שלא צריך למהר לשום מקום, וגם כשלא קמת ללכת לשער, לא היה דחף לזוז.'], he), null);
+});
+
+test('2026-11-22: the inner-state rule leaves questions, guesses, quotes and states of the scene alone', () => {
+  const he = { herWords: ['ילד קטן ישב לידי על הספסל. השעון עצר.', 'לא קמתי ללכת לשער.'], sourceText: 'ילד, שעון, שער', language: 'he' as const, feelings: '' };
+  for (const s of ['האם לא היה בך דחף לזוז?', 'אולי לא היה דחף לזוז.', 'ייתכן שלא היה לך דחף לזוז.', 'כתבת: "לא היה דחף לזוז".', 'האם היה פחד?', 'לא היה אף אחד בתחנה.', 'לא היה כאב בחלום עצמו.', 'מה היה הרצון שלך שם?']) assert.equal(unreportedAttribution(s, he), null, s);
+  const en = { herWords: ["I didn't want to go in. I wanted to stay where it was warm."], sourceText: 'a library, a key', language: 'en' as const };
+  for (const s of ['Was there no urge to run?', 'Maybe there was no urge to run.', 'Perhaps you had no need to hurry.', 'There was no key on the shelf.', 'There was no pain in the library.', 'You said "there was no urge".', 'What was the urge there?', 'There was no fear in the scene itself.']) assert.equal(unreportedAttribution(s, en), null, s);
+  // her own regex still carries its spaces
+  assert.doesNotMatch(readFileSync('src/hero/attribution.ts', 'utf8'), /\/\^s\+/);
+});
