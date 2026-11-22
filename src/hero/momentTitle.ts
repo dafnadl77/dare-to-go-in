@@ -14,12 +14,15 @@ const EN_BARE = /^(?:said|says|say|told|tell|asked|ask|went|go|going|saw|see|loo
 // a verb that needs its object: a title that ends on it is a fragment ("reading room found")
 const EN_NEEDS_OBJECT = /^(?:said|says|told|asked|saw|took|made|got|found|called|opened|wanted|tried|knew|thought|felt|began|started|noticed|heard|held|wore|carried|looked)$/;
 // where a noun phrase ends: a preposition, a conjunction, a verb of being, or a describing tail ("full of", "made of")
-const EN_PHRASE_END = /^(?:of|to|in|on|at|by|for|from|with|through|into|onto|over|under|about|and|or|but|so|as|than|that|which|who|whom|whose|while|when|if|then|is|are|was|were|be|been|am|do|did|does|had|has|have|would|could|should|will|can|might|must|not|full|filled|made|covered|called|named|there|where|because)$/;
+const EN_PHRASE_END = /^(?:of|to|in|on|at|by|for|from|with|through|into|onto|over|under|about|and|or|but|so|as|than|that|which|who|whom|whose|while|when|if|then|is|are|was|were|be|been|am|do|did|does|had|has|have|would|could|should|will|can|might|must|not|full|filled|made|covered|called|named|there|where|because|near|beside|behind|inside|outside|toward|towards|across|around|along|against|between|among|without|within|after|before|past|like|beyond|below|above|underneath)$/;
 
 const isEnglishText = (t: string) => /[A-Za-z]/.test(t) && !/[֐-׿]/.test(t);
 const enWord = (w: string) => w.toLowerCase().replace(/^[^a-z']+|[^a-z']+$/g, '');
 const enWords = (t: string) => t.split(/\s+/).map(enWord).filter(Boolean);
 const endsPhrase = (w: string) => !w || EN_PHRASE_END.test(w) || EN_FUNCTION.test(w) || EN_BARE.test(w);
+// a past verb after the noun ("a stranger followed", 2026-11-22): "-ed" ends the phrase when what comes next is not a noun of it
+const pastVerb = (w: string) => w.length > 4 && /[a-z]ed$/.test(w) && !/(?:eed|need|bed|shed|sled)$/.test(w);
+const verbEnds = (w: string | undefined, next: string | undefined) => pastVerb(w ?? '') && endsPhrase(next ?? '');
 
 /** Is this English title a lone verb, one starting or ending on a small word or a verb that needs an object, or one cut in the middle of the moment's phrase? */
 export function weakEnglishTitle(label: string, momentText: string): boolean {
@@ -29,11 +32,13 @@ export function weakEnglishTitle(label: string, momentText: string): boolean {
   if (ws.every((w) => EN_BARE.test(w) || EN_FUNCTION.test(w))) return true;
   const last = ws[ws.length - 1];
   if (EN_FUNCTION.test(last) || EN_NEEDS_OBJECT.test(last) || (EN_FUNCTION.test(ws[0]) && !EN_DET.test(ws[0]))) return true;
+  // a noun and then its verb: "a stranger followed", "the door opened" (a describing "-ed" stands before its noun, never at the end)
+  if (ws.length >= 2 && pastVerb(last) && !EN_DET.test(ws[ws.length - 2])) return true;
   // cut in the middle: a small word that opens a phrase with only one word after it, while the moment goes on with a word of that phrase
   const d = ws.map((w, i) => (EN_DET.test(w) ? i : -1)).filter((i) => i >= 0).pop();
   if (d !== undefined && ws.length - d - 1 <= 1) {
     const m = enWords(momentText);
-    for (let i = 0; i + ws.length <= m.length; i++) if (ws.every((w, k) => m[i + k] === w) && !endsPhrase(m[i + ws.length] ?? '')) return true;
+    for (let i = 0; i + ws.length <= m.length; i++) if (ws.every((w, k) => m[i + k] === w) && !endsPhrase(m[i + ws.length] ?? '') && !verbEnds(m[i + ws.length], m[i + ws.length + 1])) return true;
   }
   return false;
 }
@@ -52,12 +57,14 @@ export function englishNounPhrase(momentText: string): string | null {
       const joins = enWord(raw[j]) === 'of' && phrase.length >= 2 && !phrase.includes('of') && after !== '' && (EN_DET.test(after) || !endsPhrase(after));
       const afterOf = enWord(phrase[phrase.length - 1]) === 'of' && EN_DET.test(enWord(raw[j]));
       if (!joins && !afterOf && endsPhrase(enWord(raw[j]))) break;
+      // "a stranger followed me": the verb after the noun ends the phrase; "the old painted door" goes on (a noun comes after it)
+      if (phrase.length >= 2 && pastVerb(enWord(raw[j])) && endsPhrase(enWord(raw[j + 1] ?? ''))) break;
       phrase.push(raw[j].replace(/^[^A-Za-z']+/, ''));
       stopped = /[,;.!?…]$/.test(raw[j]);
     }
     const text = phrase.join(' ').replace(/[,;.!?…]+$/g, '');
     // whole: a small word and a word after it, and the phrase was not stopped by the word cap in the middle of itself
-    const whole = phrase.length >= 2 && (stopped || j >= raw.length || endsPhrase(enWord(raw[j])));
+    const whole = phrase.length >= 2 && (stopped || j >= raw.length || endsPhrase(enWord(raw[j])) || (pastVerb(enWord(raw[j])) && endsPhrase(enWord(raw[j + 1] ?? ''))));
     if (whole && !weakEnglishTitle(text, momentText)) return text;
   }
   return null;

@@ -63,7 +63,21 @@ const HE_FELT = /(?<![א-ת])(?:ו|ש|כש)?היית\s+(?:כל\s+כך\s+|ממש\
 // What the dream or a figure in it did NOT stir in her, said as a fact about her ("הדמות לא העלתה בך תחושת ביטחון", 2026-11-17). When she turns
 // an offer down, DARE's own words of that offer are not hers: the sentence is hers only when its feeling word is in her words or the dream.
 const HE_NOT_STIRRED = /(?<![א-ת])(?:ו|ש|כש)?לא\s+(?:(?:באמת|בכלל|ממש|עדיין)\s+)?(?:העלתה|העלה|עוררה|עורר|יצרה|יצר|גרמה|גרם|הציפה|הציף|נתנה|נתן|הביאה|הביא|השרתה|השרה|יצרו|עוררו)\s+(?:[א-ת]+\s+){0,2}?(?:בך|אצלך|לך)(?![א-ת])([^.!?\n]*)/g;
-const EN_NOT_STIRRED = /\b(?:did\s+not|didn['’]t|never|does\s+not|doesn['’]t|hasn['’]t|has\s+not)\s+(?:really\s+|even\s+)?(?:evoke|raise|bring\s+up|stir|create|arouse|give\s+you|make\s+you\s+feel|leave\s+you\s+with|inspire\s+in\s+you)\b([^.!?\n]*)/gi;
+const EN_NOT_STIRRED = /\b(?:(?:did\s+not|didn['’]t|never|does\s+not|doesn['’]t|hasn['’]t|has\s+not)\s+(?:really\s+|even\s+)?(?:evoke|raise|bring\s+up|stir|create|arouse|give\s+you|make\s+you\s+feel|leave\s+you\s+with|inspire\s+in\s+you)|(?:never|hasn['’]t|has\s+not|hadn['’]t|had\s+not)\s+(?:really\s+|even\s+)?(?:evoked|raised|brought\s+up|stirred|created|aroused|given\s+you|gave\s+you|made\s+you\s+feel|left\s+you\s+with|inspired\s+in\s+you))\b([^.!?\n]*)/gi;
+// A feeling said as hers, or its absence, with a verb of feeling (2026-11-17): the FEELING word must be in her words, her chosen feelings or the
+// dream. "felt" in her words is not enough for "you did not feel afraid", and "הרגשתי רוגע" is no basis for "לא הרגשת פחד".
+const EN_FEELING_SAID = /\byou\s+(?:(?:did\s+not|didn['’]t|never|don['’]t|do\s+not)\s+(?:really\s+|even\s+)?feel|(?:really\s+|also\s+|still\s+)?felt|were\s+feeling)\s+(?:so\s+|very\s+|quite\s+|a\s+bit\s+|a\s+little\s+|any\s+|at\s+all\s+)?(?:a\s+)?(?:(?:sense|feeling)\s+of\s+)?([a-z]+)/gi;
+const EN_FEELING_SKIP = /^(?:like|as|that|it|this|so|the|a|an|to|when|if|you|your|there|at|all|any|anything|something|nothing|no|not|for|of|in|about)$/;
+const EN_WERE_FEELING = /\byou\s+were\s+(?:(?:not|never)\s+)?(?:so\s+|very\s+|quite\s+|a\s+bit\s+|a\s+little\s+)?(afraid|scared|frightened|terrified|sad|angry|anxious|nervous|lonely|alone|calm|happy|ashamed|embarrassed|jealous|hurt|upset|relieved|confused|lost|safe|excited|worried|disappointed)\b/gi;
+const HE_FEELING_SAID = /(?<![א-ת])(?:ו|ש|כש)?(?:לא\s+(?:(?:באמת|בכלל|ממש)\s+)?)?(?:הרגשת|חשת)\s+(?:(?:קצת|ממש|מאוד|כל\s+כך|שום|איזו|איזה)\s+)?(?:(?:תחושת|תחושה\s+של|הרגשה\s+של|רגש\s+של)\s+)?([א-ת]{2,})/g;
+// A chosen feeling is named by its noun in the list ("fear", "שלווה"); the same feeling said with its usual adjective is hers too.
+const FEELING_FORMS: Record<string, string> = {
+  fear: 'afraid scared frightened fearful', joy: 'happy joyful glad', calm: 'peaceful relaxed', love: 'loving loved', longing: 'yearning missed missing',
+  confusion: 'confused', anger: 'angry mad', sadness: 'sad unhappy', wonder: 'amazed wondering awed', freedom: 'free', helplessness: 'helpless',
+  excitement: 'excited thrilled', 'שלווה': 'רגוע רגועה רוגע', 'פליאה': 'נפעם נפעמת', 'התרגשות': 'נרגש נרגשת', 'שמחה': 'שמח שמחה',
+};
+const feelingWordsOf = (feelings: string) => feelings.split(/\s*,\s*/).filter(Boolean).map((f) => `${f} ${FEELING_FORMS[f.toLowerCase()] ?? ''}`).join(' ');
+const HE_FEELING_SKIP = /^(?:כאילו|כמו|את|אותו|אותה|אותם|בה|בו|בהם|שם|לא|משהו|דבר|כלום|זה|זאת|כך|ככה|עצמך|בעצמך)$/;
 const HE_FEELING_GENERIC = /^(?:תחושה|תחושת|הרגשה|הרגשת|רגש|רגשות|רגשית|משהו|דבר|כלל|בכלל|בך|אצלך|לך)$/;
 const EN_FEELING_GENERIC = /^(?:a|an|the|any|sense|feeling|feelings|sensation|something|nothing|anything|you|in|of|to|for|that|this|your|really|and|or|at|all)$/;
 
@@ -87,6 +101,8 @@ export interface AttributionContext {
   language: AppLanguage;
   /** DARE's questions she answered with a no ("הספקת לבקש?" — "לא"): her no makes the negated claim hers. */
   answeredNo?: readonly string[];
+  /** The feelings she chose for this dream, by name (2026-11-17): her own report, so a feeling among them may be said as hers. */
+  feelings?: string;
 }
 
 // a person of her life: "אמא שלך", "אחיך", "your mother"
@@ -106,7 +122,8 @@ const firstGroup = (m: RegExpMatchArray) => m.slice(1).find(Boolean) ?? m[0];
 const HE_ACTED_ON_HER = /(?<![א-ת])(?:ו|ש|כש)?(?:מישהו|מישהי|אנשים|מישהו\s+קרוב|מישהו\s+אחר)\s+(?:פעם\s+)?([א-ת]{2,7})\s+(?:עלייך|עליך|אלייך|אליך|אותך|לך|בך|ממך)(?![א-ת])/g;
 const HE_OCCASION = /(?<![א-ת])(?:ל|ב|ו)?פעם\s+(?:אחת\s+)?(?:ש|שבה|שבו)\s*([א-ת]{3,7}ת)(?![א-ת])/g;
 // she told of a past of hers: "קרה לי", "בעבר", "פעם הייתי" (not "אף פעם לא")
-const HER_PAST_TOLD = /(?<![א-ת])(?:קרה|קרתה|קרו)s+(?:גםs+)?לי(?![א-ת])|(?<![א-ת])ו?בעבר(?![א-ת])|(?<![א-ת])(?<!אףs)פעםs+(?!לא(?![א-ת]))[א-ת]/;
+// (2026-11-17: the spaces were written as a bare "s", so "קרה לי" and "פעם הייתי" were never read as hers)
+const HER_PAST_TOLD = /(?<![א-ת])(?:קרה|קרתה|קרו)\s+(?:גם\s+)?לי(?![א-ת])|(?<![א-ת])ו?בעבר(?![א-ת])|(?<![א-ת])(?<!אף\s)פעם\s+(?!לא(?![א-ת]))[א-ת]/;
 const HE_HAPPENED = /(?<![א-ת])(?:ו|ש)?(?:קרה|קרתה|קרו)\s+לך(?![א-ת])|(?<![א-ת])(?:ו|ש)?בעבר(?![א-ת])/g;
 const EN_EVENT = /\b(?:someone|somebody|people)\s+(?:once\s+)?(\w+)\s+(?:at\s+|to\s+|on\s+)?you\b|\b(?:once|in\s+the\s+past),?\s+you\s+(\w+)|\bsomething\s+(?:like\s+this\s+|similar\s+)?(happened)\s+to\s+you\b/gi;
 
@@ -143,24 +160,40 @@ export function unreportedAttribution(sentence: string, ctx: AttributionContext,
   const s = sentence.replace(/«[^»]*»|"[^"]*"|“[^”]*”/g, ' ');
   if (!strict && HEDGE.test(s)) return null;
   const pool = [...ctx.herWords, ctx.sourceText, ...(ctx.answeredNo ?? [])].filter(Boolean);
+  const feelingPool = [...pool, feelingWordsOf(ctx.feelings ?? '')].filter(Boolean);
+  // "לא הרגשת פחד" / "you did not feel afraid": a feeling she chose, or named, is a basis too (the feeling word itself is checked below)
+  const feelingAfter = (m: RegExpMatchArray, he: boolean) => {
+    const rest = s.slice((m.index ?? 0) + m[0].length);
+    const w = (he ? rest.match(/^\s+(?:(?:קצת|ממש|מאוד|שום|איזו|איזה)\s+)?(?:(?:תחושת|תחושה\s+של)\s+)?([א-ת]{2,})/) : rest.match(/^\s+(?:so\s+|very\s+|any\s+|a\s+)?(?:(?:sense|feeling)\s+of\s+)?([a-z]+)/i))?.[1];
+    return Boolean(w) && (he ? supportedHe(w as string, feelingPool) : supportedEn(w as string, feelingPool));
+  };
   for (const m of s.matchAll(HE_NEGATED)) {
     if (PARTICIPLE.test(m[1]) || INFINITIVE.test(m[1]) || PASSIVE.test(m[1])) continue;
     // "לא הצלחת להחליט" is hers when she said she never decided: the verb, or the infinitive it governs
+    if (/^(?:ש|ו|כש)?(?:הרגשת|חשת)$/.test(m[1]) && feelingAfter(m, true)) continue;
     if (!supportedHe(m[1], pool) && !(m[2] && supportedHe(m[2], pool, true))) return m[0].trim();
   }
   for (const m of s.matchAll(HE_WITHOUT)) if (!supportedHe(m[1], pool, true)) return m[0].trim();
   for (const m of s.matchAll(HE_STATE)) if (!supportedHe(m[1], pool)) return m[0].trim();
   for (const m of s.matchAll(HE_FELT)) if (!supportedHe(m[1], pool) && !supportedHe(m[1].replace(/^מ/, ''), pool)) return m[0].trim();
+  // a feeling, or its absence, said with "הרגשת" / "felt": the feeling word itself needs a basis (her words, her chosen feelings, the dream)
+  for (const m of s.matchAll(HE_FEELING_SAID)) {
+    const w = m[1].replace(/^(?:ב|ל|ה)(?=[א-ת]{3,})/, '');
+    if (m[1].startsWith('ש') || HE_FEELING_SKIP.test(m[1])) continue;
+    if (!supportedHe(m[1], feelingPool) && !supportedHe(w, feelingPool)) return m[0].trim();
+  }
+  for (const m of s.matchAll(EN_FEELING_SAID)) if (!EN_FEELING_SKIP.test(m[1].toLowerCase()) && !supportedEn(m[1], feelingPool)) return m[0].trim();
+  for (const m of s.matchAll(EN_WERE_FEELING)) if (!supportedEn(m[1], feelingPool)) return m[0].trim();
   // her no to an offer does not make DARE's words of it hers: the feeling word it denies must come from her words or the dream
   for (const m of s.matchAll(HE_NOT_STIRRED)) {
     const feeling = heWords(m[1] ?? '').filter((w) => !HE_FEELING_GENERIC.test(w) && w.length >= 3);
-    if (feeling.length && !feeling.some((w) => supportedHe(w, pool))) return m[0].trim();
+    if (feeling.length && !feeling.some((w) => supportedHe(w, feelingPool))) return m[0].trim();
   }
   for (const m of s.matchAll(EN_NOT_STIRRED)) {
     const feeling = (m[1] ?? '').toLowerCase().match(/[a-z']+/g)?.filter((w) => !EN_FEELING_GENERIC.test(w) && w.length >= 3) ?? [];
-    if (feeling.length && !feeling.some((w) => supportedEn(w, pool))) return m[0].trim();
+    if (feeling.length && !feeling.some((w) => supportedEn(w, feelingPool))) return m[0].trim();
   }
-  for (const m of s.matchAll(EN_NEGATED)) if (!supportedEn(m[1], pool)) return m[0].trim();
+  for (const m of s.matchAll(EN_NEGATED)) if (!supportedEn(m[1], pool) && !(/^feel$/i.test(m[1]) && feelingAfter(m, false))) return m[0].trim();
   for (const m of s.matchAll(EN_WITHOUT)) if (!supportedEn(m[1], pool)) return m[0].trim();
   for (const m of s.matchAll(EN_STATE)) if (!supportedEn(m[1], pool)) return m[0].trim();
   return null;

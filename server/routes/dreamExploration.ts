@@ -694,7 +694,7 @@ export async function generateConversationTurn(client: OpenAI, ctx: DreamContext
       extraCheck: (v) => safety(ctx, shown(v)),
       // what is said about her that she never told, DARE's first person, a work's content (2026-11-07): one fresh answer at most. When the fresh
       // answer still fails, it is not shown as it is and nothing is cut out of it: `unverified` below builds the turn from verified parts only.
-      qualityCheck: (v) => mixedPluralNote(shown(v), ctx.dreamerText) ?? garbledTextNote(shown(v)) ?? (asksNothing(v) ? NO_QUESTION_NOTE : null) ?? attributionNote(shown(v), { herWords: cc.herWords, sourceText: ctx.sourceText, language: ctx.language, answeredNo: cc.answeredNo }),
+      qualityCheck: (v) => mixedPluralNote(shown(v), ctx.dreamerText) ?? garbledTextNote(shown(v)) ?? (asksNothing(v) ? NO_QUESTION_NOTE : null) ?? attributionNote(shown(v), { herWords: cc.herWords, sourceText: ctx.sourceText, language: ctx.language, answeredNo: cc.answeredNo, feelings: ctx.feelings }),
       maxQualityRetries: 1,
       rejectExhaustedQuality: true,
     },
@@ -706,7 +706,7 @@ export async function generateConversationTurn(client: OpenAI, ctx: DreamContext
   // the fresh answer still says as hers what she did not tell (her rule, 2026-11-08): set aside as a whole, never cut, never a third call.
   // What she sees instead: her own words and one question (a turn), her words and the thanks (a closing), her words moment by moment (the
   // whole view). Only the reason is logged, never a word.
-  const about = { herWords: cc.herWords, sourceText: ctx.sourceText, language: ctx.language, answeredNo: cc.answeredNo };
+  const about = { herWords: cc.herWords, sourceText: ctx.sourceText, language: ctx.language, answeredNo: cc.answeredNo, feelings: ctx.feelings };
   const unverified = outcome.status === 'quality_failed' && !odd && stillUnverified(shown(outcome.value), about);
   if (unverified) console.warn(`[${p.kind === 'turn' ? 'conversation-turn' : 'conversation-summary'}] shown from verified parts reason=not-her-words-after-retry`);
   // DARE's words are checked before they are shown (doc 106): its own check and moderation (doc 110). If either fails, the check

@@ -201,3 +201,118 @@ test('3. through the route: after "change direction" the plain question opens an
   assert.ok(!q.includes(fallbackReply('he')), q);
   assert.match(q, /פרט|סביב|לפני/, `another angle, not the same kind of question: ${q}`);
 });
+
+// ------------------------------------------------------------------------------------------------ 2b. the gaps found in the Preview check
+
+test('2b. "קרה לי" and "פעם הייתי" she told are hers: "קרה לך" is not refused then (the bare "s" in HER_PAST_TOLD)', async () => {
+  const { inventedLifeDetail } = await import('../src/hero/attribution.ts');
+  const dreamOnly = { herWords: ['חלמתי על בית ישן'], sourceText: 'עמדתי מול בית ישן.', language: 'he' as const };
+  assert.ok(inventedLifeDetail('קרה לך משהו דומה.', dreamOnly), 'never told: refused, as before');
+  for (const told of ['קרה לי משהו כזה פעם', 'זה קרה גם לי', 'פעם הייתי בבית כזה', 'בעבר גרתי ליד הים'])
+    assert.equal(inventedLifeDetail('קרה לך משהו דומה.', { ...dreamOnly, herWords: [told] }), null, told);
+  assert.ok(inventedLifeDetail('קרה לך משהו דומה.', { ...dreamOnly, herWords: ['אף פעם לא הייתי שם'] }), '"אף פעם לא" is not a past she told');
+});
+
+test('2b. "never" with a past verb: what the dream never stirred in her is not said as a fact', () => {
+  const en = { herWords: ['The child was quiet.', 'It does not fit.'], sourceText: 'A child stood beside me at the station.', language: 'en' as const };
+  for (const s of ['The dream never stirred any anger in you.', 'The child never gave you a sense of safety.', 'The station had not raised any fear in you.', 'It never made you feel calm.'])
+    assert.ok(unreportedAttribution(s, en), s);
+  assert.equal(unreportedAttribution('The child never moved.', en), null, 'an event of the dream');
+  assert.equal(unreportedAttribution('Perhaps the dream never stirred anger in you.', en), null, 'a possibility');
+  assert.equal(unreportedAttribution('The dream never stirred anger in you.', { ...en, herWords: ['There was no anger in me at all.'] }), null, 'she said it');
+});
+
+test('2b. a feeling, or its absence, with "felt" / "הרגשת": the feeling word itself needs a basis', () => {
+  const en = { herWords: ['I felt calm.', 'I just kept walking.'], sourceText: 'I was walking through an airport with no people in it.', language: 'en' as const };
+  // she said "felt", but not "afraid": the absence of fear is not hers
+  assert.ok(unreportedAttribution('You did not feel afraid when the hall was empty.', en), 'the Preview case');
+  assert.ok(unreportedAttribution('You felt lonely in the empty hall.', en));
+  assert.ok(unreportedAttribution('You were scared of the empty hall.', en));
+  assert.ok(unreportedAttribution('You were not afraid of the empty hall.', en));
+  // what she said, a possibility, a question, and a feeling she chose stay
+  assert.equal(unreportedAttribution('You felt calm in the empty hall.', en), null);
+  assert.equal(unreportedAttribution('You said you felt calm, and you kept walking.', en), null);
+  assert.equal(unreportedAttribution('Maybe you felt lonely there.', en), null);
+  assert.equal(unreportedAttribution('Did you feel afraid there?', en), null);
+  assert.equal(unreportedAttribution('You felt like a stranger there.', { ...en, herWords: ['I was a stranger there.'] }), null, '"felt like" names no feeling word');
+  assert.equal(unreportedAttribution('You did not feel afraid.', { ...en, feelings: 'fear, calm' }), null, 'a feeling she chose from the list');
+  const he = { herWords: ['הרגשתי רוגע', 'פשוט המשכתי ללכת'], sourceText: 'הלכתי בשדה תעופה ריק.', language: 'he' as const };
+  assert.ok(unreportedAttribution('לא הרגשת פחד באולם הריק.', he), '"הרגשתי" is no basis for another feeling');
+  assert.ok(unreportedAttribution('הרגשת בדידות באולם הריק.', he));
+  assert.ok(unreportedAttribution('לא חשת שום פחד שם.', he));
+  assert.equal(unreportedAttribution('הרגשת רוגע באולם הריק.', he), null, 'her own feeling');
+  assert.equal(unreportedAttribution('אמרת שהרגשת רוגע, והמשכת ללכת.', he), null);
+  assert.equal(unreportedAttribution('אולי הרגשת בדידות שם.', he), null, 'a possibility');
+  assert.equal(unreportedAttribution('מה הרגשת באולם הריק?', he), null, 'a question');
+  assert.equal(unreportedAttribution('הרגשת שמשהו חסר שם.', { ...he, herWords: ['משהו היה חסר'] }), null, 'a clause, not a feeling word');
+  assert.equal(unreportedAttribution('לא הרגשת פחד.', { ...he, feelings: 'פחד, רוגע' }), null, 'a feeling she chose from the list');
+});
+
+test('2b. the chosen feelings reach the check in both routes', () => {
+  assert.match(read('server/routes/dreamExploration.ts'), /answeredNo: cc\.answeredNo, feelings: ctx\.feelings \}\)/);
+  assert.match(read('server/routes/dreamExploration.ts'), /const about = \{[^}]*feelings: ctx\.feelings \}/);
+  assert.match(read('server/routes/dreamReflection.ts'), /feelings: p\.emotions\?\.length \? emotionNamesForModel\(p\.emotions, p\.language\) : ''/);
+  assert.match(read('server/routes/dreamReflection.ts'), /attributionContextOf\(\{ dreamerText, herAnswers, answeredNo, language, emotions \}\)/);
+});
+
+// ------------------------------------------------------------------------------------------------ the local live test (prepared, no call)
+
+test('the local bridge uses the new title check, a run of its own and a cap that counts what is already on its way', async () => {
+  const bridge = read('scripts/mapJourneyBridge.ts');
+  assert.match(bridge, /checkMomentTitle\(l, elements\[i\], used, sourceText\)/, 'the titles of the live test are the fixed ones');
+  assert.doesNotMatch(bridge, /checkLabel\(/);
+  assert.match(bridge, /MAP_LIVE_RUN/, 'a new run is named apart, so earlier spending is neither counted nor changed');
+  assert.match(bridge, /\/\^map-live-\[a-z0-9-\]\{1,30\}\$\//, 'a run name is checked');
+  assert.match(bridge, /RUN_CAP > 0 && RUN_CAP <= 0\.5/, 'the cap still needs her approval and stays at most $0.50');
+  assert.match(bridge, /spentRun: spent \+ inFlightWorst/, 'requests side by side are counted before they are sent');
+  assert.match(bridge, /finally \{\s*inFlightWorst -= worst;/);
+  // the arithmetic: two requests side by side can never pass the cap together
+  const { mayCall } = await import('../scripts/lib/liveGuard.ts');
+  const worst = 0.03;
+  assert.equal(mayCall({ worst, spentRun: 0.15, runCap: 0.2, stageSpent: 0.15, stageStop: 0.2 }).ok, true, 'one alone fits');
+  assert.equal(mayCall({ worst, spentRun: 0.15 + worst, runCap: 0.2, stageSpent: 0.15 + worst, stageStop: 0.2 }).ok, false, 'the second, counted with the first on its way, does not');
+});
+
+test('the raw log of the live test is local, off by default, and holds no request, key or header', () => {
+  const bridge = read('scripts/mapJourneyBridge.ts');
+  assert.match(bridge, /process\.env\.MAP_LIVE_RAW_LOG === '1'/, 'off unless asked for');
+  assert.match(bridge, /\.\.\/logs\/map-live-raw\//, 'under logs/, which Git ignores');
+  assert.match(read('.gitignore'), /^logs$/m);
+  const fn = bridge.slice(bridge.indexOf('function writeRawLog'), bridge.indexOf('const budgetReply'));
+  assert.ok(fn.length > 200);
+  for (const never of [/params/, /apiKey|OPENAI_API_KEY|process\.env/, /headers/i, /authorization/i, /userId|email/i]) assert.doesNotMatch(fn, never, String(never));
+});
+
+test('2b. no check of the conversation has a space written as a bare "s" (how HER_PAST_TOLD lost its \\s)', () => {
+  for (const f of ['attribution.ts', 'conversationTurn.ts', 'verifiedFallback.ts', 'momentTitle.ts', 'claimCheck.ts', 'hebrewText.ts']) {
+    const src = read(`src/hero/${f}`);
+    assert.doesNotMatch(src, /[א-ת)\]]s\+/, `${f}: "s+" right after a Hebrew letter, a group or a class is a lost \\s`);
+    assert.doesNotMatch(src, /\(\?<!אףs\)/, f);
+  }
+});
+
+// 2026-11-22, found in the demo journey (no AI): a noun and then its past verb was taken as a title ("a stranger followed").
+test('2026-11-22: an English title never ends on the verb after its noun; a describing "-ed" before the noun stays', () => {
+  assert.equal(checkMomentTitle('', 'Suddenly a stranger followed me and I was scared', []), 'a stranger');
+  assert.equal(checkMomentTitle('A stranger followed', 'Suddenly a stranger followed me', []), 'a stranger');
+  assert.equal(checkMomentTitle('', 'A dog barked at me', []), 'A dog');
+  assert.equal(checkMomentTitle('', 'The door opened and a light came in', []), 'The door');
+  assert.equal(checkMomentTitle('', 'I saw a frightened child near the gate', []), 'a frightened child');
+  assert.equal(checkMomentTitle('', 'I walked into the old painted house', []), 'the old painted house');
+  assert.equal(checkMomentTitle('The haunted house', 'We entered the haunted house', []), 'The haunted house');
+  assert.equal(checkMomentTitle('The red bed', 'I lay on the red bed', []), 'The red bed');
+  assert.equal(weakEnglishTitle('a stranger followed', ''), true);
+  assert.equal(weakEnglishTitle('everything changed', ''), true);
+  assert.equal(weakEnglishTitle('the locked door', ''), false);
+  // a Hebrew title is untouched by the English rules
+  assert.equal(checkMomentTitle('איש זר', 'פתאום איש זר הלך אחריי ופחדתי', []), checkLabel('איש זר', 'פתאום איש זר הלך אחריי ופחדתי', []));
+});
+
+test('2026-11-22: the round-2 feeling rules keep her own feelings and plain questions, and still catch a feeling she never named', () => {
+  const en = { herWords: ['I was walking by the sea and I felt calm. Then a man followed me and I was scared.'], sourceText: '', language: 'en' as const, feelings: 'calm, fear' };
+  const he = { herWords: ['הלכתי ליד הים והרגשתי רוגע. ואז איש הלך אחריי ופחדתי.'], sourceText: '', language: 'he' as const, feelings: 'שלווה, פחד' };
+  for (const s of ['You felt calm by the sea.', 'You were scared when the man followed you.', 'You felt afraid of the man.', 'Did you feel afraid?', 'You felt the wind on your face.', 'You felt like the sea was calling.']) assert.equal(unreportedAttribution(s, en), null, s);
+  for (const s of ['הרגשת רוגע ליד הים.', 'לא הרגשת פחד.', 'מה הרגשת כשהוא התקרב?', 'הרגשת שהים קורא לך.']) assert.equal(unreportedAttribution(s, he), null, s);
+  for (const s of ['You felt ashamed.', 'You did not feel safe.', 'You were angry at him.']) assert.notEqual(unreportedAttribution(s, en), null, s);
+  assert.notEqual(unreportedAttribution('הרגשת בושה.', he), null);
+});
