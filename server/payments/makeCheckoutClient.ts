@@ -1,6 +1,7 @@
 import type { PayerDetails } from '../../src/payments/payerDetails.js';
 import type { PaidPackage } from './checkoutPackages.js';
 import { growNotifyCheck, growNotifySecret } from './growNotify.js';
+import { readLinkIds, type LinkIds } from './growLinkBinding.js';
 
 /**
  * DARE -> Make: the checkout request, and Make's synchronous answer (the Grow payment link).
@@ -141,11 +142,23 @@ export async function postToMake(payload: MakeCheckoutPayload, options: MakeClie
   }
 }
 
-export type MakeCheckoutResult = { ok: true; paymentUrl: string } | { ok: false; reason: 'not_configured' | 'unavailable' | 'bad_response' };
+/**
+ * Grow's link identifiers as Make returned them. "absent" = an answer in the old format (nothing to bind; checkout is unchanged).
+ * "invalid" = one or both present but malformed: nothing is bound and no value is kept. Never sent to the browser, never logged.
+ */
+export type MakeLinkIds = { status: 'absent' } | { status: 'invalid' } | { status: 'present'; ids: LinkIds };
+
+export type MakeCheckoutResult =
+  | { ok: true; paymentUrl: string; link?: MakeLinkIds }
+  | { ok: false; reason: 'not_configured' | 'unavailable' | 'bad_response' };
 
 /**
  * Make must answer {"ok":true,"orderId":"<the same id>","paymentUrl":"https://..."} with HTTP 200 (a "Webhook response"
  * module at the end of the scenario). The echoed order id must match and the link must pass validatePaymentUrl.
+ *
+ * Optional, backward compatible (2026-11-23): "processId" and "processToken" (Grow's identifiers of the link Make just created) and
+ * "growEnvironment" ("sandbox" | "production", the Grow connection Make used). When growEnvironment is sent and DARE has a Grow
+ * environment configured, they must be equal, or the answer is refused (a Sandbox link must never reach a production customer).
  */
 export async function requestPaymentLink(payload: MakeCheckoutPayload, options: MakeClientOptions = {}): Promise<MakeCheckoutResult> {
   const env = options.env ?? process.env;
@@ -155,10 +168,15 @@ export async function requestPaymentLink(payload: MakeCheckoutPayload, options: 
   try {
     const data: unknown = JSON.parse(raw.bodyText);
     if (!data || typeof data !== 'object') return { ok: false, reason: 'bad_response' };
-    const body = data as { ok?: unknown; orderId?: unknown; paymentUrl?: unknown };
+    const body = data as { ok?: unknown; orderId?: unknown; paymentUrl?: unknown; processId?: unknown; processToken?: unknown; growEnvironment?: unknown };
     const paymentUrl = validatePaymentUrl(body.paymentUrl, env);
     if (body.ok !== true || body.orderId !== payload.orderId || !paymentUrl) return { ok: false, reason: 'bad_response' };
-    return { ok: true, paymentUrl };
+    if (body.growEnvironment !== undefined) {
+      const configured = (env.GROW_ENVIRONMENT ?? '').trim();
+      if (body.growEnvironment !== 'sandbox' && body.growEnvironment !== 'production') return { ok: false, reason: 'bad_response' };
+      if (configured && body.growEnvironment !== configured) return { ok: false, reason: 'bad_response' };
+    }
+    return { ok: true, paymentUrl, link: readLinkIds(body.processId, body.processToken) };
   } catch {
     return { ok: false, reason: 'bad_response' };
   }

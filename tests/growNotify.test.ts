@@ -15,8 +15,8 @@ import {
   type GrowNotifyRequest,
   type GrowShape,
 } from '../server/payments/growNotify.ts';
-import type { CompletionRequest } from '../server/payments/completionRequest.ts';
-import type { CompletionStatus } from '../server/payments/completionStore.ts';
+import { linkTokenHash, type BoundCompletionRequest, type BoundCompletionStatus, type NoticeEntry } from '../server/payments/growLinkBinding.ts';
+import { disabledApprover } from '../server/payments/growApprove.ts';
 import { buildMakeCheckoutPayload } from '../server/payments/makeCheckoutClient.ts';
 import { handleStartCheckout, type CheckoutDeps } from '../server/payments/checkoutStart.ts';
 import { paidPackage } from '../server/payments/checkoutPackages.ts';
@@ -34,13 +34,43 @@ const CHECK = growNotifyCheck(ORDER, SECRET);
 const TX = '4097233';
 const PAYER = { fullName: 'Noa Fictional', payerPhone: '0521112233', payerEmail: 'payer@example.com', cardSuffix: '4880' };
 
+const LINK_KEY = 'k'.repeat(32) + '-link-token-test-key';
+const PID = '70011';
+const PTOKEN = 'ptok9f8e7d6c5b4a';
+const LINK = { environment: 'production' as const, merchant: 'dare-test', key: LINK_KEY };
+
 const ENV = (over: Record<string, string | undefined> = {}) =>
-  ({ VERCEL_ENV: 'production', GROW_NOTIFY_MODE: 'on', GROW_NOTIFY_IPS: `${GROW_IP}, ${OTHER_GROW_IP}`, GROW_NOTIFY_SECRET: SECRET, ...over }) as NodeJS.ProcessEnv;
+  ({
+    VERCEL_ENV: 'production',
+    GROW_NOTIFY_MODE: 'on',
+    GROW_NOTIFY_IPS: `${GROW_IP}, ${OTHER_GROW_IP}`,
+    GROW_NOTIFY_SECRET: SECRET,
+    GROW_ENVIRONMENT: 'production',
+    GROW_MERCHANT_REF: 'dare-test',
+    GROW_LINK_TOKEN_KEY: LINK_KEY,
+    ...over,
+  }) as NodeJS.ProcessEnv;
+
+/** What the completion receives for the default notification (the token only as its keyed hash). */
+const bound = (over: Partial<BoundCompletionRequest> = {}): BoundCompletionRequest => ({
+  orderId: ORDER,
+  transactionId: TX,
+  amount: 59,
+  currency: 'ILS',
+  providerStatus: 'grow:2',
+  environment: 'production',
+  merchant: 'dare-test',
+  processId: PID,
+  tokenHash: linkTokenHash(LINK, PID, PTOKEN),
+  ...over,
+});
 
 /** A flat form notification as @vercel/node's url-encoded parser would hand it over (bracket keys stay literal). */
 const flat = (over: Record<string, unknown> = {}) => ({
   transactionId: TX,
   transactionToken: 'tok',
+  processId: PID,
+  processToken: PTOKEN,
   statusCode: '2',
   status: 'שולם',
   sum: '59',
@@ -54,7 +84,7 @@ const flat = (over: Record<string, unknown> = {}) => ({
 const wrapped = (over: Record<string, unknown> = {}) => ({
   err: '',
   status: '1',
-  data: { transactionId: TX, statusCode: '2', status: 'שולם', sum: '59', allPaymentsNum: '1', customFields: { cField1: ORDER, cField2: CHECK }, ...PAYER, ...over },
+  data: { transactionId: TX, statusCode: '2', status: 'שולם', sum: '59', allPaymentsNum: '1', processId: PID, processToken: PTOKEN, customFields: { cField1: ORDER, cField2: CHECK }, ...PAYER, ...over },
 });
 
 const req = (body: unknown, over: Partial<GrowNotifyRequest> = {}): GrowNotifyRequest => ({
@@ -67,17 +97,20 @@ const req = (body: unknown, over: Partial<GrowNotifyRequest> = {}): GrowNotifyRe
 });
 
 interface Calls {
-  complete: CompletionRequest[];
-  notices: { orderId: string; status: string }[];
+  complete: BoundCompletionRequest[];
+  /** Rows written to the durable notice log (never to the order itself). */
+  notices: NoticeEntry[];
   logs: string[];
 }
-function deps(over: Partial<GrowNotifyDeps> = {}, outcome: CompletionStatus | null = 'granted') {
+function deps(over: Partial<GrowNotifyDeps> = {}, outcome: BoundCompletionStatus | null = 'granted') {
   const calls: Calls = { complete: [], notices: [], logs: [] };
   const d: GrowNotifyDeps = {
     env: ENV(),
     complete: async (r) => (calls.complete.push(r), outcome),
-    recordNotice: async (orderId, status) => void calls.notices.push({ orderId, status }),
     verifiedShapes: ['flat/brackets', 'wrapped/nested'] as GrowShape[], // tests only: production keeps VERIFIED_SHAPES (empty)
+    verifiedLinkFields: ['processId/processToken'], // tests only: production keeps VERIFIED_LINK_FIELDS (empty)
+    logNotice: async (e) => void calls.notices.push(e),
+    approver: disabledApprover,
     log: (l) => void calls.logs.push(l),
     ...over,
   };
@@ -253,7 +286,8 @@ test('content: every required field must be present and well formed, or nothing 
     const r = await handleGrowNotify(req(flat(over)), d);
     assert.equal(r.status, 400, name);
     assert.deepEqual(calls.complete, [], name);
-    assert.deepEqual(calls.notices, [], name);
+    assert.equal(calls.notices.length, 1, `${name}: one row in the notice log`);
+    assert.match(calls.notices[0].outcome, /^invalid_[a-z]+$/, name);
   }
 });
 
@@ -261,8 +295,8 @@ test('content: the amount is checked by the DATABASE against the order; a wrong 
   const { d, calls } = deps({}, 'amount_mismatch');
   const r = await handleGrowNotify(req(flat({ sum: '149' })), d);
   assert.equal(r.status, 200, 'received (kept for review by the database), so Grow stops retrying');
-  assert.deepEqual(calls.complete, [{ orderId: ORDER, transactionId: TX, amount: 149, currency: 'ILS', providerStatus: 'grow:2' }]);
-  assert.deepEqual(calls.logs, ['grow_notify_result outcome=amount_mismatch']);
+  assert.deepEqual(calls.complete, [bound({ amount: 149 })]);
+  assert.deepEqual(calls.logs, ['grow_notify_result outcome=amount_mismatch'], 'a refused payment is not approved');
 });
 
 test('content: an unrecognized layout is refused and only its field names are logged', async () => {
@@ -274,12 +308,15 @@ test('content: an unrecognized layout is refused and only its field names are lo
   assert.ok(calls.logs.every((l) => l.startsWith('grow_notify_unrecognized mode=on')));
 });
 
-test('status: a non-paid notification grants nothing and closes nothing; only the status code is remembered', async () => {
+test('status: a non-paid notification grants nothing, closes nothing and writes nothing to the order; only the notice log keeps it', async () => {
   const { d, calls } = deps();
   const r = await handleGrowNotify(req(flat({ statusCode: '3', status: 'נכשל' })), d);
   assert.equal(r.status, 200);
   assert.deepEqual(calls.complete, []);
-  assert.deepEqual(calls.notices, [{ orderId: ORDER, status: 'grow:3' }]);
+  assert.equal(calls.notices.length, 1);
+  assert.deepEqual({ ...calls.notices[0], txHash: null }, { environment: 'production', orderId: ORDER, txHash: null, statusCode: '3', shape: 'flat/brackets', outcome: 'not_paid', approve: null });
+  assert.match(calls.notices[0].txHash ?? '', /^[0-9a-f]{64}$/);
+  assert.ok(!/recordNotice|recordPaymentNotice/.test(strip(read('server/payments/growNotify.ts'))), 'the direct path never writes an order status');
 });
 
 test('status: the Hebrew status text is never what decides; only statusCode "2" is paid', async () => {
@@ -292,13 +329,14 @@ test('status: the Hebrew status text is never what decides; only statusCode "2" 
 
 // ------------------------------------------------------------------------------ completion ----
 
-test('completion: a verified paid notification goes to the existing completion with the ORDER id, tx, sum and constant ILS', async () => {
-  for (const body of [flat(), wrapped(), flat({ sum: 59, transactionId: 4097233 }), flat({ sum: '59.00' })]) {
+test('completion: a verified paid notification goes to the bound completion with the ORDER id, tx, sum, constant ILS and the link ids', async () => {
+  for (const body of [flat(), wrapped(), flat({ sum: 59, transactionId: 4097233, processId: 70011 }), flat({ sum: '59.00' })]) {
     const { d, calls } = deps();
     const r = await handleGrowNotify(req(body), d);
     assert.equal(r.status, 200);
     assert.deepEqual(r.body, { received: true }, 'nothing is echoed back');
-    assert.deepEqual(calls.complete, [{ orderId: ORDER, transactionId: TX, amount: 59, currency: 'ILS', providerStatus: 'grow:2' }]);
+    assert.deepEqual(calls.complete, [bound()]);
+    assert.ok(!JSON.stringify(calls.complete).includes(PTOKEN), 'the token itself never leaves the handler, only its keyed hash');
   }
 });
 
@@ -317,13 +355,13 @@ test('replay and duplicates: the same notification six times reaches the idempot
   let granted = false;
   const { d, calls } = deps({ complete: async (r) => (calls.complete.push(r), granted ? 'duplicate' : ((granted = true), 'granted')) });
   for (let i = 0; i < 6; i++) assert.equal((await handleGrowNotify(req(flat()), d)).status, 200);
-  assert.deepEqual(calls.logs, ['grow_notify_result outcome=granted', ...Array(5).fill('grow_notify_result outcome=duplicate')]);
+  assert.deepEqual(calls.logs, ['grow_notify_result outcome=granted approve=not_configured', ...Array(5).fill('grow_notify_result outcome=duplicate approve=not_configured')], 'a duplicate is acknowledged again, never granted again');
 });
 
 test('race: parallel identical notifications grant once (the database lock decides; the handler adds no state of its own)', async () => {
   let granted = 0;
   let lock = Promise.resolve();
-  const complete = (r: CompletionRequest) => {
+  const complete = (r: BoundCompletionRequest) => {
     const run = lock.then(async () => (granted === 0 ? ((granted = 1), 'granted' as const) : ('duplicate' as const)));
     lock = run.then(() => undefined);
     void r;
@@ -332,13 +370,16 @@ test('race: parallel identical notifications grant once (the database lock decid
   const { d, calls } = deps({ complete });
   const results = await Promise.all(Array.from({ length: 10 }, () => handleGrowNotify(req(flat()), d)));
   assert.ok(results.every((r) => r.status === 200));
-  assert.equal(calls.logs.filter((l) => l.endsWith('outcome=granted')).length, 1);
-  assert.match(strip(read('server/payments/growNotify.ts')), /complete: completePaymentOrder/, 'the real store is the existing completion');
+  assert.equal(calls.logs.filter((l) => l.includes('outcome=granted ')).length, 1);
+  assert.match(strip(read('server/payments/growNotify.ts')), /complete: completeBoundPaymentOrder/, 'the real store is the bound completion (link check + the existing completion, one transaction)');
 });
 
 test('completion outcomes: store down = 503 (Grow retries); refusals are received and granted nothing; invalid = 400', async () => {
-  const expect: [CompletionStatus | null, number][] = [
+  const expect: [BoundCompletionStatus | null, number][] = [
     [null, 503],
+    ['link_missing', 200],
+    ['link_mismatch', 200],
+    ['order_not_open', 200],
     ['granted', 200],
     ['duplicate', 200],
     ['order_not_found', 200],
@@ -381,7 +422,7 @@ test('privacy: no value from the notification, the check or the secret ever appe
     bodies.push(res.body);
   }
   const all = lines.join('\n') + JSON.stringify(bodies);
-  for (const v of [SECRET, CHECK, growNotifyCheck(OTHER_ORDER, SECRET), ORDER, TX, '4097233', PAYER.fullName, PAYER.payerPhone, PAYER.payerEmail, PAYER.cardSuffix, ATTACKER_IP, GROW_IP, 'שולם']) {
+  for (const v of [SECRET, CHECK, growNotifyCheck(OTHER_ORDER, SECRET), ORDER, TX, '4097233', PID, PTOKEN, LINK_KEY, linkTokenHash(LINK, PID, PTOKEN), PAYER.fullName, PAYER.payerPhone, PAYER.payerEmail, PAYER.cardSuffix, ATTACKER_IP, GROW_IP, 'שולם']) {
     assert.ok(!all.includes(v), v);
   }
   assert.ok(!/console\.log/.test(strip(read('server/payments/growNotify.ts'))));
@@ -455,9 +496,18 @@ test('wiring: /api/grow-notify is a rewrite onto the existing payment function; 
   assert.match(read('server/index.ts'), /app\.all\('\/api\/grow-notify'/);
 });
 
-test('wiring: the direct path reuses the existing completion and never touches the grant functions itself', () => {
+test('wiring: the direct path reaches the database only through the bound completion, which hands over to the existing one', () => {
   const mod = strip(read('server/payments/growNotify.ts'));
-  assert.ok(!/grant_credits|complete_payment_order|\.rpc\(|from\('/.test(mod));
-  assert.match(mod, /import \{ completePaymentOrder, recordPaymentNotice, type CompletionStatus \} from '\.\/completionStore\.js'/);
-  assert.ok(!readdirSync(new URL('../supabase/migrations', import.meta.url)).some((f) => /grow|notif/i.test(f)), 'no migration');
+  assert.ok(!/grant_credits|complete_payment_order|\.rpc\(|from\('/.test(mod), 'the handler itself never calls the database');
+  assert.match(mod, /completeBoundPaymentOrder,/);
+  assert.ok(!/completePaymentOrder|recordPaymentNotice/.test(mod), 'no other completion or order write');
+  // The one new migration (2026-11-23) is additive: new objects only; nothing existing is altered, dropped or redefined.
+  const added = readdirSync(new URL('../supabase/migrations', import.meta.url)).filter((f) => /^2026112[0-9]/.test(f));
+  assert.deepEqual(added, ['20261123_payment_order_links.sql']);
+  const sql = strip(read(`supabase/migrations/${added[0]}`)).replace(/--.*$/gm, '');
+  assert.ok(!/\balter\s+table\s+(?!public\.payment_order_links|public\.payment_notices)/i.test(sql), 'no existing table altered');
+  assert.ok(!/\bdrop\b|\btruncate\b|\bdelete\s+from\b|\bupdate\s+public\./i.test(sql), 'nothing dropped, deleted or updated');
+  const fns = [...sql.matchAll(/create or replace function public\.([a-z_]+)/g)].map((m) => m[1]).sort();
+  assert.deepEqual(fns, ['bind_payment_order_link', 'complete_bound_payment_order', 'log_payment_notice'], 'only new functions');
+  assert.match(sql, /return public\.complete_payment_order\(p_order, p_tx, p_amount, p_currency, p_provider_status\)/, 'the existing completion alone grants');
 });

@@ -2,8 +2,19 @@ import { createHmac, createHash, timingSafeEqual } from 'node:crypto';
 import { isIPv4 } from 'node:net';
 import { errorResult, okResult, type HandlerResult } from '../httpResult.js';
 import { MIN_COMPLETION_SECRET_LENGTH } from './completionAuth.js';
-import { parseAmount, type CompletionRequest } from './completionRequest.js';
-import { completePaymentOrder, recordPaymentNotice, type CompletionStatus } from './completionStore.js';
+import { parseAmount } from './completionRequest.js';
+import {
+  completeBoundPaymentOrder,
+  growLinkConfig,
+  linkTokenHash,
+  logPaymentNotice,
+  readLinkIds,
+  transactionHash,
+  type BoundCompletionRequest,
+  type BoundCompletionStatus,
+  type NoticeEntry,
+} from './growLinkBinding.js';
+import { disabledApprover, safeApprove, type ApproveOutcome, type GrowApprover } from './growApprove.js';
 
 /**
  * POST /api/grow-notify: Grow's server-to-server payment notification, received by DARE directly (no Make in between).
@@ -21,7 +32,13 @@ import { completePaymentOrder, recordPaymentNotice, type CompletionStatus } from
  *  4. Order binding: cField1 = the order id, cField2 = HMAC(GROW_NOTIFY_SECRET or, during a rotation, GROW_NOTIFY_SECRET_PREVIOUS).
  *     It ties the notification to a payment link DARE created. It is NOT proof of payment or of origin.
  *  5. Content: statusCode, transactionId, sum, allPaymentsNum, all required and strictly formatted; contradictory layouts refused.
- *  6. The existing atomic, idempotent complete_payment_order (through completionStore) decides; currency is the constant ILS.
+ *  6. Link identifiers (2026-11-23): the notification must carry Grow's process id and token for the link, in the field pair that a
+ *     Sandbox notification showed (VERIFIED_LINK_FIELDS, empty = closed). They are matched in the database against what DARE kept
+ *     at checkout, for the same environment and merchant, while the order is open (complete_bound_payment_order), in the same
+ *     transaction that then calls the existing atomic, idempotent complete_payment_order. Currency is the constant ILS.
+ *     A match is NOT proof of origin or ownership (see growLinkBinding.ts): none of steps 2-6 is, alone or together.
+ *  7. After granted / duplicate only: Approve Transaction through an isolated interface (growApprove.ts; today a no-op). Every
+ *     decision in the processing path is written to the notice log (fixed words and hashes only).
  *
  * Logs carry fixed reason codes, the layout id and DOCUMENTED Grow field names only. A field name that is not in Grow's
  * documentation is only counted (it could be a value that a parser turned into a key). No value is ever logged or returned.
@@ -36,6 +53,16 @@ export type GrowShape = 'flat/brackets' | 'flat/nested' | 'wrapped/brackets' | '
  * format and the order binding are verified, whatever the mode or environment. Add exactly the observed shape, with a test.
  */
 export const VERIFIED_SHAPES: readonly GrowShape[] = [];
+
+/** The two documented places a link's identifiers may appear in. Which one a payment-link notification really uses is unknown. */
+export type LinkFieldPair = 'processId/processToken' | 'paymentLinkProcessId/paymentLinkProcessToken';
+export const LINK_FIELD_PAIRS: readonly LinkFieldPair[] = ['processId/processToken', 'paymentLinkProcessId/paymentLinkProcessToken'];
+
+/**
+ * The link-identifier field pair OBSERVED in a real Grow Sandbox notification for a payment link, and shown to equal what Make
+ * returned at creation. Empty on purpose: a second, independent closed switch. Add exactly the observed pair, with a test.
+ */
+export const VERIFIED_LINK_FIELDS: readonly LinkFieldPair[] = [];
 
 export const MAX_BODY_BYTES = 16 * 1024;
 const CHECK_DOMAIN = 'dare.grow-notify.v1:';
@@ -150,6 +177,10 @@ export interface GrowNotification {
   transactionId: string | null;
   sum: number | null;
   allPaymentsNum: string | null;
+  /** Raw link-identifier values per documented pair (validated later by readLinkIds). Never logged. */
+  links: Record<LinkFieldPair, { id: unknown; token: unknown }>;
+  /** Passed only to the Approve interface. Never logged, never stored. */
+  transactionToken: string | null;
 }
 
 export type ReadResult = { ok: true; value: GrowNotification } | { ok: false; reason: 'unrecognized' | 'conflicting_layout' };
@@ -196,6 +227,14 @@ export function readNotification(body: unknown): ReadResult {
       transactionId: text(own('transactionId')),
       sum: sumText === null ? null : parseAmount(sumText),
       allPaymentsNum: text(own('allPaymentsNum')),
+      links: {
+        'processId/processToken': { id: own('processId'), token: own('processToken') },
+        'paymentLinkProcessId/paymentLinkProcessToken': { id: own('paymentLinkProcessId'), token: own('paymentLinkProcessToken') },
+      },
+      transactionToken: (() => {
+        const t = own('transactionToken');
+        return typeof t === 'string' && t.length > 0 && t.length <= 256 ? t : null;
+      })(),
     },
   };
 }
@@ -252,18 +291,25 @@ export interface GrowNotifyRequest {
 
 export interface GrowNotifyDeps {
   env: NodeJS.ProcessEnv;
-  complete: (request: CompletionRequest) => Promise<CompletionStatus | null>;
-  recordNotice: (orderId: string, providerStatus: string) => Promise<void>;
+  /** The link check and the existing completion, in one database transaction (complete_bound_payment_order). */
+  complete: (request: BoundCompletionRequest) => Promise<BoundCompletionStatus | null>;
   /** Fixed to VERIFIED_SHAPES in production; tests pass a shape to exercise the (still closed) grant path. */
   verifiedShapes: readonly GrowShape[];
+  /** Fixed to VERIFIED_LINK_FIELDS in production; tests pass a pair to exercise the (still closed) grant path. */
+  verifiedLinkFields: readonly LinkFieldPair[];
+  /** The durable notice log. Must never throw (the real one swallows its own failure). */
+  logNotice: (entry: NoticeEntry) => Promise<void>;
+  approver: GrowApprover;
   log: (line: string) => void;
 }
 
 const realDeps = (): GrowNotifyDeps => ({
   env: process.env,
-  complete: completePaymentOrder,
-  recordNotice: recordPaymentNotice,
+  complete: completeBoundPaymentOrder,
   verifiedShapes: VERIFIED_SHAPES,
+  verifiedLinkFields: VERIFIED_LINK_FIELDS,
+  logNotice: (entry) => logPaymentNotice(entry).catch(() => undefined),
+  approver: disabledApprover,
   log: (line) => console.error(line),
 });
 
@@ -349,28 +395,78 @@ export async function handleGrowNotify(req: GrowNotifyRequest, deps: GrowNotifyD
     return captureAnswer();
   }
 
+  // From here on the processing path: every decision is written to the durable notice log (fixed words and hashes only).
+  const orderId = n.orderId;
+  const config = growLinkConfig(deps.env);
+  const notice = (outcome: string, approve: ApproveOutcome | null = null) =>
+    deps.logNotice({
+      environment: config?.environment ?? 'unknown',
+      orderId,
+      txHash: n.transactionId && TRANSACTION_ID.test(n.transactionId) ? transactionHash(n.transactionId) : null,
+      statusCode: n.statusCode && STATUS_CODE.test(n.statusCode) ? n.statusCode : null,
+      shape: n.shape,
+      outcome,
+      approve,
+    });
+
   if (invalid) {
     deps.log(`grow_notify_rejected reason=invalid_${invalid} shape=${n.shape}`);
+    await notice(`invalid_${invalid}`);
     return errorResult(400, 'invalid_request', 'Not valid.');
   }
-  const orderId = n.orderId;
   const statusCode = n.statusCode as string;
 
   if (statusCode !== PAID_STATUS_CODE) {
-    // Not paid: grant nothing, close nothing; only the last status is remembered (best effort).
-    await deps.recordNotice(orderId, `grow:${statusCode}`).catch(() => undefined);
+    // Not paid: grant nothing, close nothing, and write nothing to the order (an unmatched notification must not touch it).
     deps.log('grow_notify_result outcome=not_paid');
+    await notice('not_paid');
     return received();
   }
 
-  // 6. The existing atomic, idempotent completion.
-  const outcome = await deps.complete({ orderId, transactionId: n.transactionId as string, amount: n.sum as number, currency: 'ILS', providerStatus: `grow:${statusCode}` });
-  if (outcome === null) {
-    deps.log('grow_notify_result outcome=store_unavailable');
+  // 6. Link identifiers: Grow configuration for this deployment, then the verified field pair, present and well formed.
+  if (!config) {
+    deps.log('grow_notify_rejected reason=link_config_missing');
+    await notice('link_config_missing');
     return errorResult(503, 'not_configured', 'Not available right now.');
   }
-  deps.log(`grow_notify_result outcome=${outcome}`);
+  const pair = deps.verifiedLinkFields.find((p) => {
+    const v = n.links[p];
+    return v.id !== undefined || v.token !== undefined;
+  });
+  const ids = pair ? readLinkIds(n.links[pair].id, n.links[pair].token) : ({ status: 'absent' } as const);
+  if (ids.status !== 'present') {
+    deps.log(`grow_notify_rejected reason=link_ids_${ids.status} shape=${n.shape}`);
+    await notice(`link_ids_${ids.status}`);
+    return errorResult(400, 'invalid_request', 'Not valid.');
+  }
+
+  const transactionId = n.transactionId as string;
+  const outcome = await deps.complete({
+    orderId,
+    transactionId,
+    amount: n.sum as number,
+    currency: 'ILS',
+    providerStatus: `grow:${statusCode}`,
+    environment: config.environment,
+    merchant: config.merchant,
+    processId: ids.ids.processId,
+    tokenHash: linkTokenHash(config, ids.ids.processId, ids.ids.processToken),
+  });
+  if (outcome === null) {
+    // Temporary failure: nothing was decided; Grow keeps the notification and retries.
+    deps.log('grow_notify_result outcome=store_unavailable');
+    await notice('store_unavailable');
+    return errorResult(503, 'not_configured', 'Not available right now.');
+  }
+
+  // 7. Approve only what the database completed (now or before). Its result never changes the grant or the answer.
+  const approve = outcome === 'granted' || outcome === 'duplicate'
+    ? await safeApprove(deps.approver, { environment: config.environment, transactionId, transactionToken: n.transactionToken, sum: n.sum as number })
+    : null;
+  deps.log(`grow_notify_result outcome=${outcome}${approve ? ` approve=${approve}` : ''}`);
+  await notice(outcome, approve);
   if (outcome === 'invalid') return errorResult(400, 'invalid_request', 'Not valid.');
-  // granted / duplicate: done. Every other outcome granted nothing and is kept for manual review by the database function.
+  // granted / duplicate: done. Every other outcome granted nothing and is kept in the notice log (and, for amount/currency, in the
+  // order's review trail by the existing function) for manual review.
   return received();
 }

@@ -306,7 +306,8 @@ test('make client: posts the JSON payload to the configured webhook (no redirect
 
 test('make client: only a complete, matching answer yields a payment link', async () => {
   const good = JSON.stringify({ ok: true, orderId: ORDER, paymentUrl: PAY_URL });
-  assert.deepEqual(await requestPaymentLink(SAMPLE_PAYLOAD, { env: ENV, fetchImpl: fakeFetch(200, good) }), { ok: true, paymentUrl: PAY_URL });
+  // The answer format before Grow link identifiers (2026-11-23) still works; it simply has nothing to bind.
+  assert.deepEqual(await requestPaymentLink(SAMPLE_PAYLOAD, { env: ENV, fetchImpl: fakeFetch(200, good) }), { ok: true, paymentUrl: PAY_URL, link: { status: 'absent' } });
   const cases: [number, string][] = [
     [200, 'Accepted'], // the scenario has no "Webhook response" module yet
     [200, JSON.stringify({ ok: true, orderId: 'ffffffffffffffffffffffffffffffff', paymentUrl: PAY_URL })], // someone else's order

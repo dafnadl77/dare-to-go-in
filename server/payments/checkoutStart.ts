@@ -2,10 +2,11 @@ import { errorResult, okResult, type HandlerResult } from '../httpResult.js';
 import { verifyBearerToken, type RequestHeaders, type VerifyBearerResult } from '../callerIdentity.js';
 import { validatePayerDetails, type PayerDetails, type PayerField } from '../../src/payments/payerDetails.js';
 import { paidPackage, type PaidPackage } from './checkoutPackages.js';
-import { buildMakeCheckoutPayload, parseMakeWebhookUrl, requestPaymentLink, siteUrlFromEnv, type MakeCheckoutPayload, type MakeCheckoutResult } from './makeCheckoutClient.js';
+import { buildMakeCheckoutPayload, parseMakeWebhookUrl, requestPaymentLink, siteUrlFromEnv, type MakeCheckoutPayload, type MakeCheckoutResult, type MakeLinkIds } from './makeCheckoutClient.js';
 import { createPaymentOrder, markPaymentOrderLink, type CreateOrderOutcome } from './orderStore.js';
 import { getPurchasedPackage, type PurchasedPackage } from './purchasedPackage.js';
 import { getCreditBalance } from '../dreamAttempts.js';
+import { bindPaymentOrderLink, growLinkConfig, linkTokenHash, type BindOutcome, type LinkIds } from './growLinkBinding.js';
 
 /**
  * POST /api/credits: start a purchase (the checkout-initiation half of the Grow-through-Make flow).
@@ -32,6 +33,26 @@ export interface CheckoutDeps {
   createOrder: (ownerId: string, pkg: PaidPackage) => Promise<CreateOrderOutcome | null>;
   markLink: (orderId: string, ownerId: string, status: 'link_created' | 'link_failed') => Promise<boolean>;
   requestLink: (payload: MakeCheckoutPayload) => Promise<MakeCheckoutResult>;
+  /** Keeps Grow's link identifiers for this order (growLinkBinding.ts). Answers a fixed outcome word only. */
+  bindLink: (orderId: string, ownerId: string, paymentUrl: string, ids: LinkIds) => Promise<LinkBindingOutcome>;
+}
+
+export type LinkBindingOutcome = BindOutcome | 'not_configured' | 'unavailable';
+
+/** The real binding: nothing without a complete Grow configuration; the token is hashed here and never leaves this function. */
+export async function bindCheckoutLink(orderId: string, ownerId: string, paymentUrl: string, ids: LinkIds, env: NodeJS.ProcessEnv = process.env, store = bindPaymentOrderLink): Promise<LinkBindingOutcome> {
+  const config = growLinkConfig(env);
+  if (!config) return 'not_configured';
+  const outcome = await store({
+    orderId,
+    ownerId,
+    environment: config.environment,
+    merchant: config.merchant,
+    processId: ids.processId,
+    tokenHash: linkTokenHash(config, ids.processId, ids.processToken),
+    tokenInUrl: paymentUrl.includes(ids.processToken),
+  });
+  return outcome ?? 'unavailable';
 }
 
 /**
@@ -54,6 +75,7 @@ const realDeps: CheckoutDeps = {
   createOrder: createPaymentOrder,
   markLink: markPaymentOrderLink,
   requestLink: (payload) => requestPaymentLink(payload),
+  bindLink: (orderId, ownerId, paymentUrl, ids) => bindCheckoutLink(orderId, ownerId, paymentUrl, ids),
 };
 
 export type CheckoutRequest = { ok: true; pkg: PaidPackage; payer: PayerDetails } | { ok: false; field?: PayerField };
@@ -112,5 +134,13 @@ export async function handleStartCheckout(rawBody: unknown, requestHeaders: Requ
     return errorResult(502, 'checkout_unavailable', 'We could not start the payment. Please try again in a moment.');
   }
   await deps.markLink(order.orderId, verified.userId, 'link_created');
+  // Grow's link identifiers (when Make sent them) are kept server-side for the direct notification. Best effort: the outcome is
+  // logged as a fixed word and never changes this answer. The identifiers never reach the browser.
+  const ids: MakeLinkIds = link.link ?? { status: 'absent' };
+  if (ids.status === 'invalid') console.error('checkout_link_binding outcome=invalid_ids');
+  if (ids.status === 'present') {
+    const outcome = await deps.bindLink(order.orderId, verified.userId, link.paymentUrl, ids.ids).catch(() => 'unavailable' as const);
+    console.error(`checkout_link_binding outcome=${outcome}`);
+  }
   return okResult({ orderId: order.orderId, paymentUrl: link.paymentUrl });
 }

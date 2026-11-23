@@ -16,8 +16,8 @@ import {
   type GrowNotifyRequest,
   type GrowShape,
 } from '../server/payments/growNotify.ts';
-import type { CompletionRequest } from '../server/payments/completionRequest.ts';
-import type { CompletionStatus } from '../server/payments/completionStore.ts';
+import type { BoundCompletionRequest, BoundCompletionStatus, NoticeEntry } from '../server/payments/growLinkBinding.ts';
+import { disabledApprover } from '../server/payments/growApprove.ts';
 import { buildMakeCheckoutPayload } from '../server/payments/makeCheckoutClient.ts';
 import { paidPackage } from '../server/payments/checkoutPackages.ts';
 import { handlePaymentComplete } from '../server/payments/paymentComplete.ts';
@@ -41,11 +41,24 @@ const TX = '4097233';
 const FAKE = { name: 'Yael Fictional', phone: '0529876543', email: 'yael.fictional@example.org', card: '4580123412341234' };
 const FAKE_CHECK = growNotifyCheck('0123456789abcdef0123456789abcdef', 'f'.repeat(40));
 
+const PID = '70011';
+const PTOKEN = 'ptok9f8e7d6c5b4a';
 const ENV = (over: Record<string, string | undefined> = {}) =>
-  ({ VERCEL_ENV: 'production', GROW_NOTIFY_MODE: 'on', GROW_NOTIFY_IPS: GROW_IP, GROW_NOTIFY_SECRET: SECRET, ...over }) as NodeJS.ProcessEnv;
+  ({
+    VERCEL_ENV: 'production',
+    GROW_NOTIFY_MODE: 'on',
+    GROW_NOTIFY_IPS: GROW_IP,
+    GROW_NOTIFY_SECRET: SECRET,
+    GROW_ENVIRONMENT: ('VERCEL_ENV' in over ? over.VERCEL_ENV : 'production') === 'production' ? 'production' : 'sandbox',
+    GROW_MERCHANT_REF: 'dare-test',
+    GROW_LINK_TOKEN_KEY: 'k'.repeat(40),
+    ...over,
+  }) as NodeJS.ProcessEnv;
 
 const flat = (over: Record<string, unknown> = {}) => ({
   transactionId: TX,
+  processId: PID,
+  processToken: PTOKEN,
   statusCode: '2',
   status: 'שולם',
   sum: '59',
@@ -57,7 +70,7 @@ const flat = (over: Record<string, unknown> = {}) => ({
   'customFields[cField2]': CHECK,
   ...over,
 });
-const wrapped = () => ({ err: '', status: '1', data: { transactionId: TX, statusCode: '2', sum: '59', allPaymentsNum: '1', payerPhone: FAKE.phone, customFields: { cField1: ORDER, cField2: CHECK } } });
+const wrapped = () => ({ err: '', status: '1', data: { transactionId: TX, statusCode: '2', sum: '59', allPaymentsNum: '1', processId: PID, processToken: PTOKEN, payerPhone: FAKE.phone, customFields: { cField1: ORDER, cField2: CHECK } } });
 
 const req = (body: unknown, over: Partial<GrowNotifyRequest> = {}): GrowNotifyRequest => ({
   method: 'POST',
@@ -68,13 +81,15 @@ const req = (body: unknown, over: Partial<GrowNotifyRequest> = {}): GrowNotifyRe
   ...over,
 });
 
-function deps(over: Partial<GrowNotifyDeps> = {}, outcome: CompletionStatus | null = 'granted') {
-  const calls = { complete: [] as CompletionRequest[], notices: [] as string[], logs: [] as string[] };
+function deps(over: Partial<GrowNotifyDeps> = {}, outcome: BoundCompletionStatus | null = 'granted') {
+  const calls = { complete: [] as BoundCompletionRequest[], notices: [] as NoticeEntry[], logs: [] as string[] };
   const d: GrowNotifyDeps = {
     env: ENV(),
     complete: async (r) => (calls.complete.push(r), outcome),
-    recordNotice: async (o) => void calls.notices.push(o),
     verifiedShapes: ['flat/brackets', 'wrapped/nested'] as GrowShape[], // tests only: production keeps VERIFIED_SHAPES (empty)
+    verifiedLinkFields: ['processId/processToken'], // tests only: production keeps VERIFIED_LINK_FIELDS (empty)
+    logNotice: async (e) => void calls.notices.push(e),
+    approver: disabledApprover,
     log: (l) => void calls.logs.push(l),
     ...over,
   };
@@ -104,8 +119,8 @@ test('M1: undocumented field names are only counted, so a value a parser turned 
     }
   }
   assert.equal(describeBody(hostile[2]), 'kind=object fields=data other=5');
-  assert.equal(describeBody(flat()), 'kind=object fields=allPaymentsNum,customFields[cField1],customFields[cField2],fullName,payerEmail,payerPhone,status,statusCode,sum,transactionId other=0');
-  assert.equal(describeBody(wrapped()), 'kind=object fields=data,data.allPaymentsNum,data.customFields,data.payerPhone,data.statusCode,data.sum,data.transactionId,err,status other=0');
+  assert.equal(describeBody(flat()), 'kind=object fields=allPaymentsNum,customFields[cField1],customFields[cField2],fullName,payerEmail,payerPhone,processId,processToken,status,statusCode,sum,transactionId other=0');
+  assert.equal(describeBody(wrapped()), 'kind=object fields=data,data.allPaymentsNum,data.customFields,data.payerPhone,data.processId,data.processToken,data.statusCode,data.sum,data.transactionId,err,status other=0');
   assert.deepEqual(['raw', Buffer.from('raw'), [1], undefined, 5].map(describeBody), ['kind=text', 'kind=bytes', 'kind=array', 'kind=none', 'kind=other']);
 });
 
@@ -125,7 +140,7 @@ test('M1: every log line is a fixed event name followed only by key=value pairs 
   const bodies = [flat(), wrapped(), flat({ statusCode: '3' }), flat({ sum: 'x' }), flat({ 'customFields[cField2]': FAKE_CHECK }), { data: { a: FAKE.email } }, parse(`${FAKE.email}&${FAKE.phone}`)];
   for (const mode of ['capture', 'on']) {
     for (const body of bodies) {
-      for (const outcome of ['granted', 'duplicate', 'amount_mismatch', null] as (CompletionStatus | null)[]) {
+      for (const outcome of ['granted', 'duplicate', 'amount_mismatch', null] as (BoundCompletionStatus | null)[]) {
         const { d, calls } = deps({ env: ENV({ GROW_NOTIFY_MODE: mode }) }, outcome);
         await handleGrowNotify(req(body), d);
         lines.push(...calls.logs);
@@ -138,7 +153,7 @@ test('M1: every log line is a fixed event name followed only by key=value pairs 
     assert.match(event, /^grow_notify_(capture|unrecognized|rejected|result)$/, line);
     for (const pair of pairs) {
       const [k, v] = pair.split('=');
-      assert.match(k, /^(mode|reason|shape|shape_verified|verdict|type|kind|fields|other|outcome)$/, line);
+      assert.match(k, /^(mode|reason|shape|shape_verified|verdict|type|kind|fields|other|outcome|approve)$/, line);
       if (k === 'fields') for (const f of v.split(',')) assert.ok(f === '-' || FIELD.test(f), `${f} in ${line}`);
       else assert.match(v, /^[a-z0-9_/.-]+$/, line);
     }
@@ -391,7 +406,7 @@ test('L5: no other way in — the Grow handler is called only by the rewrite bra
   const walk = (dir: string): string[] => readdirSync(new URL(`../${dir}`, import.meta.url), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(`${dir}/${e.name}`) : [`${dir}/${e.name}`]));
   const files = [...walk('server'), ...walk('api')].filter((f) => f.endsWith('.ts'));
   assert.deepEqual(files.filter((f) => f !== 'server/payments/growNotify.ts' && /handleGrowNotify\(/.test(strip(read(f)))).sort(), ['api/payment-complete.ts', 'server/index.ts']);
-  assert.deepEqual(files.filter((f) => /completePaymentOrder/.test(strip(read(f)))).sort(), ['server/payments/completionStore.ts', 'server/payments/growNotify.ts', 'server/payments/paymentComplete.ts']);
+  assert.deepEqual(files.filter((f) => /completePaymentOrder/.test(strip(read(f)))).sort(), ['server/payments/completionStore.ts', 'server/payments/paymentComplete.ts']);
   assert.match(strip(read('server/payments/growNotify.ts')), /verifiedShapes: VERIFIED_SHAPES/);
   for (const f of ['api/payment-complete.ts', 'server/index.ts']) assert.ok(!/verifiedShapes|GrowNotifyDeps/.test(strip(read(f))), f);
   assert.match(strip(read('api/payment-complete.ts')), /readBody: \(\) => req\.body/, 'the body is handed over lazily');
