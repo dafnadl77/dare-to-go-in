@@ -15,6 +15,8 @@
  * Nothing about the account, the package, the price or the credits is accepted from Make: DARE derives all of that from its
  * own order record.
  */
+import { readLinkIds, type LinkIds } from './growLinkBinding.js';
+
 export interface CompletionRequest {
   orderId: string;
   transactionId: string;
@@ -22,15 +24,25 @@ export interface CompletionRequest {
   amount: number;
   currency: string;
   providerStatus: string;
+  /** Only in a "dare.payment.v2" request: Grow's identifiers of the payment link, to be matched against what DARE kept at checkout. */
+  link?: LinkIds;
 }
 
 export type CompletionParse =
   | { ok: true; value: CompletionRequest }
   | { ok: false; reason: 'invalid_request' }
   // A well-formed report that is not "paid". Only the order id and the status text are kept (to remember the last notice).
-  | { ok: false; reason: 'payment_not_successful'; orderId: string; providerStatus: string };
+  | { ok: false; reason: 'payment_not_successful'; orderId: string; providerStatus: string }
+  // A well-formed PAID v2 report for a payment in installments. DARE supports one payment only (2026-11-25): nothing is granted.
+  | { ok: false; reason: 'installments_not_supported'; orderId: string; providerStatus: string };
 
 const KEYS = ['amount', 'currency', 'orderId', 'providerStatus', 'schema', 'status', 'transactionId'];
+/**
+ * "dare.payment.v2" (2026-11-25): the v1 keys plus Grow's link identifiers and the number of payments, all as Grow reported them.
+ * v1 stays accepted unchanged; whether a v1 call may still complete an order is decided by the database (see
+ * complete_payment_order_with_link), not here.
+ */
+const KEYS_V2 = [...KEYS, 'allPaymentsNum', 'paymentLinkProcessId', 'paymentLinkProcessToken'].sort();
 const STATUSES = ['paid', 'failed', 'cancelled', 'pending'];
 const TRANSACTION_ID = /^[A-Za-z0-9_-]{3,64}$/;
 
@@ -54,10 +66,12 @@ export function parseCompletionRequest(raw: unknown): CompletionParse {
   const invalid = { ok: false, reason: 'invalid_request' } as const;
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return invalid;
   const keys = Object.keys(raw).sort();
-  if (keys.length !== KEYS.length || keys.some((k, i) => k !== KEYS[i])) return invalid;
   const body = raw as Record<string, unknown>;
+  const v2 = body.schema === 'dare.payment.v2';
+  const expected = v2 ? KEYS_V2 : KEYS;
+  if (keys.length !== expected.length || keys.some((k, i) => k !== expected[i])) return invalid;
 
-  if (body.schema !== 'dare.payment.v1') return invalid;
+  if (body.schema !== 'dare.payment.v1' && !v2) return invalid;
   if (typeof body.orderId !== 'string' || !/^[0-9a-f]{32}$/.test(body.orderId)) return invalid;
   const tx = typeof body.transactionId === 'number' ? (Number.isSafeInteger(body.transactionId) && body.transactionId > 0 ? String(body.transactionId) : '') : body.transactionId;
   if (typeof tx !== 'string' || !TRANSACTION_ID.test(tx)) return invalid;
@@ -72,5 +86,13 @@ export function parseCompletionRequest(raw: unknown): CompletionParse {
   // A well-formed report that is not "paid" (failed / cancelled / pending): it can never grant, and it never closes the order,
   // because DARE has not observed what Grow's non-paid statuses mean (a customer may still pay afterwards).
   if (body.status !== 'paid') return { ok: false, reason: 'payment_not_successful', orderId: body.orderId, providerStatus };
-  return { ok: true, value: { orderId: body.orderId, transactionId: tx, amount, currency: body.currency, providerStatus } };
+  if (!v2) return { ok: true, value: { orderId: body.orderId, transactionId: tx, amount, currency: body.currency, providerStatus } };
+
+  // v2: one payment only, and both link identifiers present and well formed (anything else is refused without saying which).
+  const payments = typeof body.allPaymentsNum === 'number' ? String(body.allPaymentsNum) : body.allPaymentsNum;
+  if (typeof payments !== 'string' || !/^\d{1,3}$/.test(payments.trim())) return invalid;
+  const ids = readLinkIds(body.paymentLinkProcessId, body.paymentLinkProcessToken);
+  if (ids.status !== 'present') return invalid;
+  if (payments.trim() !== '1') return { ok: false, reason: 'installments_not_supported', orderId: body.orderId, providerStatus };
+  return { ok: true, value: { orderId: body.orderId, transactionId: tx, amount, currency: body.currency, providerStatus, link: ids.ids } };
 }

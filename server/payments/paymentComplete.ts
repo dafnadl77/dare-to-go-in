@@ -1,7 +1,7 @@
 import { errorResult, okResult, type HandlerResult } from '../httpResult.js';
 import { checkCompletionAuth, type CompletionAuth } from './completionAuth.js';
 import { parseCompletionRequest, type CompletionRequest } from './completionRequest.js';
-import { completePaymentOrder, recordPaymentNotice, type CompletionStatus } from './completionStore.js';
+import { completePaymentOrder, recordPaymentNotice, type LinkedCompletionStatus } from './completionStore.js';
 
 /**
  * POST /api/payment-complete: the ONLY way a purchase becomes credits.
@@ -20,7 +20,7 @@ import { completePaymentOrder, recordPaymentNotice, type CompletionStatus } from
 
 export interface CompletionDeps {
   auth: (authorizationHeader: string | undefined | null) => CompletionAuth;
-  complete: (request: CompletionRequest) => Promise<CompletionStatus | null>;
+  complete: (request: CompletionRequest) => Promise<LinkedCompletionStatus | null>;
   /** Remembers the last non-paid status text for an order (best effort; changes no status, grants nothing). */
   recordNotice: (orderId: string, providerStatus: string) => Promise<void>;
 }
@@ -47,6 +47,12 @@ export async function handlePaymentComplete(rawBody: unknown, headers: Completio
       await deps.recordNotice(parsed.orderId, parsed.providerStatus).catch(() => undefined);
       return errorResult(422, 'payment_not_successful', 'The payment is not confirmed as paid.');
     }
+    if (parsed.reason === 'installments_not_supported') {
+      // DARE supports one payment only (2026-11-25): grant nothing, close nothing. The status text is remembered for manual review.
+      await deps.recordNotice(parsed.orderId, 'installments').catch(() => undefined);
+      console.error('payment_complete_rejected reason=installments_not_supported');
+      return errorResult(422, 'installments_not_supported', 'Payments in installments are not supported.');
+    }
     return errorResult(400, 'invalid_request', 'The completion request is not valid.');
   }
 
@@ -69,7 +75,8 @@ export async function handlePaymentComplete(rawBody: unknown, headers: Completio
     case 'invalid':
       return errorResult(400, 'invalid_request', 'The completion request is not valid.');
     default:
-      // transaction_used_by_other_order | order_already_completed | owner_gone
+      // transaction_used_by_other_order | order_already_completed | owner_gone | link_required | link_missing | link_mismatch
+      // (the last three: the payment link the notification names is not the one DARE bound to the order; nothing was written)
       console.error(`payment_complete_rejected reason=${outcome}`);
       return errorResult(409, outcome, 'The payment cannot be applied to this order.');
   }

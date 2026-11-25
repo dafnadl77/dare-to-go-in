@@ -1,5 +1,6 @@
-import { createHash, createHmac } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { getSupabaseServiceClient } from '../supabaseServiceClient.js';
+import { growLinkConfig, linkTokenHash, MIN_LINK_KEY_LENGTH, type GrowEnvironment, type GrowLinkConfig } from './growLinkHash.js';
 import { COMPLETION_STATUSES } from './completionStore.js';
 import type { CompletionRequest } from './completionRequest.js';
 
@@ -24,37 +25,10 @@ import type { CompletionRequest } from './completionRequest.js';
  * missing or malformed = no configuration = nothing is bound and nothing can complete (fail closed).
  */
 
-export type GrowEnvironment = 'sandbox' | 'production';
-
-export interface GrowLinkConfig {
-  environment: GrowEnvironment;
-  merchant: string;
-  key: string;
-}
-
-export const MIN_LINK_KEY_LENGTH = 32;
-const MERCHANT_REF = /^[a-z0-9][a-z0-9_-]{1,31}$/;
+// The configuration and the token hash live in growLinkHash.ts (no database import); re-exported here unchanged.
+export { growLinkConfig, linkTokenHash, MIN_LINK_KEY_LENGTH, type GrowEnvironment, type GrowLinkConfig };
 export const PROCESS_ID = /^[A-Za-z0-9_-]{1,64}$/;
 export const PROCESS_TOKEN = /^[A-Za-z0-9_-]{8,256}$/;
-const HASH_DOMAIN = 'dare.grow-link-token.v1';
-
-export function growLinkConfig(env: NodeJS.ProcessEnv = process.env): GrowLinkConfig | null {
-  const environment = (env.GROW_ENVIRONMENT ?? '').trim();
-  const merchant = (env.GROW_MERCHANT_REF ?? '').trim();
-  const key = env.GROW_LINK_TOKEN_KEY ?? '';
-  if (environment !== 'sandbox' && environment !== 'production') return null;
-  if (!MERCHANT_REF.test(merchant) || key.length < MIN_LINK_KEY_LENGTH) return null;
-  // Production identifiers only on the production deployment; a Preview or a local run can only ever be a Sandbox.
-  if ((environment === 'production') !== (env.VERCEL_ENV === 'production')) return null;
-  return { environment, merchant, key };
-}
-
-/** The stored form of a process token: 64 hex, bound to environment, merchant and process id. Deterministic for one key. */
-export function linkTokenHash(config: GrowLinkConfig, processId: string, processToken: string): string {
-  return createHmac('sha256', config.key)
-    .update(`${HASH_DOMAIN}\n${config.environment}\n${config.merchant}\n${processId}\n${processToken}`)
-    .digest('hex');
-}
 
 /** What the notice log keeps of a transaction id: its SHA-256 (reconcilable against Grow's report, not the id itself). */
 export function transactionHash(transactionId: string): string {

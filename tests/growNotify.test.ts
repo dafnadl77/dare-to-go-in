@@ -503,11 +503,17 @@ test('wiring: the direct path reaches the database only through the bound comple
   assert.ok(!/completePaymentOrder|recordPaymentNotice/.test(mod), 'no other completion or order write');
   // The one new migration (2026-11-23) is additive: new objects only; nothing existing is altered, dropped or redefined.
   const added = readdirSync(new URL('../supabase/migrations', import.meta.url)).filter((f) => /^2026112[0-9]/.test(f));
-  assert.deepEqual(added, ['20261123_payment_order_links.sql']);
+  assert.deepEqual(added, ['20261123_payment_order_links.sql', '20261125_complete_payment_order_with_link.sql']);
   const sql = strip(read(`supabase/migrations/${added[0]}`)).replace(/--.*$/gm, '');
   assert.ok(!/\balter\s+table\s+(?!public\.payment_order_links|public\.payment_notices)/i.test(sql), 'no existing table altered');
   assert.ok(!/\bdrop\b|\btruncate\b|\bdelete\s+from\b|\bupdate\s+public\./i.test(sql), 'nothing dropped, deleted or updated');
   const fns = [...sql.matchAll(/create or replace function public\.([a-z_]+)/g)].map((m) => m[1]).sort();
   assert.deepEqual(fns, ['bind_payment_order_link', 'complete_bound_payment_order', 'log_payment_notice'], 'only new functions');
   assert.match(sql, /return public\.complete_payment_order\(p_order, p_tx, p_amount, p_currency, p_provider_status\)/, 'the existing completion alone grants');
+  // The second additive migration (2026-11-25, the Make path's link check): one new function, which hands over to the same completion.
+  const second = strip(read(`supabase/migrations/${added[1]}`)).replace(/--.*$/gm, '');
+  assert.ok(!/\balter\s+table\b|\bdrop\b|\btruncate\b|\bdelete\s+from\b|\bupdate\s+public\.|\binsert\s+into\b/i.test(second), 'the link check only reads and delegates');
+  assert.deepEqual([...second.matchAll(/create or replace function public\.([a-z_]+)/g)].map((m) => m[1]), ['complete_payment_order_with_link']);
+  assert.ok(!/grant_credits/.test(second), 'it never grants itself');
+  assert.match(second, /return public\.complete_payment_order\(p_order, p_tx, p_amount, p_currency, p_provider_status\)/, 'the existing completion alone grants');
 });

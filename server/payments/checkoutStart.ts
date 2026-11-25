@@ -6,6 +6,7 @@ import { buildMakeCheckoutPayload, parseMakeWebhookUrl, requestPaymentLink, site
 import { createPaymentOrder, markPaymentOrderLink, type CreateOrderOutcome } from './orderStore.js';
 import { getPurchasedPackage, type PurchasedPackage } from './purchasedPackage.js';
 import { getCreditBalance } from '../dreamAttempts.js';
+import { legacyOrdersBefore } from './completionStore.js';
 import { bindPaymentOrderLink, growLinkConfig, linkTokenHash, type BindOutcome, type LinkIds } from './growLinkBinding.js';
 
 /**
@@ -35,9 +36,21 @@ export interface CheckoutDeps {
   requestLink: (payload: MakeCheckoutPayload) => Promise<MakeCheckoutResult>;
   /** Keeps Grow's link identifiers for this order (growLinkBinding.ts). Answers a fixed outcome word only. */
   bindLink: (orderId: string, ownerId: string, paymentUrl: string, ids: LinkIds) => Promise<LinkBindingOutcome>;
+  /** True once link enforcement is on: a link that could not be bound is then not handed to the customer. Absent = false. */
+  bindingRequired?: () => boolean;
 }
 
 export type LinkBindingOutcome = BindOutcome | 'not_configured' | 'unavailable';
+
+/**
+ * Link enforcement is on as soon as the Grow binding is configured (GROW_ENVIRONMENT, GROW_MERCHANT_REF, GROW_LINK_TOKEN_KEY) or a
+ * cutoff is set. From then on a payment link whose identifiers DARE could not keep is never handed to a customer, so no NEW order can
+ * exist that is payable but unbound: that is what closes the old-format (v1) route for new orders. Orders created before this moment
+ * are the legacy ones and complete as before.
+ */
+export function linkBindingRequired(env: NodeJS.ProcessEnv = process.env): boolean {
+  return legacyOrdersBefore(env) !== undefined || growLinkConfig(env) !== null;
+}
 
 /** The real binding: nothing without a complete Grow configuration; the token is hashed here and never leaves this function. */
 export async function bindCheckoutLink(orderId: string, ownerId: string, paymentUrl: string, ids: LinkIds, env: NodeJS.ProcessEnv = process.env, store = bindPaymentOrderLink): Promise<LinkBindingOutcome> {
@@ -76,6 +89,7 @@ const realDeps: CheckoutDeps = {
   markLink: markPaymentOrderLink,
   requestLink: (payload) => requestPaymentLink(payload),
   bindLink: (orderId, ownerId, paymentUrl, ids) => bindCheckoutLink(orderId, ownerId, paymentUrl, ids),
+  bindingRequired: () => linkBindingRequired(),
 };
 
 export type CheckoutRequest = { ok: true; pkg: PaidPackage; payer: PayerDetails } | { ok: false; field?: PayerField };
@@ -138,9 +152,18 @@ export async function handleStartCheckout(rawBody: unknown, requestHeaders: Requ
   // logged as a fixed word and never changes this answer. The identifiers never reach the browser.
   const ids: MakeLinkIds = link.link ?? { status: 'absent' };
   if (ids.status === 'invalid') console.error('checkout_link_binding outcome=invalid_ids');
+  // Once link enforcement is on (GROW_LEGACY_ORDERS_BEFORE is set), a payment link whose identifiers DARE could not keep would be
+  // paid but could never complete by itself: it is not handed out. The order stays link_created without a binding and unpaid.
+  const bindingRequired = deps.bindingRequired?.() ?? false;
   if (ids.status === 'present') {
     const outcome = await deps.bindLink(order.orderId, verified.userId, link.paymentUrl, ids.ids).catch(() => 'unavailable' as const);
     console.error(`checkout_link_binding outcome=${outcome}`);
+    if (bindingRequired && outcome !== 'bound' && outcome !== 'already_bound') {
+      return errorResult(502, 'checkout_unavailable', 'We could not start the payment. Please try again in a moment.');
+    }
+  } else if (bindingRequired) {
+    console.error('checkout_link_binding outcome=ids_missing_but_required');
+    return errorResult(502, 'checkout_unavailable', 'We could not start the payment. Please try again in a moment.');
   }
   return okResult({ orderId: order.orderId, paymentUrl: link.paymentUrl });
 }
