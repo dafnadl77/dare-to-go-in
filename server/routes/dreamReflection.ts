@@ -257,7 +257,7 @@ export interface GenerateReflectionParams {
 
 /** The model call plus every regeneration check, with no request handling around it. The route and scripts/aiJourneyEval.ts both use exactly this. */
 /** Her words for the attribution check: everything she wrote, the map's answers included. */
-export const attributionContextOf = (p: Pick<GenerateReflectionParams, 'dreamerText' | 'herAnswers' | 'answeredNo' | 'language'>) => ({ herWords: [p.dreamerText, ...(p.herAnswers ?? [])], sourceText: '', language: p.language, answeredNo: p.answeredNo });
+export const attributionContextOf = (p: Pick<GenerateReflectionParams, 'dreamerText' | 'herAnswers' | 'answeredNo' | 'language' | 'emotions'>) => ({ herWords: [p.dreamerText, ...(p.herAnswers ?? [])], sourceText: '', language: p.language, answeredNo: p.answeredNo, feelings: p.emotions?.length ? emotionNamesForModel(p.emotions, p.language) : '' });
 
 export function generateDreamReflection(client: OpenAI, p: GenerateReflectionParams) {
   const instructions = buildDreamReflectionSystemPrompt(p.language, p.addressPreference);
@@ -498,7 +498,7 @@ export async function handleDreamReflection(rawBody: unknown, requestHeaders: Re
     }
     // the fresh answer still says as hers what she did not tell (her rule, 2026-11-08): those fields only are set aside whole and replaced by
     // verified words (verifiedFallback.ts); never a sentence cut, never a third call. Only the field names are logged.
-    const verified = verifiedReflection(outcome.value, attributionContextOf({ dreamerText, herAnswers, answeredNo, language }), { sourceText: dreamAnalysis.sourceText, herAnswers: herAnswers.length ? herAnswers : [reflectionResponse, extras.linkResponse ?? ''].filter(Boolean) });
+    const verified = verifiedReflection(outcome.value, attributionContextOf({ dreamerText, herAnswers, answeredNo, language, emotions }), { sourceText: dreamAnalysis.sourceText, herAnswers: herAnswers.length ? herAnswers : [reflectionResponse, extras.linkResponse ?? ''].filter(Boolean) });
     if (verified.replaced.length) console.warn(`[dream-reflection] shown from verified parts reason=not-her-words-after-retry fields=${verified.replaced.join(',')}`);
     const validated = finalizeDeliveredReflection(verified.value, { emotions, language, depth, dreamerText, summary: dreamAnalysis.summary });
     // DARE's words are checked before they are shown; not passing, or moderation down, = not delivered (the attempt is returned).

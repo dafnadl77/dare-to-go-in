@@ -1,6 +1,6 @@
 import { emotionNamesForModel, normalizeEmotions } from '../hero/dreamEmotions';
 import { addDareTurn, addDreamerTurn, anotherMomentLeft, basedOnKey, beginConversation, completeConversation, createExploration, exploredInOrder, MAX_QUESTIONS_PER_MOMENT, parseExploration, questionsAsked, receiveWholeView } from '../hero/exploration';
-import { checkLabel } from '../hero/claimCheck';
+import { checkMomentTitle } from '../hero/momentTitle';
 import { saysItConnects } from '../hero/conversationTurn';
 
 /**
@@ -649,7 +649,7 @@ export function createDemoRouter(deps: DemoRouterDeps) {
       const elements = Array.isArray(body.elements) ? body.elements.map((e) => String(e)) : [];
       if (body.purpose === 'moments') {
         const used: string[] = [];
-        for (const e of elements) used.push(checkLabel('', e, used, String(body.sourceText ?? '')));
+        for (const e of elements) used.push(checkMomentTitle('', e, used, String(body.sourceText ?? '')));
         return jsonResponse({ labels: used });
       }
       return jsonResponse({ labels: elements });

@@ -43,8 +43,8 @@ export function momentQuestion(label: string, language: AppLanguage): string {
  * answer's own, when it has exactly one sentence that asks (a question states nothing about her, so the check never finds anything in it);
  * otherwise a question about the moment. The offer of the failed answer is not shown.
  */
-export function verifiedTurnText(p: { herLast: string; questions: readonly string[]; label: string; language: AppLanguage }): string {
-  const question = p.questions.length === 1 ? p.questions[0].trim() : momentQuestion(p.label, p.language);
+export function verifiedTurnText(p: { herLast: string; questions: readonly string[]; label: string; language: AppLanguage; /** Used instead of the moment question when that one was already asked (never the same question twice). */ otherQuestion?: string }): string {
+  const question = p.questions.length === 1 ? p.questions[0].trim() : p.otherQuestion ?? momentQuestion(p.label, p.language);
   return [herWordsLine(p.herLast, p.language), question].filter(Boolean).join(' ');
 }
 

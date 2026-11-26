@@ -11,9 +11,11 @@
  * cap (MAP_LIVE_CAP) with its worst case, and written to the cost ledger after. Without an approved cap it does not start.
  * It refuses to run on Vercel or with NODE_ENV=production, and listens on the loopback address only.
  * Run: MAP_LIVE_CAP=0.5 npx tsx scripts/mapJourneyBridge.ts
+ * A new run with its own cap and the raw log (fictional dreams only):
+ *   MAP_LIVE_RUN=map-live-en-1 MAP_LIVE_CAP=0.2 MAP_LIVE_RAW_LOG=1 npx tsx scripts/mapJourneyBridge.ts
  */
 import 'dotenv/config';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import express from 'express';
@@ -25,8 +27,12 @@ if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
   console.error('The map journey bridge refuses to run on Vercel or in production.');
   process.exit(1);
 }
-const RUN = 'map-live-1';
+// A new run gets its own name (MAP_LIVE_RUN), so its cap counts only its own calls: nothing earlier in the ledger is changed or counted against it.
+const RUN = /^map-live-[a-z0-9-]{1,30}$/.test(process.env.MAP_LIVE_RUN ?? '') ? String(process.env.MAP_LIVE_RUN) : 'map-live-1';
 const RUN_CAP = Number(process.env.MAP_LIVE_CAP ?? '0');
+// Optional, local only (MAP_LIVE_RAW_LOG=1, fictional dreams only): what the model wrote for the conversation and the whole view, and what
+// the attribution check found in it, written to logs/ (ignored by Git). Never the request, a key, a header or anything of a real account.
+const RAW_LOG = process.env.MAP_LIVE_RAW_LOG === '1' ? new URL(`../logs/map-live-raw/${RUN}.jsonl`, import.meta.url) : null;
 if (!(RUN_CAP > 0 && RUN_CAP <= 0.5)) {
   console.error('The map journey bridge needs her approved cap (MAP_LIVE_CAP, at most 0.5). Nothing was started, nothing was sent.');
   process.exit(1);
@@ -43,7 +49,8 @@ const { safetyAckOf } = await import('../src/hero/safety/journeySafety.ts');
 const { buildDreamElementLabelSystemPrompt, DREAM_ELEMENT_LABELS_JSON_SCHEMA, validateElementLabels } = await import('../src/hero/dreamElementLabelsSchema.ts');
 const { normalizeLabel } = await import('../src/hero/dreamElementLabelQuality.ts');
 const { momentLabelRules } = await import('../src/hero/explorationSchema.ts');
-const { checkLabel } = await import('../src/hero/claimCheck.ts');
+const { checkMomentTitle } = await import('../src/hero/momentTitle.ts');
+const { unreportedAttribution } = await import('../src/hero/attribution.ts');
 const { containsHebrew } = await import('../src/hero/appLanguage.ts');
 const { normalizeAddressPreference } = await import('../src/hero/addressPreference.ts');
 const { MAX_MOMENT_CALLS, MAX_WHOLE_VIEWS } = await import('../src/hero/exploration.ts');
@@ -64,6 +71,10 @@ const worstOf = (params: Record<string, unknown>) => {
 };
 
 let refusedByBudget = false;
+/** The worst case of every request sent and not answered yet: requests run side by side, so each is counted before it is sent (never over the cap). */
+let inFlightWorst = 0;
+/** What the model wrote during the reflection request being answered (only when RAW_LOG is on). */
+const rawOf = new AsyncLocalStorage<string[]>();
 /** The stage of the request being answered (requests run side by side, so each keeps its own). */
 const stageOf = new AsyncLocalStorage<string>();
 const currentStage = () => stageOf.getStore() ?? 'unknown';
@@ -74,14 +85,22 @@ const guarded = {
     create: async (params: Record<string, unknown>) => {
       const ledger = readLedger();
       const spent = spentRun(ledger);
-      const verdict = mayCall({ worst: worstOf(params), spentRun: spent, runCap: RUN_CAP, stageSpent: spent, stageStop: RUN_CAP });
+      const worst = worstOf(params);
+      const verdict = mayCall({ worst, spentRun: spent + inFlightWorst, runCap: RUN_CAP, stageSpent: spent + inFlightWorst, stageStop: RUN_CAP });
       if (!verdict.ok) {
         console.log(`[map-bridge] REFUSED before sending (${currentStage()}): ${verdict.why}`);
         refusedByBudget = true;
         throw new Error(`budget: ${verdict.why}`);
       }
       const t0 = Date.now();
-      const res = await real.responses.create(params as never);
+      inFlightWorst += worst;
+      let res;
+      try {
+        res = await real.responses.create(params as never);
+      } finally {
+        inFlightWorst -= worst;
+      }
+      rawOf.getStore()?.push(res.output_text ?? '');
       const input = res.usage?.input_tokens ?? 0;
       const output = res.usage?.output_tokens ?? 0;
       const usd = usdOf(res.model || String(params.model), input, output);
@@ -94,6 +113,42 @@ const guarded = {
     },
   },
 } as unknown as OpenAI;
+
+/**
+ * One line per conversation or whole-view request (RAW_LOG only): each attempt the model wrote, the sentences of it the attribution check
+ * finds (with the phrase it found), and what was shown. Her words come from the fictional test journey itself. No request, key or header.
+ */
+function writeRawLog(mode: string, body: Record<string, unknown>, raws: string[], result: { status: number; body: unknown }) {
+  if (!RAW_LOG) return;
+  type Turn = { role: string; text: string; rejection?: boolean; steer?: string };
+  const explored = Object.values(((body.exploration ?? {}) as { explored?: Record<string, { turns?: Turn[]; answer?: string }> }).explored ?? {});
+  const herWords = explored.flatMap((x) => [...(x.turns ?? []).filter((t) => t.role === 'dreamer' && !t.rejection && !t.steer).map((t) => t.text), x.answer ?? '']).filter(Boolean);
+  const sourceText = String(((body.dreamAnalysis ?? {}) as { sourceText?: unknown }).sourceText ?? '');
+  const language = body.language === 'he' ? 'he' : 'en';
+  const attempts = raws.map((raw) => {
+    let parsed: { reply?: string; offer?: string } = {};
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      /* kept as text */
+    }
+    const text = [parsed.reply, parsed.offer].filter(Boolean).join(' ') || raw;
+    const flagged = text
+      .split(/(?<=[.!?…])\s+|\n+/u)
+      .map((x) => x.trim())
+      .filter(Boolean)
+      .flatMap((sentence) => {
+        const found = unreportedAttribution(sentence, { herWords, sourceText, language });
+        return found ? [{ sentence, found }] : [];
+      });
+    return { raw, flagged };
+  });
+  const shown = (result.body as { turn?: { text?: string; offer?: string } })?.turn;
+  const line = { at: new Date().toISOString(), run: RUN, mode, status: result.status, attempts, shown: shown ? [shown.text, shown.offer].filter(Boolean).join(' ') : null };
+  mkdirSync(new URL('.', RAW_LOG), { recursive: true });
+  appendFileSync(RAW_LOG, `${JSON.stringify(line)}\n`);
+  console.log(`[map-bridge] raw log: ${mode} attempts=${attempts.length} flagged=${attempts.map((a) => a.flagged.length).join('/')}`);
+}
 
 const budgetReply = (res: express.Response) => res.status(402).json({ reason: 'budget_reached', message: 'The live test budget does not allow this request; nothing was sent.' });
 
@@ -157,7 +212,7 @@ app.post('/api/dream-element-labels', async (req, res) => {
     if (moments && containsHebrew(sourceText) === (language === 'he')) {
       const used: string[] = [];
       labels = labels.map((l, i) => {
-        const c = checkLabel(l, elements[i], used, sourceText);
+        const c = checkMomentTitle(l, elements[i], used, sourceText);
         used.push(c);
         return c;
       });
@@ -176,7 +231,8 @@ app.post('/api/dream-reflection', async (req, res) => {
   if (mode !== 'conversation-turn' && mode !== 'conversation-summary') return void res.status(404).json({ reason: 'request_failed', message: 'map bridge: only the map journey' });
   stageOf.enterWith(mode);
   refusedByBudget = false;
-  const result = await handleExploration(mode, req.body, {}, {
+  const raws: string[] = [];
+  const result = await rawOf.run(raws, () => handleExploration(mode, req.body, {}, {
     ...realExplorationDeps,
     resolveIdentity: async () => ({ ok: true, identity: { kind: 'user', userId: 'local-test' } }) as never,
     openai: () => guarded,
@@ -186,7 +242,8 @@ app.post('/api/dream-reflection', async (req, res) => {
     reserveWhole: async (attemptId) => (slot(attemptId).wholes >= MAX_WHOLE_VIEWS ? 'rejected' : ((slot(attemptId).wholes += 1), 'reserved')),
     refundWhole: async (attemptId) => void (slot(attemptId).wholes = Math.max(0, slot(attemptId).wholes - 1)),
     address: async () => address,
-  });
+  }));
+  if (RAW_LOG) writeRawLog(mode, req.body, raws, result);
   const budget = refusedByBudget;
   refusedByBudget = false;
   if (budget && result.status >= 500) return void budgetReply(res);

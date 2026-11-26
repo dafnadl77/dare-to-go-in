@@ -64,7 +64,8 @@ test('the moment titles ride on the existing labels route (no new function), wit
   const route = read('server/routes/dreamElementLabels.ts');
   assert.match(route, /body\.purpose === 'moments'/);
   assert.match(route, /momentLabelRules\(language\)/);
-  assert.match(route, /checkLabel\(/);
+  assert.match(route, /checkMomentTitle\(/);
+  assert.match(read('src/hero/momentTitle.ts'), /checkLabel\(/, 'which wraps the existing code check');
   assert.match(route, /dareWordsSafe\(labels/, 'the checked titles are what the safety check reads');
   assert.match(read('src/hero/dreamElementLabels.ts'), /getMomentLabels[\s\S]*'moments'/);
   assert.equal(readFileSync('vercel.json', 'utf8').includes('dream-exploration'), false);

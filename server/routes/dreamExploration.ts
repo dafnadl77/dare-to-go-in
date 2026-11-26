@@ -68,10 +68,10 @@ import {
   asksHer,
   MAX_QUESTIONS_PER_MOMENT,
 } from '../../src/hero/exploration.js';
-import { stillUnverified, thinWholeViewLine, verifiedClosingText, verifiedTurnText } from '../../src/hero/verifiedFallback.js';
+import { momentQuestion, stillUnverified, thinWholeViewLine, verifiedClosingText, verifiedTurnText } from '../../src/hero/verifiedFallback.js';
 import { isUnsureAnswer } from '../../src/hero/hebrewText.js';
 import { attributionNote, questionTakesForGranted } from '../../src/hero/attribution.js';
-import { buildTurnInput, buildTurnSystemPrompt, checkTurn, fallbackReply, fallbackSummaryLine, wordsOfHerSummary, parseTurn, TURN_JSON_SCHEMA, turnSignals, type TurnRaw } from '../../src/hero/conversationTurn.js';
+import { buildTurnInput, buildTurnSystemPrompt, checkTurn, fallbackReply, fallbackSummaryLine, pickFallbackQuestion, wordsOfHerSummary, parseTurn, TURN_JSON_SCHEMA, turnSignals, type TurnRaw } from '../../src/hero/conversationTurn.js';
 import { herWordsForSafety, safetyAckOf } from '../../src/hero/safety/journeySafety.js';
 import { realModerate, type Moderate } from '../safety/moderation.js';
 import { aiRequestKey, realAiRequests, type AiRequestDeps } from '../aiRequestStore.js';
@@ -670,6 +670,9 @@ export async function generateConversationTurn(client: OpenAI, ctx: DreamContext
   const lastIsHers = turnsNow[turnsNow.length - 1]?.role === 'dreamer' && !turnsNow[turnsNow.length - 1]?.rejection && !turnsNow[turnsNow.length - 1]?.steer;
   const avoidAnchors = turnsNow.flatMap((t, i) => (t.role === 'dare' && t.anchors && (t.rejected || ((signals.meaningDoubt || signals.steer === 'shift') && i === turnsNow.length - 2)) ? t.anchors : []));
   const cc = { ...conversationContext(ctx, e), avoidAnchors, herLatest: lastIsHers ? herLast : '' };
+  // the plain question is never one already asked in this journey, and after "change direction" or "it does not fit" it opens another angle (2026-11-17)
+  const askedHere = [...cc.questions, ...turnsNow.filter((t) => t.role === 'dare').flatMap((t) => `${t.text} ${t.offer ?? ''}`.split(/(?<=[.!?…])\s+/u)).filter((q) => q.includes('?'))];
+  const freshQuestion = () => pickFallbackQuestion(ctx.language, askedHere, signals.steer === 'shift' || signals.rejectedNow);
   const shown = (raw: TurnRaw) => {
     const c = checkTurn(raw, cc);
     return [c.reply, c.offer].filter(Boolean);
@@ -691,7 +694,7 @@ export async function generateConversationTurn(client: OpenAI, ctx: DreamContext
       extraCheck: (v) => safety(ctx, shown(v)),
       // what is said about her that she never told, DARE's first person, a work's content (2026-11-07): one fresh answer at most. When the fresh
       // answer still fails, it is not shown as it is and nothing is cut out of it: `unverified` below builds the turn from verified parts only.
-      qualityCheck: (v) => mixedPluralNote(shown(v), ctx.dreamerText) ?? garbledTextNote(shown(v)) ?? (asksNothing(v) ? NO_QUESTION_NOTE : null) ?? attributionNote(shown(v), { herWords: cc.herWords, sourceText: ctx.sourceText, language: ctx.language, answeredNo: cc.answeredNo }),
+      qualityCheck: (v) => mixedPluralNote(shown(v), ctx.dreamerText) ?? garbledTextNote(shown(v)) ?? (asksNothing(v) ? NO_QUESTION_NOTE : null) ?? attributionNote(shown(v), { herWords: cc.herWords, sourceText: ctx.sourceText, language: ctx.language, answeredNo: cc.answeredNo, feelings: ctx.feelings }),
       maxQualityRetries: 1,
       rejectExhaustedQuality: true,
     },
@@ -703,7 +706,7 @@ export async function generateConversationTurn(client: OpenAI, ctx: DreamContext
   // the fresh answer still says as hers what she did not tell (her rule, 2026-11-08): set aside as a whole, never cut, never a third call.
   // What she sees instead: her own words and one question (a turn), her words and the thanks (a closing), her words moment by moment (the
   // whole view). Only the reason is logged, never a word.
-  const about = { herWords: cc.herWords, sourceText: ctx.sourceText, language: ctx.language, answeredNo: cc.answeredNo };
+  const about = { herWords: cc.herWords, sourceText: ctx.sourceText, language: ctx.language, answeredNo: cc.answeredNo, feelings: ctx.feelings };
   const unverified = outcome.status === 'quality_failed' && !odd && stillUnverified(shown(outcome.value), about);
   if (unverified) console.warn(`[${p.kind === 'turn' ? 'conversation-turn' : 'conversation-summary'}] shown from verified parts reason=not-her-words-after-retry`);
   // DARE's words are checked before they are shown (doc 106): its own check and moderation (doc 110). If either fails, the check
@@ -723,22 +726,22 @@ export async function generateConversationTurn(client: OpenAI, ctx: DreamContext
   const herSummary = p.kind === 'summary' ? wordsOfHerSummary(p.earlier, ctx.language) : null;
   const emptied = p.kind === 'summary' && checked.reply === fallbackReply(ctx.language);
   if (p.kind === 'summary' && (odd || emptied)) console.warn(`[conversation-summary] shown in her own words reason=${odd ? 'quality' : 'nothing-left-after-check'} moments=${p.earlier.length}`);
-  const plainLine = p.kind === 'summary' ? herSummary ?? (unverified ? thinWholeViewLine(ctx.language) : fallbackSummaryLine(ctx.language)) : fallbackReply(ctx.language);
+  const plainLine = p.kind === 'summary' ? herSummary ?? (unverified ? thinWholeViewLine(ctx.language) : fallbackSummaryLine(ctx.language)) : freshQuestion();
   // a turn from verified parts: the failed answer's own single question when it asks one and states nothing unverified, else one about the moment
   // (kept only when it takes nothing for granted that she never told, read strictly, 2026-11-08; else a neutral one about the moment)
   const ownQuestions = [checked.reply, checked.offer ?? ''].flatMap((t) => t.split(/(?<=[.!?…])\s+/u)).map((x) => x.trim()).filter((x) => x && asksHer(x) && !questionTakesForGranted(x, about));
-  const verifiedLine = p.kind === 'turn' ? verifiedTurnText({ herLast: lastIsHers ? herLast : '', questions: ownQuestions, label: p.moment.label, language: ctx.language }) : plainLine;
+  const verifiedLine = p.kind === 'turn' ? verifiedTurnText({ herLast: lastIsHers ? herLast : '', questions: ownQuestions, label: p.moment.label, language: ctx.language, otherQuestion: askedHere.some((q) => q.includes(momentQuestion(p.moment.label, ctx.language))) ? freshQuestion() : undefined }) : plainLine;
   const shownTurn: ConversationTurn = odd || unsafe
     ? { role: 'dare', text: plainLine, move: 'reflect' }
     : unverified
     ? { role: 'dare', text: verifiedLine, move: p.kind === 'summary' ? 'summarize' : 'ask' }
-    : { role: 'dare', text: p.kind === 'summary' && checked.reply === fallbackReply(ctx.language) ? plainLine : checked.reply, move: checked.move, ...(checked.offer ? { offer: checked.offer, anchors: checked.anchors } : {}) };
+    : { role: 'dare', text: checked.reply === fallbackReply(ctx.language) && !checked.offer ? plainLine : checked.reply, move: checked.move, ...(checked.offer ? { offer: checked.offer, anchors: checked.anchors } : {}) };
   // every turn of the conversation ends with one question (2026-11-04): still none after the one retry, the plain question ends it
   const turn: ConversationTurn =
     p.kind === 'turn' && p.request !== 'close' && questionsIn(shownTurn) === 0
       ? shownTurn.offer
-        ? { ...shownTurn, offer: `${shownTurn.offer} ${fallbackReply(ctx.language)}` }
-        : { ...shownTurn, text: `${shownTurn.text} ${fallbackReply(ctx.language)}`.trim() }
+        ? { ...shownTurn, offer: `${shownTurn.offer} ${freshQuestion()}` }
+        : { ...shownTurn, text: `${shownTurn.text} ${freshQuestion()}`.trim() }
       : shownTurn;
   return { status: 'ok' as const, value: { turn, dropped: checked.dropped, fixed: checked.fixed, takeaways: { mine: unsafe || odd ? [] : checked.mine, ideas: unsafe || odd ? [] : checked.ideas, open: unsafe || odd ? [] : checked.open } } };
 }
