@@ -1,5 +1,5 @@
 import { errorResult, okResult, type HandlerResult } from '../httpResult.js';
-import { checkCompletionAuth, type CompletionAuth } from './completionAuth.js';
+import { checkCompletionAuth, previousSecretState, type CompletionAuth } from './completionAuth.js';
 import { parseCompletionRequest, type CompletionRequest } from './completionRequest.js';
 import { completePaymentOrder, recordPaymentNotice, type LinkedCompletionStatus } from './completionStore.js';
 
@@ -23,10 +23,13 @@ export interface CompletionDeps {
   complete: (request: CompletionRequest) => Promise<LinkedCompletionStatus | null>;
   /** Remembers the last non-paid status text for an order (best effort; changes no status, grants nothing). */
   recordNotice: (orderId: string, providerStatus: string) => Promise<void>;
+  /** Whether the rotation slot (MAKE_COMPLETION_SECRET_PREVIOUS) is unset, active or set but not accepted. Absent = unset. */
+  previousSecretState?: () => 'unset' | 'active' | 'set_but_unusable';
 }
 
 const realDeps: CompletionDeps = {
   auth: (header) => checkCompletionAuth(header),
+  previousSecretState: () => previousSecretState(),
   complete: completePaymentOrder,
   recordNotice: recordPaymentNotice,
 };
@@ -38,7 +41,13 @@ export interface CompletionHeaders {
 export async function handlePaymentComplete(rawBody: unknown, headers: CompletionHeaders, deps: CompletionDeps = realDeps): Promise<HandlerResult> {
   const auth = deps.auth(headers.authorization);
   if (auth === 'not_configured') return errorResult(503, 'not_configured', 'Payment completion is not configured.');
-  if (auth !== 'ok') return errorResult(401, 'not_authenticated', 'Unauthorized.');
+  if (auth !== 'ok' && auth !== 'ok_previous') {
+    // Rotation aid: the slot holds a value that is NOT accepted (short or equal to the primary). Fixed words only, never a value.
+    if (deps.previousSecretState?.() === 'set_but_unusable') console.error('payment_complete_auth previous_secret=unusable');
+    return errorResult(401, 'not_authenticated', 'Unauthorized.');
+  }
+  // Rotation aid: Make still sends the old secret. Remove MAKE_COMPLETION_SECRET_PREVIOUS only once this line stops appearing.
+  if (auth === 'ok_previous') console.error('payment_complete_auth matched=previous');
 
   const parsed = parseCompletionRequest(rawBody);
   if (!parsed.ok) {
